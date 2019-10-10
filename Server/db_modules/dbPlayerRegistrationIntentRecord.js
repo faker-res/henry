@@ -159,16 +159,25 @@ var dbPlayerRegistrationIntentRecord = {
                                             require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(data, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
                                         }
                                         if (status === constProposalStatus.SUCCESS || status === constProposalStatus.MANUAL || status === constProposalStatus.NOVERIFY) {
+                                            let endTime = new Date();
+                                            let startTime = dbUtil.getOneMonthAgoSGTime(endTime);
+
                                             let updateQuery = {
                                                 _id: ObjectId(newProposal._id),
                                                 createTime: newProposal.createTime
                                             };
                                             let updateOldProposalQuery = {
+                                                createTime: {$gte: startTime, $lt: endTime},
                                                 $or: [
-                                                    {'data.playerName': newProposal.data.playerName},
-                                                    {'data.phoneNumber': newProposal.data.phoneNumber}
+                                                    {'data.playerName': newProposal.data.playerName}
                                                 ]
                                             };
+
+                                            if (newProposal.data.phoneNumber) {
+                                                updateOldProposalQuery.$or.push(
+                                                    {'data.phoneNumber': newProposal.data.phoneNumber}
+                                                );
+                                            }
 
                                             // requirement by echo
                                             // 1.同账号 不同手机号尝试开户；
