@@ -366,6 +366,7 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
+        let ObjId = proposal._id;
 
         let emailContents = {
             playerName,
@@ -379,6 +380,7 @@ let dbEmailAudit = {
             comment,
             platformName,
             createTime,
+            ObjId
         };
 
         let setting = await dbEmailAudit.getAuditManualRewardSetting(platformObjId);
@@ -449,7 +451,7 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
-
+        let hasMsgID;
         let emailContents = {
             playerName,
             realName,
@@ -514,6 +516,18 @@ let dbEmailAudit = {
             isHTML: true
         };
 
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].messageId){
+            emailConfig.messageId = proposalProm[0].messageId;
+            hasMsgID = true;
+        }
+
         return emailer.sendEmail(emailConfig);
     },
 
@@ -570,7 +584,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
-
+        let ObjId = proposal._id;
         let emailContents = {
             playerName,
             realName,
@@ -583,6 +597,7 @@ let dbEmailAudit = {
             proposalId,
             platformName,
             createTime,
+            ObjId
         };
 
         let setting = await dbEmailAudit.getAuditRepairTransferSetting(platform._id);
@@ -648,7 +663,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
-
+        let hasMsgID;
         let emailContents = {
             playerName,
             realName,
@@ -712,6 +727,18 @@ let dbEmailAudit = {
             body: html, // html content
             isHTML: true
         };
+
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].messageId){
+            emailConfig.messageId = proposalProm[0].messageId;
+            hasMsgID = true;
+        }
 
         return emailer.sendEmail(emailConfig);
     },
@@ -995,7 +1022,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle, step
 async function sendAuditManualRewardEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditManualRewardEmailSubject(emailName, emailContents.createTime, emailContents.rewardAmount, emailContents.playerName);
     let html = generateAuditManualRewardEmail(emailContents, allRecipientEmail, subject);
-
+    let hasMsgID = false;
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -1027,11 +1054,36 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
         emailConfig.replyTo = allEmailStr;
     }
 
+    console.log('email content...', emailContents);
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    console.log('get proposal...', proposalProm);
+    if(proposalProm.length > 0 && proposalProm[0].messageId){
+        emailConfig.messageId = proposalProm[0].messageId;
+        hasMsgID = true;
+    }
+
     console.log(`sending audit email, AuditManualReward, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-
     let emailResult = await emailer.sendEmail(emailConfig);
-
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
+    console.log('get proposal...', proposalProm);
+    if(!hasMsgID){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+
+
+    }
     return emailResult;
 }
 
@@ -1138,7 +1190,7 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle, step
 async function sendAuditRepairTransferEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditRepairTransferEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditRepairTransferEmail(emailContents, allRecipientEmail, subject);
-
+    let hasMsgID = false;
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -1170,11 +1222,31 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
         emailConfig.replyTo = allEmailStr;
     }
 
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    if(proposalProm.length > 0 && proposalProm[0].messageId){
+        emailConfig.messageId = proposalProm[0].messageId;
+        hasMsgID = true;
+    }
+
     console.log(`sending audit email, AuditRepairTransfer, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-
     let emailResult = await emailer.sendEmail(emailConfig);
-
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
+    if(!hasMsgID){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+    }
     return emailResult;
 }
 
