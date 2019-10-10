@@ -211,7 +211,6 @@ let dbEmailAudit = {
     },
 
     async sendCreditChangeUpdate (proposal) {
-        console.log('audit update proposal...', proposal);
         if (!proposal || !proposal.data) {
             return;
         }
@@ -229,6 +228,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
+        let hasMsgID;
 
         let emailContents = {
             playerName,
@@ -244,8 +244,6 @@ let dbEmailAudit = {
         };
 
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
-
-        console.log('audit update setting...', setting);
         if (!setting) {
             return;
         }
@@ -256,7 +254,6 @@ let dbEmailAudit = {
 
         let recipients = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
 
-        console.log('audit update recipients...', recipients);
         if (!recipients || !recipients.length) {
             return;
         }
@@ -265,15 +262,12 @@ let dbEmailAudit = {
             return recipient.email;
         });
 
-        console.log('audit update allRecipientEmail...', allRecipientEmail);
         let subject = getAuditCreditChangeEmailSubject(setting.emailNameExtension, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
 
         let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
-        console.log('audit update allEmailStr...', allEmailStr);
         let proposalProcessData = await dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
 
-        console.log('audit update proposalProcessData...', proposalProcessData);
         let processStep;
         if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
             processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
@@ -298,6 +292,18 @@ let dbEmailAudit = {
             body: html, // html content
             isHTML: true
         };
+
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].messageId){
+            emailConfig.messageId = proposalProm[0].messageId;
+            hasMsgID = true;
+        }
 
         return emailer.sendEmail(emailConfig);
     },
@@ -870,7 +876,6 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
             message: "Error in getting proposal data",
         });
     }
-    console.log('get proposal...', proposalProm);
     if(proposalProm.length > 0 && proposalProm[0].messageId){
         emailConfig.messageId = proposalProm[0].messageId;
         hasMsgID = true;
@@ -881,9 +886,16 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
     let emailResult = await emailer.sendEmail(emailConfig);
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
-    console.log('email result', emailResult);
     if(!hasMsgID){
-        await dbconfig.collection_proposal.update({_id: emailContents.ObjId}, {$set: {messageId: emailResult.messageId}}).lean();
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+
+
     }
     return emailResult;
 }
