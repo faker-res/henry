@@ -413,6 +413,108 @@
             #playerReportTablePage
             table.common-table#playerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
+
+        div(ng-if='vm.showPageName=="DEVICE_REPORT"')
+            .col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.deviceQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.deviceQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
+                    label {{'LEVEL' | translate}}
+                    select.form-control(ng-model="vm.deviceQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
+                        option(value='') {{'any' | translate}}
+                .search-filters-item
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.deviceQuery.providerId', style='max-width:300px', required)
+                        option(value='') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
+                .search-filters-item
+                    label {{'Start date' | translate}}
+                        .startTime
+                    #deviceStartingDateTimePicker
+                .search-filters-item
+                    label {{'End date' | translate}}
+                        .endTime
+                    #deviceEndingEndDateTimePicker
+                .search-filters-item
+                    label {{'Player Name' | translate}}
+                    input.form-control(ng-model="vm.deviceQuery.name")
+                .search-filters-item
+                    label {{"csPromoteWay"|translate}}
+                    select.spicker.form-control(ng-model='vm.deviceQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                .search-filters-item
+                    label {{"Login Device"|translate}}
+                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.consumptionTimesOperator === "range")}')
+                    label {{"Consumption Times"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.deviceQuery.consumptionTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.consumptionTimesValue")
+                            div.symbol(ng-if="vm.deviceQuery.consumptionTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.consumptionTimesValueTwo" ng-if="vm.deviceQuery.consumptionTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.profitAmountOperator === "range")}')
+                    label {{"PLAYER_PROFIT_AMOUNT"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.profitAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.profitAmountValue")
+                        div.symbol(ng-if="vm.deviceQuery.profitAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.profitAmountValueTwo"  ng-if="vm.deviceQuery.profitAmountOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.topUpTimesOperator === "range")}')
+                    label {{"TOP_UP_TIMES"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpTimesValue")
+                        div.symbol(ng-if="vm.deviceQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpTimesValueTwo" ng-if="vm.deviceQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.bonusTimesOperator === "range")}')
+                    label {{"BonusTime"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.bonusTimesValue")
+                        div.symbol(ng-if="vm.deviceQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.bonusTimesValueTwo" ng-if="vm.deviceQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.topUpAmountOperator === "range")}')
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpAmountValue" )
+                        div.symbol(ng-if="vm.deviceQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpAmountValueTwo" ng-if="vm.deviceQuery.topUpAmountOperator === 'range'")
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDeviceReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchDeviceReport(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.reCalculateDeviceReportSummary()') {{'RECALCULATE' | translate}}
+                    span#loadingDeviceReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.deviceQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            table.common-table#deviceReportTable.display(style="width:100% ;overflow-x: scroll")
+            #deviceReportTablePage
+            table.common-table#deviceReportExcelTable.display(style="width:100% ;overflow-x: scroll")
+
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
             .col-md-12.well
                 .search-filters-item

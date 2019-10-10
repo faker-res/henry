@@ -161,6 +161,35 @@ var dbPlayerTopUpDaySummary = {
 
     },
 
+    reCalculateDeviceReportSummary: function(platformId, start, end, playerName){
+        if(!platformId || !start || ! end){
+            return;
+        }
+
+        let p = Promise.resolve();
+        let startTime = new Date(start);
+        let endTime = new Date(end);
+
+        startTime.setHours(0, 0, 0, 0);
+        endTime.setHours(0, 0, 0, 0);
+
+        let diffInDays = dbutility.getNumberOfDays(startTime, endTime);
+        let yesterdayTime = dbutility.getYesterdaySGTime();
+
+        for(let i = 0; i <= diffInDays; i ++){
+            let startDate = new Date(startTime);
+            startDate.setDate(startTime.getDate() + i);
+            startDate = dbutility.getDayStartTime(startDate);
+            let endDate = dbutility.getNextOneDaySGTime(startDate);
+
+            if ((startDate.getTime() < new Date(end).getTime()) && (endDate.getTime() <= yesterdayTime.startTime.getTime()))  {
+                p = p.then(() => dbPlayerTopUpDaySummary.calculatePlayerReportDaySummaryForTimeFrame(startDate, endDate, platformId, playerName, true));
+            }
+        }
+
+        return p;
+    },
+
     reCalculateWinRateReportSummary: function(platformList, start, end){
         if(!start || ! end){
             return;
