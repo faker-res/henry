@@ -24,56 +24,60 @@ div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 
             tbody
                 tr
                     td
-                        input(ng-model='vm.placeHolder1' size=5)
+                        input(ng-model='vm.fakeRecordQuery.prefix' size=5)
                     td
-                        input(type='number' min='0' ng-model='vm.placeHolder2' max=25)
+                        input(type='number' min='0' ng-model='vm.fakeRecordQuery.nameLengthMin' max=25)
+                        text &nbsp;≤&nbsp;
+                        input(type='number' min='0' ng-model='vm.fakeRecordQuery.nameLengthMax' max=25)
                     td
-                        input(type="checkbox" id="fakeCommUseAlphabet")
+                        input#fakeCommUseAlphabet(type="checkbox")
                         text 字母
                         br
-                        input(type="checkbox" id="fakeCommUseDigit")
+                        input#fakeCommUseDigit(type="checkbox")
                         text 数字
                     td
-                        input.width-5em(type="number" ng-model='vm.placeHolder3')
+                        input.width-5em(type="number" ng-model='vm.fakeRecordQuery.commissionMin')
                         br
-                        text <
+                        text ≤
                         br
-                        input.width-5em(type='number' ng-model='vm.placeHolder4')
+                        input.width-5em(type='number' ng-model='vm.fakeRecordQuery.commissionMax')
                     td
-                        input(type='number' ng-model='vm.placeHolder5' step="1" min=1 max=999)
+                        input(type='number' ng-model='vm.fakeRecordQuery.recordAmount' step="1" min=1 max=999)
                     td
-                        input(type="checkbox" id="fakeCommUsePeriodicChanges")
+                        input#fakeCommUseFluctuation(type="checkbox")
                     td
-                        select.form-control(ng-model='vm.placeHolder6')
-                            option(value='0') {{"ratio"|translate}}
-                            option(value='1') {{"value"|translate}}
+                        select.form-control(ng-model='vm.fakeRecordQuery.fluctuationType')
+                            option(value='0') {{"value"|translate}}
+                            option(value='1') {{"ratio"|translate}}
                     td
-                        input.width-5em(type="number" ng-model='vm.placeHolder7')
+                        input.width-5em(type="number" ng-model='vm.fakeRecordQuery.fluctuationLow')
                         br
-                        text <
+                        text ≤
                         br
-                        input.width-5em(type='number' ng-model='vm.placeHolder8')
+                        input.width-5em(type='number' ng-model='vm.fakeRecordQuery.fluctuationHigh')
                     td
-                        input(type="checkbox" id="fakeCommChangeOnMonday")
+                        input#fakeCommChangeOnSunday(type="checkbox")
+                        text 日
+                        br
+                        input#fakeCommChangeOnMonday(type="checkbox")
                         text 一
                         br
-                        input(type="checkbox" id="fakeCommChangeOnTuesday")
+                        input#fakeCommChangeOnTuesday(type="checkbox")
                         text 二
                         br
-                        input(type="checkbox" id="fakeCommChangeOnWednesday")
+                        input#fakeCommChangeOnWednesday(type="checkbox")
                         text 三
                         br
-                        input(type="checkbox" id="fakeCommChangeOnThursday")
+                        input#fakeCommChangeOnThursday(type="checkbox")
                         text 四
                         br
-                        input(type="checkbox" id="fakeCommChangeOnFriday")
+                        input#fakeCommChangeOnFriday(type="checkbox")
                         text 五
                         br
-                        input(type="checkbox" id="fakeCommChangeOnSaturday")
+                        input#fakeCommChangeOnSaturday(type="checkbox")
                         text 六
-                        br
-                        input(type="checkbox" id="fakeCommChangeOnSunday")
-                        text 日
+    .pull-right.padding-top-5
+        .btn.btn-primary.common-button(ng-click="vm.generateFakeRecord()") {{ "CREATE" | translate }}
 
     div.padding-top-5em
         input(type="checkbox" id="vm.onlyFakeRecord")

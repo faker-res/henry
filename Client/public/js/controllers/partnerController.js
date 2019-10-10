@@ -17326,6 +17326,8 @@ define(['js/app'], function (myApp) {
                         pageObj: {}
                     };
 
+                    vm.fakeRecordQuery = {};
+
                     utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
                         vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
                             commonPageChangeHandler(curP, pageSize, "commissionBillboardQuery", vm.getPartnerCommissionBillBoard);
@@ -17353,6 +17355,49 @@ define(['js/app'], function (myApp) {
             vm.commissionFakeBillboardQuery.period = vm.commissionBillboardPeriod;
             vm.getPartnerCommissionBillBoard(true);
             vm.getPartnerFakeCommissionBillBoard(true);
+        }
+
+        vm.generateFakeRecord = (isConfirm) => {
+            // todo :: add some simple validation errors
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+            let query = {
+                platform: vm.platformInSetting._id,
+                period: vm.commissionBillboardPeriod,
+                recordAmount: vm.fakeRecordQuery.recordAmount,
+                prefix: vm.fakeRecordQuery.prefix,
+                nameLengthMin: vm.fakeRecordQuery.nameLengthMin,
+                nameLengthMax: vm.fakeRecordQuery.nameLengthMax,
+                useAlphabet: $('#fakeCommUseAlphabet').prop('checked'),
+                useNumber: $('#fakeCommUseDigit').prop('checked'),
+                commissionMin: vm.fakeRecordQuery.commissionMin,
+                commissionMax: vm.fakeRecordQuery.commissionMax,
+                useFluctuation: $('#fakeCommUseFluctuation').prop('checked'),
+                fluctuationType: vm.fakeRecordQuery.fluctuationType,
+                fluctuationLow: vm.fakeRecordQuery.fluctuationLow,
+                fluctuationHigh: vm.fakeRecordQuery.fluctuationHigh,
+                flucOnSunday: $('#fakeCommChangeOnSunday').prop('checked'),
+                flucOnMonday: $('#fakeCommChangeOnMonday').prop('checked'),
+                flucOnTuesday: $('#fakeCommChangeOnTuesday').prop('checked'),
+                flucOnWednesday: $('#fakeCommChangeOnWednesday').prop('checked'),
+                flucOnThursday: $('#fakeCommChangeOnThursday').prop('checked'),
+                flucOnFriday: $('#fakeCommChangeOnFriday').prop('checked'),
+                flucOnSaturday: $('#fakeCommChangeOnSaturday').prop('checked')
+            };
+            $scope.$socketPromise('createFakeCommissionBBRecord', query).then(
+                data => {
+                    console.log('createFakeCommissionBBRecord data', data)
+                    socketService.showConfirmMessage($translate("Created successfully"), 3000);
+                    vm.getPartnerCommissionBillBoard(true);
+                    vm.getPartnerFakeCommissionBillBoard(true);
+                }
+            );
         }
 
         vm.getPartnerCommissionBillBoard = function (newSearch) {

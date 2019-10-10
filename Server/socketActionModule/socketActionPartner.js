@@ -693,7 +693,33 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.adminGetPartnerCommissionBillBoard, [data.platformObjId, data.period, data.count, data.index, data.containFakeRecord], actionName, isValidData);
         },
 
-
+        createFakeCommissionBBRecord: function createFakeCommissionBBRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.period && data.recordAmount && data.prefix && data.nameLengthMin && data.nameLengthMax && (data.useAlphabet || data.useNumber) && (data.commissionMin || data.commissionMax));
+            socketUtil.emitter(self.socket, dbPartner.createFakeCommissionBBRecord, [
+                data.platform,
+                data.period,
+                data.recordAmount,
+                data.prefix,
+                data.nameLengthMin,
+                data.nameLengthMax,
+                data.useAlphabet,
+                data.useNumber,
+                data.commissionMin,
+                data.commissionMax,
+                data.useFluctuation,
+                data.fluctuationType,
+                data.fluctuationLow,
+                data.fluctuationHigh,
+                data.flucOnSunday,
+                data.flucOnMonday,
+                data.flucOnTuesday,
+                data.flucOnWednesday,
+                data.flucOnThursday,
+                data.flucOnFriday,
+                data.flucOnSaturday
+            ], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;

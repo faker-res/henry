@@ -8348,6 +8348,59 @@ let dbPartner = {
         return dbPartner.retrieveCalculatedPartnerCommissionBillBoard(platformObj, periodCheck, partnerObj, totalRecord, commissionBB);
     },
 
+    async createFakeCommissionBBRecord (platform, period, recordAmount = 1, prefix, nameLengthMin, nameLengthMax, useAlphabet, useNumber, commissionMin, commissionMax, useFluctuation, fluctuationType, fluctuationLow, fluctuationHigh,
+                                        flucOnSunday, flucOnMonday, flucOnTuesday, flucOnWednesday, flucOnThursday, flucOnFriday,flucOnSaturday) {
+        for (let i = 0; i < recordAmount; i++) {
+            let name = dbPartner.generateFakeName(prefix, nameLengthMin, nameLengthMax, useAlphabet, useNumber);
+            let commissionAmount = dbutility.generateRandomNumberBetweenRange(commissionMin, commissionMax, 2);
+            let record = await dbconfig.collection_fakeCommissionBillBoardRecord({
+                platform,
+                insertDate: new Date(),
+                period,
+                name,
+                commissionAmount,
+                lastAmountUpdate: new Date(),
+                useFluntuation,
+                fluctuationType,
+                fluctuationLow,
+                fluctuationHigh,
+                flucOnSunday: Boolean(flucOnSunday),
+                flucOnMonday: Boolean(flucOnMonday),
+                flucOnTuesday: Boolean(flucOnTuesday),
+                flucOnWednesday: Boolean(flucOnWednesday),
+                flucOnThursday: Boolean(flucOnThursday),
+                flucOnFriday: Boolean(flucOnFriday),
+                flucOnSaturday: Boolean(flucOnSaturday)
+            }).save();
+        }
+    },
+
+    generateFakeName (prefix, lengthMin, lengthMax, useAlphabet, useNumber) {
+        let alphabets = "abcdefghijklmnopqrstuvwxyz";
+        let digits = "0123456789";
+
+        let length = dbutility.generateRandomNumberBetweenRange(lengthMin, lengthMax);
+
+        let characterRanges = "";
+        if (useAlphabet) {
+            characterRanges += alphabets;
+        }
+        if (useNumber) {
+            characterRanges += digits;
+        }
+
+        let name = prefix;
+        let characterLength = characterRanges.length;
+
+        for (let i = name.length; i < length; i++) {
+            let randomNum = Math.floor(Math.random() * characterLength);
+            let character = characterRanges.charAt(randomNum);
+            name += character;
+        }
+
+        return name;
+    },
+
     async retrieveCommissionBillBoardForAdmin (platformObj, period, count, index, commissionBB, containFakeRecord) {
         commissionBB = commissionBB || {};
         index = index || 0;

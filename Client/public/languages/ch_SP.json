@@ -5439,6 +5439,7 @@
   "GenerateFakeRecord": "生成假佣金账号功能",
   "EDIT_BB_COMMISSION_RANK": "编辑佣金排名",
   "currentCommission": "目前佣金",
+  "fake_record": "假数据",
 
   "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
   "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
