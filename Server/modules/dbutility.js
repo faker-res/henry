@@ -400,6 +400,10 @@ var dbUtility = {
         return time ? moment(time).tz('Asia/Singapore').add(-1, 'days').toDate() : null;
     },
 
+    getOneMonthAgoSGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(-1, 'month').toDate() : null;
+    },
+
     getNextOneDaySGTime: (time) => {
         return time ? moment(time).tz('Asia/Singapore').add(1, 'days').toDate() : null;
     },
