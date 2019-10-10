@@ -18299,7 +18299,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length) {
-                    vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
+                    vm.feedbackAdminQuery.admins = vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
                 }
                 if ( (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0) || admins.length) {
                     sendQuery.csOfficer = vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0 ? vm.feedbackAdminQuery.admins : admins;
@@ -29224,7 +29224,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noRoundTwoDecimalPlaces(data) + "%" : $noRoundTwoDecimalPlaces(data)
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
