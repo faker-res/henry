@@ -1816,7 +1816,7 @@ var dbPlatform = {
         );
     },
 
-    checkPlayerLevelDownForPlatform: function (platformObjId) {
+    checkPlayerLevelDownForPlatform: async function (platformObjId) {
         // const todayIsWeeklySettlementDay = dbUtility.getYesterdaySGTime().endTime.getTime() === dbUtility.getLastWeekSGTime().endTime.getTime();
         // const canCheckWeeklyConditions = todayIsWeeklySettlementDay;
         const checkPeriod = constPlayerLevelPeriod.DAY;
@@ -1827,47 +1827,54 @@ var dbPlatform = {
         //     value: 0
         // }).lean();
 
-        const levelsProm = dbconfig.collection_playerLevel.find({
-            platform: platformObjId
-        }).sort({value: 1}).lean();
+        let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
 
-        return levelsProm.then(
-            playerLevel => {
-                if (!(playerLevel && playerLevel.length)) {
-                    return Promise.reject({name: "DataError", message: "Cannot find player level"});
-                }
+        // Check if platform is open for level down
+        if (platform.playerLevelDownPeriod !== 99) {
+            const levelsProm = dbconfig.collection_playerLevel.find({
+                platform: platformObjId
+            }).sort({value: 1}).lean();
 
-                var stream = dbconfig.collection_players.find(
-                    {
-                        platform: platformObjId,
-                        playerLevel: {$ne: playerLevel[0]._id}
-                    },
-                    {_id: 1}
-                ).cursor({batchSize: 1000});
+            return levelsProm.then(
+                playerLevel => {
+                    if (!(playerLevel && playerLevel.length)) {
+                        return Promise.reject({name: "DataError", message: "Cannot find player level"});
+                    }
 
-                var balancer = new SettlementBalancer();
-                return balancer.initConns().then(function () {
-                    return Q(
-                        balancer.processStream(
-                            {
-                                stream: stream,
-                                batchSize: 30, //100
-                                makeRequest: function (playerIdObjs, request) {
-                                    request("player", "checkPlayerLevelDownForPlayers", {
-                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                            return playerIdObj._id;
-                                        }),
-                                        checkPeriod: checkPeriod,
-                                        platformId: platformObjId,
-                                        playerLevelsObj: playerLevel
-                                    });
+                    var stream = dbconfig.collection_players.find(
+                        {
+                            platform: platformObjId,
+                            playerLevel: {$ne: playerLevel[0]._id}
+                        },
+                        {_id: 1}
+                    ).cursor({batchSize: 1000});
+
+                    var balancer = new SettlementBalancer();
+                    return balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 30, //100
+                                    makeRequest: function (playerIdObjs, request) {
+                                        request("player", "checkPlayerLevelDownForPlayers", {
+                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                                return playerIdObj._id;
+                                            }),
+                                            checkPeriod: checkPeriod,
+                                            platformId: platformObjId,
+                                            playerLevelsObj: playerLevel
+                                        });
+                                    }
                                 }
-                            }
-                        )
-                    );
-                });
-            }
-        );
+                            )
+                        );
+                    });
+                }
+            );
+        }
+
+
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
@@ -4892,6 +4899,7 @@ var dbPlatform = {
                 "samePhoneNumberRegisterCount",
                 "canMultiReward",
                 "autoCheckPlayerLevelUp",
+                "autoCheckPlayerLevelDown",
                 "manualPlayerLevelUp",
                 "platformBatchLevelUp",
                 "playerLevelUpPeriod",
