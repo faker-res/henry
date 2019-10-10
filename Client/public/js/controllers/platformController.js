@@ -26113,12 +26113,22 @@ define(['js/app'], function (myApp) {
                                           if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
                                               object.pc.displayFormat = object.pc.displayFormat.toString();
                                           }
-                                          else if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
+                                          if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
                                               object.h5.displayFormat = object.h5.displayFormat.toString();
                                           }
-                                          else if (object && object.app && object.app.hasOwnProperty('displayFormat')){
+                                          if (object && object.app && object.app.hasOwnProperty('displayFormat')){
                                               object.app.displayFormat = object.app.displayFormat.toString();
                                           }
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.pc.onClickAction = object.pc.onClickAction.toString();
+                                          }
+                                          if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.h5.onClickAction = object.h5.onClickAction.toString();
+                                          }
+                                          if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
                                           return object;
                                       }
                                   )
@@ -43426,28 +43436,39 @@ define(['js/app'], function (myApp) {
                         }
                         switch (actionId) {
                             case 1:
+                            case "1":
                                 holder[type] = {};
-                                holder[type].onClickAction = 1;
+                                holder[type].onClickAction = '1';
                                 break;
                             case 2:
+                            case "2":
                                 holder[type] = {};
-                                holder[type].onClickAction = 2;
+                                holder[type].onClickAction = '2';
                                 break;
                             case 3:
+                            case "3":
                                 holder[type] = {};
-                                holder[type].onClickAction = 3;
+                                holder[type].onClickAction = '3';
                                 break;
                             case 4:
+                            case "4":
                                 holder[type] = {};
-                                holder[type].onClickAction = 4;
+                                holder[type].onClickAction = '4';
                                 break;
                             case 5:
+                            case "5":
                                 holder[type] = {};
-                                holder[type].onClickAction = 5;
+                                holder[type].onClickAction = '5';
                                 break;
                             case 6:
+                            case "6":
                                 holder[type] = {};
-                                holder[type].onClickAction = 6;
+                                holder[type].onClickAction = '6';
+                                break;
+                            case 7:
+                            case "7":
+                                holder[type] = {};
+                                holder[type].onClickAction = '7';
                                 break;
                         }
 
@@ -43466,27 +43487,30 @@ define(['js/app'], function (myApp) {
                         holder[type].imageUrl = tempImageUrl;
                     }
                 }
-                else{
-                    if (holder['newPageUrl']){
+                else {
+                    if (holder['newPageUrl']) {
                         holder['newPageUrl'] = null;
                     }
-                    if (holder['activityUrl']){
+                    if (holder['activityUrl']) {
                         holder['activityUrl'] = null;
                     }
-                    if (holder['newPageDetail']){
+                    if (holder['newPageDetail']) {
                         holder['newPageDetail'] = null;
                     }
-                    if (holder['activityDetail']){
+                    if (holder['activityDetail']) {
                         holder['activityDetail'] = null;
                     }
-                    if (holder['rewardEventObjId']){
-                        holder['rewardEventObjId']= null;
+                    if (holder['rewardEventObjId']) {
+                        holder['rewardEventObjId'] = null;
                     }
-                    if (holder['route']){
+                    if (holder['route']) {
                         holder['route'] = null;
                     }
-                    if (holder['gameCode']){
+                    if (holder['gameCode']) {
                         holder['gameCode'] = null;
+                    }
+                    if (holder['script']) {
+                        holder['script'] = null;
                     }
                 }
             };
