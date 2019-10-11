@@ -3983,7 +3983,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.name = row.data.name;
                 vm.newPlayer.email = row.data.email;
                 vm.newPlayer.domain = row.data.domain;
-                vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                vm.newPlayer.phoneNumber = row && row.data && row.data.isRegistered ? row.data.phoneNumber.substring(0, 3) + "******" + row.data.phoneNumber.slice(-4) : row.data.phoneNumber;
                 vm.newPlayer.referralName = row.data.referral;
             });
         }
