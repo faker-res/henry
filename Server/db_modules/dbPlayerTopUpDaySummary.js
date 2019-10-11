@@ -41,7 +41,6 @@ var dbPlayerTopUpDaySummary = {
 
     upsertPlayerReportDataDaySummary: function(data){
         var upsertData = JSON.parse(JSON.stringify(data));
-
         delete upsertData.playerId;
         delete upsertData.platformId;
         delete upsertData.date;
