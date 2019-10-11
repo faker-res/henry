@@ -125,9 +125,6 @@ let dbEmailAudit = {
             return;
         }
 
-        console.log('proposal content', proposal);
-        console.log('proposal_id', proposal.id);
-        console.log('proposalid', proposal._id);
         let proposalData = proposal.data;
 
         //for saving message ID
@@ -156,11 +153,9 @@ let dbEmailAudit = {
             proposalId,
             platformName,
             createTime,
-
             ObjId,
         };
 
-        console.log('email content', emailContents);
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
 
         if (!setting) {
