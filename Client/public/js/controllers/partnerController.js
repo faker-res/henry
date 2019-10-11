@@ -17327,7 +17327,7 @@ define(['js/app'], function (myApp) {
                     vm.cBBLastCalculate = "-";
                     vm.disableForceRecalculateCBB = false;
 
-                    vm.fakeRecordQuery = {};
+                    vm.fakeRecordQuery = {fluctuationType: 0};
 
                     utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
                         vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
@@ -17358,7 +17358,34 @@ define(['js/app'], function (myApp) {
         }
 
         vm.generateFakeRecord = (isConfirm) => {
-            // todo :: add some simple validation errors
+            // validations
+            let validationFailed = false;
+            if (vm.fakeRecordQuery.nameLengthMax < vm.fakeRecordQuery.nameLengthMin) {
+                socketService.showErrorMessage($translate("Fake CBB Name Length Error"));
+                validationFailed = true;
+            }
+
+            if (!$('#fakeCommUseAlphabet').prop('checked') && !$('#fakeCommUseDigit').prop('checked')) {
+                socketService.showErrorMessage($translate("Fake CBB Name Combination Error"));
+                validationFailed = true;
+            }
+
+            if (vm.fakeRecordQuery.commissionMin > vm.fakeRecordQuery.commissionMax) {
+                socketService.showErrorMessage($translate("Commission Range Error"));
+                validationFailed = true;
+            }
+
+            if ( vm.fakeRecordQuery.fluctuationLow > vm.fakeRecordQuery.fluctuationHigh ) {
+                let valHolder = vm.fakeRecordQuery.fluctuationHigh;
+                vm.fakeRecordQuery.fluctuationHigh = vm.fakeRecordQuery.fluctuationLow;
+                vm.fakeRecordQuery.fluctuationLow = valHolder;
+            }
+
+            if (validationFailed) {
+                return;
+            }
+
+            // implementations
             if (!isConfirm) {
                 vm.modalYesNo = {};
                 vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");

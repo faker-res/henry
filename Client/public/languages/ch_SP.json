@@ -5432,6 +5432,9 @@
   "DEFAULT_PLAYER_FEEDBACK_RESULT": "默认玩家回访结果设置",
   "UnbindPhoneDeviceId": "解除绑定电话和设备号",
   "Please select player for selected bulk call": "在指定群播前，请打勾选择要拨打的电话",
+  "Fake CBB Name Length Error": "假账号字数区间错误",
+  "Fake CBB Name Combination Error": "假账号组成模式错误",
+  "Commission Range Error": "初始佣金区间错误",
 
   "BIWEEKLY": "每半月",
   "MONTHLY": "每月",
