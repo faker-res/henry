@@ -416,6 +416,7 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let deferred = Q.defer();
         let record = null;
+        let referralRecord;
         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         newRecord.save().then(
             function (data) {
@@ -564,8 +565,30 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                if (record.playerId) {
+                    return dbconfig.collection_players.findOne({_id: record.playerId}).populate({path: "referral", model: dbconfig.collection_players}).lean().then(
+                        playerData => {
+                            if (playerData && playerData.referral) {
+                                referralRecord = playerData.referral
+                            }
+
+                            return data;
+                        }
+                    );
+                }
+
+                return data;
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error getting player", error: error});
+            }
+        ).then(
+            function (data) {
                 if (data[0]) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
+                }
+                if (referralRecord) {
+                    dbPlayerReward.checkAvailableReferralRewardGroupTaskToApply(record.platformId, referralRecord, '1').catch(errorUtils.reportError);
                 }
                 if (record) {
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
@@ -592,6 +615,7 @@ var dbPlayerConsumptionRecord = {
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         let playerData;
+        let referralRecord;
 
         return newRecord.save().then(
             res => {
@@ -656,12 +680,25 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             () => {
+                return dbconfig.collection_players.findOne({_id: record.playerId}).populate({path: "referral", model: dbconfig.collection_players}).lean().then(
+                    player => {
+                        if (player && player.referral) {
+                            referralRecord = player.referral;
+                        }
+
+                        return player;
+                    }
+                );
+            }
+        ).then(
+            () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
                     // check for the consumptionSlip rewardEvent
                     dbPlayerReward.checkConsumptionSlipRewardGroup(playerData, record).catch(errorUtils.reportError);
-
-
+                }
+                if (referralRecord) {
+                    dbPlayerReward.checkAvailableReferralRewardGroupTaskToApply(record.platformId, referralRecord, '1').catch(errorUtils.reportError);
                 }
                 if (record) {
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
