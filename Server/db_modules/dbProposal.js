@@ -1420,7 +1420,6 @@ var proposal = {
                     return Promise.reject({name: "DataError", message: "This proposal require PMS to approve."});
                 }
 
-                console.log('type', data.type.name);
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
                 if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
                     data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
@@ -1455,7 +1454,6 @@ var proposal = {
                         //get full info of process
                         proposalData = data;
                         proposalTypeName = proposalData && proposalData.type && proposalData.type.name || "";
-                        console.log('proposal type', proposalTypeName);
                         return dbconfig.collection_proposalProcess.findOne({_id: data.process})
                             .populate({path: "currentStep", model: dbconfig.collection_proposalProcessStep})
                             .populate({path: "type", model: dbconfig.collection_proposalTypeProcess}).lean().exec();
@@ -9357,7 +9355,6 @@ var proposal = {
     },
 
     createUpdatePlayerCreditProposal: async (platformId, typeName, data) => {
-        console.log('come to update credit');
         let proposalData = await proposal.checkUpdateCreditProposal(platformId, typeName, data);
 
         dbEmailAudit.sendAuditCreditChangeRewardEmail(proposalData).catch(err => {

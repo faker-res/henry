@@ -41,7 +41,6 @@ const dbRewardTask = {
      * @param adminName
      */
     manualCreateReward: async (rewardData, adminId, adminName) => {
-        console.log('reward data..', rewardData);
         let proposal = await dbProposal.createProposalWithTypeNameWithProcessInfo(
             rewardData.platformId,
             constProposalType.ADD_PLAYER_REWARD_TASK,
