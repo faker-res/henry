@@ -28034,7 +28034,7 @@ let dbPlayerInfo = {
                 topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
             }
 
-            console.log("checking topUpMatchQuery", topUpMatchQuery)
+            console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
             let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": topUpMatchQuery
@@ -28088,10 +28088,10 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            let feeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
-                path: 'platformFee.gameProvider',
-                model: dbconfig.collection_gameProvider
-            }).lean();
+            // let feeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+            //     path: 'platformFee.gameProvider',
+            //     model: dbconfig.collection_gameProvider
+            // }).lean();
 
             let [players, gameDetail, topUpAndBonusDetail, csOfficerDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, promoteWayProm]);
@@ -28246,10 +28246,12 @@ let dbPlayerInfo = {
                     result.aliPayTopUpAmount = 0;
                     result.onlineTopUpFeeDetail = [];
                     result.totalOnlineTopUpFee = 0;
-
+                    console.log("checking yH topUpAndBonusDetail.length", topUpAndBonusDetail && topUpAndBonusDetail.length ? topUpAndBonusDetail.length : 0)
                     let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
                     let bonusDetail = {};
 
+                    console.log("checking yH selftopUpAndBonusDetail.length", selftopUpAndBonusDetail && selftopUpAndBonusDetail.length ? selftopUpAndBonusDetail.length : 0)
+                    console.log("checking yH selftopUpAndBonusDetail", selftopUpAndBonusDetail || "NULL")
                     if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
                         selftopUpAndBonusDetail.forEach(e => {
                             if (e._id.mainType === 'TopUp') {
