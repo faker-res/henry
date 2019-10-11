@@ -2992,24 +2992,32 @@ let dbPlayerInfo = {
     },
 
     getReferralPlayerInfo: async function (query) {
-        //if edit player, there will be ne no platform.
         var canProceed = false;
+        let dataQuery = {};
         if(query && !query.platform){
             //here to check referral's platform is same with edited player
-
             //need to fetch referral's platform before checking. PS: query.name here is referral name, query.playerName is selected player name.
-            await dbconfig.collection_players.find({name: query.name}).lean().then(data=>{
-                if(data){
+            if(query._id){
+                dataQuery._id = query._id;
+                canProceed = true;
+            }else{
+                dataQuery.name = query.name;
+            }
+            await dbconfig.collection_players.find(dataQuery).lean().then(data=>{
+                if(data && data.length > 0){
                     query.platform = data[0].platform;
                 }
             });
 
-            await dbconfig.collection_players.find({name: query.playerName, platform: query.platform}).lean().then(data=>{
-                //if got data, means edited player's platform same with key in referral's.
-                if(data && data.length > 0){
-                    canProceed = true;
-                }
-            });
+            if(query.platform){
+                await dbconfig.collection_players.find({name: query.playerName, platform: query.platform}).lean().then(data=>{
+                    //if got data, means edited player's platform same with key in referral's.
+                    if(data && data.length > 0){
+                        canProceed = true;
+                    }
+                });
+            }
+
             //player name must be delete after platform checking done
             delete query.playerName;
         }else{
