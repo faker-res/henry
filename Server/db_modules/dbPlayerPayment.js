@@ -787,6 +787,7 @@ const dbPlayerPayment = {
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
+                proposalData.loginDevice = player.loginDevice || null;
                 proposalData.platformId = player.platform._id;
                 if( player.playerLevel ){
                     proposalData.playerLevel = player.playerLevel._id;

@@ -9705,7 +9705,8 @@ let dbPlayerReward = {
      */
     checkAvailableRewardGroupTaskToApply: (platformObjId, playerObj, data) => {
         return dbConfig.collection_rewardType.find({
-            isGrouped: true
+            isGrouped: true,
+            name: {$ne: constRewardType.REFERRAL_REWARD_GROUP}
         }).lean().then(
             rewardTypes => {
                 if (rewardTypes && rewardTypes.length > 0) {
@@ -9725,6 +9726,36 @@ let dbPlayerReward = {
                     rewardEvents.forEach(event => {
                         if (event && event.code) {
                             p = p.then(() => dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data))
+                        }
+                    });
+
+                    return p;
+                }
+            }
+        )
+    },
+    checkAvailableReferralRewardGroupTaskToApply: (platformObjId, playerObj, referralMode) => {
+        return dbConfig.collection_rewardType.find({
+            isGrouped: true,
+            name: constRewardType.REFERRAL_REWARD_GROUP
+        }).lean().then(
+            rewardTypes => {
+                if (rewardTypes && rewardTypes.length > 0) {
+                    return dbConfig.collection_rewardEvent.find({
+                        platform: platformObjId,
+                        type: {$in: rewardTypes.map(e => e._id)},
+                        "condition.applyType": constRewardApplyType.AUTO_APPLY,
+                        "condition.referralRewardMode": referralMode
+                    }).lean();
+                }
+            }
+        ).then(
+            rewardEvents => {
+                if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId) {
+                    let p = Promise.resolve();
+                    rewardEvents.forEach(event => {
+                        if (event && event.code) {
+                            p = p.then(() => dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code))
                         }
                     });
 

@@ -5,6 +5,7 @@ define(['js/app'], function (myApp) {
             let $translate = $filter('translate');
             let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
+            let $noDecimalPlacesString = $filter('noDecimalPlacesString');
             let vm = this;
 
             // For debugging:
@@ -1607,6 +1608,7 @@ define(['js/app'], function (myApp) {
                     if (preventBlockUrl) {
                         item = preventBlockUrl + item;
                     }
+                    item = item.replace('&', '%26');
                     return item.trim();
                 });
                 let sendData = { "urls": urls };
@@ -1620,6 +1622,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateSingleUrl = function(url, no) {
+                url = url.replace('&', '%26');
                 let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
 
@@ -26141,12 +26144,22 @@ define(['js/app'], function (myApp) {
                                           if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
                                               object.pc.displayFormat = object.pc.displayFormat.toString();
                                           }
-                                          else if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
+                                          if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
                                               object.h5.displayFormat = object.h5.displayFormat.toString();
                                           }
-                                          else if (object && object.app && object.app.hasOwnProperty('displayFormat')){
+                                          if (object && object.app && object.app.hasOwnProperty('displayFormat')){
                                               object.app.displayFormat = object.app.displayFormat.toString();
                                           }
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.pc.onClickAction = object.pc.onClickAction.toString();
+                                          }
+                                          if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.h5.onClickAction = object.h5.onClickAction.toString();
+                                          }
+                                          if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
                                           return object;
                                       }
                                   )
@@ -29224,7 +29237,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noRoundTwoDecimalPlaces(data) + "%" : $noRoundTwoDecimalPlaces(data)
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noDecimalPlacesString(data) + "%" : $noRoundTwoDecimalPlaces(data)
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
@@ -30646,6 +30659,7 @@ define(['js/app'], function (myApp) {
                                     console.log('getAllPlayerLevels--getPlatform', data.data);
                                     let platformData = data.data;
                                     vm.autoCheckPlayerLevelUp = platformData.autoCheckPlayerLevelUp;
+                                    vm.autoCheckPlayerLevelDown = platformData.autoCheckPlayerLevelDown;
                                     vm.disableAutoPlayerLevelUpReward = platformData.disableAutoPlayerLevelUpReward;
                                     vm.manualPlayerLevelUp = platformData.manualPlayerLevelUp;
                                     vm.playerLevelPeriod.playerLevelUpPeriod = platformData.playerLevelUpPeriod ? platformData.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -33308,7 +33322,8 @@ define(['js/app'], function (myApp) {
                                 query: {_id: vm.selectedPlatform.id},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
-                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
+                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                                    autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown
                                 }
                             }
                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
@@ -33436,6 +33451,7 @@ define(['js/app'], function (myApp) {
                         
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                            autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
@@ -34729,6 +34745,7 @@ define(['js/app'], function (myApp) {
                         checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        autoCheckPlayerLevelDown: srcData.autoCheckPlayerLevelDown,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
@@ -43454,28 +43471,39 @@ define(['js/app'], function (myApp) {
                         }
                         switch (actionId) {
                             case 1:
+                            case "1":
                                 holder[type] = {};
-                                holder[type].onClickAction = 1;
+                                holder[type].onClickAction = '1';
                                 break;
                             case 2:
+                            case "2":
                                 holder[type] = {};
-                                holder[type].onClickAction = 2;
+                                holder[type].onClickAction = '2';
                                 break;
                             case 3:
+                            case "3":
                                 holder[type] = {};
-                                holder[type].onClickAction = 3;
+                                holder[type].onClickAction = '3';
                                 break;
                             case 4:
+                            case "4":
                                 holder[type] = {};
-                                holder[type].onClickAction = 4;
+                                holder[type].onClickAction = '4';
                                 break;
                             case 5:
+                            case "5":
                                 holder[type] = {};
-                                holder[type].onClickAction = 5;
+                                holder[type].onClickAction = '5';
                                 break;
                             case 6:
+                            case "6":
                                 holder[type] = {};
-                                holder[type].onClickAction = 6;
+                                holder[type].onClickAction = '6';
+                                break;
+                            case 7:
+                            case "7":
+                                holder[type] = {};
+                                holder[type].onClickAction = '7';
                                 break;
                         }
 
@@ -43494,27 +43522,30 @@ define(['js/app'], function (myApp) {
                         holder[type].imageUrl = tempImageUrl;
                     }
                 }
-                else{
-                    if (holder['newPageUrl']){
+                else {
+                    if (holder['newPageUrl']) {
                         holder['newPageUrl'] = null;
                     }
-                    if (holder['activityUrl']){
+                    if (holder['activityUrl']) {
                         holder['activityUrl'] = null;
                     }
-                    if (holder['newPageDetail']){
+                    if (holder['newPageDetail']) {
                         holder['newPageDetail'] = null;
                     }
-                    if (holder['activityDetail']){
+                    if (holder['activityDetail']) {
                         holder['activityDetail'] = null;
                     }
-                    if (holder['rewardEventObjId']){
-                        holder['rewardEventObjId']= null;
+                    if (holder['rewardEventObjId']) {
+                        holder['rewardEventObjId'] = null;
                     }
-                    if (holder['route']){
+                    if (holder['route']) {
                         holder['route'] = null;
                     }
-                    if (holder['gameCode']){
+                    if (holder['gameCode']) {
                         holder['gameCode'] = null;
+                    }
+                    if (holder['script']) {
+                        holder['script'] = null;
                     }
                 }
             };

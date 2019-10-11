@@ -633,6 +633,7 @@ var roleChecker = {
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
+                DEVICE_REPORT: ['getDeviceReport', 'manualDailyProviderSettlement', 'getGames'],
                 PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
                 PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
