@@ -23528,7 +23528,7 @@ let dbPlayerInfo = {
                     result.totalOnlineTopUpFee = 0;
 
                     let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
-                    let bonusDetail = {};
+                    let bonusDetail = {amount: 0, count: 0};
 
                     if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
                         selftopUpAndBonusDetail.forEach(e => {
@@ -28240,10 +28240,8 @@ let dbPlayerInfo = {
                     result.totalOnlineTopUpFee = 0;
                     console.log("checking yH topUpAndBonusDetail.length", topUpAndBonusDetail && topUpAndBonusDetail.length ? topUpAndBonusDetail.length : 0)
                     let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
-                    let bonusDetail = {};
+                    let bonusDetail = {amount: 0, count: 0};
 
-                    console.log("checking yH selftopUpAndBonusDetail.length", selftopUpAndBonusDetail && selftopUpAndBonusDetail.length ? selftopUpAndBonusDetail.length : 0)
-                    console.log("checking yH selftopUpAndBonusDetail", selftopUpAndBonusDetail || "NULL")
                     if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
                         selftopUpAndBonusDetail.forEach(e => {
                             if (e._id.mainType === 'TopUp') {
@@ -28293,8 +28291,8 @@ let dbPlayerInfo = {
                                 result.topUpAmount += e.amount;
                                 result.topUpTimes += e.count;
                             } else if (e._id.mainType === 'PlayerBonus') {
-                                bonusDetail.amount = e.amount ? e.amount : 0;
-                                bonusDetail.count = e.count ? e.count : 0;
+                                bonusDetail.amount += e.amount ? e.amount : 0;
+                                bonusDetail.count += e.count ? e.count : 0;
                             }
                         })
                     }
