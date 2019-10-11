@@ -5184,6 +5184,7 @@ let dbPlayerInfo = {
 
         let player = {};
         let platform;
+        let referralRecord;
 
         return dbUtility.findOneAndUpdateForShard(
             dbconfig.collection_players,
@@ -5245,6 +5246,20 @@ let dbPlayerInfo = {
                                 platformData => {
                                     if (platformData) {
                                         platform = platformData;
+                                    }
+
+                                    if (data.referral) {
+                                        referralRecord
+                                        return dbconfig.collection_players.findOne({_id: data.referral}).then(
+                                            referral => {
+                                                if (referral) {
+                                                    referralRecord = referral;
+                                                }
+                                                return data;
+                                            }
+                                        )
+                                    } else {
+                                        return data;
                                     }
 
                                     return data;
@@ -5362,6 +5377,10 @@ let dbPlayerInfo = {
                                     // Check reward group task to apply on player top up
                                     // Only happen when no top up return reward selected during top up
                                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
+                                }
+
+                                if(referralRecord) {
+                                    dbPlayerReward.checkAvailableReferralRewardGroupTaskToApply(player.platform, referralRecord, '2').catch(errorUtils.reportError);
                                 }
                             }
                         }
