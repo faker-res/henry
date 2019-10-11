@@ -1,23 +1,9 @@
-var should = require('should');
-var dbconfig = require('../modules/dbproperties');
+const should = require('chai').should();
 
 var WebSocketClient = require('../server_common/WebSocketClient');
-var PlayerService = require('../services/client/ClientServices').PlayerService;
-var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
-var TopUpIntentionService = require('../services/client/ClientServices').TopUpIntentionService;
-var ConsumptionService = require('../services/client/ClientServices').ConsumptionService;
-
-var ClientPlayerAPITest = require('../testAPI/clientAPITest/ClientPlayerAPITest');
-var ClientRegistrationIntentionAPITest = require('../testAPI/clientAPITest/ClientRegistrationIntentionAPITest');
-var ClientTopUpIntentionAPITest = require('../testAPI/clientAPITest/ClientTopUpIntentionAPITest');
-var ClientConsumptionAPITest = require('../testAPI/clientAPITest/ClientConsumptionAPITest');
 
 var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbPlatform = require('../db_modules/dbPlatform');
-let dbProposal = require('../db_modules/dbProposal');
 let dbProposalType = require('../db_modules/dbProposalType');
-let dbProposalTypeProcess = require('../db_modules/dbProposalTypeProcess');
-let dbProposalTypeProcessStep = require('../db_modules/dbProposalTypeProcessStep');
 let dbRewardType = require('../db_modules/dbRewardType');
 
 var env = require("../config/env").config();
@@ -26,19 +12,11 @@ const constProposalType = require('../const/constProposalType');
 const constRewardType = require('../const/constRewardType');
 const dbUtility = require("../modules/dbutility");
 
-var testPlatformName = 'unittestPlayerApi_platformName';
-var testQuickPlayerName = 'testquickplayername';
-var testPhoneNumber = '95567654';
-
 var testPlayerName = null;
-var testNewPlayerName = 'testnewplayer';
 var testPlatformObjId = null;
 var testPlatformId = null;
 var testPlayerObjId = null;
 var testPlayerId = null;
-var testNewPlayerId = null;
-var smsCode = null;
-var token = null;
 let date = new Date().getTime();
 let testRewardEventNameCode = "";
 let festivalItemId;

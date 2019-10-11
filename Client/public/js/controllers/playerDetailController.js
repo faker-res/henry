@@ -22,6 +22,7 @@ define(['js/app'], function (myApp) {
         vm.credibilityRemarks = [];
         vm.queryPara = {};
         vm.selectedTopupTab = "";
+        vm.toggleSubmitFeedbackButton = true;
         vm.allProposalStatus = [
             "PrePending",
             "Pending",
@@ -5522,10 +5523,11 @@ define(['js/app'], function (myApp) {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.playerFeedback.result;
             });
+            let playerToFeedback = vm.currentFeedbackPlayer || vm.isOneSelectedPlayer();
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
-                playerId: vm.currentFeedbackPlayer._id || vm.isOneSelectedPlayer()._id,
-                platform: vm.selectedPlatform.id,
+                playerId: playerToFeedback._id,
+                platform: playerToFeedback.platform,
                 createTime: Date.now(),
                 adminId: authService.adminId,
                 content: vm.playerFeedback.content,
@@ -5574,6 +5576,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.addPlayerFeedback = function (data) {
+            vm.toggleSubmitFeedbackButton = false;
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });
@@ -5590,6 +5593,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function () {
+                vm.toggleSubmitFeedbackButton = true;
                 vm.addFeedback.content = "";
                 vm.addFeedback.result = "";
                 vm.getPlayerNFeedback(vm.curFeedbackPlayer._id, null, function (data) {

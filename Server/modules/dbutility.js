@@ -400,6 +400,10 @@ var dbUtility = {
         return time ? moment(time).tz('Asia/Singapore').add(-1, 'days').toDate() : null;
     },
 
+    getOneMonthAgoSGTime: (time) => {
+        return time ? moment(time).tz('Asia/Singapore').add(-1, 'month').toDate() : null;
+    },
+
     getNextOneDaySGTime: (time) => {
         return time ? moment(time).tz('Asia/Singapore').add(1, 'days').toDate() : null;
     },
@@ -1420,11 +1424,13 @@ var dbUtility = {
             ua = uaParser(inputUserAgent);
         }
 
+        console.log("dbUtil.getInputDevice",ua);
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
+        console.log("dbUtil.getInputDevice",userAgentInput[0]);
 
         let inputDevice="";
 

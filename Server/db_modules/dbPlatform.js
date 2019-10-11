@@ -1816,7 +1816,7 @@ var dbPlatform = {
         );
     },
 
-    checkPlayerLevelDownForPlatform: function (platformObjId) {
+    checkPlayerLevelDownForPlatform: async function (platformObjId) {
         // const todayIsWeeklySettlementDay = dbUtility.getYesterdaySGTime().endTime.getTime() === dbUtility.getLastWeekSGTime().endTime.getTime();
         // const canCheckWeeklyConditions = todayIsWeeklySettlementDay;
         const checkPeriod = constPlayerLevelPeriod.DAY;
@@ -1827,47 +1827,52 @@ var dbPlatform = {
         //     value: 0
         // }).lean();
 
-        const levelsProm = dbconfig.collection_playerLevel.find({
-            platform: platformObjId
-        }).sort({value: 1}).lean();
+        let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
 
-        return levelsProm.then(
-            playerLevel => {
-                if (!(playerLevel && playerLevel.length)) {
-                    return Promise.reject({name: "DataError", message: "Cannot find player level"});
-                }
+        // Check if platform is open for level down
+        if (platform.autoCheckPlayerLevelDown !== false) {
+            const levelsProm = dbconfig.collection_playerLevel.find({
+                platform: platformObjId
+            }).sort({value: 1}).lean();
 
-                var stream = dbconfig.collection_players.find(
-                    {
-                        platform: platformObjId,
-                        playerLevel: {$ne: playerLevel[0]._id}
-                    },
-                    {_id: 1}
-                ).cursor({batchSize: 1000});
+            return levelsProm.then(
+                playerLevel => {
+                    if (!(playerLevel && playerLevel.length)) {
+                        return Promise.reject({name: "DataError", message: "Cannot find player level"});
+                    }
 
-                var balancer = new SettlementBalancer();
-                return balancer.initConns().then(function () {
-                    return Q(
-                        balancer.processStream(
-                            {
-                                stream: stream,
-                                batchSize: 40, //100
-                                makeRequest: function (playerIdObjs, request) {
-                                    request("player", "checkPlayerLevelDownForPlayers", {
-                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                            return playerIdObj._id;
-                                        }),
-                                        checkPeriod: checkPeriod,
-                                        platformId: platformObjId,
-                                        playerLevelsObj: playerLevel
-                                    });
+                    var stream = dbconfig.collection_players.find(
+                        {
+                            platform: platformObjId,
+                            playerLevel: {$ne: playerLevel[0]._id}
+                        },
+                        {_id: 1}
+                    ).cursor({batchSize: 1000});
+
+                    var balancer = new SettlementBalancer();
+                    return balancer.initConns().then(function () {
+                        return Q(
+                            balancer.processStream(
+                                {
+                                    stream: stream,
+                                    batchSize: 30, //100
+                                    makeRequest: function (playerIdObjs, request) {
+                                        request("player", "checkPlayerLevelDownForPlayers", {
+                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                                return playerIdObj._id;
+                                            }),
+                                            checkPeriod: checkPeriod,
+                                            platformId: platformObjId,
+                                            playerLevelsObj: playerLevel
+                                        });
+                                    }
                                 }
-                            }
-                        )
-                    );
-                });
-            }
-        );
+                            )
+                        );
+                    });
+                }
+            );
+        }
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
@@ -3138,6 +3143,7 @@ var dbPlatform = {
             let playerLevels = [];
             let themeIdList = [];
             let themeStyleObjId = null;
+            let platformTopUpAmountConfig;
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3201,10 +3207,18 @@ var dbPlatform = {
                     if (data) {
 
                         platformData = data;
-                        return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
+
+                        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformData._id});
+
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
+                }
+            ).then(
+                topUpAmountConfig => {
+                    platformTopUpAmountConfig = topUpAmountConfig;
+
+                    return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
             ).then(
                 playerLevelData => {
@@ -3461,6 +3475,12 @@ var dbPlatform = {
 
                         if (subject == 'partner') {
                             return appendPartnerConfig(platformData._id, returnedObj);
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                        } else {
+                            returnedObj.minDepositAmount = 10;
                         }
 
                         return returnedObj;
@@ -4877,6 +4897,7 @@ var dbPlatform = {
                 "samePhoneNumberRegisterCount",
                 "canMultiReward",
                 "autoCheckPlayerLevelUp",
+                "autoCheckPlayerLevelDown",
                 "manualPlayerLevelUp",
                 "platformBatchLevelUp",
                 "playerLevelUpPeriod",
@@ -7287,6 +7308,28 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
+    },
+
+    getPlatformTopUpAmountConfig: function (platformObjId) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformObjId}).lean();
+    },
+
+    updatePlatformTopUpAmount: function (query, updateData) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformTopUpAmountConfig.update(query, updateData);
+                } else {
+                    let newSetting = {
+                        platformObjId: query.platformObjId,
+                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpCountAmountRange: updateData.topUpCountAmountRange
+                    }
+
+                    return dbconfig.collection_platformTopUpAmountConfig(newSetting).save();
+                }
+            }
+        )
     },
 
     toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {

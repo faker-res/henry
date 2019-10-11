@@ -29,6 +29,8 @@
                         span {{"Partner Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformBasic"}', ng-click='vm.configTabClicked("platformBasic")')
                         span {{"Platform Basic" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "topUpAmountConfig"}', ng-click='vm.configTabClicked("topUpAmountConfig")')
+                        span {{"Top Up Amount Config" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "bonusBasic"}', ng-click='vm.configTabClicked("bonusBasic")')
                         span {{"Bonus Basic" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "referral"}', ng-click='vm.configTabClicked("referral")')
@@ -67,6 +69,8 @@
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
                         span {{"WeChatGroupControlSetting" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "qqGroupControlSetting"}', ng-click='vm.configTabClicked("qqGroupControlSetting")')
+                        span {{"qqGroupControlSetting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "winnerMonitorSetting"}', ng-click='vm.configTabClicked("winnerMonitorSetting")')
                         span {{"Winner Monitor Setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "defaultFeedbackConfig"}', ng-click='vm.configTabClicked("defaultFeedbackConfig")')
@@ -95,6 +99,11 @@
                                 td
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.autoCheckPlayerLevelUp', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
+                            tr
+                                td {{'Auto Check Player Level Down' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit')
+                                    input(type='checkbox', ng-model='vm.autoCheckPlayerLevelDown', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
                             tr
                                 td {{'PLAYER_SELF_LEVELUP' | translate}}
                                 td
@@ -1095,11 +1104,11 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.prefix}}
                                     input(type='text', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.prefix')
-                            tr
-                                td {{'minTopUpAmount' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
-                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
+                            //tr
+                            //    td {{'minTopUpAmount' | translate}}
+                            //    td
+                            //        text(ng-show='!vm.configTableEdit') {{vm.platformBasic.showMinTopupAmount}}
+                            //        input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.platformBasic.showMinTopupAmount')
                             tr
                                 td {{'allowSameRealNameToRegister' | translate}}
                                 td
@@ -2447,8 +2456,8 @@
                             i.fa.fa-ban
                             text {{"CANCEL" | translate}}
 
-
-
+                div(ng-if='vm.selectedConfigTab=="qqGroupControlSetting"')
+                    include platform-settings/qqGroupControlSetting
                 div(ng-if='vm.selectedConfigTab=="emailAuditConfig"')
                     include platform-settings/email-audit
                 div(ng-if='vm.selectedConfigTab=="emailNotificationConfig"')
@@ -2944,6 +2953,8 @@
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("defaultFeedbackConfig")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("defaultFeedbackConfig")') {{"CONFIRM" | translate}}
 
+                div(ng-if='vm.selectedConfigTab=="topUpAmountConfig"')
+                    include platform-settings/topUpAmountConfig
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")

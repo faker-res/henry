@@ -89,7 +89,6 @@ let commonTestFunc = {
                     validCredit: 600,
                     realName: "Test Player",
                     phoneNumber: '80808080',
-                    DOB: new Date(),
                     email: 'testPlayer@sinonet.com.sg',
                     lastLoginIp: '188.188.188.188',
 
@@ -386,9 +385,12 @@ let commonTestFunc = {
 
         let pmState = dbconfig.collection_playerBState.remove({player:playerObjIds});
 
+        let rmSVL = dbconfig.collection_smsVerificationLog.remove({platformObjId:platformObjId});
+        let rmSL = dbconfig.collection_smsLog.remove({platform:platformObjId});
+
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1, pmState]);
+            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1, pmState, rmSVL, rmSL]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {

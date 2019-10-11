@@ -275,7 +275,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.commissionType = {
@@ -7732,6 +7733,7 @@ define(['js/app'], function (myApp) {
             vm.partnerValidity = {};
             // vm.isMultiLevelCommission = false;
             vm.isMultiLevelCommission = true;
+            vm.isEditAllGroupMode = false;
             await vm.getCommissionRateGameProviderGroup();
             dialogDetails();
 
@@ -7752,6 +7754,7 @@ define(['js/app'], function (myApp) {
                 // vm.partnerCommissionObj.data = vm.partnerCommission;
                 vm.commissionSettingIsEditAll = {};
                 vm.commissionRateIsEditAll = false;
+                vm.resetAllGroupCommRateObj();
 
                 let option = {
                     $scope: $scope,
@@ -7780,6 +7783,7 @@ define(['js/app'], function (myApp) {
                         filterBankName: vm.filterBankName,
                         isEditingPartnerPaymentShowVerify: vm.isEditingPartnerPaymentShowVerify,
                         partnerCommission: vm.partnerCommissionObj.data,
+                        allGroupCommRateSetting: vm.allGroupCommRateSetting,
                         commissionSettingTab: vm.commissionSettingTab,
                         playerConsumptionTableHeader: vm.playerConsumptionTableHeader,
                         rateAfterRebatePromo: vm.rateAfterRebatePromo,
@@ -7800,6 +7804,8 @@ define(['js/app'], function (myApp) {
                         isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
                         commissionSettingDeleteRow: vm.commissionSettingDeleteRow,
                         commissionSettingNewRow: vm.commissionSettingNewRow,
+                        allGroupCommSettingNewRow: vm.allGroupCommSettingNewRow,
+                        allGroupCommSettingDeleteRow: vm.allGroupCommSettingDeleteRow,
                         updateAllCustomizeCommissionRate: vm.updateAllCustomizeCommissionRate,
                         resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                         customizePartnerRate: vm.customizePartnerRate,
@@ -11670,6 +11676,42 @@ define(['js/app'], function (myApp) {
             }
 
         };
+
+        vm.allGroupCommSettingNewRow = (valueCollection, idx) => {
+            if (!valueCollection.length) {
+                valueCollection.splice(idx + 1, 0, {
+                    playerConsumptionAmountFrom: "",
+                    playerConsumptionAmountTo: "",
+                    activePlayerValueFrom: "",
+                    activePlayerValueTo: "",
+                    commissionRate: ""
+                });
+            } else {
+                valueCollection.splice(idx + 1, 0, {
+                    playerConsumptionAmountFrom: "",
+                    playerConsumptionAmountTo: "",
+                    activePlayerValueFrom: "",
+                    activePlayerValueTo: "",
+                    commissionRate: ""
+                });
+            }
+
+        };
+        vm.allGroupCommSettingDeleteRow = (idx, valueCollection) => {
+            valueCollection.splice(idx, 1);
+
+            if (valueCollection.length == 0) {
+                valueCollection.push({
+                    playerConsumptionAmountFrom: "",
+                    playerConsumptionAmountTo: "",
+                    activePlayerValueFrom: "",
+                    activePlayerValueTo: "",
+                    commissionRate: ""
+                });
+            }
+
+        };
+
         vm.commissionSettingNewRow = (valueCollection, idx) => {
             if (!valueCollection.length) {
                 valueCollection.splice(idx + 1, 0, {
@@ -12024,34 +12066,77 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.updateAllCustomizeCommissionRate = (setting) => {
+        vm.updateAllCustomizeCommissionRate = (setting, isUpdateAllGroup) => {
             let oldConfigArr = [];
             let newConfigArr = [];
             let isValidCommissionRate = true;
             if (setting && setting.length > 0) {
-                setting.forEach(providerGroup => {
-                    let tempConfig = providerGroup.showConfig;
-                    if (tempConfig && tempConfig.commissionSetting && tempConfig.commissionSetting.length > 0) {
-                        for (let i = 0; i < tempConfig.commissionSetting.length; i++) {
-                            if ((tempConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
-                                (tempConfig.commissionSetting[i].activePlayerValueFrom == '' || tempConfig.commissionSetting[i].activePlayerValueFrom == null) &&
-                                (tempConfig.commissionSetting[i].commissionRate == '' || tempConfig.commissionSetting[i].commissionRate == null)) {
+                if (isUpdateAllGroup) {
+                    if (!(vm.gameProviderGroup && vm.gameProviderGroup.length)) {
+                        return socketService.showErrorMessage($translate("Cannot find provider group"));
+                    }
+                    for (let i = setting.length - 1; i >= 0; i--) {
+                        if ((setting[i].playerConsumptionAmountFrom == '' || setting[i].playerConsumptionAmountFrom == null) &&
+                            (setting[i].activePlayerValueFrom == '' || setting[i].activePlayerValueFrom == null) &&
+                            (setting[i].commissionRate == '' || setting[i].commissionRate == null)) {
 
-                                tempConfig.commissionSetting.splice(i, 1);
-                            }
-                            if (tempConfig.commissionSetting[i] && (!tempConfig.commissionSetting[i].hasOwnProperty("commissionRate") || tempConfig.commissionSetting[i].commissionRate < 0)) {
-                                isValidCommissionRate = false;
-                            }
+                            setting.splice(i, 1);
+                        }
+                        if (setting[i] && (!setting[i].hasOwnProperty("commissionRate") || setting[i].commissionRate < 0)) {
+                            isValidCommissionRate = false;
                         }
                     }
-                    if (providerGroup.showConfig && providerGroup.srcConfig && providerGroup.showConfig.hasOwnProperty('isDetectChangeCustomizeRate')) {
-                        delete providerGroup.showConfig.isDetectChangeCustomizeRate;
-                        oldConfigArr.push(providerGroup.srcConfig);
-                        newConfigArr.push(providerGroup.showConfig);
-                    }
-                });
+
+                    // if (isValidCommissionRate) {
+                        newConfigArr = JSON.parse(JSON.stringify(setting));
+                    // }
+
+                } else {
+                    setting.forEach(providerGroup => {
+                        let tempConfig;
+                        if (isUpdateAllGroup) {
+                            tempConfig = {commissionSetting: providerGroup};
+                        } else {
+                            tempConfig = providerGroup.showConfig;
+                        }
+                        if (tempConfig && tempConfig.commissionSetting && tempConfig.commissionSetting.length > 0) {
+                            for (let i = tempConfig.commissionSetting.length - 1; i >= 0; i--) {
+                                if ((tempConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
+                                    (tempConfig.commissionSetting[i].activePlayerValueFrom == '' || tempConfig.commissionSetting[i].activePlayerValueFrom == null) &&
+                                    (tempConfig.commissionSetting[i].commissionRate == '' || tempConfig.commissionSetting[i].commissionRate == null)) {
+
+                                    tempConfig.commissionSetting.splice(i, 1);
+                                }
+                                if (tempConfig.commissionSetting[i] && (!tempConfig.commissionSetting[i].hasOwnProperty("commissionRate") || tempConfig.commissionSetting[i].commissionRate < 0)) {
+                                    isValidCommissionRate = false;
+                                }
+                            }
+                        }
+                        if (providerGroup.showConfig && providerGroup.srcConfig && providerGroup.showConfig.hasOwnProperty('isDetectChangeCustomizeRate')) {
+                            delete providerGroup.showConfig.isDetectChangeCustomizeRate;
+                            oldConfigArr.push(providerGroup.srcConfig);
+                            newConfigArr.push(providerGroup.showConfig);
+                        }
+                    });
+                }
             }
-            if (oldConfigArr && newConfigArr && oldConfigArr.length > 0 && newConfigArr.length > 0) {
+
+            if (oldConfigArr && newConfigArr && ((oldConfigArr.length > 0 && newConfigArr.length > 0) || newConfigArr.length > 0 && isUpdateAllGroup)) {
+                if (isUpdateAllGroup) {
+                    let tempCommConfig = JSON.parse(JSON.stringify(newConfigArr));
+                    newConfigArr = []
+                    vm.gameProviderGroup.forEach(providerGroup => {
+                            let tempObj = {
+                                commissionSetting: JSON.parse(JSON.stringify(tempCommConfig)),
+                                provider: providerGroup._id,
+                                partner: vm.selectedSinglePartner._id,
+                                platform: vm.selectedSinglePartner.platform,
+                                commissionType: vm.selectedSinglePartner.commissionType
+                            }
+                            newConfigArr.push(tempObj);
+                        }
+                    )
+                }
                 // // Convert back commissionRate to percentage
                 newConfigArr.forEach(newConfig => {
                     newConfig.commissionSetting.forEach(e => {
@@ -12077,10 +12162,12 @@ define(['js/app'], function (myApp) {
                             $scope.$evalAsync(() => {
                                 vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                                 vm.getPlatformPartnersData();
+                                vm.resetAllGroupCommRateObj(); // reset update all group mode
                             });
                         }, function (err) {
                             vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                             vm.getPlatformPartnersData();
+                            vm.resetAllGroupCommRateObj();
                         });
                     }
 
@@ -12113,6 +12200,7 @@ define(['js/app'], function (myApp) {
                             $scope.$evalAsync(() => {
                                 vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                                 vm.getPlatformPartnersData();
+                                vm.resetAllGroupCommRateObj();
                             });
                         });
 
@@ -12122,9 +12210,21 @@ define(['js/app'], function (myApp) {
                 // reload data, avoid empty provider cannot be add
                 vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id, vm.isMultiLevelCommission);
                 vm.getPlatformPartnersData();
+                vm.resetAllGroupCommRateObj();
+                $scope.$evalAsync()
             }
 
             vm.commissionSettingEditAll(setting, false);
+        }
+
+        vm.resetAllGroupCommRateObj = () => {
+            vm.allGroupCommRateSetting = [{
+                playerConsumptionAmountFrom: "",
+                playerConsumptionAmountTo: "",
+                activePlayerValueFrom: "",
+                activePlayerValueTo: "",
+                commissionRate: ""
+            }]
         }
 
         vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
@@ -12364,6 +12464,7 @@ define(['js/app'], function (myApp) {
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
                                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                                     vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                        // let isAddedGroupProvider = false;
                                         let providerGroupRate = {
                                             gameProviderGroupId: gameProviderGroup._id,
                                             name: gameProviderGroup.name
@@ -12373,10 +12474,13 @@ define(['js/app'], function (myApp) {
                                                 if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                     availableProviderGroupRate.name = gameProviderGroup.name;
                                                     providerGroupRate = availableProviderGroupRate;
+                                                    // isAddedGroupProvider = true;
                                                 }
                                             })
                                         }
-                                        vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        // if (!isAddedGroupProvider) {
+                                            vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
+                                        // }
                                     })
                                 }
 
@@ -12386,18 +12490,20 @@ define(['js/app'], function (myApp) {
                             }
                         })
 
-                        if (!(vm.commissionRateConfig.rateAfterRebateGameProviderGroup && vm.commissionRateConfig.rateAfterRebateGameProviderGroup.length)) {
-                            if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
-                                vm.gameProviderGroup.forEach(gameProviderGroup => {
+                        if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
+                            vm.gameProviderGroup.forEach(gameProviderGroup => {
+                                if (!(vm.rateAfterRebateGameProviderGroup.find(group=> group.gameProviderGroupId && gameProviderGroup._id
+                                    && String(group.gameProviderGroupId) == String(gameProviderGroup._id)))) {
                                     vm.rateAfterRebateGameProviderGroup.push({
                                         gameProviderGroupId: gameProviderGroup._id,
                                         name: gameProviderGroup.name
                                     });
-                                    vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
-                                    vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
-                                })
-                            }
+                                }
+                            })
+                            vm.commissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
+                            vm.srcCommissionRateConfig.rateAfterRebateGameProviderGroup = JSON.parse(JSON.stringify(vm.rateAfterRebateGameProviderGroup));
                         }
+
                     } else {
                         if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                             vm.gameProviderGroup.forEach(gameProviderGroup => {

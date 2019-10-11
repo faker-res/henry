@@ -4,6 +4,12 @@
         select.form-control(ng-change='vm.getWechatDeviceNickNameListForReport();',ng-model='vm.inspectionWechatReport.platform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
 
     .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
+        label {{'Type' | translate}}
+        select.form-control(ng-model='vm.inspectionWechatReport.type' ng-change='vm.getWechatDeviceNickNameListForReport();')
+            option(value='wechat') {{"WECHAT"|translate}}
+            option(value='qq') QQ
+
+    .search-filters-item(ng-show="checkViewPermission('QualityInspection', 'WechatConversationReport', 'Read')")
         label {{'Create Device Name' | translate}}
         select.form-control(ng-model='vm.inspectionWechatReport.deviceName', ng-options='device for device in vm.wechatReportDeviceList', multiple, bsp, data-actions-box='true')
 

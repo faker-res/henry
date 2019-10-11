@@ -34,7 +34,7 @@ var SettlementServiceImplement = function () {
     // mongoose find queries can work with ids as strings
     // but aggregate queries only work if ids are actual ObjectIds
     // so for aggregate queries we should convert any incoming id strings to ObjectIds
-    
+
     var mapIdsToMongooseIds = ids => ids.map(id => ObjectId(id));
 
     this.calculatePlayersDaySummaryForTimeFrame.expectsData = 'startTime: Date, endTime: Date, playerObjIds: [], platformObjId: ObjectId';
@@ -222,6 +222,13 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayers, args, isValidData);
     };
 
+    this.getConsumptionDetailOfPlayerByLoginDevice.expectsData = 'platformObjId: ObjectId, playerObjIds: [], startTime: Date, endTime: Date, query: {}';
+    this.getConsumptionDetailOfPlayerByLoginDevice.onRequest = function(wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.startTime && data.endTime && data.playerObjIds);
+        var args = [ObjectId(data.platformId), data.startTime, data.endTime, data.query, data.playerObjIds, data.option, data.isPromoteWay, data.customStartTime, data.customEndTime];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayerByLoginDevice, args, isValidData);
+    };
+
     this.getPartnerPlayersCommissionInfo.onRequest = function(wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformObjId && data.configData && data.playerObjIds && data.startTime && data.endTime);
         var args = [ObjectId(data.platformObjId), data.configData, mapIdsToMongooseIds(data.playerObjIds), new Date(data.startTime), new Date(data.endTime)];
@@ -376,7 +383,7 @@ var SettlementServiceImplement = function () {
 
     this.getDXTrackingData.onRequest = (wsFunc, conn, data) => {
         let isValidData = true;
-        let args = [data.playerInfo, data.playerIds, data.query];
+        let args = [data.playerInfo, data.playerIds, data.query, data.bonusProposalType];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getDXTrackingData, args, isValidData);
     };
 };

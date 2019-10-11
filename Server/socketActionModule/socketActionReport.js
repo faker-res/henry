@@ -155,7 +155,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformList, query.listAll], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReport, [startTime, endTime, query.providerId, query.platformList, query.listAll, query.loginDevice], actionName, isValidData);
         },
 
         winRateReportFromSummary: function winRateReportFromSummary(query) {
@@ -166,7 +166,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReportFromSummary, [startTime, endTime, query.providerId, query.platformList, query.listAll], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.winRateReportFromSummary, [startTime, endTime, query.providerId, query.platformList, query.listAll, query.loginDevice], actionName, isValidData);
         },
 
         getWinRateByGameType: function getWinRateByGameType(query) {
@@ -177,7 +177,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByGameType, [startTime, endTime, query.providerId, query.platformId, query.providerName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByGameType, [startTime, endTime, query.providerId, query.platformId, query.providerName, query.loginDevice], actionName, isValidData);
         },
 
         getWinRateByGameTypeFromSummary: function getWinRateByGameTypeFromSummary(query) {
@@ -188,7 +188,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByGameTypeFromSummary, [startTime, endTime, query.providerId, query.platformId, query.providerName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByGameTypeFromSummary, [startTime, endTime, query.providerId, query.platformId, query.providerName, query.loginDevice], actionName, isValidData);
         },
 
         getWinRateByPlayers: function getWinRateByPlayers(query) {
@@ -199,7 +199,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayers, [startTime, endTime, query.providerId, query.platformId, query.cpGameType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayers, [startTime, endTime, query.providerId, query.platformId, query.cpGameType, query.loginDevice], actionName, isValidData);
         },
 
         getWinRateByPlayersFromSummary: function getWinRateByPlayersFromSummary(query) {
@@ -210,7 +210,7 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 10;
             query.index = query.index || 0;
             let isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayersFromSummary, [startTime, endTime, query.providerId, query.platformId, query.cpGameType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getWinRateByPlayersFromSummary, [startTime, endTime, query.providerId, query.platformId, query.cpGameType, query.loginDevice], actionName, isValidData);
         },
 
         /**
@@ -385,6 +385,22 @@ function socketActionReport(socketIO, socket) {
             var platformId = ObjectId(data.platformId);
 
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerReport, [platformId, data.query, data.index, data.limit, data.sortCol, data.isExport], actionName, isValidData);
+        },
+
+        getDeviceReportFromSummary: function getDeviceReportFromSummary(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.platformId);
+            var platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerInfo.getDeviceReportFromSummary, [platformId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        reCalculateDeviceReportSummary: function reCalculateDeviceReportSummary(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId);
+            var platformId = ObjectId(data.platformId);
+
+            socketUtil.emitter(self.socket, dbPlayerTopUpDaySummary.reCalculateDeviceReportSummary, [platformId, data.start, data.end, data.name], actionName, isValidData);
         },
 
         getPlayerReportFromSummary: function getPlayerReportFromSummary(data) {

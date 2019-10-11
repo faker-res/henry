@@ -31,6 +31,8 @@
                                 text {{'PLAYER_EXPENSE_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_REPORT}}" ng-click='vm.loadPage("PLAYER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_REPORT')")
                                 text {{'PLAYER_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.DEVICE_REPORT}}" ng-click='vm.loadPage("DEVICE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'DEVICE_REPORT')")
+                                text {{'DEVICE_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_DEPOSIT_ANALYSIS_REPORT}}" ng-click='vm.loadPage("PLAYER_DEPOSIT_ANALYSIS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_DEPOSIT_ANALYSIS_REPORT')")
                                 text {{'PLAYER_DEPOSIT_ANALYSIS_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_DEPOSIT_TRACKING_REPORT}}" ng-click='vm.loadPage("PLAYER_DEPOSIT_TRACKING_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_DEPOSIT_TRACKING_REPORT')")
@@ -126,6 +128,8 @@
                                 text {{'LIMITED_OFFER_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.WECHAT_GROUP_REPORT}}" ng-click='vm.loadPage("WECHAT_GROUP_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'WECHAT_GROUP_REPORT')")
                                 text {{'WECHAT_GROUP_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.QQ_GROUP_REPORT}}" ng-click='vm.loadPage("QQ_GROUP_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'QQ_GROUP_REPORT')")
+                                text {{'QQ_GROUP_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PROVIDER_CONSUMPTION_REPORT}}" ng-click='vm.loadPage("PROVIDER_CONSUMPTION_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'PROVIDER_CONSUMPTION_REPORT')")
                                 text {{'PROVIDER_CONSUMPTION_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR_REPORT}}" ng-click='vm.loadPage("PAYMENT_MONITOR_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'PAYMENT_MONITOR_REPORT')")

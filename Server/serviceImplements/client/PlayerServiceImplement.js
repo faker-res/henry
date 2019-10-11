@@ -196,6 +196,9 @@ let PlayerServiceImplement = function () {
         }];
 
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
         var md = new mobileDetect(uaString);
         data.ua = ua;
         data.md = md;
@@ -234,6 +237,26 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
+                data.name = playerData.name ? playerData.name : null;
+                data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
+                if(playerData && playerData.partnerId){
+                    data.partnerId = playerData.partnerId;
+                }
+                data.promoteWay = playerData.promoteWay ? playerData.promoteWay : "";
+                data.csOfficer = playerData.csOfficer ? playerData.csOfficer : "";
+                data.domain = playerData.domain ? playerData.domain : "";
+                data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
+                data.csOfficer = playerData.csOfficer ? playerData.csOfficer : "";
+
+                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                    isUpdateData => {
+                        console.log("checking isUpdateData", isUpdateData)
+                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                            console.log("checking data.platformId", data.platformId)
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                        }
+                    }
+                );
 
                 conn.isAuth = true;
                 conn.playerId = playerData.playerId;
@@ -489,6 +512,9 @@ let PlayerServiceImplement = function () {
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
 
@@ -970,6 +996,9 @@ let PlayerServiceImplement = function () {
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
+        if (data.bankAddress) {
+            data.bankAddress = data.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove special characters
+        }
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, false], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
@@ -1143,18 +1172,19 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.prepareGetPlayerBillBoard, [data.platformId, data.periodCheck, data.hourCheck, data.recordCount, data.playerId, data.mode, data.providerId], isValidData, false, false, true);
     };
 
-    //added case
     this.authenticate.expectsData = 'playerId: String, token: String';
-    this.authenticate.onRequest = function (wsFunc, conn, data) {
+    this.authenticate.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.token);
-        let playerIp = conn.upgradeReq.connection.remoteAddress || '';
-        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                playerIp = forwardedIp[0].trim();
-            }
-        }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.authenticate, [data.playerId, data.token, playerIp, conn], true, false, false, true);
+        let playerIp = dbUtility.getIpAddress(conn);
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        let md = new mobileDetect(uaString);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+
+        WebSocketUtil.performAction(
+            conn, wsFunc, data, dbPlayerInfo.authenticate,
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
+        );
     };
 
     this.authenticatePlayerPartner.expectsData = 'playerId: String, partnerId: String, token: String';
@@ -1396,10 +1426,61 @@ let PlayerServiceImplement = function () {
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
 
-        data.lastLoginIp = dbUtility.getIpAddress(conn);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(data.deviceId || data.guestDeviceId) {
+            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
+        var md = new mobileDetect(uaString);
+        data.ua = ua;
+        data.md = md;
+        data.inputDevice = inputDevice;
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
+        data.lastLoginIp = lastLoginIp;
+
+        let country, city, province, longitude, latitude;
+        let geo = dbUtility.getIpLocationByIPIPDotNet(lastLoginIp);
+        if (geo) {
+            country = geo.country;
+            city = geo.city;
+            province = geo.province || null;
+            longitude = geo.ll ? geo.ll[1] : null;
+            latitude = geo.ll ? geo.ll[0] : null;
+        }
+        if (data.phoneNumber) {
+            let queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.sp;
+            }
+        }
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;
+
+                data.playerId = data.playerId ? data.playerId : player.playerId;
+                data.name = player.name ? player.name : null;
+                data.remarks = player.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + player.partnerName : "";
+                if(player && player.partnerId){
+                    data.partnerId = player.partnerId;
+                }
+                data.promoteWay = player.promoteWay ? player.promoteWay : "";
+                data.csOfficer = player.csOfficer ? player.csOfficer : "";
+                data.domain = player.domain ? player.domain : "";
+                data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
+                data.csOfficer = player.csOfficer ? player.csOfficer : "";
+
+                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                    isUpdateData => {
+                        console.log("checking isUpdateData", isUpdateData)
+                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                            console.log("checking data.platformId", data.platformId)
+                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                        }
+                    }
+                );
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -1467,6 +1548,11 @@ let PlayerServiceImplement = function () {
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
                         }, data);
+                    }
+
+                    console.log("createPlayerRegistrationIntentRecordAPI FAIL", error);
+                    if (error && error.status != constServerCode.USERNAME_ALREADY_EXIST) {
+                        dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL);
                     }
                 }
             }
@@ -1604,6 +1690,231 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
     };
 
+    this.registerByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.smsCode);
+        data.lastLoginIp = dbUtility.getIpAddress(conn);
+        data.loginIps = [data.lastLoginIp];
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        var md = new mobileDetect(uaString);
+        data.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+            os: ua.os.name || ''
+        }];
+        data.ua = ua;
+        data.md = md;
+        data.inputDevice = inputDevice;
+
+        if (data.phoneNumber) {
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.sp;
+            }
+        }
+
+        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+            var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
+            if(ipData){
+                data.ipArea = ipData;
+                data.country = ipData.country || null;
+                data.city = ipData.city || null;
+                data.province = ipData.province || null;
+            }else{
+                data.ipArea = {'province':'', 'city':''};
+                data.country = "";
+                data.city = "";
+                data.province = "";
+            }
+        }
+
+        let inputData = Object.assign({}, data);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.registerByPhoneNumberAndPassword, [inputData], isValidData, true, true, true).then(
+            player => {
+                let playerData = player[0] || player;
+
+                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
+                        conn.isAuth = true;
+                    } else {
+                        conn.noOfAttempt++;
+                        conn.isAuth = false;
+                        conn.playerId = null;
+                        conn.playerObjId = null;
+                        conn.captchaCode = null;
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_CAPTCHA,
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
+                            data: {noOfAttempt: conn.noOfAttempt},
+
+                        }, data);
+                        return;
+                    }
+                } else {
+                    conn.isAuth = true;
+                }
+
+                conn.playerId = playerData.playerId;
+                conn.playerObjId = playerData._id;
+                conn.noOfAttempt = 0;
+
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: playerData,
+                    token: token
+                }, data);
+            },
+            error => {
+                if (error != "INVALID_DATA") {
+                    conn.noOfAttempt++;
+                    conn.isAuth = false;
+                    conn.playerId = null;
+                    conn.playerObjId = null;
+                    conn.captchaCode = null;
+
+                    if (error && error.message == "Invalid SMS Validation Code") {
+                        wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
+                        }, data);
+                    } else if (error && error.isRegisterError) {
+                        wsFunc.response(conn, {
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate(error.message),
+                        }, data);
+                    } else {
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_USER_PASSWORD,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
+                        }, data);
+                    }
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
+    };
+
+    this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.phoneNumber);
+        data.lastLoginIp = dbUtility.getIpAddress(conn);
+        data.loginIps = [data.lastLoginIp];
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        var md = new mobileDetect(uaString);
+        data.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || (md && md.mobile()) ? md.mobile() : 'PC',
+            os: ua.os.name || ''
+        }];
+        data.ua = ua;
+        data.md = md;
+        data.inputDevice = inputDevice;
+
+        if (data.phoneNumber) {
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.sp;
+            }
+        }
+
+        if(data.lastLoginIp && data.lastLoginIp != "undefined"){
+            var ipData = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
+            if(ipData){
+                data.ipArea = ipData;
+                data.country = ipData.country || null;
+                data.city = ipData.city || null;
+                data.province = ipData.province || null;
+            }else{
+                data.ipArea = {'province':'', 'city':''};
+                data.country = "";
+                data.city = "";
+                data.province = "";
+            }
+        }
+
+        let inputData = Object.assign({}, data);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.loginByPhoneNumberAndPassword, [inputData, ua, inputDevice, md], isValidData, true, true, true).then(
+            player => {
+                let playerData = player[0] || player;
+
+                conn.isAuth = true;
+                conn.playerId = playerData.playerId;
+                conn.playerObjId = playerData._id;
+                conn.noOfAttempt = 0;
+
+                let profile = {name: playerData.name, password: playerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: playerData,
+                    token: token
+                }, data);
+            },
+            error => {
+                if (error != "INVALID_DATA") {
+                    conn.noOfAttempt++;
+                    conn.isAuth = false;
+                    conn.playerId = null;
+                    conn.playerObjId = null;
+                    conn.captchaCode = null;
+
+                    if (error && error.message == "Invalid SMS Validation Code") {
+                        wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
+                        }, data);
+                    } else if (error && error.isRegisterError) {
+                        wsFunc.response(conn, {
+                            status: constServerCode.PHONENUMBER_ALREADY_EXIST,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate(error.message),
+                        }, data);
+                    } else {
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_USER_PASSWORD,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
+                        }, data);
+                    }
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
+    };
+
+    this.setPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.phoneNumber && data.password && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumberAndPassword, [conn.playerId, data.phoneNumber, data.password, data.smsCode], isValidData);
+    };
+
+    this.updatePasswordByPhoneNumber.expectsData = 'newPassword: String';
+    this.updatePasswordByPhoneNumber.onRequest = function (wsFunc, conn, data) {
+        let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(data && data.platformId && data.phoneNumber && data.newPassword && data.smsCode);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePasswordByPhoneNumber, [data.platformId, data.phoneNumber, data.newPassword, data.smsCode, userAgent], isValidData, false, false, true);
+    };
+
+    this.getBankcardInfo.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.bankcard);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBankcardInfo, [data.bankcard], isValidData, false, false, true)
+    };
+
+    this.updatePlayerAvatar.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

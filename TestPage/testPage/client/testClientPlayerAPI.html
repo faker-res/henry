@@ -845,6 +845,16 @@
         </label>
     </div>
     <div>
+        <label>isLogin
+            <input name="isLogin" type="checkbox" value=true>
+        </label>
+    </div>
+    <div>
+        <label>clientDomain
+            <input name="clientDomain" type="text">
+        </label>
+    </div>
+    <div>
         <button data-api-name="authenticate">Authenticate Token</button>
     </div>
     <div>
@@ -2146,6 +2156,152 @@
     </div>
 </div>
 
+<h3>Register via Phone Number and Password(手机号码与密码注册)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get SMS Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="registerByPhoneNumberAndPassword">Register</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Login via Phone Number and Password(手机号码与密码登录)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input type=text name="password">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="loginByPhoneNumberAndPassword">Login</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Set Phone Number and Password (游客账号绑定手机号码与密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Password
+            <input name="password" type="text">
+        </label>
+    </div>
+    <div>
+        <label> Platform Id
+            <input name="platformId" type="text">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get SMS Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+    <div>
+        <button data-api-name="setPhoneNumberAndPassword">Send</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Update Password By Phone Number (通过电话号码重置密码)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>New Password
+            <input name="newPassword" type="text">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get SMS Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+    <div>
+        <button data-api-name="updatePasswordByPhoneNumber">Send</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Get Bank Card Info (查询银行卡归属地)</h3>
+<div class="test-container">
+    <div>
+        <label>Bank Card
+            <input type=text name="bankcard">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="getBankcardInfo">Get</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+
+<h3>Update Player Avatar (设置头像信息)</h3>
+<div class="test-container">
+    <div>
+        <label>Avatar
+            <input id="avatar" type=text name="avatar">
+        </label>
+    </div>
+    <div>
+        <label>Avatar Frame
+            <input id="avatarFrame" type=text name="avatarFrame">
+        </label>
+    </div>
+    <p></p>
+    <div>
+        <button id="updatePlayerAvatar" data-api-name="updatePlayerAvatar">Update</button>
+    </div>
+</div>
 
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],

@@ -515,6 +515,7 @@ var roleChecker = {
                 CanReceivePartnerLargeWithdrawalEmail: [],
                 CanAuditPartnerLargeWithdrawal: [],
                 referral: ['updateReferralConfig'],
+                TopUpAmountConfig: ['updatePlatformTopUpAmount'],
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -633,6 +634,7 @@ var roleChecker = {
                 PROVIDER_REPORT: ['operationReport', 'operationSummaryReport'],
                 PLAYER_EXPENSE_REPORT: ['getPlayerProviderReport', 'getProviderGamePlayerReport', 'getProviderGameReport', 'getPlayerProviderByGameReport', 'manualDailyProviderSettlement'],
                 PLAYER_REPORT: ['getPlayerReport', 'manualDailyProviderSettlement', 'getGames'],
+                DEVICE_REPORT: ['getDeviceReport', 'manualDailyProviderSettlement', 'getGames'],
                 PLAYER_DEPOSIT_ANALYSIS_REPORT: ['getPlayerDepositAnalysisReport', 'getPlayerDepositAnalysisDetails', 'addPlayerToDepositTrackingReport'],
                 PLAYER_DEPOSIT_TRACKING_REPORT: ['getPlayerDepositTrackingReport', 'getDepositTrackingGroup', 'addDepositTrackingGroup', 'deleteDepositTrackingGroup', 'modifyPlayerDepositTrackingGroup', 'removePlayerFromDepositTrackingReport', 'getPlayerDepositTrackingMonthlyDetails', 'getPlayerDepositTrackingDailyDetails'],
                 NEWACCOUNT_REPORT: ['getPlayerDomainAnalysisData', 'getNewAccountReportData', 'getAllAdminInfo', 'getAllPromoteWay', 'getPartnerLevelConfig', 'getAllUrl'],
@@ -673,6 +675,7 @@ var roleChecker = {
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
                 WECHAT_GROUP_REPORT:['getWechatControlSession'],
+                QQ_GROUP_REPORT:['getQQControlSession'],
                 PROVIDER_CONSUMPTION_REPORT:['getProviderConsumptionReport'],
                 PAYMENT_MONITOR_REPORT: ['getPaymentMonitorLockedAdmin', 'getPaymentMonitorReport']
             },
@@ -760,6 +763,9 @@ var roleChecker = {
             },
             WinnerMonitor: {
                 Read:["getWinnerMonitorData"]
+            },
+            QQGroupControl:{
+                Read: ['getQQGroupControlSessionMonitor', 'getQQGroupControlSessionHistory']
             },
         },
         Payment: {

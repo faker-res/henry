@@ -38,7 +38,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
         vm.topUpField = {
             "ManualPlayerTopUp": 'bankCardNo',
@@ -2400,7 +2401,7 @@ define(['js/app'], function (myApp) {
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
                 playerId: vm.isOneSelectedPlayer()._id,
-                platform: vm.selectedPlatform._id,
+                platform: vm.isOneSelectedPlayer().platform,
                 createTime: Date.now(),
                 adminId: authService.adminId,
                 content: vm.playerFeedback.content,

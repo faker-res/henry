@@ -278,6 +278,8 @@ var platformSchema = new Schema({
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
+    // Auto check player level up
+    autoCheckPlayerLevelDown: {type: Boolean, default: false},
     // manual check player level up (perform by player)
     manualPlayerLevelUp: {type: Boolean, default: false},
     // enable or disable platform manual batch level up

@@ -209,7 +209,7 @@ const dbRewardTask = {
             playerId: rewardData.playerId,
             providerGroup: null,
             status: {$in: [constRewardTaskStatus.STARTED]}
-        }).then(
+        }).lean().then(
             providerGroup => {
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
@@ -245,13 +245,18 @@ const dbRewardTask = {
                         if(rewardType == constRewardType.PLAYER_TOP_UP_RETURN_GROUP && proposalData.data.isDynamicRewardAmount) {
                             updObj.$inc.forbidXIMAAmt = rewardData.requiredUnlockAmount;
                             updObj.$inc.targetConsumption = -rewardData.applyAmount;
+                            if (providerGroup.hasOwnProperty('remainingForbidXIMAAmt')){
+                                updObj.$inc.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
+                            }
                         } else {
                             updObj.$inc.forbidXIMAAmt = consumptionAmt;
+                            if (providerGroup.hasOwnProperty('remainingForbidXIMAAmt')){
+                                updObj.$inc.remainingForbidXIMAAmt = consumptionAmt;
+                            }
                         }
                     } else {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
-
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
@@ -274,6 +279,7 @@ const dbRewardTask = {
                     };
                     if (rewardData.useConsumption && rewardData.requiredUnlockAmount) {
                         saveObj.forbidXIMAAmt = rewardData.requiredUnlockAmount;
+                        saveObj.remainingForbidXIMAAmt = rewardData.requiredUnlockAmount;
                     } else {
                         saveObj.targetConsumption = rewardData.requiredUnlockAmount;
                     }
@@ -2452,8 +2458,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                         }
                                     ).lean();
 
-                                    let checkSumarry = await rtgProm;
-                                    console.log("checking checkSumamary", checkSumarry)
+                                    let checkSummary = await rtgProm;
+                                    console.log("checking checkSummary", checkSummary);
                                 }
                                 else{
                                     // if the forbidXIMAAmt has been cleared, all the validCredit will go to XIMAAmt
@@ -2479,13 +2485,13 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 }
                             }
 
-                            console.log("checking Path 1: XIMA amount", XIMAAmt )
+                            console.log("checking Path 1: XIMA amount", XIMAAmt );
                             let statusUpdObj = {
                                 unlockTime: createTime
                             };
 
-                            console.log("LH Check RTG unlock 1-------------", updatedRTG);
-                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt);
+                            console.log("LH Check RTG unlock 1-------------", updatedRTG, updatedRTG._id);
+                            console.log("LH Check RTG unlock 1.1-------------", updatedRTG.currentAmt, updatedRTG._id);
                             console.log("LH Check RTG unlock 2-------------", platform.autoApproveLostThreshold);
 
                             // Check whether player has lost all credit
@@ -2493,8 +2499,8 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 statusUpdObj.status = constRewardTaskStatus.NO_CREDIT;
                             }
 
-                            console.log("LH Check RTG unlock 3-------------", currentConsumption);
-                            console.log("LH Check RTG unlock 4-------------", targetConsumption);
+                            console.log("LH Check RTG unlock 3-------------", currentConsumption, updatedRTG._id);
+                            console.log("LH Check RTG unlock 4-------------", targetConsumption, updatedRTG._id);
 
                             if (currentConsumption >= targetConsumption) {
                                 statusUpdObj.status = constRewardTaskStatus.ACHIEVED;

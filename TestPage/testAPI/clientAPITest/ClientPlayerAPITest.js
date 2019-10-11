@@ -90,12 +90,9 @@
     };
 
     proto.verifyPhoneNumberBySMSCode = function (callback, requestData) {
+        var data = requestData;
         this.playerService.verifyPhoneNumberBySMSCode.request(data);
-        this.playerService.verifyPhoneNumberBySMSCode.once(function (data) {
-            if (typeof callback === "function") {
-                callback(data);
-            }
-        });
+        this.playerService.verifyPhoneNumberBySMSCode.once(callback);
     };
 
     proto.getPlayerBillBoard = function (callback, requestData) {
@@ -822,6 +819,57 @@
         var data = requestData || {};
         this.playerService.getPromoShortUrl.request(data);
         this.playerService.getPromoShortUrl.once(callback);
+    };
+
+    proto.registerByPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.registerByPhoneNumberAndPassword.request(data);
+        this.playerService.registerByPhoneNumberAndPassword.once(callback);
+    };
+
+    proto.loginByPhoneNumberAndPassword = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.loginByPhoneNumberAndPassword.request(data);
+        this.playerService.loginByPhoneNumberAndPassword.once(callback);
+    };
+
+    proto.setPhoneNumberAndPassword = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.setPhoneNumberAndPassword.request(data);
+        this.playerService.setPhoneNumberAndPassword.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePasswordByPhoneNumber = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.updatePasswordByPhoneNumber.request(data);
+        this.playerService.updatePasswordByPhoneNumber.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.getBankcardInfo = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.getBankcardInfo.request(data);
+        this.playerService.getBankcardInfo.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
+    proto.updatePlayerAvatar = function (callback, requestData) {
+        let data = requestData || {};
+        this.playerService.updatePlayerAvatar.request(data);
+        this.playerService.updatePlayerAvatar.once(callback);
     };
 
     if (isNode) {
