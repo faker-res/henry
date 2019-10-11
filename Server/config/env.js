@@ -48,11 +48,13 @@ var localConfig = {
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/8H_tfnbk5J3_j8rjthtPGdyo70QPBqoqeDti1YaCwj4",
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service,
-    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
-    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    voiceCodeSecret: "bfb2bab2d9ec",
+    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
+    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107", //yunpian
+    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action", //netease
+    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9", //netease
+    // voiceCodeSecret: "bfb2bab2d9ec", // netease
+    voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
+    voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
     bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
@@ -88,9 +90,11 @@ var devConfig = {
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
     // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
     // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    voiceCodeSecret: "bfb2bab2d9ec",
+    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
+    voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
     bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
@@ -156,9 +160,11 @@ var qaConfig = {
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
     // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
     // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    voiceCodeSecret: "bfb2bab2d9ec",
+    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
+    voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
     bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };
@@ -297,9 +303,11 @@ var prodConfig = {
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
     // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
     // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    voiceCodeSecret: "bfb2bab2d9ec",
+    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
+    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
+    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
+    voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
     bankCardInfoUrl: "http://bankaera.market.alicloudapi.com/bankcard",
 };

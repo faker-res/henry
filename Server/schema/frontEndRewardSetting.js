@@ -34,6 +34,8 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // html script
+        script: {type: String},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
@@ -54,6 +56,8 @@ var frontEndRewardSettingSchema = new Schema({
         route: {type: String},
         // the game code
         gameCode: {type: String},
+        // html script
+        script: {type: String},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
