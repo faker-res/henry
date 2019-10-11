@@ -4560,6 +4560,17 @@ define(['js/app'], function (myApp) {
                     })
                     $scope.$evalAsync();
                 })
+
+                vm.loginButtonText = "NO_LOG_IN_SHOW_OFF"
+                vm.loginShowButton = true; // show off button
+                if (platform && platform.platformId) {
+                    vm.disableLoginShowButton = false;
+                    if (vm.SelectedProvider && vm.SelectedProvider.needLoginShow && vm.SelectedProvider.needLoginShow[platform.platformId]) {
+                        vm.loginShowButton = false;
+                    }
+                } else {
+                    vm.disableLoginShowButton = true;
+                }
             }
 
             function processImgAddr(mainAddr, addr) {//img in platformGame, and img in game
@@ -4819,6 +4830,23 @@ define(['js/app'], function (myApp) {
 
                     }
                 );
+            }
+
+            vm.updateProviderNeedLoginShow = function (providerData) {
+                let platform = vm.allPlatformData.find(item => String(item._id) == String(vm.filterGamePlatform))
+                let platformId = platform && platform.platformId? platform.platformId: null;
+                let sendData = {
+                    platformId: platformId,
+                    gameProviderObjId: providerData && providerData._id? providerData._id: null,
+                    needLoginShow: vm.loginShowButton
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateProviderNeedLoginShow', sendData, function(data) {
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
+                    $scope.$evalAsync();
+                });
+
+
             }
 
             vm.getPlatformsPrefixForProvider = function (platformData, gameProviderData) {

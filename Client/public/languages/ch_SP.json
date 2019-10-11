@@ -5985,6 +5985,8 @@
   "SEND_BY": "发送方式",
   "VOICE": "语音",
   "MESSAGE(SMS)": "信息",
+  "NO_LOG_IN_SHOW_ON": "开启未登入显示",
+  "NO_LOG_IN_SHOW_OFF": "关闭未登入显示",
   "Registration Start Date": "注册开始时间",
   "Registration End Date": "注册结束时间",
   "Apply Reward Start Date": "优惠领取开始时间",
