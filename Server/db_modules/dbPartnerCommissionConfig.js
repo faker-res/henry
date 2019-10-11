@@ -85,13 +85,23 @@ const dbPartnerCommissionConfig = {
             return Promise.reject({message: "Please complete platform commission rate config"});
         }
 
-        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
-            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
-            providerGroups.map(providerGroup => {
+        for (let i = 0; i < providerGroups.length; i++) {
+            let providerGroup = providerGroups[i];
+            let matched = false;
+            for (let j = 0; j < platformConfig.rateAfterRebateGameProviderGroup.length; j++) {
+                let platformRate = platformConfig.rateAfterRebateGameProviderGroup[j];
                 if (String(platformRate.gameProviderGroupId) === String(providerGroup._id)) {
                     platformRate.name = providerGroup.name;
+                    matched = true;
                 }
-            })
+            }
+            if (!matched) {
+                platformConfig.rateAfterRebateGameProviderGroup.push({
+                    gameProviderGroupId: providerGroup._id,
+                    name: providerGroup.name,
+                    rate: platformConfig.rateAfterRebatePlatform || 0
+                });
+            }
         }
 
         if (!partnerConfig) {
