@@ -7252,7 +7252,7 @@ let dbPartner = {
                 }
                 // targetPartner.isTarget = true;
                 // partnerObj = await dbPartner.getAllDownlinePartnerWithoutLevel(targetPartner._id, targetPartner.platform, null, {platform: 1, commissionType: 1, partnerName: 1, parent: 1});
-                partnerObj = [targetPartner].concat(partnerObj);
+                partnerObj = targetPartner.concat(partnerObj);
                 dataCount = partnerObj.length;
 
                 let sortKey = Object.keys(sortCol)[0];
