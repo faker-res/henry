@@ -23587,8 +23587,8 @@ let dbPlayerInfo = {
                                 result.topUpAmount += e.amount;
                                 result.topUpTimes += e.count;
                             } else if (e._id.mainType === 'PlayerBonus') {
-                                bonusDetail.amount = e.amount ? e.amount : 0;
-                                bonusDetail.count = e.count ? e.count : 0;
+                                bonusDetail.amount += e.amount ? e.amount : 0;
+                                bonusDetail.count += e.count ? e.count : 0;
                             }
                         })
                     }
