@@ -7233,11 +7233,25 @@ let dbPartner = {
         partnerQuery.platform = {$in: platformObjIdList};
         if (partnerName) {
             partnerQuery.partnerName = partnerName;
-            let targetPartner = await dbconfig.collection_partner.findOne(partnerQuery, {platform: 1, commissionType: 1, partnerName: 1, parent: 1})
+            let targetPartner = await dbconfig.collection_partner.find(partnerQuery, {platform: 1, commissionType: 1, partnerName: 1, parent: 1})
                 .populate({path: "parent", model: dbconfig.collection_partner, select: "partnerName"}).lean();
-            if (targetPartner) {
-                targetPartner.isTarget = true;
-                partnerObj = await dbPartner.getAllDownlinePartnerWithoutLevel(targetPartner._id, targetPartner.platform, null, {platform: 1, commissionType: 1, partnerName: 1, parent: 1});
+            if (targetPartner && targetPartner.length) {
+                let downlinePartnerProm = [];
+                targetPartner.forEach(partner => {
+                    partner.isTarget = true;
+                    let downlineProm = dbPartner.getAllDownlinePartnerWithoutLevel(partner._id, partner.platform, null, {platform: 1, commissionType: 1, partnerName: 1, parent: 1});
+                    downlinePartnerProm.push(downlineProm);
+                })
+                let allDownLine = await Promise.all(downlinePartnerProm);
+                if (allDownLine && allDownLine.length) {
+                    let partnerArr = [];
+                    allDownLine.forEach(downline => {
+                        partnerArr = partnerArr.concat(downline)
+                    })
+                    partnerObj = partnerArr;
+                }
+                // targetPartner.isTarget = true;
+                // partnerObj = await dbPartner.getAllDownlinePartnerWithoutLevel(targetPartner._id, targetPartner.platform, null, {platform: 1, commissionType: 1, partnerName: 1, parent: 1});
                 partnerObj = [targetPartner].concat(partnerObj);
                 dataCount = partnerObj.length;
 
