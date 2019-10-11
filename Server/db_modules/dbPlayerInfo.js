@@ -26711,7 +26711,7 @@ let dbPlayerInfo = {
                         }
 
                         if (query && query.loginDevice && query.loginDevice.length) {
-                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice};
+                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
                         }
 
                         return dbconfig.collection_proposal.aggregate([
