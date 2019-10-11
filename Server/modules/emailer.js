@@ -95,7 +95,6 @@ directTransporter.use('compile', htmlToText({}));   // For options see: https://
  */
 var emailer = {
     sendEmail: function(config) {
-        console.log('email config', config);
         const mailOptions = {
             from: config.sender,
             to: config.recipient,
