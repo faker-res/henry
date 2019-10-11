@@ -2908,6 +2908,7 @@ define(['js/app'], function (myApp) {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId || vm.selectedPlatform._id;
                         item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
                 }
@@ -2926,14 +2927,24 @@ define(['js/app'], function (myApp) {
             $('#winRateTableSpin').show();
             vm.winRateLayer4 = true;
 
-            vm.curWinRateQuery = $.extend(true, {}, vm.winRateQuery);
-            vm.curWinRateQuery.providerId = providerId;
-            vm.curWinRateQuery.platformId = platformObjId || vm.selectedPlatform._id;
+            let sendData = $.extend(true, {}, vm.winRateQuery);
+            sendData = $.extend(true, {}, vm.winRateQuery);
+            sendData.providerId = providerId;
+            sendData.platformId = platformObjId || vm.selectedPlatform._id;
 
-            vm.curWinRateQuery.limit = 0;
-            vm.curWinRateQuery.cpGameType = cpGameType;
-            vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+            sendData.limit = 0;
+            sendData.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
+            sendData.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
+
+            if (cpGameType != "") {
+                sendData.cpGameType = cpGameType;
+            }
+
+            if (Object.keys(vm.loginDeviceList).includes(loginDevice)) {
+                sendData.loginDevice = Number(loginDevice);
+            } else {
+               delete sendData.loginDevice;
+            }
 
             if (loginDevice) {
                 vm.curWinRateQuery.loginDevice = Number(loginDevice);
@@ -2942,11 +2953,11 @@ define(['js/app'], function (myApp) {
             }
 
             let socketName = 'getWinRateByPlayers';
-            if (vm.curWinRateQuery.searchBySummaryData) {
+            if (sendData.searchBySummaryData) {
                 socketName = 'getWinRateByPlayersFromSummary';
             }
-
-            socketService.$socket($scope.AppSocket, socketName, vm.curWinRateQuery, function(data) {
+            console.log('getWinRateByPlayers sendData', sendData);
+            socketService.$socket($scope.AppSocket, socketName, sendData, function(data) {
                 // hide 'loading' gif
                 $('#winRateTableSpin').hide();
                 vm.drawWinRateLayer4Report(data.data, data.length, data.data.summaryData, true);
@@ -3073,7 +3084,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DETAILS'),
                         render: function (data, type, row){
                             let txt = $translate('DETAILS');
-                            let cpGameType = row && row._id && row._id.cpGameType ? row._id.cpGameType : row._id;
+                            let cpGameType = row && row._id && row._id.cpGameType ? row._id.cpGameType : row._id && typeof row._id === 'string' ? row._id : "";
                             return "<div ng-click='vm.getWinRateByPlayers(\"" + cpGameType +'\",\"' + row.providerId +'\",\"'+ row.platformObjId +'\",\"'+ row.loginDevice+"\")'><a>" + txt + "</a></div>";
                         }
                     }
@@ -4821,6 +4832,287 @@ define(['js/app'], function (myApp) {
                     $('#sumFinancialReport').show();
                 });
             }
+        };
+
+        vm.searchDeviceReport = function (newSearch, isExport = false) {
+            if (!vm.deviceQuery || !vm.deviceQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#loadingDeviceReportTableSpin').show();
+
+            utilService.getDataTablePageSize("#DeviceReportTablePage", vm.deviceQuery, 10000);
+            let sendQuery = {
+                platformId: vm.deviceQuery.platformId,
+                query: {
+                    playerLevel: vm.deviceQuery.level,
+                    providerId: vm.deviceQuery.providerId,
+                    start: vm.deviceQuery.start.data('datetimepicker').getLocalDate(),
+                    end: vm.deviceQuery.end.data('datetimepicker').getLocalDate(),
+                    name: vm.deviceQuery.name,
+                    consumptionTimesOperator: vm.deviceQuery.consumptionTimesOperator,
+                    consumptionTimesValue: vm.deviceQuery.consumptionTimesValue,
+                    consumptionTimesValueTwo: vm.deviceQuery.consumptionTimesValueTwo,
+                    profitAmountOperator: vm.deviceQuery.profitAmountOperator,
+                    profitAmountValue: vm.deviceQuery.profitAmountValue,
+                    profitAmountValueTwo: vm.deviceQuery.profitAmountValueTwo,
+                    topUpTimesOperator: vm.deviceQuery.topUpTimesOperator,
+                    topUpTimesValue: vm.deviceQuery.topUpTimesValue,
+                    topUpTimesValueTwo: vm.deviceQuery.topUpTimesValueTwo,
+                    bonusTimesOperator: vm.deviceQuery.bonusTimesOperator,
+                    bonusTimesValue: vm.deviceQuery.bonusTimesValue,
+                    bonusTimesValueTwo: vm.deviceQuery.bonusTimesValueTwo,
+                    topUpAmountOperator: vm.deviceQuery.topUpAmountOperator,
+                    topUpAmountValue: vm.deviceQuery.topUpAmountValue,
+                    topUpAmountValueTwo: vm.deviceQuery.topUpAmountValueTwo,
+                    csPromoteWay: vm.deviceQuery.csPromoteWay,
+                },
+                index: isExport ? 0 : (newSearch ? 0 : (vm.deviceQuery.index || 0)),
+                limit: isExport ? 10000 : (vm.deviceQuery.limit || 10000),
+                sortCol: vm.deviceQuery.sortCol || {validConsumptionAmount: -1},
+                isExport: isExport
+            };
+
+            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.loginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+                sendQuery.query.loginDevice = vm.deviceQuery.loginDevice;
+            }
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getDeviceReportFromSummary', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log('test device report summary data', data);
+                    findReportSearchTime();
+                    vm.deviceQuery.totalCount = data.data.size;
+                    $('#loadingDeviceReportTableSpin').hide();
+
+                    vm.drawDeviceReport(data.data.data.map(item => {
+                        item.platform$ = vm.platformList.filter(platform => platform._id.toString() === item.platform.toString())[0].name;
+                        item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                        item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                        item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                        item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                        item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                        item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                        item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                        item.playerLevel$ = "";
+                        if (vm.playerLvlData[item.playerLevel]) {
+                            item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                        }
+                        else {
+                            item.playerLevel$ = "";
+                        }
+
+
+                        item.providerArr = [];
+                        for (var key in item.providerDetail) {
+                            if (item.providerDetail.hasOwnProperty(key)) {
+                                item.providerDetail[key].providerId = key;
+                                item.providerArr.push(item.providerDetail[key]);
+                            }
+                        }
+
+                        item.provider$ = "";
+                        if (item.providerDetail) {
+                            for (let i = 0; i < item.providerArr.length; i++) {
+                                item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                for (let j = 0; j < vm.allProviders.length; j++) {
+                                    if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                        item.providerArr[i].name = vm.allProviders[j].name;
+                                        item.provider$ += vm.allProviders[j].name + "<br>";
+                                    }
+                                }
+                            }
+                        }
+
+                        item.profit$ = 0;
+                        if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                            item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                        }
+
+                        if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                            let detailArr = [];
+                            item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                    let orderNo = index ? index + 1 : 1;
+                                    detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                }
+                            });
+
+                            item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                        } else {
+                            item.onlineTopUpFeeDetail$ = '';
+                        }
+                        item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
+                        if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                        }
+
+                        return item;
+                    }), data.data.total, data.data.size, newSearch, isExport);
+                });
+            });
+        };
+
+        vm.drawDeviceReport = function (data, total, size, newSearch, isExport) {
+            var tableOptions = {
+                data: data,
+                "order": vm.deviceQuery.aaSorting || [[9, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'name', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'playerLevel', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [11], bSortable: true},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platform$"},
+                    {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('LEVEL'), data: "playerLevel$"},
+                    {
+                        title: $translate('LOBBY'), data: "provider$", sClass: "expandDeviceReport sumText",
+                        render: function (data) {
+                            return "<a>" + data + "</a>";
+                        }
+                    },
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('TOTAL_DEPOSIT'), data: "topUpAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('WITHDRAW_COUNT'), data: "bonusTimes", sClass: 'sumInt alignRight'},
+                    {title: $translate('WITHDRAW_AMOUNT'), data: "bonusAmount$", sClass: 'sumFloat alignRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt alignRight'},
+                    {
+                        title: $translate('VALID_CONSUMPTION'),
+                        data: "validConsumptionAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'),
+                        data: "consumptionBonusAmount$",
+                        sClass: 'sumFloat alignRight'
+                    },
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
+
+                ],
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
+                // "paging": false,
+                // "dom": '<"top">rt<"bottom"il><"clear">',
+                "language": {
+                    "info": "Total _MAX_ records",
+                    "emptyTable": $translate("No data available in table"),
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            if (deviceTbl) {
+                deviceTbl.clear();
+            }
+
+            if(isExport){
+                var deviceTbl = utilService.createDatatableWithFooter('#deviceReportExcelTable', tableOptions, {
+                    4: total.topUpTimes,
+                    5: total.topUpAmount,
+                    6: total.bonusTimes,
+                    7: total.bonusAmount,
+                    8: total.consumptionTimes,
+                    9: total.validConsumptionAmount,
+                    10: total.consumptionBonusAmount,
+                    11: total.consumptionAmount,
+                }, false, true);
+
+                $('#deviceReportExcelTable_wrapper').hide();
+                vm.exportToExcel('deviceReportExcelTable', 'DEVICE_REPORT')
+            }else{
+                var deviceTbl = utilService.createDatatableWithFooter('#deviceReportTable', tableOptions, {
+                    4: total.topUpTimes,
+                    5: total.topUpAmount,
+                    6: total.bonusTimes,
+                    7: total.bonusAmount,
+                    8: total.consumptionTimes,
+                    9: total.validConsumptionAmount,
+                    10: total.consumptionBonusAmount,
+                    11: total.consumptionAmount,
+                }, false, true);
+                utilService.setDataTablePageInput('deviceReportTable', deviceTbl, $translate);
+
+                vm.deviceQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#deviceReportTable').resize();
+                $('#deviceReportTable tbody').off('click', 'td.expandDeviceReport');
+                $('#deviceReportTable tbody').on('click', 'td.expandDeviceReport', function () {
+                    var tr = $(this).closest('tr');
+                    var row = deviceTbl.row(tr);
+
+                    if (row.child.isShown()) {
+                        // This row is already open - close it
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    }
+                    else {
+                        // Open this row
+                        var data = row.data();
+                        console.log('content', data);
+                        var id = 'devicetable' + data._id;
+                        row.child(vm.createInnerTable(id)).show();
+                        vm[id] = {};
+                        vm.allGame = [];
+                        var gameId = [];
+                        if (data.gameDetail) {
+                            for (let n = 0; n < data.gameDetail.length; n++) {
+                                gameId[n] = data.gameDetail[n].gameId;
+                            }
+
+                            vm.getGameByIds(gameId).then(
+                                function () {
+                                    for (let i = 0; i < data.gameDetail.length; i++) {
+                                        data.gameDetail[i].profit = parseFloat(data.gameDetail[i].bonusAmount / data.gameDetail[i].validAmount * -100).toFixed(2) + "%";
+                                        for (let j = 0; j < vm.allGame.length; j++) {
+                                            if (data.gameDetail[i].gameId.toString() == vm.allGame[j]._id.toString()) {
+                                                data.gameDetail[i].name = vm.allGame[j].name;
+                                            }
+                                        }
+                                    }
+                                    vm.drawPlatformTable(data, id, data.providerArr.length, newSearch, vm.deviceQuery);
+                                }
+                            )
+                        }
+
+                        tr.addClass('shown');
+                    }
+                });
+                $('#deviceReportTable').off('order.dt');
+                $('#deviceReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'deviceQuery', vm.searchDeviceReport);
+                });
+            }
+        };
+
+        vm.reCalculateDeviceReportSummary = function (){
+            if (!vm.deviceQuery || !vm.deviceQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
+            $('#loadingDeviceReportTableSpin').show();
+            let sendquery = {
+                platformId: vm.deviceQuery.platformId,
+                start: vm.deviceQuery.start.data('datetimepicker').getLocalDate(),
+                end: vm.deviceQuery.end.data('datetimepicker').getLocalDate()
+            };
+
+            if (vm.deviceQuery.name) {
+                sendquery.name = vm.deviceQuery.name;
+            }
+
+            socketService.$socket($scope.AppSocket, 'reCalculateDeviceReportSummary', sendquery, function (data) {
+                $('#loadingDeviceReportTableSpin').hide();
+            });
         };
 
         vm.searchPlayerReport = function (newSearch, isExport = false) {
@@ -11411,6 +11703,49 @@ define(['js/app'], function (myApp) {
                     vm.fullAttendanceResultQuery = {status: 'all'};
                     $scope.safeApply();
                 });
+            }
+            else if (choice == "DEVICE_REPORT") {
+                vm.reportSearchTime = 0;
+                utilService.actionAfterLoaded('#deviceReportTablePage', function () {
+                    // Get Promote CS and way lists
+                    vm.allPromoteWay = {};
+                    let query = {
+                        platformId: vm.selectedPlatform._id
+                    };
+                    socketService.$socket($scope.AppSocket, 'getAllPromoteWay', query,
+                        function (data) {
+                            $scope.$evalAsync(() => {
+                                vm.allPromoteWay = data.data;
+                                endLoadMultipleSelect('.spicker');
+                            })
+                        },
+                        function (err) {
+                            console.log(err);
+                        }
+                    );
+                    // todo :: change date to yesterday
+                    var yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    var todayEndTime = utilService.getTodayEndTime();
+                    vm.deviceQuery = {};
+                    vm.deviceQuery.totalCount = 0;
+                    vm.deviceQuery.sortCol = {validConsumptionAmount: -1};
+                    vm.deviceQuery.consumptionTimesOperator = ">=";
+                    vm.deviceQuery.profitAmountOperator = ">=";
+                    vm.deviceQuery.topUpTimesOperator = ">=";
+                    vm.deviceQuery.bonusTimesOperator = ">=";
+                    vm.deviceQuery.topUpAmountOperator = ">=";
+                    vm.deviceQuery.valueScoreOperator = ">=";
+                    vm.deviceQuery.start = utilService.createDatePicker('#deviceStartingDateTimePicker');
+                    vm.deviceQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.deviceQuery.end = utilService.createDatePicker('#deviceEndingEndDateTimePicker');
+                    vm.deviceQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                    vm.deviceQuery.pageObj = utilService.createPageForPagingTable("#deviceReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "deviceQuery", vm.searchDeviceReport);
+                    });
+                    // vm.setupRemarksMultiInput();
+                    $scope.$evalAsync();
+                })
             }
             else if (choice == "PLAYER_REPORT") {
                 vm.reportSearchTime = 0;

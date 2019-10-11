@@ -101,7 +101,7 @@ class Login extends Component {
             <div className="container centerMenu">
                 <div className="login card col-12">
                     <div className="text-center">
-                        <h4>FMPS</h4>
+                        <h4>FPMS</h4>
                     </div>
 
                     <div className="login-group">
