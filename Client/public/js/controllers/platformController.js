@@ -67,6 +67,13 @@ define(['js/app'], function (myApp) {
                 "doNothing": 6,
             };
 
+            vm.frontEndRewardButtonOnClickAction = {
+                "redirectToParticularPage": 1,
+                "return": 2,
+                "applyReward": 3,
+                "contactCS": 4,
+            };
+
             vm.frontEndSettingDevices = {
                 "Web": 1,
                 "IOS App": 2,
@@ -26179,6 +26186,31 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.resetOnClickRewardButton  = function (holder, type, button, actionId) {
+                switch (button) {
+                    case "topButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['topButtonRoute'] = null;
+                        }
+                        break;
+                    case "rightButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rightButtonRoute'] = null;
+                        }
+                        break;
+                    case "bottomButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['bottomButtonRoute'] = null;
+                        }
+                        break;
+                    case "rewardButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rewardButtonRoute'] = null;
+                        }
+                        break;
+                }
             };
 
             vm.enableSortableCategoryChange = function (holder) {
