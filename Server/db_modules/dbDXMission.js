@@ -1678,7 +1678,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
                 //after created new player, need to create login record and apply login reward
                 dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
-                dbApiLog.createApiLog(conn, wsFunc, null, null, newPlayerData).catch(errorUtils.reportError);
+                dbApiLog.createApiLog(conn, wsFunc, null, {}, newPlayerData).catch(errorUtils.reportError);
             }
 
             if (!dxMission.loginUrl) {
