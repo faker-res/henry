@@ -500,6 +500,7 @@ var roleChecker = {
                 PlayerValue: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 Credibility: ['updateCredibilityRemarksInBulk'],
                 providerGroup: ['deletePlatformProviderGroup'],
+                gameTypeConfig: ['deleteGameTypeConfig'],
                 smsGroup: [],
                 BulkCall: [],
                 AddCtiUrl: ['addCtiUrlSubDomain'],

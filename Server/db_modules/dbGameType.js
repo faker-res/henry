@@ -59,6 +59,58 @@ var dbGameType = {
         );
     },
 
+    getPlatformGameTypeConfig: function (platformObjId) {
+        return dbconfig.collection_gameTypeConfig.find({platform: platformObjId})
+            .populate({path: "gameType", model: dbconfig.collection_gameType})
+            .lean().then(
+                config => {
+                    if (config && config.length) {
+                        config.map(data => {
+                            if (data && data.gameType.name) {
+                                data.gameTypeId = data.gameType._id;
+                                data.gameTypeName = data.gameType.name;
+                            }
+                        })
+                    }
+                    return config;
+                }
+            );
+    },
+
+    updatePlatformGameTypeConfig: (platformObjId, gameTypeConfig) => {
+        let promArr = [];
+
+        gameTypeConfig.map(e => {
+            if (e._id) {
+                e.gameType = e.gameTypeId;
+                delete e.gameTypeId;
+                promArr.push(
+                    dbconfig.collection_gameTypeConfig.findOneAndUpdate({
+                        platform: platformObjId,
+                        _id: e._id
+                    }, e, {upsert: true, new: true})
+                )
+            } else {
+                e.platform = platformObjId;
+                e.gameType = e.gameTypeId;
+                delete e.gameTypeId;
+                promArr.push(new dbconfig.collection_gameTypeConfig(e).save())
+            }
+        });
+
+        return Promise.all(promArr).then(
+            () => {
+                return dbGameType.getPlatformGameTypeConfig(platformObjId);
+            }
+        );
+    },
+
+    deletePlatformGameTypeConfig: (gameTypeConfigObjId) => {
+        return dbconfig.collection_gameTypeConfig.remove({
+            _id: gameTypeConfigObjId
+        });
+    },
+
     syncData: function (gameTypeUpdates) {
         //compare type data
         return dbconfig.collection_gameType.find().then(
@@ -113,7 +165,7 @@ var dbGameType = {
      * @returns {Promise<Array<GameType>>}
      */
     getGameTypeList: function () {
-        return dbconfig.collection_gameType.find({name: {$exists: true}}).sort({name: 1}).exec();
+        return dbconfig.collection_gameType.find({name: {$exists: true}}).sort({name: 1}).lean();
     }
 };
 
