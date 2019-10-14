@@ -1688,6 +1688,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             if (isNew) {
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
                 dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
+                console.log('Updating DxPhone to used.');
                 updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
             }
 
