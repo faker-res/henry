@@ -12275,12 +12275,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.resetGroupPartnerCommissionRate = function (providerGroupObjId, providerGroupName) {
-            // if (vm.commissionSettingIsEditAll) {
-            //     for (let key in vm.commissionSettingIsEditAll) {
-            //         vm.commissionSettingIsEditAll[key] = false;
-            //     }
-            // }
-
             let resetGroupPartnerCommRateFunc = function () {
                 let sendData = {
                     platformObjId: vm.platformInSetting._id,
