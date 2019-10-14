@@ -93,7 +93,7 @@ var proposal = {
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
+            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
