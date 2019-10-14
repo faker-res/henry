@@ -1585,7 +1585,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
         },
         platform: platform._id,
         isRealPlayer: true
-    }, {_id: 1}).lean().then(
+    }, {_id: 1, name: 1, phoneNumber: 1}).lean().then(
         playerExist=> {
             if (playerExist) {
                 console.log('debug dx not auto login', playerExist);
