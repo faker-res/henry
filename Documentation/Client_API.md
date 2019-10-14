@@ -6607,7 +6607,6 @@ API说明：
 					"playerLevelUpPeriod": 3,
 					"manualPlayerLevelUp": true,
 					"autoCheckPlayerLevelUp": true,
-                    "autoCheckPlayerLevelDown": true,
 					"canMultiReward": false,
 					"autoApproveBonusProfitOffset": 2000,
 					"autoApproveProfitTimesMinAmount": 2000,

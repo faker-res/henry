@@ -18564,6 +18564,12 @@ define(['js/app'], function (myApp) {
 
                     let searchResult = data.data.data;
                     searchResult.map(item => {
+                        if (item.platform && vm.allPlatformData && vm.allPlatformData.length){
+                            let matchedPlatformData = vm.allPlatformData.find(a => String(a._id) == String(item.platform));
+                            if(matchedPlatformData && matchedPlatformData.name){
+                                item.platform$ = matchedPlatformData.name;
+                            }
+                        }
                         item.commissionType$ = item.hasOwnProperty("commissionType")? $translate($scope.constPartnerCommissionSettlementType[item.commissionType]): "";
                         item.partnerParent$ = item.parent ? item.parent.partnerName : $translate("MAIN_PARTNER");
                         item.totalPartnerWithdraw = $noRoundTwoDecimalPlaces(item.totalPartnerWithdraw);
@@ -18589,13 +18595,17 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.partnerProfitQuery.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'partnerName', 'aTargets': [0]},
+                    {'sortCol': 'partnerName', 'aTargets': [1]},
                     // {'sortCol': 'parent', 'aTargets': [1]},
                     // {'sortCol': 'totalDownlines', 'aTargets': [2]},
-                    {'sortCol': 'commissionType', 'aTargets': [3]},
+                    {'sortCol': 'commissionType', 'aTargets': [4]},
                     {targets: '_all', defaultContent: 0, bSortable: true}
                 ],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: 'platform$'
+                    },
                     {
                         title: $translate("PARTNER_NAME"),
                         data: "partnerName",

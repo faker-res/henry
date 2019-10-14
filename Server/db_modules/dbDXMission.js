@@ -1579,12 +1579,16 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let platformPrefix = platform.prefix || "";
 
     return dbconfig.collection_players.findOne({
-        phoneNumber: {$in: [rsaCrypto.encrypt(dxPhone.phoneNumber), rsaCrypto.oldEncrypt(dxPhone.phoneNumber)]},
+        phoneNumber: {$in: [
+            rsaCrypto.encrypt(dxPhone.phoneNumber),
+            rsaCrypto.oldEncrypt(dxPhone.phoneNumber)]
+        },
         platform: platform._id,
         isRealPlayer: true
-    }, {_id: 1}).lean().then(
+    }, {_id: 1, name: 1, phoneNumber: 1}).lean().then(
         playerExist=> {
             if (playerExist) {
+                console.log('debug dx not auto login', playerExist);
                 return Promise.reject({isPlayerExist: true, message: "Your phone number is registered, please verify and login."});
             }
 
