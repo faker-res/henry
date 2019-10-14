@@ -96,7 +96,7 @@ div(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'Par
                     select.form-control(style = 'max-width:80%; margin-left:10%' ng-show="vm.configTableEdit", ng-model="vm.partnerBasic.partnerDefaultCommissionGroup")
                         option(ng-repeat='(i,j) in vm.constPartnerCommisionType', value= '{{j}}') {{i | translate}}
             br
-    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'PartnerBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
         text {{'EDIT' | translate}}
         img.img-edit
     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("partnerBasic")') {{"CANCEL" | translate}}
