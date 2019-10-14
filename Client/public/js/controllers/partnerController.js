@@ -12274,6 +12274,38 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.resetGroupPartnerCommissionRate = function (providerGroupObjId, providerGroupName) {
+            // if (vm.commissionSettingIsEditAll) {
+            //     for (let key in vm.commissionSettingIsEditAll) {
+            //         vm.commissionSettingIsEditAll[key] = false;
+            //     }
+            // }
+
+            let resetGroupPartnerCommRateFunc = function () {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                    providerGroupObjId: providerGroupObjId
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetGroupPartnerCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
+                        vm.partnerCommission.isEditing = false;
+                    });
+                });
+            }
+
+            vm.modalYesNo = {};
+            vm.modalYesNo.modalTitle = $translate("SYNC_GROUP_COMMISSION_RATE");
+
+            vm.modalYesNo.modalText = $translate("Are you sure");
+            vm.modalYesNo.actionYes = () => resetGroupPartnerCommRateFunc();
+            vm.modalYesNo.actionNo = () => {};
+            $('#modalYesNo').modal();
+            $scope.$evalAsync();
+        };
+
         vm.resetAllPartnerCustomizedCommissionRate = function () {
             // if (vm.commissionSettingIsEditAll) {
             //     for (let key in vm.commissionSettingIsEditAll) {
@@ -12281,18 +12313,29 @@ define(['js/app'], function (myApp) {
             //     }
             // }
 
-            let sendData = {
-                platformObjId: vm.platformInSetting._id,
-                commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
-                isMultiLevel: vm.isMultiLevelCommission
-            };
+            let resetAllPartnerCommRateFunc = function () {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                    isMultiLevel: vm.isMultiLevelCommission
+                };
 
-            socketService.$socket($scope.AppSocket, 'resetAllPartnerCustomizedCommissionRate', sendData, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
-                    vm.partnerCommission.isEditing = false;
+                socketService.$socket($scope.AppSocket, 'resetAllPartnerCustomizedCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
+                        vm.partnerCommission.isEditing = false;
+                    });
                 });
-            });
+            }
+
+            vm.modalYesNo = {};
+            vm.modalYesNo.modalTitle = $translate("SYNC_ALL_COMMISSION_RATE");
+
+            vm.modalYesNo.modalText = $translate("Are you sure");
+            vm.modalYesNo.actionYes = () => resetAllPartnerCommRateFunc();
+            vm.modalYesNo.actionNo = () => {};
+            $('#modalYesNo').modal();
+            $scope.$evalAsync();
         };
 
         vm.customizePartnerRate = (config, field, isRevert = false) => {
