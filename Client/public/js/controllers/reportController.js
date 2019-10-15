@@ -12368,6 +12368,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "generatePartnerCommSettPreview", action: "generatePartnerCommSettPreview"},
                     {group: "PARTNER", text: "cancelPartnerCommissionPreview", action: "cancelPartnerCommissionPreview"},
                     {group: "PARTNER", text: "resetAllPartnerCustomizedCommissionRate", action: "resetAllPartnerCustomizedCommissionRate"},
+                    {group: "PARTNER", text: "resetGroupPartnerCommissionRate", action: "resetGroupPartnerCommissionRate"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
