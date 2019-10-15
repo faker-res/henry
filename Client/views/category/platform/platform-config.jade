@@ -2057,7 +2057,7 @@
                         label(ng-if="vm.providerGroupConfig.showWarning") {{"Update successful, unallocated providers exist" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="gameTypeConfig"')
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'gameTypeConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'gameTypeConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("gameTypeConfig")') {{"CANCEL" | translate}}
