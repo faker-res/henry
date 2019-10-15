@@ -19715,7 +19715,7 @@ let dbPlayerInfo = {
                 platformId: ObjectId(platformObjId),
                 newLevelName: playerLevel.name,
                 newLevelObjId: playerLevel._id,
-                playerName: playerNames.join(", "),
+                playerName: playerNames, // keep this as array so that it can be found in reports by name search
                 playerNameList: playerNames,
                 playerObjIds: playerObjIds,
                 remark: "批量编辑玩家等级;" + remarks,

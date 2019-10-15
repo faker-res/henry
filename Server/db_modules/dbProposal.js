@@ -2373,7 +2373,8 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
                             ];
                         }
 
