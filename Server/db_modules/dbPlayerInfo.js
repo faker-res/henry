@@ -4335,6 +4335,8 @@ let dbPlayerInfo = {
         ).then(
             updatedData => {
                 let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
+                console.log('updatePlayerPayment() playerName', playerObj.name);
+                console.log('updatePlayerPayment()', inputDeviceData);
                 //updateData.isPlayerInit = true;
                 // updateData.playerName = playerObj.name;
                 updateData.isIgnoreAudit = true; // bypass the audit process if the update is made from the frontend API by the user
