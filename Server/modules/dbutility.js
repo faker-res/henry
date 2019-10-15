@@ -1479,7 +1479,7 @@ var dbUtility = {
             return true;
         }
 
-        if (userAgentInput && userAgentInput[0] && inputUserAgent) {
+        if (userAgentInput && userAgentInput[0]) {
             let userAgent = userAgentInput[0];
             console.log("getInputDevice().userAgent",userAgent);
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
