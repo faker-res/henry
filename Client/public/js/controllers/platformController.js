@@ -39,6 +39,12 @@ define(['js/app'], function (myApp) {
                 DAILY_CONSUMPTION: 7
             };
 
+            vm.constVoiceCodeProvider = {
+                TENCENT_CLOUD: 1, // 腾讯云 default
+                NETEASE: 2, // 网易云
+                YUNPIAN: 3 // 云片
+            };
+
             vm.popularRecommendationCategory = {
                 "Navigation_Bar": 1,
                 "Body": 2,
@@ -32241,6 +32247,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isEbet4 = platformData.isEbet4;
                         vm.platformBasic.useVoiceCode = platformData.useVoiceCode;
+                        vm.platformBasic.voiceCodeProvider = platformData.voiceCodeProvider || vm.constVoiceCodeProvider.TENCENT_CLOUD;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -34777,6 +34784,7 @@ define(['js/app'], function (myApp) {
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         isEbet4: srcData.isEbet4,
                         useVoiceCode: srcData.useVoiceCode,
+                        voiceCodeProvider: srcData.voiceCodeProvider,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer

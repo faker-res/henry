@@ -1264,6 +1264,7 @@
                             tr
                                 td {{'VOICE_VERIFICATION_CODE' | translate}}
                                 td
+                                    select(ng-model='vm.platformBasic.voiceCodeProvider' ng-options='v as i | translate for (i,v) in vm.constVoiceCodeProvider', ng-disabled='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.useVoiceCode', ng-disabled='!vm.configTableEdit')
 
                             br
