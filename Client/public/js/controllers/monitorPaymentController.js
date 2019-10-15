@@ -2756,11 +2756,6 @@ define(['js/app'], function (myApp) {
                 if (!reg.test(vm.newPlayer.phoneNumber)){
                     return socketService.showErrorMessage($translate("Phone number can only be digits"));
                 }
-
-                await vm.existNumberDetector(true);
-                if (vm.existPhone){
-                    return socketService.showErrorMessage($translate("Phone number has been registered, please enter a new one"));
-                }
             }
 
             console.log('newPlayer', vm.newPlayer);

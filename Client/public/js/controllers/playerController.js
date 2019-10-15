@@ -9104,34 +9104,6 @@ define(['js/app'], function (myApp) {
             return selectedPlayer ? selectedPlayer.status : false;
         };
 
-        vm.checkPhoneNumberDuplication = async function () {
-            if (!vm.newPlayer.phoneNumber) {
-                return false
-            }
-
-            if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
-                return false;
-            }
-
-            let selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
-            let sendData = {
-                adminId: authService.adminId,
-                platformId: vm.newPlayer.platform || null,
-                type: ["PlayerRegistrationIntention"],
-                phoneNumber: vm.newPlayer.phoneNumber,
-                displayPhoneNum: true
-            };
-            sendData.status = selectedStatus;
-
-            let result = await $scope.$socketPromise('getDuplicatePlayerPhoneNumber', sendData);
-            let phoneDuplicateCount = result && result.data && result.data.size ? result.data.size : 0;
-            if (phoneDuplicateCount == 0) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-
         //Create new player
         vm.createNewPlayer = async function () {
             vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
@@ -9152,20 +9124,11 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.phoneNumber = vm.newPlayer.encodedPhoneNumber;
             }
 
-            if (vm.newPlayer.encodedPhoneNumber){
-                delete vm.newPlayer.encodedPhoneNumber;
-            }
-
             if(vm.newPlayer.phoneNumber){
                 let reg = new RegExp('^[0-9]+$');
 
                 if (!reg.test(vm.newPlayer.phoneNumber)){
                     return socketService.showErrorMessage($translate("Phone number can only be digits"));
-                }
-
-                let isDuplicated = await vm.checkPhoneNumberDuplication();
-                if (isDuplicated){
-                    return socketService.showErrorMessage($translate("Phone number has been registered, please enter a new one"));
                 }
             }
 
