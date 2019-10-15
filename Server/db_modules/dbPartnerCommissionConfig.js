@@ -401,6 +401,53 @@ const dbPartnerCommissionConfig = {
 
     },
 
+    resetGroupPartnerCommissionRate: async function (platformObjId, commissionType, providerGroupObjId) {
+        let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId, commissionType: commissionType}, {parent: 1}).lean();
+
+        if (!(partnerObj && partnerObj.length)) {
+            return;
+        }
+
+        let platformConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: providerGroupObjId,
+        }).lean();
+
+        let platformDefaultConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: null,
+        }).lean();
+
+        if (!(platformConfig || platformDefaultConfig)) {
+            return;
+        }
+
+        let selectedConfig = platformConfig;
+
+        if (!(platformConfig && platformConfig.commissionSetting && platformConfig.commissionSetting.length)) {
+            platformDefaultConfig.provider = providerGroupObjId;
+            selectedConfig = platformDefaultConfig;
+        }
+
+        partnerObj.map(partner => {
+            delete selectedConfig.__v;
+            delete selectedConfig._id;
+
+            selectedConfig.partner = partner._id;
+
+            dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
+                platform: selectedConfig.platform,
+                partner: selectedConfig.partner,
+                provider: selectedConfig.provider
+            }, selectedConfig).lean().catch(errorUtils.reportError);
+
+            updateDownLineCommConfig(partner._id, platformObjId, commissionType, [selectedConfig], true);
+        });
+
+    },
+
     resetAllPartnerCustomizedCommissionRate: async function (platformObjId, commissionType, isMultiLevelCommission) {
         if (isMultiLevelCommission) {
             let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId, commissionType: commissionType}, {parent: 1}).lean();
