@@ -63,7 +63,7 @@ var dbPlayerLoginRecord = {
                     if(playerLoginRecord && playerLoginRecord.length){
                         playerLoginRecord.forEach(
                             loginRecord => {
-                                if(loginRecord && loginRecord.player._id){
+                                if(loginRecord && loginRecord.player && loginRecord.player._id){
                                     let indexNo = finalResult.findIndex(f => f.player && f.player._id && f.player._id.toString() == loginRecord.player._id.toString());
 
                                     if(indexNo == -1){
