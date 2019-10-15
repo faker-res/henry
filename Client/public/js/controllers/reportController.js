@@ -1857,9 +1857,7 @@ define(['js/app'], function (myApp) {
                     topUpRecordInputDevice.push("8");
                 }
             }
-
-            console.log("topUpRecordInputDevice.......", topUpRecordInputDevice);
-
+            
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
