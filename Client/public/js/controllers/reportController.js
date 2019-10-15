@@ -296,7 +296,8 @@ define(['js/app'], function (myApp) {
         'comparePhoneNum',
         'resetAllPartnerCustomizedCommissionRate',
         'savePreventBlockUrl',
-        'deletePreventBlockUrl'];
+        'deletePreventBlockUrl',
+        'resetGroupPartnerCommissionRate'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
