@@ -1847,6 +1847,19 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
+
+            let topUpRecordInputDevice = vm.queryTopup.userAgent;
+            if(vm.queryTopup && vm.queryTopup.userAgent){
+                if(vm.queryTopup.userAgent.indexOf("5") !== -1 && vm.queryTopup.userAgent.indexOf("7") === -1){
+                    topUpRecordInputDevice.push("7");
+                }
+                if(vm.queryTopup.userAgent.indexOf("6") !== -1 && vm.queryTopup.userAgent.indexOf("8") === -1){
+                    topUpRecordInputDevice.push("8");
+                }
+            }
+
+            console.log("topUpRecordInputDevice.......", topUpRecordInputDevice);
+
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
@@ -1859,7 +1872,7 @@ define(['js/app'], function (myApp) {
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
-                userAgent: vm.queryTopup.userAgent,
+                userAgent: topUpRecordInputDevice,
                 topupType: vm.queryTopup.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 depositMethod: vm.queryTopup.depositMethod,
