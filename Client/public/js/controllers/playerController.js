@@ -3922,7 +3922,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            if (row.data.name && row.data.name != "" && row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                 link.append($('<div>', {
@@ -3984,6 +3984,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.email = row.data.email;
                 vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                vm.newPlayer.encodedPhoneNumber = row.data.phoneNumber ? utilService.encodePhoneNum(row.data.phoneNumber) : null;
                 vm.newPlayer.referralName = row.data.referral;
             });
         }
@@ -9102,8 +9103,37 @@ define(['js/app'], function (myApp) {
             var selectedPlayer = vm.isOneSelectedPlayer();
             return selectedPlayer ? selectedPlayer.status : false;
         };
+
+        vm.checkPhoneNumberDuplication = async function () {
+            if (!vm.newPlayer.phoneNumber) {
+                return false
+            }
+
+            if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+                return false;
+            }
+
+            let selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
+            let sendData = {
+                adminId: authService.adminId,
+                platformId: vm.newPlayer.platform || null,
+                type: ["PlayerRegistrationIntention"],
+                phoneNumber: vm.newPlayer.phoneNumber,
+                displayPhoneNum: true
+            };
+            sendData.status = selectedStatus;
+
+            let result = await $scope.$socketPromise('getDuplicatePlayerPhoneNumber', sendData);
+            let phoneDuplicateCount = result && result.data && result.data.size ? result.data.size : 0;
+            if (phoneDuplicateCount == 0) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
         //Create new player
-        vm.createNewPlayer = function () {
+        vm.createNewPlayer = async function () {
             vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
 
             let calendarDate = $('#datepickerDOB input').val();
@@ -9116,6 +9146,29 @@ define(['js/app'], function (myApp) {
 
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
             vm.newPlayer.isFromBackstage = Boolean(true);
+
+            // replace the phone number if the encoded phone number has been re-entered
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                vm.newPlayer.phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if (vm.newPlayer.encodedPhoneNumber){
+                delete vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if(vm.newPlayer.phoneNumber){
+                let reg = new RegExp('^[0-9]+$');
+
+                if (!reg.test(vm.newPlayer.phoneNumber)){
+                    return socketService.showErrorMessage($translate("Phone number can only be digits"));
+                }
+
+                let isDuplicated = await vm.checkPhoneNumberDuplication();
+                if (isDuplicated){
+                    return socketService.showErrorMessage($translate("Phone number has been registered, please enter a new one"));
+                }
+            }
+
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -15218,6 +15271,10 @@ define(['js/app'], function (myApp) {
 
             let phoneNumber = (vm.modifyCritical && vm.modifyCritical.newPhoneNumber) || vm.newPlayer.phoneNumber;
             let platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.newPlayer.platform;
+
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
 
             if (phoneNumber && platform) {
                 socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {

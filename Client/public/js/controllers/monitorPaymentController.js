@@ -1088,7 +1088,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                 link.append($('<div>', {
@@ -2493,6 +2493,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.email = row.data.email;
                 // vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                vm.newPlayer.encodedPhoneNumber = row.data.phoneNumber ? utilService.encodePhoneNum(row.data.phoneNumber) : null;
                 vm.newPlayer.referralName = row.data.referral;
                 vm.newPlayer.platform = row.data.platformId;
                 vm.newPlayer.platformId = vm.platformByAdminId.filter(platform => platform._id.toString() === row.data.platformId.toString())[0].platformId;
@@ -2735,10 +2736,32 @@ define(['js/app'], function (myApp) {
         };
 
 
-        vm.createNewPlayer = function () {
+        vm.createNewPlayer = async function () {
             // vm.newPlayer.platform = vm.selectedPlatform._id;
             // vm.newPlayer.platformId = vm.selectedPlatform.platformId;
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
+
+            // replace the phone number if the encoded phone number has been re-entered
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                vm.newPlayer.phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if (vm.newPlayer.encodedPhoneNumber){
+                delete vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if(vm.newPlayer.phoneNumber){
+                let reg = new RegExp('^[0-9]+$');
+
+                if (!reg.test(vm.newPlayer.phoneNumber)){
+                    return socketService.showErrorMessage($translate("Phone number can only be digits"));
+                }
+
+                await vm.existNumberDetector(true);
+                if (vm.existPhone){
+                    return socketService.showErrorMessage($translate("Phone number has been registered, please enter a new one"));
+                }
+            }
 
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
@@ -2825,7 +2848,7 @@ define(['js/app'], function (myApp) {
             if (!vm.newPlayer.phoneNumber) {
                 return
             }
-
+            let phoneNumber = vm.newPlayer.phoneNumber;
             if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
                 // $scope.$evalAsync(() => {
                 //     vm.existPhone = false;
@@ -2835,13 +2858,17 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
             //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
             var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
             var sendData = {
                 adminId: authService.adminId,
                 platformId: vm.selectedPlatform._id,
                 type: ["PlayerRegistrationIntention"],
-                phoneNumber: vm.newPlayer.phoneNumber,
+                phoneNumber: phoneNumber,
                 size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
                 index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
                 // sortCol: vm.newPlayerRecords.sortCol || null,
