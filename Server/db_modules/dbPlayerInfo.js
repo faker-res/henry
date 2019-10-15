@@ -4334,6 +4334,7 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
+                console.log('updatePlayerPayment() playerName', userAgent);
                 let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
                 console.log('updatePlayerPayment() playerName', playerObj.name);
                 console.log('updatePlayerPayment()', inputDeviceData);
