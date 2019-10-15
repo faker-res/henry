@@ -1461,13 +1461,11 @@ var dbUtility = {
             ua = uaParser(inputUserAgent);
         }
 
-        console.log("dbUtil.getInputDevice",ua);
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-        console.log("dbUtil.getInputDevice",userAgentInput[0]);
 
         let inputDevice="";
 
@@ -1479,7 +1477,7 @@ var dbUtility = {
             return true;
         }
 
-        if (userAgentInput && userAgentInput[0] && inputUserAgent) {
+        if (userAgentInput && userAgentInput[0]) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 if (isPartnerProposal) {

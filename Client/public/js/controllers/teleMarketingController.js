@@ -2195,9 +2195,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getPlatformTsListName = function () {
-            let sendData = {
-                platform: vm.selectedPlatform.id
+        vm.getPlatformTsListName = function (platformId) {
+            let sendData = {};
+            if(platformId){
+                sendData.platform = platformId;
+            }else{
+                sendData.platform = vm.selectedPlatform.id;
             }
             socketService.$socket($scope.AppSocket, 'getTsNewListName', sendData, function (data) {
                 vm.platformTsListName = data.data || [];
