@@ -4334,10 +4334,7 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
-                console.log('updatePlayerPayment() playerName', userAgent);
                 let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
-                console.log('updatePlayerPayment() playerName', playerObj.name);
-                console.log('updatePlayerPayment()', inputDeviceData);
                 //updateData.isPlayerInit = true;
                 // updateData.playerName = playerObj.name;
                 updateData.isIgnoreAudit = true; // bypass the audit process if the update is made from the frontend API by the user
@@ -6770,11 +6767,6 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
-        if(playerData) {
-            console.log("playerData.name", playerData.name);
-            console.log("userAgent", userAgent);
-            console.log("inputDevice", inputDevice);
-        }
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
