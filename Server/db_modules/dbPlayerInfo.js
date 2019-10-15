@@ -7017,6 +7017,12 @@ let dbPlayerInfo = {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
 
+                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                    // H5
+                    recordData.inputDeviceType = 2;
+                }
+
                 if (playerData && playerData.osType) {
                     recordData.osType = playerData.osType;
                 }
@@ -7037,14 +7043,18 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice ==>', tempInputDevice);
                 console.log('playerData.osType ==>', playerData.osType);
-                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                     loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
+                        loginDevice = constPlayerLoginDevice.H5;
                     } else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
@@ -7822,6 +7832,13 @@ let dbPlayerInfo = {
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                 }
+
+                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                    // H5
+                    recordData.inputDeviceType = 2;
+                }
+
                 Object.assign(recordData, geoInfo);
 
                 let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -7842,14 +7859,18 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice 1==>', tempInputDevice);
                 console.log('playerData.osType 1==>', playerData.osType);
-                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                     loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
+                        loginDevice = constPlayerLoginDevice.H5;
                     } else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
@@ -8250,6 +8271,13 @@ let dbPlayerInfo = {
                         if (recordData.userAgent) {
                             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                         }
+
+                        if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                            (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                            // H5
+                            recordData.inputDeviceType = 2;
+                        }
+
                         Object.assign(recordData, geoInfo);
 
                         let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -8263,14 +8291,18 @@ let dbPlayerInfo = {
 
                                 console.log('tempInputDevice 2==>', tempInputDevice);
                                 console.log('inputData.osType 2==>', inputData.osType);
-                                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                                     loginDevice = constPlayerLoginDevice.WEB;
-                                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                                     loginDevice = constPlayerLoginDevice.H5;
-                                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                                     if (inputData && inputData.osType) {
                                         let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+                                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
+                                        loginDevice = constPlayerLoginDevice.H5;
                                     } else if (userAgent && userAgent.os && userAgent.os.name) {
                                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
