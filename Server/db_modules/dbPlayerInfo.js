@@ -6877,7 +6877,6 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "Cannot find player",
                         code: constServerCode.PLAYER_NAME_INVALID,
-                        data: playerData
                     });
                 }
             }
@@ -7037,6 +7036,7 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice ==>', tempInputDevice);
                 console.log('playerData.osType ==>', playerData.osType);
+                console.log('userAgent.browser', userAgent.browser);
                 if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
                 } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
