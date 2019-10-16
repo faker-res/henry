@@ -20293,19 +20293,18 @@ define(['js/app'], function (myApp) {
 
             console.log('vm.newPlayerProposal.data.isRegistered===', vm.newPlayerProposal.data.isRegistered);
             console.log('vm.newPlayerProposal.data.isRegisteredTime===', vm.newPlayerProposal.data.isRegisteredTime);
-            if (vm.newPlayerProposal.data.isRegistered) {
-                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
-                    let str = vm.newPlayerProposal.data.phoneNumber;
-                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
-                }
+
+            if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                let str = vm.newPlayerProposal.data.phoneNumber;
+                vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
             }
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
-                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
-                    let str = vm.newPlayerProposal.data.phoneNumber;
-                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
-                }
-            }
+            // if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
+            //     if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+            //         let str = vm.newPlayerProposal.data.phoneNumber;
+            //         vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+            //     }
+            // }
 
             // requirement by echo
             // 1.同账号 不同手机号尝试开户；
