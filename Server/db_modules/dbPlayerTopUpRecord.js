@@ -990,7 +990,7 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('queryObj', queryObj);
+        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
 
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
@@ -1156,6 +1156,9 @@ var dbPlayerTopUpRecord = {
                 }
             }
 
+            if (query.loginDevice && query.loginDevice.length){
+                queryObj['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+            }
             return queryObj;
         }
 
