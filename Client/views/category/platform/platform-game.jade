@@ -43,6 +43,11 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'BatchCreditTransferOut')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalBatchCreditTransferOut', ng-click='vm.initBatchCreditTransferOut(vm.selectedPlatform.data, vm.SelectedProvider);')
                         text {{"BATCH_CREDIT_TRANSFER_OUT" | translate}}
                         .fa.fa-gamepad
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.filterGamePlatform || !vm.SelectedProvider || vm.disableLoginShowButton", ng-click='vm.updateProviderNeedLoginShow(vm.SelectedProvider)')
+                        text(ng-if="vm.loginShowButton") {{"NO_LOG_IN_SHOW_OFF" | translate}}
+                        text(ng-if="!vm.loginShowButton") {{"NO_LOG_IN_SHOW_ON" | translate}}
+                        //text {{vm.getPlatformsProviderEnable(vm.SelectedProvider) | translate}}
+                        .fa.fa-edit
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}

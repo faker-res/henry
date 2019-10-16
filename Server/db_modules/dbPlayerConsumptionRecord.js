@@ -416,6 +416,7 @@ var dbPlayerConsumptionRecord = {
         let isSameDay = dbUtility.isSameDaySG(data.createTime, Date.now());
         let deferred = Q.defer();
         let record = null;
+        let referralRecord;
         var newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         newRecord.save().then(
             function (data) {
@@ -564,8 +565,30 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             function (data) {
+                if (record.playerId) {
+                    return dbconfig.collection_players.findOne({_id: record.playerId}).populate({path: "referral", model: dbconfig.collection_players}).lean().then(
+                        playerData => {
+                            if (playerData && playerData.referral) {
+                                referralRecord = playerData.referral
+                            }
+
+                            return data;
+                        }
+                    );
+                }
+
+                return data;
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Error getting player", error: error});
+            }
+        ).then(
+            function (data) {
                 if (data[0]) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(data[0].platform, data[0], {}).catch(errorUtils.reportError);
+                }
+                if (referralRecord) {
+                    dbPlayerReward.checkAvailableReferralRewardGroupTaskToApply(record.platformId, referralRecord, '1').catch(errorUtils.reportError);
                 }
                 if (record) {
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
@@ -592,6 +615,7 @@ var dbPlayerConsumptionRecord = {
         let record = null;
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         let playerData;
+        let referralRecord;
 
         return newRecord.save().then(
             res => {
@@ -656,12 +680,25 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             () => {
+                return dbconfig.collection_players.findOne({_id: record.playerId}).populate({path: "referral", model: dbconfig.collection_players}).lean().then(
+                    player => {
+                        if (player && player.referral) {
+                            referralRecord = player.referral;
+                        }
+
+                        return player;
+                    }
+                );
+            }
+        ).then(
+            () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
                     // check for the consumptionSlip rewardEvent
                     dbPlayerReward.checkConsumptionSlipRewardGroup(playerData, record).catch(errorUtils.reportError);
-
-
+                }
+                if (referralRecord) {
+                    dbPlayerReward.checkAvailableReferralRewardGroupTaskToApply(record.platformId, referralRecord, '1').catch(errorUtils.reportError);
                 }
                 if (record) {
                     dbRewardPoints.updateGameRewardPointProgress(record).catch(errorUtils.reportError);
@@ -2354,7 +2391,14 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         if (listAll) {
@@ -2512,7 +2556,14 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         let groupById = null;
@@ -2676,12 +2727,17 @@ var dbPlayerConsumptionRecord = {
             loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
         }
 
-        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
-        let groupObjIdData = '$cpGameType';
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+        let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
-            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
-            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         // the player are non-repeatable
@@ -2742,12 +2798,17 @@ var dbPlayerConsumptionRecord = {
             loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
         }
 
-        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType"};
-        let groupObjIdData = '$cpGameType';
+        let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+        let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            matchObj.loginDevice = loginDeviceQuery;
-            groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
-            groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+            if (loginDevice.length == 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
         }
 
         // the player are non-repeatable
@@ -2804,8 +2865,13 @@ var dbPlayerConsumptionRecord = {
                     twoDaysWinRateReportData.data.forEach(
                         twoDaysData => {
                             let indexNo;
+                            let isCpGameTypeAndLoginDeviceExist = false;
 
-                            if (loginDeviceQuery) {
+                            if(twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType && twoDaysData.loginDevice){
+                                isCpGameTypeAndLoginDeviceExist = true;
+                            }
+
+                            if (isCpGameTypeAndLoginDeviceExist) {
                                 indexNo = returnedObj.data.findIndex(r => r && r.providerId && r.cpGameType && r.loginDevice
                                     && twoDaysData && twoDaysData.providerId && twoDaysData.cpGameType && twoDaysData.loginDevice
                                     && r.providerId.toString() === twoDaysData.providerId.toString()
@@ -2873,9 +2939,9 @@ var dbPlayerConsumptionRecord = {
                             && (party._id.cpGameType == item._id.cpGameType)
                             && party._id.loginDevice && (party._id.loginDevice == item._id.loginDevice)){
                             return item;
-                        } else if (party._id && party._id.cpGameType && item._id && !item._id.cpGameType && (party._id.cpGameType == item._id)) {
+                        } else if (party._id && party._id.cpGameType && !party._id.loginDevice && item._id && item._id.cpGameType && !item._id.loginDevice && (party._id.cpGameType == item._id.cpGameType)) {
                             return item;
-                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id && (party._id.providerId == providerId)) {
+                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id.cpGameType && (party._id.providerId == providerId)) {
                             return item;
                         }
                     })
@@ -2933,6 +2999,10 @@ var dbPlayerConsumptionRecord = {
 
         if (loginDevice) {
             matchObj.loginDevice = loginDevice;
+        }
+
+        if (cpGameType && providerId && !loginDevice){
+            matchObj.loginDevice = { $exists: false }
         }
 
         let participantsProm = dbconfig.collection_playerConsumptionRecord.distinct('playerId', matchObj).read("secondaryPreferred");
@@ -3009,6 +3079,10 @@ var dbPlayerConsumptionRecord = {
 
         if (loginDevice) {
             matchObj.loginDevice = loginDevice;
+        }
+
+        if (cpGameType && providerId && !loginDevice){
+            matchObj.loginDevice = { $exists: false }
         }
 
         let participantsProm = dbconfig.collection_winRateReportDataDaySummary.distinct('playerId', matchObj).read("secondaryPreferred");

@@ -85,13 +85,23 @@ const dbPartnerCommissionConfig = {
             return Promise.reject({message: "Please complete platform commission rate config"});
         }
 
-        for (let i = 0; i < platformConfig.rateAfterRebateGameProviderGroup.length; i++) {
-            let platformRate = platformConfig.rateAfterRebateGameProviderGroup[i];
-            providerGroups.map(providerGroup => {
+        for (let i = 0; i < providerGroups.length; i++) {
+            let providerGroup = providerGroups[i];
+            let matched = false;
+            for (let j = 0; j < platformConfig.rateAfterRebateGameProviderGroup.length; j++) {
+                let platformRate = platformConfig.rateAfterRebateGameProviderGroup[j];
                 if (String(platformRate.gameProviderGroupId) === String(providerGroup._id)) {
                     platformRate.name = providerGroup.name;
+                    matched = true;
                 }
-            })
+            }
+            if (!matched) {
+                platformConfig.rateAfterRebateGameProviderGroup.push({
+                    gameProviderGroupId: providerGroup._id,
+                    name: providerGroup.name,
+                    rate: platformConfig.rateAfterRebatePlatform || 0
+                });
+            }
         }
 
         if (!partnerConfig) {
@@ -388,6 +398,53 @@ const dbPartnerCommissionConfig = {
         }
 
         updateDownLineCommConfig(proposalData.data.partnerObjId, proposalData.data.platformObjId, proposalData.data.commissionType, defCommConfig, true);
+
+    },
+
+    resetGroupPartnerCommissionRate: async function (platformObjId, commissionType, providerGroupObjId) {
+        let partnerObj = await dbconfig.collection_partner.find({parent: null, platform: platformObjId, commissionType: commissionType}, {parent: 1}).lean();
+
+        if (!(partnerObj && partnerObj.length)) {
+            return;
+        }
+
+        let platformConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: providerGroupObjId,
+        }).lean();
+
+        let platformDefaultConfig = await dbconfig.collection_platformPartnerCommConfig.findOne({
+            platform: platformObjId,
+            commissionType: commissionType,
+            provider: null,
+        }).lean();
+
+        if (!(platformConfig || platformDefaultConfig)) {
+            return;
+        }
+
+        let selectedConfig = platformConfig;
+
+        if (!(platformConfig && platformConfig.commissionSetting && platformConfig.commissionSetting.length)) {
+            platformDefaultConfig.provider = providerGroupObjId;
+            selectedConfig = platformDefaultConfig;
+        }
+
+        partnerObj.map(partner => {
+            delete selectedConfig.__v;
+            delete selectedConfig._id;
+
+            selectedConfig.partner = partner._id;
+
+            dbconfig.collection_partnerMainCommConfig.findOneAndUpdate({
+                platform: selectedConfig.platform,
+                partner: selectedConfig.partner,
+                provider: selectedConfig.provider
+            }, selectedConfig).lean().catch(errorUtils.reportError);
+
+            updateDownLineCommConfig(partner._id, platformObjId, commissionType, [selectedConfig], true);
+        });
 
     },
 

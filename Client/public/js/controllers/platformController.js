@@ -67,6 +67,13 @@ define(['js/app'], function (myApp) {
                 "doNothing": 6,
             };
 
+            vm.frontEndRewardButtonOnClickAction = {
+                "redirectToParticularPage": 1,
+                "return": 2,
+                "applyReward": 3,
+                "contactCS": 4,
+            };
+
             vm.frontEndSettingDevices = {
                 "Web": 1,
                 "IOS App": 2,
@@ -1608,6 +1615,7 @@ define(['js/app'], function (myApp) {
                     if (preventBlockUrl) {
                         item = preventBlockUrl + item;
                     }
+                    item = item.replace('&', '%26');
                     return item.trim();
                 });
                 let sendData = { "urls": urls };
@@ -1621,6 +1629,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateSingleUrl = function(url, no) {
+                url = url.replace('&', '%26');
                 let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
 
@@ -4558,6 +4567,17 @@ define(['js/app'], function (myApp) {
                     })
                     $scope.$evalAsync();
                 })
+
+                vm.loginButtonText = "NO_LOG_IN_SHOW_OFF"
+                vm.loginShowButton = true; // show off button
+                if (platform && platform.platformId) {
+                    vm.disableLoginShowButton = false;
+                    if (vm.SelectedProvider && vm.SelectedProvider.needLoginShow && vm.SelectedProvider.needLoginShow[platform.platformId]) {
+                        vm.loginShowButton = false;
+                    }
+                } else {
+                    vm.disableLoginShowButton = true;
+                }
             }
 
             function processImgAddr(mainAddr, addr) {//img in platformGame, and img in game
@@ -4817,6 +4837,23 @@ define(['js/app'], function (myApp) {
 
                     }
                 );
+            }
+
+            vm.updateProviderNeedLoginShow = function (providerData) {
+                let platform = vm.allPlatformData.find(item => String(item._id) == String(vm.filterGamePlatform))
+                let platformId = platform && platform.platformId? platform.platformId: null;
+                let sendData = {
+                    platformId: platformId,
+                    gameProviderObjId: providerData && providerData._id? providerData._id: null,
+                    needLoginShow: vm.loginShowButton
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateProviderNeedLoginShow', sendData, function(data) {
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
+                    $scope.$evalAsync();
+                });
+
+
             }
 
             vm.getPlatformsPrefixForProvider = function (platformData, gameProviderData) {
@@ -26114,12 +26151,22 @@ define(['js/app'], function (myApp) {
                                           if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
                                               object.pc.displayFormat = object.pc.displayFormat.toString();
                                           }
-                                          else if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
+                                          if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
                                               object.h5.displayFormat = object.h5.displayFormat.toString();
                                           }
-                                          else if (object && object.app && object.app.hasOwnProperty('displayFormat')){
+                                          if (object && object.app && object.app.hasOwnProperty('displayFormat')){
                                               object.app.displayFormat = object.app.displayFormat.toString();
                                           }
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.pc.onClickAction = object.pc.onClickAction.toString();
+                                          }
+                                          if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.h5.onClickAction = object.h5.onClickAction.toString();
+                                          }
+                                          if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
                                           return object;
                                       }
                                   )
@@ -26139,6 +26186,31 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.resetOnClickRewardButton  = function (holder, type, button, actionId) {
+                switch (button) {
+                    case "topButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['topButtonRoute'] = null;
+                        }
+                        break;
+                    case "rightButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rightButtonRoute'] = null;
+                        }
+                        break;
+                    case "bottomButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['bottomButtonRoute'] = null;
+                        }
+                        break;
+                    case "rewardButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rewardButtonRoute'] = null;
+                        }
+                        break;
+                }
             };
 
             vm.enableSortableCategoryChange = function (holder) {
@@ -30619,6 +30691,7 @@ define(['js/app'], function (myApp) {
                                     console.log('getAllPlayerLevels--getPlatform', data.data);
                                     let platformData = data.data;
                                     vm.autoCheckPlayerLevelUp = platformData.autoCheckPlayerLevelUp;
+                                    vm.autoCheckPlayerLevelDown = platformData.autoCheckPlayerLevelDown;
                                     vm.disableAutoPlayerLevelUpReward = platformData.disableAutoPlayerLevelUpReward;
                                     vm.manualPlayerLevelUp = platformData.manualPlayerLevelUp;
                                     vm.playerLevelPeriod.playerLevelUpPeriod = platformData.playerLevelUpPeriod ? platformData.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -33281,7 +33354,8 @@ define(['js/app'], function (myApp) {
                                 query: {_id: vm.selectedPlatform.id},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
-                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
+                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                                    autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown
                                 }
                             }
                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
@@ -33409,6 +33483,7 @@ define(['js/app'], function (myApp) {
                         
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
+                            autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
@@ -34702,6 +34777,7 @@ define(['js/app'], function (myApp) {
                         checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
+                        autoCheckPlayerLevelDown: srcData.autoCheckPlayerLevelDown,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
@@ -43427,28 +43503,39 @@ define(['js/app'], function (myApp) {
                         }
                         switch (actionId) {
                             case 1:
+                            case "1":
                                 holder[type] = {};
-                                holder[type].onClickAction = 1;
+                                holder[type].onClickAction = '1';
                                 break;
                             case 2:
+                            case "2":
                                 holder[type] = {};
-                                holder[type].onClickAction = 2;
+                                holder[type].onClickAction = '2';
                                 break;
                             case 3:
+                            case "3":
                                 holder[type] = {};
-                                holder[type].onClickAction = 3;
+                                holder[type].onClickAction = '3';
                                 break;
                             case 4:
+                            case "4":
                                 holder[type] = {};
-                                holder[type].onClickAction = 4;
+                                holder[type].onClickAction = '4';
                                 break;
                             case 5:
+                            case "5":
                                 holder[type] = {};
-                                holder[type].onClickAction = 5;
+                                holder[type].onClickAction = '5';
                                 break;
                             case 6:
+                            case "6":
                                 holder[type] = {};
-                                holder[type].onClickAction = 6;
+                                holder[type].onClickAction = '6';
+                                break;
+                            case 7:
+                            case "7":
+                                holder[type] = {};
+                                holder[type].onClickAction = '7';
                                 break;
                         }
 
@@ -43467,27 +43554,30 @@ define(['js/app'], function (myApp) {
                         holder[type].imageUrl = tempImageUrl;
                     }
                 }
-                else{
-                    if (holder['newPageUrl']){
+                else {
+                    if (holder['newPageUrl']) {
                         holder['newPageUrl'] = null;
                     }
-                    if (holder['activityUrl']){
+                    if (holder['activityUrl']) {
                         holder['activityUrl'] = null;
                     }
-                    if (holder['newPageDetail']){
+                    if (holder['newPageDetail']) {
                         holder['newPageDetail'] = null;
                     }
-                    if (holder['activityDetail']){
+                    if (holder['activityDetail']) {
                         holder['activityDetail'] = null;
                     }
-                    if (holder['rewardEventObjId']){
-                        holder['rewardEventObjId']= null;
+                    if (holder['rewardEventObjId']) {
+                        holder['rewardEventObjId'] = null;
                     }
-                    if (holder['route']){
+                    if (holder['route']) {
                         holder['route'] = null;
                     }
-                    if (holder['gameCode']){
+                    if (holder['gameCode']) {
                         holder['gameCode'] = null;
+                    }
+                    if (holder['script']) {
+                        holder['script'] = null;
                     }
                 }
             };

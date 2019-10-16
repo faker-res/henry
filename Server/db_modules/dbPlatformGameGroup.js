@@ -317,18 +317,31 @@ var dbPlatformGameGroup = {
                     gameData => {
                         if (gameData && gameData.length > 0) {
                             var gameProviderMap = {};
+                            let providerNeedLoginShow = {};
                             gameData.forEach(
                                 game => {
                                     if (game.provider) {
                                         gameProviderMap[String(game.provider._id)] = game.provider.providerId;
+                                        if (game.provider.needLoginShow && game.provider.needLoginShow[platformId]) {
+                                            providerNeedLoginShow[game.provider._id] = true;
+                                        }
                                     }
                                 }
                             );
-                            gameGroup.games.gameList.forEach(
-                                (game) => {
-                                    game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
+
+                            for (let i = gameGroup.games.gameList.length - 1; i >=0; i--) {
+                                if (!playerId && providerNeedLoginShow[String(gameGroup.games.gameList[i].game.provider)]) {
+                                    gameGroup.games.gameList.splice(i, 1);
+                                    gameGroup.games.stats.totalCount -= 1;
+                                } else {
+                                    gameGroup.games.gameList[i].game.provider = gameProviderMap[String(gameGroup.games.gameList[i].game.provider)] || gameGroup.games.gameList[i].game.provider;
                                 }
-                            )
+                            }
+                            // gameGroup.games.gameList.forEach(
+                            //     (game) => {
+                            //         game.game.provider = gameProviderMap[String(game.game.provider)] || game.game.provider;
+                            //     }
+                            // )
                         }
                         return gameGroup;
                     }

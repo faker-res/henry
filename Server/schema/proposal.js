@@ -87,7 +87,6 @@ proposalSchema.index({"data.topupType": 1});
 proposalSchema.index({"data.consecutiveNumber": 1});
 proposalSchema.index({"data.bConsumptionReturnRequest": 1});
 proposalSchema.index({"data.eventId": 1});
-proposalSchema.index({"data.alipayer": 1});
 proposalSchema.index({"data.alipayerAccount": 1});
 proposalSchema.index({"data.alipayerNickName": 1});
 proposalSchema.index({"data.line": 1});

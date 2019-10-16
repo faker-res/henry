@@ -39,7 +39,9 @@ var playerTopUpRecordSchema = new Schema({
     // Device interface
     userAgent: {type: String},
     // Deposit Method
-    depositMethod: {type: String}
+    depositMethod: {type: String},
+    // constPlayerLoginDevice
+    loginDevice: {type: Number, index: true}
 });
 
 //record is unique by playerId platformId and createTime

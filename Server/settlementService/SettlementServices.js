@@ -55,6 +55,7 @@
                 "sendPlayerMailFromAdminToPlayer",
                 "performPlatformPlayerLevelSettlement",
                 "getConsumptionDetailOfPlayers",
+                "getConsumptionDetailOfPlayerByLoginDevice",
                 "calculatePlatformConsecutiveConsumptionForPlayers",
                 "getDXNewPlayerDetail",
                 "autoConvertPlayerRewardPoints",
