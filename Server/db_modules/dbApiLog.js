@@ -96,10 +96,10 @@ let dbApiLog = {
             os: ua.os.name || ''
         }];
 
-        if (logData.inputDevice && (logData.inputDevice == constPlayerRegistrationInterface.APP_PLAYER || logData.inputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-            ua && ua.browser && (ua.browser.indexOf("WebKit") !== -1 || ua.browser.indexOf("WebView") !== -1)){
-            logData.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
-        }
+        // if (logData.inputDevice && (logData.inputDevice == constPlayerRegistrationInterface.APP_PLAYER || logData.inputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+        //     ua && ua.browser && (ua.browser.indexOf("WebKit") !== -1 || ua.browser.indexOf("WebView") !== -1)){
+        //     logData.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+        // }
 
         if(reqData && reqData.clientDomain){
             logData.domain = reqData.clientDomain;

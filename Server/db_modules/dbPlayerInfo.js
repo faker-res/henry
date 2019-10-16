@@ -7010,11 +7010,11 @@ let dbPlayerInfo = {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
 
-                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                    // H5
-                    recordData.inputDeviceType = 2;
-                }
+                // if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                //     (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                //     // H5
+                //     recordData.inputDeviceType = 2;
+                // }
 
                 if (playerData && playerData.osType) {
                     recordData.osType = playerData.osType;
@@ -7046,10 +7046,12 @@ let dbPlayerInfo = {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                        userAgent && userAgent.browser && userAgent.browser.name && (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
-                        loginDevice = constPlayerLoginDevice.H5;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    // else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                    //     userAgent && userAgent.browser && userAgent.browser.name && (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
+                    //     loginDevice = constPlayerLoginDevice.H5;
+                    // }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -7826,11 +7828,11 @@ let dbPlayerInfo = {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                 }
 
-                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                    // H5
-                    recordData.inputDeviceType = 2;
-                }
+                // if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                //     (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                //     // H5
+                //     recordData.inputDeviceType = 2;
+                // }
 
                 Object.assign(recordData, geoInfo);
 
@@ -7861,10 +7863,12 @@ let dbPlayerInfo = {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
-                        loginDevice = constPlayerLoginDevice.H5;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    // else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                    //     userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
+                    //     loginDevice = constPlayerLoginDevice.H5;
+                    // }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -8265,11 +8269,11 @@ let dbPlayerInfo = {
                             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
                         }
 
-                        if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                            (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                            // H5
-                            recordData.inputDeviceType = 2;
-                        }
+                        // if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
+                        //     (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
+                        //     // H5
+                        //     recordData.inputDeviceType = 2;
+                        // }
 
                         Object.assign(recordData, geoInfo);
 
@@ -8293,10 +8297,12 @@ let dbPlayerInfo = {
                                     if (inputData && inputData.osType) {
                                         let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
-                                        loginDevice = constPlayerLoginDevice.H5;
-                                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                                    }
+                                    // else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
+                                    //     userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
+                                    //     loginDevice = constPlayerLoginDevice.H5;
+                                    // }
+                                    else if (userAgent && userAgent.os && userAgent.os.name) {
                                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                                     }
