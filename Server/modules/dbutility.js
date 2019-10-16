@@ -1568,9 +1568,9 @@ var dbUtility = {
             else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
                 // android-apps / ios apps
                 let osType = data && data.osType && data.osType.toLowerCase();
-                if (osType && osType.indexOf("ios") !== -1){
+                if (osType && (osType === 'ios')){
                     inputDevice = 4;
-                }else if(osType && osType.indexOf("android") !== -1){
+                }else if(osType && (osType === 'android')){
                     inputDevice = 3;
                 }
             }
