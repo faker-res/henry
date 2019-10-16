@@ -6398,6 +6398,7 @@ define(['js/app'], function (myApp) {
             let sendquery = {
                 platformId: vm.dxNewPlayerQuery.platformId,
                 query: {
+                    credibilityRemarks: vm.dxNewPlayerQuery.credibilityRemarks,
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
@@ -6546,32 +6547,33 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [27], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
                     {
@@ -6710,7 +6712,7 @@ define(['js/app'], function (myApp) {
                 });
                 $('#dxNewPlayerReportTable').off('order.dt');
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXNewPlayerReport);
+                    vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
             }
 
