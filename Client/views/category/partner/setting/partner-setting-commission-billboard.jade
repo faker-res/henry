@@ -1,0 +1,110 @@
+include ./partner-setting-platform-select
+div.padding-top-5(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'commissionBillboard')")
+    div.padding-top-5
+        text.inline-block.margin-right-5 {{'TYPE' | translate}}
+        select.inline-block( ng-model="vm.commissionBillboardPeriod" ng-change="vm.changePeriod(true)")
+            option(ng-repeat='(i,j) in vm.constPartnerBillBoardPeriod', value= '{{j}}') {{i | translate}}
+        .pull-right
+            text.margin-right-5 {{"last update time" | translate}}: {{vm.cBBLastCalculate}}
+            button.btn.btn-warning.common-button(ng-click="vm.forceRecalculateCBB()" ng-disable="vm.disableForceRecalculateCBB") {{"Force Update" | translate}}
+        table.common-table#partnerCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+        .col-md-12#partnerCBillBoardTablePage
+
+    div.padding-top-5em
+        strong {{'GenerateFakeRecord' | translate}}
+        table.simple-table(style='width:auto;min-width:99.9%')
+            thead
+                tr
+                    th {{'插入账号（前缀）' | translate}}
+                    th {{'假账号字数区间（含前缀）' | translate}}
+                    th {{'假账号组成模式' | translate}}
+                    th {{'初始佣金区间' | translate}}
+                    th {{'账号产生数量' | translate}}
+                    th {{'是否开启假账号佣金浮动' | translate}}
+                    th {{'佣金起伏单位' | translate}}
+                    th {{'佣金起伏区间（可为负数）' | translate}}
+                    th {{'变动周期 ' | translate}}
+            tbody
+                tr
+                    td
+                        input(ng-model='vm.fakeRecordQuery.prefix' size=5)
+                    td
+                        input(type='number' min='0' ng-model='vm.fakeRecordQuery.nameLengthMin' max=25)
+                        text &nbsp;≤&nbsp;
+                        input(type='number' min='0' ng-model='vm.fakeRecordQuery.nameLengthMax' max=25)
+                    td
+                        input#fakeCommUseAlphabet(type="checkbox")
+                        text 字母
+                        br
+                        input#fakeCommUseDigit(type="checkbox")
+                        text 数字
+                    td
+                        input.width-5em(type="number" ng-model='vm.fakeRecordQuery.commissionMin')
+                        br
+                        text ≤
+                        br
+                        input.width-5em(type='number' ng-model='vm.fakeRecordQuery.commissionMax')
+                    td
+                        input(type='number' ng-model='vm.fakeRecordQuery.recordAmount' step="1" min=1 max=999)
+                    td
+                        input#fakeCommUseFluctuation(type="checkbox")
+                    td
+                        select.form-control(ng-model='vm.fakeRecordQuery.fluctuationType')
+                            option(value='0') {{"value"|translate}}
+                            option(value='1') {{"ratio"|translate}}
+                    td
+                        input.width-5em(type="number" ng-model='vm.fakeRecordQuery.fluctuationLow')
+                        br
+                        text ≤
+                        br
+                        input.width-5em(type='number' ng-model='vm.fakeRecordQuery.fluctuationHigh')
+                    td
+                        input#fakeCommChangeOnSunday(type="checkbox")
+                        text 日
+                        br
+                        input#fakeCommChangeOnMonday(type="checkbox")
+                        text 一
+                        br
+                        input#fakeCommChangeOnTuesday(type="checkbox")
+                        text 二
+                        br
+                        input#fakeCommChangeOnWednesday(type="checkbox")
+                        text 三
+                        br
+                        input#fakeCommChangeOnThursday(type="checkbox")
+                        text 四
+                        br
+                        input#fakeCommChangeOnFriday(type="checkbox")
+                        text 五
+                        br
+                        input#fakeCommChangeOnSaturday(type="checkbox")
+                        text 六
+    .pull-right.padding-top-5
+        .btn.btn-primary.common-button(ng-click="vm.generateFakeRecord()") {{ "CREATE" | translate }}
+
+    div.padding-top-5em
+        input#cBBOnlyFakeRecord(type="checkbox")
+        text 仅显示假账号
+        table.common-table#partnerFakeCBillBoardTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
+        .col-md-12#partnerFakeCBillBoardTablePage
+
+#modalUpdateFakeCommRecord.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"EDIT_BB_COMMISSION_RANK" | translate}} {{vm.updatingFakeRecord.originalName}}
+
+
+            .modal-body
+                text {{"partnerName" | translate}}
+                input.form-control(ng-model="vm.updatingFakeRecord.name")
+                text {{"currentCommission" | translate}}
+                input.form-control(type="number" ng-model="vm.updatingFakeRecord.commissionAmount" step="0.01")
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-disabled="!vm.updatingFakeRecord.name || !vm.updatingFakeRecord.commissionAmount" ng-click="vm.updateFakeCBBRecord()")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}

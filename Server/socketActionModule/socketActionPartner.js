@@ -686,6 +686,64 @@ function socketActionPartner(socketIO, socket) {
             var isValidData = Boolean(data && data.platformObjId && data.commissionType);
             socketUtil.emitter(self.socket, dbPartner.getPartnerCountByCommissionType, [data.platformObjId, data.commissionType], actionName, isValidData);
         },
+
+        getPartnerCommissionBillBoard: function getPartnerCommissionBillBoard(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.period && data.count);
+            socketUtil.emitter(self.socket, dbPartner.adminGetPartnerCommissionBillBoard, [data.platformObjId, data.period, data.count, data.index, data.containFakeRecord], actionName, isValidData);
+        },
+
+        getPartnerFakeCommissionBillBoard: function getPartnerFakeCommissionBillBoard(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.period && data.count);
+            socketUtil.emitter(self.socket, dbPartner.adminGetPartnerCommissionBillBoard, [data.platformObjId, data.period, data.count, data.index, data.containFakeRecord], actionName, isValidData);
+        },
+
+        createFakeCommissionBBRecord: function createFakeCommissionBBRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.period && data.recordAmount && data.prefix && data.nameLengthMin && data.nameLengthMax && (data.useAlphabet || data.useNumber) && (data.commissionMin || data.commissionMax));
+            socketUtil.emitter(self.socket, dbPartner.createFakeCommissionBBRecord, [
+                data.platform,
+                data.period,
+                data.recordAmount,
+                data.prefix,
+                data.nameLengthMin,
+                data.nameLengthMax,
+                data.useAlphabet,
+                data.useNumber,
+                data.commissionMin,
+                data.commissionMax,
+                data.useFluctuation,
+                data.fluctuationType,
+                data.fluctuationLow,
+                data.fluctuationHigh,
+                data.flucOnSunday,
+                data.flucOnMonday,
+                data.flucOnTuesday,
+                data.flucOnWednesday,
+                data.flucOnThursday,
+                data.flucOnFriday,
+                data.flucOnSaturday
+            ], actionName, isValidData);
+        },
+
+        updateFakeCBBRecord: function updateFakeCBBRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.fakeSource && data.name);
+            socketUtil.emitter(self.socket, dbPartner.updateFakeCBBRecord, [data.fakeSource, data.name, data.commissionAmount], actionName, isValidData);
+        },
+
+        removeFakeCBBRecord: function removeFakeCBBRecord(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.fakeSource);
+            socketUtil.emitter(self.socket, dbPartner.removeFakeCBBRecord, [data.fakeSource], actionName, isValidData);
+        },
+
+        forceRecalculateCBB: function forceRecalculateCBB(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.period);
+            socketUtil.emitter(self.socket, dbPartner.forceRecalculateCBB, [data.platformObjId, data.period], actionName, isValidData);
+        },
     };
 
     socketActionPartner.actions = this.actions;
