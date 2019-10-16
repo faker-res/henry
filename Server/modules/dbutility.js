@@ -1461,13 +1461,11 @@ var dbUtility = {
             ua = uaParser(inputUserAgent);
         }
 
-        console.log("getInputDevice().ua",ua);
         let userAgentInput = [{
             browser: ua.browser.name || '',
             device: ua.device.name || '',
             os: ua.os.name || ''
         }];
-        console.log("getInputDevice().userAgentInput[0]",userAgentInput[0]);
 
         let inputDevice="";
 
@@ -1481,7 +1479,6 @@ var dbUtility = {
 
         if (userAgentInput && userAgentInput[0]) {
             let userAgent = userAgentInput[0];
-            console.log("getInputDevice().userAgent",userAgent);
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 if (isPartnerProposal) {
                     inputDevice = constPlayerRegistrationInterface.APP_AGENT;
@@ -1525,7 +1522,6 @@ var dbUtility = {
             }
         }
 
-        console.log("getInputDevice().inputDevice", inputDevice);
         return inputDevice;
     },
     getInputDeviceType: function (inputUserAgent) {
