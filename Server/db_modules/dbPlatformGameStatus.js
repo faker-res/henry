@@ -128,6 +128,12 @@ var dbPlatformGameStatus = {
         ).exec();
     },
 
+    updateProviderNeedLoginShow: function (platformId, gameProviderObjId, needLoginShow) {
+        let updateData = {};
+        updateData[`needLoginShow.${platformId}`] = needLoginShow;
+        return dbconfig.collection_gameProvider.update({_id: gameProviderObjId}, updateData);
+    },
+
     addProviderGamesToPlatform: function (providerObjId, platformObjId) {
         //find all provider games
         return dbconfig.collection_game.find({provider: providerObjId}).then(
