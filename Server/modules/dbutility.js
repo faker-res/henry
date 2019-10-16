@@ -1142,6 +1142,16 @@ var dbUtility = {
         return num;
     },
 
+    generateRandomNumberBetweenRange(min, max, decimal = 0) {
+        let randomNumber = Math.random() * (max - min + 1) + min;
+        if (decimal === 0) {
+            return Math.floor(randomNumber);
+        }
+        else {
+            return Number(randomNumber).toFixed(decimal);
+        }
+    },
+
     /**
      * Find one and update for query without shardkey
      * @param {Object} model
