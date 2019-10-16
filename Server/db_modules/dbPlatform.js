@@ -2400,7 +2400,8 @@ var dbPlatform = {
                             phoneStatus: 2
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode also
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
