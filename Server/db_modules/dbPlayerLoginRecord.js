@@ -17,7 +17,7 @@ var dbPlayerLoginRecord = {
     createPlayerLoginRecord: function (playerLoginData) {
         var playerLoginRecord = new dbconfig.collection_playerLoginRecord(playerLoginData);
         if(playerLoginData.userAgent){
-            playerLoginData.inputDeviceType = dbUtil.getInputDeviceType(playerLoginData.userAgent);
+            playerLoginData.inputDeviceType = dbUtil.getInputDeviceType(playerLoginData.userAgent, playerLoginData);
         }
         return playerLoginRecord.save();
     },
