@@ -14,11 +14,14 @@ playerCursor.eachAsync(
         else if (player.userAgent && player.userAgent[0]) {
             let userAgent = player.userAgent[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
                 if (player.partner) {
-                    registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                    // registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                    registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
                 }
                 else {
-                    registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                    // registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                    registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
                 }
             }
             else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
