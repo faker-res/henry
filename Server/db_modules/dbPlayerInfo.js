@@ -866,6 +866,16 @@ let dbPlayerInfo = {
                             message: localization.localization.translate("phone number is invalid")
                         });
                     }
+                    if (inputData.phoneNumber){
+                        console.log("checking inputData.phoneNumber", inputData.phoneNumber, inputData.name)
+                        let reg = new RegExp('^[0-9]+$');
+                        if (!reg.test(inputData.phoneNumber.toString())){
+                            return  Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Phone number can only be digits")
+                            });
+                        }
+                    }
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
