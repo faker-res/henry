@@ -6854,7 +6854,8 @@ let dbPlayerInfo = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.PLAYER_NAME_INVALID
+                        code: constServerCode.PLAYER_NAME_INVALID,
+                        data: playerData
                     });
                 }
             }
@@ -7024,7 +7025,6 @@ let dbPlayerInfo = {
 
                 console.log('loginDevice ==>', loginDevice);
                 if (loginDevice) {
-                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
                     return dbconfig.collection_players.findOneAndUpdate({
                         _id: record.player,
                         platform: record.platform
