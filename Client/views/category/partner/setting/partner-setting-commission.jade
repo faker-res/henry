@@ -73,13 +73,15 @@ form.margin-top-5(name="formPartnerCommission" ng-if='vm.platformInSetting' nova
                                                     text /
                                                     a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
                                                     a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
+                                                    text(ng-if='gpg._id') /
+                                                    a(href="", ng-if='gpg._id', ng-click="vm.resetGroupPartnerCommissionRate(gpg._id)", style="cursor:pointer") {{'Sync' | translate}}
                                         br
                                 br
                                 .pull-right
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
-                                    button.btn.btn-primary.common-button(ng-click='vm.resetAllPartnerCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
+                                    button.btn.btn-primary.common-button(ng-click='vm.resetAllPartnerCustomizedCommissionRate()') {{'SYNC_ALL_COMMISSION_RATE' | translate}}
                                 br
                                 div(ng-if="vm.updateCommissionRateRequirement")
                                     text {{"Current update will remove the commission customization of relevant partners." | translate}}

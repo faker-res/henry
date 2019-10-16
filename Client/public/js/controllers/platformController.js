@@ -67,6 +67,13 @@ define(['js/app'], function (myApp) {
                 "doNothing": 6,
             };
 
+            vm.frontEndRewardButtonOnClickAction = {
+                "redirectToParticularPage": 1,
+                "return": 2,
+                "applyReward": 3,
+                "contactCS": 4,
+            };
+
             vm.frontEndSettingDevices = {
                 "Web": 1,
                 "IOS App": 2,
@@ -1608,6 +1615,7 @@ define(['js/app'], function (myApp) {
                     if (preventBlockUrl) {
                         item = preventBlockUrl + item;
                     }
+                    item = item.replace('&', '%26');
                     return item.trim();
                 });
                 let sendData = { "urls": urls };
@@ -1621,6 +1629,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateSingleUrl = function(url, no) {
+                url = url.replace('&', '%26');
                 let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
 
@@ -4558,6 +4567,17 @@ define(['js/app'], function (myApp) {
                     })
                     $scope.$evalAsync();
                 })
+
+                vm.loginButtonText = "NO_LOG_IN_SHOW_OFF"
+                vm.loginShowButton = true; // show off button
+                if (platform && platform.platformId) {
+                    vm.disableLoginShowButton = false;
+                    if (vm.SelectedProvider && vm.SelectedProvider.needLoginShow && vm.SelectedProvider.needLoginShow[platform.platformId]) {
+                        vm.loginShowButton = false;
+                    }
+                } else {
+                    vm.disableLoginShowButton = true;
+                }
             }
 
             function processImgAddr(mainAddr, addr) {//img in platformGame, and img in game
@@ -4817,6 +4837,23 @@ define(['js/app'], function (myApp) {
 
                     }
                 );
+            }
+
+            vm.updateProviderNeedLoginShow = function (providerData) {
+                let platform = vm.allPlatformData.find(item => String(item._id) == String(vm.filterGamePlatform))
+                let platformId = platform && platform.platformId? platform.platformId: null;
+                let sendData = {
+                    platformId: platformId,
+                    gameProviderObjId: providerData && providerData._id? providerData._id: null,
+                    needLoginShow: vm.loginShowButton
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateProviderNeedLoginShow', sendData, function(data) {
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
+                    $scope.$evalAsync();
+                });
+
+
             }
 
             vm.getPlatformsPrefixForProvider = function (platformData, gameProviderData) {
@@ -26149,6 +26186,31 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.resetOnClickRewardButton  = function (holder, type, button, actionId) {
+                switch (button) {
+                    case "topButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['topButtonRoute'] = null;
+                        }
+                        break;
+                    case "rightButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rightButtonRoute'] = null;
+                        }
+                        break;
+                    case "bottomButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['bottomButtonRoute'] = null;
+                        }
+                        break;
+                    case "rewardButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rewardButtonRoute'] = null;
+                        }
+                        break;
+                }
             };
 
             vm.enableSortableCategoryChange = function (holder) {

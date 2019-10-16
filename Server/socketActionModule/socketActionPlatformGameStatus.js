@@ -47,6 +47,12 @@ function socketActionPlatformGameStatus(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.query.game && data.query.game.length && data.updateData);
             socketUtil.emitter(self.socket, dbPlatformGameStatus.updatePlatformGameStatus, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        updateProviderNeedLoginShow: function updateProviderNeedLoginShow(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.gameProviderObjId);
+            socketUtil.emitter(self.socket, dbPlatformGameStatus.updateProviderNeedLoginShow, [data.platformId, data.gameProviderObjId, data.needLoginShow], actionName, isValidData);
         }
 
     };

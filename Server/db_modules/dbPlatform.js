@@ -1830,7 +1830,7 @@ var dbPlatform = {
         let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
 
         // Check if platform is open for level down
-        if (platform.playerLevelDownPeriod !== 99) {
+        if (platform.autoCheckPlayerLevelDown !== false) {
             const levelsProm = dbconfig.collection_playerLevel.find({
                 platform: platformObjId
             }).sort({value: 1}).lean();
@@ -1873,8 +1873,6 @@ var dbPlatform = {
                 }
             );
         }
-
-
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
@@ -6787,6 +6785,22 @@ var dbPlatform = {
 
                 if (setting.voucherClarificationUrl && (setting.voucherClarificationUrl.indexOf('http') == -1 && setting.voucherClarificationUrl.indexOf('https') == -1)) {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
+                }
+
+                if (setting.topButtonRoute && (setting.topButtonRoute.indexOf('http') == -1 && setting.topButtonRoute.indexOf('https') == -1)) {
+                    setting.topButtonRoute = cdnText + setting.topButtonRoute;
+                }
+
+                if (setting.rightButtonRoute && (setting.rightButtonRoute.indexOf('http') == -1 && setting.rightButtonRoute.indexOf('https') == -1)) {
+                    setting.rightButtonRoute = cdnText + setting.rightButtonRoute;
+                }
+
+                if (setting.bottomButtonRoute && (setting.bottomButtonRoute.indexOf('http') == -1 && setting.bottomButtonRoute.indexOf('https') == -1)) {
+                    setting.bottomButtonRoute = cdnText + setting.bottomButtonRoute;
+                }
+
+                if (setting.rewardButtonRoute && (setting.rewardButtonRoute.indexOf('http') == -1 && setting.rewardButtonRoute.indexOf('https') == -1)) {
+                    setting.rewardButtonRoute = cdnText + setting.rewardButtonRoute;
                 }
 
                 return setting

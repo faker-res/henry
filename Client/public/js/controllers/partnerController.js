@@ -12274,6 +12274,32 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.resetGroupPartnerCommissionRate = function (providerGroupObjId, providerGroupName) {
+            let resetGroupPartnerCommRateFunc = function () {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                    providerGroupObjId: providerGroupObjId
+                };
+
+                socketService.$socket($scope.AppSocket, 'resetGroupPartnerCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
+                        vm.partnerCommission.isEditing = false;
+                    });
+                });
+            }
+
+            vm.modalYesNo = {};
+            vm.modalYesNo.modalTitle = $translate("SYNC_GROUP_COMMISSION_RATE");
+
+            vm.modalYesNo.modalText = $translate("Are you sure");
+            vm.modalYesNo.actionYes = () => resetGroupPartnerCommRateFunc();
+            vm.modalYesNo.actionNo = () => {};
+            $('#modalYesNo').modal();
+            $scope.$evalAsync();
+        };
+
         vm.resetAllPartnerCustomizedCommissionRate = function () {
             // if (vm.commissionSettingIsEditAll) {
             //     for (let key in vm.commissionSettingIsEditAll) {
@@ -12281,18 +12307,29 @@ define(['js/app'], function (myApp) {
             //     }
             // }
 
-            let sendData = {
-                platformObjId: vm.platformInSetting._id,
-                commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
-                isMultiLevel: vm.isMultiLevelCommission
-            };
+            let resetAllPartnerCommRateFunc = function () {
+                let sendData = {
+                    platformObjId: vm.platformInSetting._id,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                    isMultiLevel: vm.isMultiLevelCommission
+                };
 
-            socketService.$socket($scope.AppSocket, 'resetAllPartnerCustomizedCommissionRate', sendData, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
-                    vm.partnerCommission.isEditing = false;
+                socketService.$socket($scope.AppSocket, 'resetAllPartnerCustomizedCommissionRate', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.getPlatformCommissionRate(vm.isMultiLevelCommission);
+                        vm.partnerCommission.isEditing = false;
+                    });
                 });
-            });
+            }
+
+            vm.modalYesNo = {};
+            vm.modalYesNo.modalTitle = $translate("SYNC_ALL_COMMISSION_RATE");
+
+            vm.modalYesNo.modalText = $translate("Are you sure");
+            vm.modalYesNo.actionYes = () => resetAllPartnerCommRateFunc();
+            vm.modalYesNo.actionNo = () => {};
+            $('#modalYesNo').modal();
+            $scope.$evalAsync();
         };
 
         vm.customizePartnerRate = (config, field, isRevert = false) => {
@@ -12456,7 +12493,7 @@ define(['js/app'], function (myApp) {
                                 vm.rateAfterRebatePlatform = vm.commissionRateConfig.rateAfterRebatePlatform;
                                 if (vm.gameProviderGroup && vm.gameProviderGroup.length > 0) {
                                     vm.gameProviderGroup.forEach(gameProviderGroup => {
-                                        let isAddedGroupProvider = false;
+                                        // let isAddedGroupProvider = false;
                                         let providerGroupRate = {
                                             gameProviderGroupId: gameProviderGroup._id,
                                             name: gameProviderGroup.name
@@ -12466,13 +12503,13 @@ define(['js/app'], function (myApp) {
                                                 if (gameProviderGroup._id == availableProviderGroupRate.gameProviderGroupId) {
                                                     availableProviderGroupRate.name = gameProviderGroup.name;
                                                     providerGroupRate = availableProviderGroupRate;
-                                                    isAddedGroupProvider = true;
+                                                    // isAddedGroupProvider = true;
                                                 }
                                             })
                                         }
-                                        if (!isAddedGroupProvider) {
+                                        // if (!isAddedGroupProvider) {
                                             vm.rateAfterRebateGameProviderGroup.push(providerGroupRate);
-                                        }
+                                        // }
                                     })
                                 }
 
@@ -18564,6 +18601,12 @@ define(['js/app'], function (myApp) {
 
                     let searchResult = data.data.data;
                     searchResult.map(item => {
+                        if (item.platform && vm.allPlatformData && vm.allPlatformData.length){
+                            let matchedPlatformData = vm.allPlatformData.find(a => String(a._id) == String(item.platform));
+                            if(matchedPlatformData && matchedPlatformData.name){
+                                item.platform$ = matchedPlatformData.name;
+                            }
+                        }
                         item.commissionType$ = item.hasOwnProperty("commissionType")? $translate($scope.constPartnerCommissionSettlementType[item.commissionType]): "";
                         item.partnerParent$ = item.parent ? item.parent.partnerName : $translate("MAIN_PARTNER");
                         item.totalPartnerWithdraw = $noRoundTwoDecimalPlaces(item.totalPartnerWithdraw);
@@ -18589,13 +18632,17 @@ define(['js/app'], function (myApp) {
                 data: tableData,
                 "order": vm.partnerProfitQuery.aaSorting || [],
                 aoColumnDefs: [
-                    {'sortCol': 'partnerName', 'aTargets': [0]},
+                    {'sortCol': 'partnerName', 'aTargets': [1]},
                     // {'sortCol': 'parent', 'aTargets': [1]},
                     // {'sortCol': 'totalDownlines', 'aTargets': [2]},
-                    {'sortCol': 'commissionType', 'aTargets': [3]},
+                    {'sortCol': 'commissionType', 'aTargets': [4]},
                     {targets: '_all', defaultContent: 0, bSortable: true}
                 ],
                 columns: [
+                    {
+                        title: $translate('PRODUCT_NAME'),
+                        data: 'platform$'
+                    },
                     {
                         title: $translate("PARTNER_NAME"),
                         data: "partnerName",
