@@ -805,13 +805,13 @@ var dbLogger = {
                             errorText += "ID:" + logData[key].providerGroupId + ", ";
                             errorText += logData[key].name + ", ";
                             if (logData[key].newAdd) {
-                                errorText += "新增此组, ";
+                                errorText += "新增此组";
                             }
                             if (logData[key].deleted) {
-                                errorText += "移除此组, ";
+                                errorText += "移除此组";
                             }
                             if (logData[key].addedProviders && logData[key].addedProviders.length) {
-                                errorText += "加入";
+                                errorText += ", 加入";
                                 let providerText = "";
                                 logData[key].addedProviders.map(item => {
                                     if (providerText) {
@@ -822,7 +822,7 @@ var dbLogger = {
                                 errorText += providerText;
                             }
                             if (logData[key].deletedProviders && logData[key].deletedProviders.length) {
-                                errorText += "移除";
+                                errorText += ", 移除";
                                 let providerText = "";
                                 logData[key].deletedProviders.map(item => {
                                     if (providerText) {
