@@ -923,7 +923,11 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            if (bypassSMSVerify) {
+                                return true;
+                            } else {
+                                return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            }
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
