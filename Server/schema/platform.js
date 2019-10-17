@@ -582,6 +582,8 @@ var platformSchema = new Schema({
     appDataVer: {type: String},
     // is use voice code verification
     useVoiceCode: {type: Boolean, default: false},
+    // select which voice code provider to use - constVoiceCodeProvider
+    voiceCodeProvider: {type: Number, default: 1},
     // display front end reward points ranking data
     displayFrontEndRewardPointsRankingData: {type: Boolean, default: true},
 });
