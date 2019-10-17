@@ -280,7 +280,7 @@
                                 a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='MULTI_LEVEL_PARTNER'")
                                     text.span {{"MULTI_LEVEL_PARTNER" | translate}}
                             li(ng-class="vm.selectedDownlineTab == 'DIRECT_DOWN_LINE'?'active':''")
-                                a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='DIRECT_DOWN_LINE'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='DIRECT_DOWN_LINE';vm.getChildrenDetails(vm.currentSelectedPartnerObjId, false, true)")
                                     text.span {{"DIRECT_DOWN_LINE" | translate}}
 
 
