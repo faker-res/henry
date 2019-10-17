@@ -843,8 +843,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: 'H5_AGENT',
         5: 'APP_PLAYER',
         6: 'APP_AGENT',
-        // 7: 'APP_NATIVE_PLAYER',
-        // 8: 'APP_NATIVE_PARTNER',
+        7: 'APP_NATIVE_PLAYER',
+        8: 'APP_NATIVE_PARTNER',
     };
 
     $scope.constRewardPointsIntervalPeriod = {
