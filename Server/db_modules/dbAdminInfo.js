@@ -130,6 +130,12 @@ var dbAdminInfo = {
      * @param live800Acc
      */
     checkLive800AccValidity: function(live800Acc,adminName){
+        if (live800Acc && live800Acc.length) {
+            live800Acc.forEach((acc, index) => {
+                live800Acc[index] = new RegExp("^" + acc + "$", "i")
+            })
+        }
+
         return dbconfig.collection_admin.find({live800Acc: {$in:live800Acc}, adminName: {$ne:adminName}}).count().then(
             adminCount => {
                 return adminCount > 0 ? false : true;
