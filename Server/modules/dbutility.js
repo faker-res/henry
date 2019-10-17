@@ -1142,16 +1142,6 @@ var dbUtility = {
         return num;
     },
 
-    generateRandomNumberBetweenRange(min, max, decimal = 0) {
-        let randomNumber = Math.random() * (max - min + 1) + min;
-        if (decimal === 0) {
-            return Math.floor(randomNumber);
-        }
-        else {
-            return Number(randomNumber).toFixed(decimal);
-        }
-    },
-
     /**
      * Find one and update for query without shardkey
      * @param {Object} model
@@ -1490,11 +1480,14 @@ var dbUtility = {
         if (userAgentInput && userAgentInput[0]) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
                 if (isPartnerProposal) {
-                    inputDevice = constPlayerRegistrationInterface.APP_AGENT;
+                    // inputDevice = constPlayerRegistrationInterface.APP_AGENT;
+                    inputDevice = constPlayerRegistrationInterface.H5_AGENT;
                 }
                 else {
-                    inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                    // inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                    inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
                 }
             }
             else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
@@ -1534,7 +1527,7 @@ var dbUtility = {
 
         return inputDevice;
     },
-    getInputDeviceType: function (inputUserAgent) {
+    getInputDeviceType: function (inputUserAgent, data) {
         if (Number.isInteger(inputUserAgent)) {
             return inputUserAgent;
         }
@@ -1549,15 +1542,27 @@ var dbUtility = {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // android-apps / ios apps
-                if (userAgent.os.indexOf("iOS") !== -1){
-                    inputDevice = 4;
-                }else if(userAgent.os.indexOf("ndroid") !== -1){
-                    inputDevice = 3;
-                }
+                // if (userAgent.os.indexOf("iOS") !== -1){
+                //     inputDevice = 4;
+                // }else if(userAgent.os.indexOf("ndroid") !== -1){
+                //     inputDevice = 3;
+                // }
+
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                inputDevice = 2; // H5
             }
             else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
                     // H5
                     inputDevice = 2;
+            }
+            else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
+                // android-apps / ios apps
+                let osType = data && data.osType && data.osType.toLowerCase();
+                if (osType && (osType === 'ios')){
+                    inputDevice = 4;
+                }else if(osType && (osType === 'android')){
+                    inputDevice = 3;
+                }
             }
             else {
                 if(userAgent.browser){

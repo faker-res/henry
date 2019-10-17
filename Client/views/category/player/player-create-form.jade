@@ -67,9 +67,14 @@ form(name="form_new_player", novalidate)
 			//select.form-control(name="partner", ng-model="vm.newPlayer.partner", ng-click='vm.showPartnerSelectModal()')
 				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
 				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
-		.form-group.col-md-6
+		.form-group.col-md-6(ng-if="!vm.newPlayer.encodedPhoneNumber")
 			label.control-label *{{"TELEPHONE" | translate}}
-			input.form-control(ng-mouseleave="vm.checkIsPhoneNumberExist(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
+			input.form-control(ng-mouseleave="vm.checkIsPhoneNumberExist(true)", type="telephone", name="telephone", ng-pattern="vm.phonePattern", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-model="vm.newPlayer.phoneNumber", required)
+			span.help-block.colorRed(ng-if='vm.duplicatedPhoneErr.str') {{vm.duplicatedPhoneErr.str}}
+		// this new row is created for case of creating new player thru 新开户查询 as the phone number has to be encrypted
+		.form-group.col-md-6(ng-if="vm.newPlayer.encodedPhoneNumber")
+			label.control-label *{{"TELEPHONE" | translate}}
+			input.form-control(ng-mouseleave="vm.checkIsPhoneNumberExist(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-model="vm.newPlayer.encodedPhoneNumber", required)
 			span.help-block.colorRed(ng-if='vm.duplicatedPhoneErr.str') {{vm.duplicatedPhoneErr.str}}
 			//div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.initPhoneNumberRecord()", data-toggle="modal", data-target="#duplicatePhoneNumberLog")  {{'DETAIL_INFO' | translate}}
 			//div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)")  {{'DETAIL_INFO' | translate}}
