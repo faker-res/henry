@@ -35430,6 +35430,9 @@ define(['js/app'], function (myApp) {
 
                 vm.removeProviderGroup();
                 let socketActionLog = getProviderChanged();
+                if(!(socketActionLog && Object.keys(socketActionLog).length)) {
+                    return;
+                }
                 let sendData = {
                     platformObjId: vm.filterConfigPlatform,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
