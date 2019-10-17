@@ -30691,7 +30691,6 @@ define(['js/app'], function (myApp) {
                                     console.log('getAllPlayerLevels--getPlatform', data.data);
                                     let platformData = data.data;
                                     vm.autoCheckPlayerLevelUp = platformData.autoCheckPlayerLevelUp;
-                                    vm.autoCheckPlayerLevelDown = platformData.autoCheckPlayerLevelDown;
                                     vm.disableAutoPlayerLevelUpReward = platformData.disableAutoPlayerLevelUpReward;
                                     vm.manualPlayerLevelUp = platformData.manualPlayerLevelUp;
                                     vm.playerLevelPeriod.playerLevelUpPeriod = platformData.playerLevelUpPeriod ? platformData.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -33354,8 +33353,7 @@ define(['js/app'], function (myApp) {
                                 query: {_id: vm.selectedPlatform.id},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
-                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                                    autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown
+                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
                                 }
                             }
                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
@@ -33483,7 +33481,6 @@ define(['js/app'], function (myApp) {
                         
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                            autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
@@ -34777,7 +34774,6 @@ define(['js/app'], function (myApp) {
                         checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
-                        autoCheckPlayerLevelDown: srcData.autoCheckPlayerLevelDown,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
