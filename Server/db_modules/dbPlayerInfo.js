@@ -922,8 +922,12 @@ let dbPlayerInfo = {
                             return true;
                         }
 
-                        if (platformObj.requireSMSVerification && !bypassSMSVerify) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                        if (platformObj.requireSMSVerification) {
+                            if (bypassSMSVerify) {
+                                return true;
+                            } else {
+                                return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            }
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
