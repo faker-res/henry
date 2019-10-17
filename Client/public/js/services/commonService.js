@@ -1043,7 +1043,11 @@ define([], () => {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
             }
             //#endregion
 

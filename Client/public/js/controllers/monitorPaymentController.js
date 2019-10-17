@@ -4178,7 +4178,7 @@ define(['js/app'], function (myApp) {
                     let typeId = vm.selectedProposal.type._id;
                     let typeName = [vm.selectedProposal.type.name];
                     let playerId = vm.selectedProposal.data.playerId;
-                    let inputDevice = vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.clientType ? commonService.convertClientTypeToInputDevice(vm.selectedProposal.data.clientType) : null;
+                    let inputDevice = vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.clientType ? commonService.convertClientTypeToInputDevice(vm.selectedProposal.data.clientType, vm.selectedProposal.data.userAgent) : null;
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
