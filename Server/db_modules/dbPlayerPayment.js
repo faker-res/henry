@@ -957,41 +957,6 @@ const dbPlayerPayment = {
     // endregion
 
     //#region Create Top Up Proposal - From PMS to FPMS
-    createTopUpProposalFromPMSToFPMS: (msgBody) => {
-        let isValidData = msgBody && msgBody.platformId && msgBody.username && msgBody.clientType && msgBody.amount
-            && msgBody.status && msgBody.topUpType;
-
-        // TEMP LOG
-        console.log('********************** msgBody', msgBody);
-
-        if (isValidData) {
-            let statusText;
-
-            switch (msgBody.status) {
-                case "PENDING":
-                    statusText = constProposalStatus.PENDING;
-                    break;
-                default:
-                    statusText = constProposalStatus.PREPENDING;
-                    break;
-            }
-
-            return dbPlayerPayment.createTopUpProposal(msgBody.platformId, msgBody.username, msgBody.clientType, statusText, msgBody.topUpType, msgBody.amount, msgBody);
-        } else {
-            return Promise.reject({
-                status: constServerCode.INVALID_DATA,
-                name: "DataError",
-                message: "Invalid data",
-                data: {
-                    status: statusText,
-                    amount: msgBody.amount,
-                    playerName: msgBody.username,
-                    platformId: msgBody.platformId
-                }
-            })
-        }
-    },
-
     createTopUpProposal: async (platformId, playerName, clientType, statusText, topUpType, amount, data) => {
         let topUpSystemConfig;
         let parentProposalData;
@@ -1278,6 +1243,12 @@ const dbPlayerPayment = {
         }
         else if (Number(data.clientType) == 4) {
             newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+
+            if (parentProposalData && parentProposalData.userAgent && parentProposalData.userAgent.browser && parentProposalData.userAgent.browser.name
+                && (parentProposalData.userAgent.browser.name.indexOf("WebKit") !== -1 || parentProposalData.userAgent.browser.name.indexOf("WebView") !== -1)) {
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+            }
         }
         else if (Number(data.clientType) == 7) {
             newProposal.inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;

@@ -376,91 +376,97 @@ router.post('/createTopUpProposal', function(req, res, next) {
     }).on('end', () => {
         let buffer = Buffer.concat(inputData);
         let stringBuffer = buffer.toString();
-        console.log('stringBuffer ==>', stringBuffer);
+        let reqData;
 
-        jwt.verify(stringBuffer, constSystemParam.PMS2_AUTH_SECRET_KEY, function(err, decode) {
-            console.log("********************** err", err);
-            if (err) {
-                let returnMsg = {
-                    code: constServerCode.COMMON_ERROR,
-                    msg: err.message
-                };
-                res.send(returnMsg);
-                res.end();
-            } else {
-                let data;
-                try {
-                    data = JSON.parse(String(decode));
-                } catch (e) {
-                    data = decode;
+        try {
+            reqData = JSON.parse(stringBuffer);
+        } catch (e) {
+            reqData = stringBuffer;
+        }
+
+        if (reqData && reqData.content && reqData.content.length > 0) {
+            let proms = [];
+            let tempPlatformId;
+            let tempUsername;
+
+            reqData.content.forEach(encrypted => {
+                let token = encrypted.token;
+                let decoded = jwt.verify(token, constSystemParam.PMS2_AUTH_SECRET_KEY);
+                console.log('********************** decoded', decoded);
+
+                if (decoded) {
+                    tempPlatformId = decoded && decoded.platformId;
+                    tempUsername = decoded && decoded.username;
+
+                    let isValidData = decoded && decoded.platformId && decoded.username && decoded.clientType && decoded.amount
+                        && decoded.status && decoded.topUpType && decoded.depositMethod;
+
+                    if (isValidData) {
+                        let statusText;
+
+                        switch (decoded.status) {
+                            case "PENDING":
+                                statusText = constProposalStatus.PENDING;
+                                break;
+                            default:
+                                statusText = constProposalStatus.PREPENDING;
+                                break;
+                        }
+
+                        proms.push(dbPlayerPayment.createTopUpProposal(decoded.platformId, decoded.username, decoded.clientType, statusText, decoded.topUpType, decoded.amount, decoded));
+                    }
                 }
-                console.log('********************** decode', data);
-                let bodyArr = data.content;
-                console.log('********************** bodyArr', bodyArr);
-                if (bodyArr && bodyArr.length > 0) {
-                    let proms = [];
-                    let tempPlatformId;
-                    let tempUsername;
+            });
 
-                    bodyArr.forEach(bodyMsg => {
-                        if (bodyMsg) {
-                            tempPlatformId = bodyMsg && bodyMsg.platformId;
-                            tempUsername = bodyMsg && bodyMsg.username;
+            Promise.all(proms).then(
+                data => {
+                    console.log('createTopUpProposal data', data);
+                    let returnData = [];
 
-                            proms.push(dbPlayerPayment.createTopUpProposalFromPMSToFPMS(bodyMsg));
-                        }
-                    });
-
-                    Promise.all(proms).then(
-                        data => {
-                            console.log('createTopUpProposal data', data);
-                            let returnData = [];
-
-                            if (data && data.length > 0) {
-                                data.forEach(item => {
-                                    if (item && item.proposalId) {
-                                        returnData.push({proposalId: item.proposalId, amount: item.amount, status: item.status, rate: item.rate, actualAmountReceived: item.actualAmountReceived, bankCardNo: item.bankCardNo});
-                                    }
-                                });
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            if (item && item.proposalId) {
+                                let result = {proposalId: item.proposalId, amount: item.amount, status: item.status, rate: item.rate, actualAmountReceived: item.actualAmountReceived, bankCardNo: item.bankCardNo};
+                                let encryptData = jwt.sign(result, constSystemParam.PMS2_AUTH_SECRET_KEY);
+                                returnData.push({token: encryptData});
                             }
+                        });
+                    }
 
-                            let returnMsg = {
-                                code: constServerCode.SUCCESS,
-                                msg: "succ",
-                                data: {
-                                    platformId: tempPlatformId,
-                                    username: tempUsername,
-                                    proposals: returnData
-                                }
-                            };
-
-                            console.log('createTopUpProposal PMS success', tempPlatformId, tempUsername, returnMsg);
-
-                            res.send(returnMsg);
-                            res.end();
-                        },
-                        err => {
-                            console.log('createTopUpProposal PMS error', tempPlatformId, tempUsername, err);
-                            let returnMsg = {
-                                code: constServerCode.INVALID_DATA,
-                                msg: err.message
-                            };
-
-                            res.send(returnMsg);
-                            res.end();
+                    let returnMsg = {
+                        code: constServerCode.SUCCESS,
+                        msg: "succ",
+                        data: {
+                            platformId: tempPlatformId,
+                            username: tempUsername,
+                            proposals: returnData
                         }
-                    );
+                    };
 
-                } else {
+                    console.log('createTopUpProposal PMS success', tempPlatformId, tempUsername, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
+                },
+                err => {
+                    console.log('createTopUpProposal PMS error', tempPlatformId, tempUsername, err);
                     let returnMsg = {
                         code: constServerCode.INVALID_DATA,
-                        msg: "Invalid data"
+                        msg: err.message
                     };
+
                     res.send(returnMsg);
                     res.end();
                 }
-            }
-        });
+            );
+        } else {
+            let returnMsg = {
+                code: constServerCode.INVALID_DATA,
+                msg: "Invalid data"
+            };
+            res.send(returnMsg);
+            res.end();
+        }
     });
 });
 
