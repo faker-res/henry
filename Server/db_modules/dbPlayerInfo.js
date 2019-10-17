@@ -1865,6 +1865,56 @@ let dbPlayerInfo = {
         }
     },
 
+    //permission return and migration
+    migratePermission: async function (data){
+        // let playerData = await dbconfig.collection_players.find({}).lean();
+        let playerData = await dbconfig.collection_players.find({_id: data}, {permission: 1, _id: 1}).lean()
+        if(!playerData){
+            return Promise.reject("Get player data failed");
+        }
+        // dbconfig.collection_players.find({_id: data}, {permission: 1, _id: 1}).lean().then(
+        console.log('player schema data..', playerData);
+        for(var i = 0; i < playerData.length; i++){
+            if (playerData && playerData[i].permission) {
+                let saveObj = {
+                    _id: playerData[i]._id,
+                    permission: playerData[i].permission
+                    // createTime: curDate
+                    // _id: "5d785c1242f529084162b4cb"
+                };
+                console.log('save obj data..', saveObj);
+                let saveLog = await dbconfig.collection_playerPermission(saveObj).save();
+                if(!saveLog){
+                    return Promise.reject("Save verification log failed");
+                }else{
+                    let deleteLog = await dbconfig.collection_players.update({_id: playerData[i]._id}, {$unset:{permission: ""}}).exec();
+                    if(!deleteLog) {
+                        return Promise.reject("delete failed");
+                    }
+                }
+
+            }
+        }
+
+    },
+
+    returnPermissiontoPlayer: async function(result){
+        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: result._id}).lean()
+        if(!permissionData){
+            return Promise.reject("Get permission data failed");
+        }
+        console.log('permission data')
+        if (permissionData && permissionData.length) {
+            for ( var i = 0; i < permissionData.length; i++) {
+                result.permission = permissionData[i].permission;
+            }
+        }
+        console.log('final result')
+        return result;
+    },
+
+    //permission return and migration
+
     createPlayerLoginRecord: function (data) {
         //add player login record
         var recordData = {
@@ -6388,6 +6438,7 @@ let dbPlayerInfo = {
         sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
+        console.log('Data...', data);
         let advancedQuery = {};
         let isProviderGroup = false;
         let dataSize = 0;
@@ -6500,6 +6551,8 @@ let dbPlayerInfo = {
             _id: {$in: platformId}
         }).lean().then(
             platform => {
+
+                // console.log('platformData...', platform);
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
                 let playerProm = Promise.resolve(false);
@@ -6513,14 +6566,24 @@ let dbPlayerInfo = {
                         if (data && data.name && singlePlayerData && singlePlayerData._id) {
                             advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                         }
-
                         return dbconfig.collection_players
                             .find(advancedQuery, {similarPlayers: 0})
                             .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                                players => {
+                                async players => {
+                                    // console.log('playerData...', players);
                                     let calculatePlayerValueProms = [];
                                     let updatePlayerCredibilityRemarksProm = [];
                                     for (let i = 0; i < players.length; i++) {
+                                        if(!players[i].permission){
+                                            console.log('this one...', players[i])
+                                            let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
+                                            if(!getData){
+                                                return Promise.reject("Get permission failed");
+                                            }
+                                            console.log('permission...', getData);
+                                            players[i].permission = getData[0].permission
+                                        }
+                                        console.log('player Data...',players[i]);
                                         let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                         calculatePlayerValueProms.push(calculateProm);
 

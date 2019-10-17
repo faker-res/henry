@@ -8,6 +8,7 @@ var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUni
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
+// const dbPlayerInfo = require("../db_modules/dbPlayerInfo");
 
 var playerSchema = new Schema({
     //player id
@@ -487,7 +488,22 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-var playerPostFindUpdate = function (result, bOne) {
+var playerPostFindUpdate = function(result, bOne) {
+    // console.log('result...', result);
+    // if (result && !result.permission) {
+    //     console.log('result data..', result);
+    //     result = dbPlayerInfo.returnPermissiontoPlayer(result);
+    //     // dbconfig.collection_playerPermission.findOne({_id: result._id}).lean().then(
+    //     //     permissionData => {
+    //     //         console.log('permission data')
+    //     //    if (permissionData && permissionData.length) {
+    //     //        for ( var i = 0; i < permissionData.length; i++) {
+    //     //            result.permission = permissionData[i].permission;
+    //     //        }
+    //     //    }
+    //     // });
+    // }
+
     if (result && result.phoneNumber) {
         if (result.phoneNumber.length > 20) {
             let phoneNumber = result.phoneNumber;
