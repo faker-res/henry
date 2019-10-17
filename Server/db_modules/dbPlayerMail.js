@@ -1207,8 +1207,11 @@ const dbPlayerMail = {
         };
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
+        console.log('smsVerificationLogQuery', smsVerificationLogQuery);
+
         return smsProm.then(
             verificationSMS => {
+                console.log('verificationSMS', verificationSMS);
                 if (!verificationSMS || !verificationSMS[0] || !verificationSMS[0].code) {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,
