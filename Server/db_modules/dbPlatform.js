@@ -2353,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
