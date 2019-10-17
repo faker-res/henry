@@ -404,8 +404,8 @@ router.post('/createTopUpProposal', function(req, res, next) {
 
                     bodyArr.forEach(bodyMsg => {
                         if (bodyMsg) {
-                            tempPlatformId = bodyMsg && bodyMsg.username;
-                            tempUsername = bodyMsg && bodyMsg.platformId;
+                            tempPlatformId = bodyMsg && bodyMsg.platformId;
+                            tempUsername = bodyMsg && bodyMsg.username;
 
                             proms.push(dbPlayerPayment.createTopUpProposalFromPMSToFPMS(bodyMsg));
                         }

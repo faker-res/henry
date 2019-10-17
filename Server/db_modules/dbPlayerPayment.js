@@ -971,15 +971,6 @@ const dbPlayerPayment = {
                 case "PENDING":
                     statusText = constProposalStatus.PENDING;
                     break;
-                case "SUCCESS":
-                    statusText = constProposalStatus.SUCCESS;
-                    break;
-                case "FAIL":
-                    statusText = constProposalStatus.FAIL;
-                    break;
-                case "CANCEL":
-                    statusText = constProposalStatus.CANCEL;
-                    break;
                 default:
                     statusText = constProposalStatus.PREPENDING;
                     break;
