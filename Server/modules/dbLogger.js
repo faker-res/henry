@@ -803,12 +803,12 @@ var dbLogger = {
                         let logData = adminActionRecordData.data[2];
                         for (let key in logData) {
                             errorText += "ID:" + logData[key].providerGroupId + ", ";
-                            errorText += logData[key].name + ", ";
+                            errorText += logData[key].name;
                             if (logData[key].newAdd) {
-                                errorText += "新增此组";
+                                errorText += ", 新增此组";
                             }
                             if (logData[key].deleted) {
-                                errorText += "移除此组";
+                                errorText += ", 移除此组";
                             }
                             if (logData[key].addedProviders && logData[key].addedProviders.length) {
                                 errorText += ", 加入";
