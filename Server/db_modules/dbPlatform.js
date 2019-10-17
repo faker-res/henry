@@ -1830,7 +1830,7 @@ var dbPlatform = {
         let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
 
         // Check if platform is open for level down
-        if (platform.autoCheckPlayerLevelDown !== false) {
+        if (platform.playerLevelDownPeriod !== 99) {
             const levelsProm = dbconfig.collection_playerLevel.find({
                 platform: platformObjId
             }).sort({value: 1}).lean();
@@ -1873,6 +1873,8 @@ var dbPlatform = {
                 }
             );
         }
+
+
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
