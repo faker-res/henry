@@ -33321,6 +33321,7 @@ define(['js/app'], function (myApp) {
                         if (data) {
                             $scope.$evalAsync(() => {
                                 vm.gameProviderGroup = data.data;
+                                vm.cloneGameProviderGroup = vm.gameProviderGroup?JSON.parse(JSON.stringify(vm.gameProviderGroup)): [];
                                 vm.gameProviderGroupNames = {};
                                 for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                     let providerGroup = vm.gameProviderGroup[i];
@@ -35432,7 +35433,7 @@ define(['js/app'], function (myApp) {
                 vm.configTableEdit = false;
 
                 vm.removeProviderGroup();
-
+                let socketActionLog = getProviderChanged();
                 let sendData = {
                     platformObjId: vm.filterConfigPlatform,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
@@ -35446,7 +35447,8 @@ define(['js/app'], function (myApp) {
                             gameProviderGroupData.ebetWallet = e.ebetWallet;
                         }
                         return gameProviderGroupData;
-                    })
+                    }),
+                    socketActionLog: socketActionLog // for socket action log only 后台操作记录
                 };
 
                 console.log('sendData2', sendData);
@@ -35456,6 +35458,7 @@ define(['js/app'], function (myApp) {
                     if (data) {
                         $scope.$evalAsync(() => {
                             vm.gameProviderGroup = data.data;
+                            vm.cloneGameProviderGroup = JSON.parse(JSON.stringify(vm.gameProviderGroup));
                             vm.gameProviderGroupNames = {};
                             for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                 let providerGroup = vm.gameProviderGroup[i];
@@ -35464,6 +35467,131 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 });
+            }
+
+            function getProviderChanged () {
+                let newObjKey = 0;
+                let gameProvidersName = {};
+                if (vm.platformProviderList && vm.platformProviderList.length) {
+                    vm.platformProviderList.forEach(item => {
+                        gameProvidersName[item._id] = item.name;
+                    })
+                }
+                let socketActionLog = {};
+                if (vm.gameProviderGroup && vm.gameProviderGroup.length && vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.forEach(cloneGameProvider => {
+                        let providerGroupName = cloneGameProvider.name || " ";
+                        let providerGroupId = (cloneGameProvider.providerGroupId || cloneGameProvider.providerGroupId == 0)? cloneGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        for (let j = 0; j < vm.gameProviderGroup.length; j++) {
+                            let editedGameProvider = vm.gameProviderGroup[j];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            let key = cloneGameProvider._id || newObjKey++;
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                deleted: true
+                            }
+                            if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                socketActionLog[key].deletedProviders = cloneGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                    vm.gameProviderGroup.forEach(editedGameProvider => {
+                        let providerGroupName = editedGameProvider.name || " ";
+                        let providerGroupId = (editedGameProvider.providerGroupId || editedGameProvider.providerGroupId == 0)? editedGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        let key = editedGameProvider._id || newObjKey++;
+                        for (let i = 0; i < vm.cloneGameProviderGroup.length; i++) {
+                            let cloneGameProvider = vm.cloneGameProviderGroup[i];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                let isProviderChanged = false;
+                                let addedProviders = [];
+                                let deletedProviders = [];
+                                if (cloneGameProvider.providers && cloneGameProvider.providers.length && editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    editedGameProvider.providers.map(provider => {
+                                        if (!cloneGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            addedProviders.push(provider);
+                                        }
+                                    })
+                                    cloneGameProvider.providers.map(provider => {
+                                        if (!editedGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            deletedProviders.push(provider);
+                                        }
+                                    })
+                                } else if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    addedProviders = editedGameProvider.providers;
+                                } else if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    deletedProviders = cloneGameProvider.providers;
+                                }
+
+                                if (isProviderChanged) {
+                                    socketActionLog[key] = {
+                                        name: providerGroupName,
+                                        providerGroupId: providerGroupId,
+                                    };
+                                }
+                                if (addedProviders && addedProviders.length) {
+                                    socketActionLog[key].addedProviders = addedProviders.map(item => gameProvidersName[item]);
+                                }
+
+                                if (deletedProviders && deletedProviders.length) {
+                                    socketActionLog[key].deletedProviders = deletedProviders.map(item => gameProvidersName[item]);
+                                }
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                newAdd: true
+                            }
+                            if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                socketActionLog[key].addedProviders = editedGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                } else if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                    vm.gameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            newAdd: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].addedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                } else if (vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            deleted: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].deletedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                }
+                return socketActionLog;
             }
 
             vm.removeProviderGroup = () => {
