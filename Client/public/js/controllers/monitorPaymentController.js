@@ -4251,7 +4251,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -4421,7 +4421,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         },
@@ -4629,7 +4629,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
