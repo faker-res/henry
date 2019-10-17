@@ -5930,7 +5930,7 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.getChildrenDetails = function (partnerId, skipDownline) {
+        vm.getChildrenDetails = function (partnerId, skipDownline, skipModalShow) {
             let sendQuery = {
                 partnerId: partnerId,
                 platform: vm.selectedPlatform.id
@@ -6000,11 +6000,15 @@ define(['js/app'], function (myApp) {
             })
 
             if (skipDownline) {
-                $('#modalPlayerDetailsSummaryTable').modal().show();
+                if (!skipModalShow) {
+                    $('#modalPlayerDetailsSummaryTable').modal().show();
+                }
             } else {
-                vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
                 vm.getAllDownlinePartner();
-                $('#modalPlayerDetailsSummaryTableMulti').modal().show();
+                if (!skipModalShow) {
+                    vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
+                    $('#modalPlayerDetailsSummaryTableMulti').modal().show();
+                }
             }
             $scope.$evalAsync()
         };
