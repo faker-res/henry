@@ -28547,6 +28547,10 @@ define(['js/app'], function (myApp) {
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                                         sendData.platformObjId = vm.filterCreatePromoCodePlatform;
                                         sendData.smsContent = sendData.promoCodeType.smsContent;
+                                        if (!sendData.promoCodeType.platformObjId || sendData.promoCodeType.platformObjId !== vm.filterCreatePromoCodePlatform) {
+                                            socketService.showErrorMessage($translate("System abnormal, please consider refresh the page."));
+                                            return
+                                        }
 
                                         if(!sendData.allowedProviders){
                                             sendData.allowedProviders = [];
