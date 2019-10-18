@@ -30,9 +30,6 @@ var WebSocketUtility = {
      * If you *do* need to 'then' the promise, then you will need to use WebSocketUtil.responsePromise().
      */
     performAction: async function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, limitCall = false) {
-
-        console.log(`Performing action: ${wsFunc}, data: ${reqData}`);
-
         let startTime = new Date().getTime();
         let currentSecond = new Date().getSeconds();
 
@@ -100,13 +97,14 @@ var WebSocketUtility = {
      * @param {function} dbCall - Function for db operation
      * @param {json} reqData - request data sent from client
      * @param {array} args - array for dbCall function arguments
-     * @param {WebSocketFunction} wsFunc - websocket function used to respond
+     * @param {WebSocketFunction} wsFunc - websocketfunction used to respond
      * @param {Boolean} isValidData - flag for data validation
      * @param {Boolean} customResultHandler - if handle error status after promise
      * @param {Boolean} customErrorHandler - if handle result status after promise
      * @param {Boolean} noAuth - no need auth check
      */
     responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
+        var $translate = text => localization.translate(text, conn.lang, conn.platformId);
 
         //todo::need to update expacts data properly for each service function first then enable the check below
         // if (wsFunc && wsFunc.expectsData) {
@@ -119,84 +117,86 @@ var WebSocketUtility = {
         //     }
         // }
 
-        let $translate = text => localization.translate(text, conn.lang, conn.platformId);
-        let isValid = typeof isValidData === "undefined" ? true : isValidData;
-
+        var deferred = Q.defer();
+        var isValid = typeof isValidData === "undefined" ? true : isValidData;
         if (!noAuth && conn && !conn.isAuth) {
-            let errorCode = constServerCode.INVALID_API_USER;
+            var errorCode = constServerCode.INVALID_API_USER;
 
             // Hard code return message
-            let returnMsg = "Authentication Fails";
+            let returnMsg = args[1] == "hby" ? "Please login to get packet rain reward" : "Authentication Fails";
 
             wsFunc.response(conn, {
                 status: errorCode,
-                errorMessage: $translate(returnMsg),
-                data: serverInstance.getServerType() === "dataMigration" ? reqData : null
+                errorMessage: localization.translate(returnMsg, conn.lang, conn.platformId),
+                data: serverInstance.getServerType() == "dataMigration" ? reqData : null
             }, reqData);
-
-            return Promise.reject(false);
+            deferred.reject(false);
+            return deferred.promise;
         }
-
         if (conn && wsFunc && dbCall && args && isValid) {
             dbCall.apply(null, args).then(
-                result => {
-                    // Log this call
-                    let apiToLog = [
-                        'login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS',
-                        'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'
-                    ];
-
-                    if (
-                        (apiToLog.includes(wsFunc.name) && wsFunc._service.name === 'player')
-                        || conn.playerId && wsFunc.name !== 'getCredit'
-                    ) {
-                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
-                    }
-
+                function (result) {
                     //send result as response
                     if (!customResultHandler) {
                         var resObj = {status: constServerCode.SUCCESS, data: result};
                         //for cp api response
-                        if (serverInstance.getServerType() === constMessageClientTypes.PROVIDER && result && result.code) {
+                        if (serverInstance.getServerType() == constMessageClientTypes.PROVIDER && result && result.code) {
                             resObj.code = result.code;
                         }
                         wsFunc.response(conn, resObj, reqData);
-
-                        return Promise.resolve(true);
+                        deferred.resolve(true);
                     }
                     else {
-                        return Promise.resolve(result);
+                        deferred.resolve(result);
+                    }
+                    //todo:: add system log here
+                    //var logData = {
+                    //    adminName: socket.decoded_token.adminName,
+                    //    action: event,data: args,
+                    //    level: constSystemLogLevel.ACTION };
+                    //dblog.createSystemLog(logData);
+
+                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
+                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
                     }
                 },
                 function (err) {
-                    console.error(`responsePromise error: ${err}`);
+                    console.error(err);
                     if (!customErrorHandler) {
                         if (err && err.status) {
                             if (err.errorMessage || err.message) {
-                                let msg = err.errorMessage || err.message;
-                                err.errorMessage = $translate(msg);
+                                var msg = err.errorMessage || err.message;
+                                err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
                             }
                             wsFunc.response(conn, err, reqData);
                         }
                         else {
-                            let errorCode = err && err.code || constServerCode.COMMON_ERROR;
-                            let resObj = {
+                            var errorCode = err && err.code || constServerCode.COMMON_ERROR;
+                            var resObj = {
                                 status: errorCode,
                                 errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
-                                data: serverInstance.getServerType() === "dataMigration" ? reqData : null
+                                data: serverInstance.getServerType() == "dataMigration" ? reqData : null
                             };
                             resObj.errorMessage = err.errMessage || resObj.errorMessage;
                             wsFunc.response(conn, resObj, reqData);
                         }
                     }
-                    return Promise.reject(err);
+                    deferred.reject(err);
+                    //todo:: add system log here
+                    //var logData = {
+                    //    adminName: socket.decoded_token.adminName,
+                    //    action: event,
+                    //    data: args,
+                    //    level: constSystemLogLevel.ERROR };
+                    //dblog.createSystemLog(logData);
                 }
             );
         }
         else {
             WebSocketUtility.invalidDataResponse(conn, wsFunc, reqData);
-            return Promise.reject($translate("INVALID_DATA"));
+            deferred.reject(localization.translate("INVALID_DATA", conn.lang, conn.platformId));
         }
+        return deferred.promise;
     },
 
     /*
