@@ -138,7 +138,7 @@ var WebSocketUtility = {
         }
 
         if (conn && wsFunc && dbCall && args && isValid) {
-            dbCall.apply(null, args).then(
+            return dbCall.apply(null, args).then(
                 result => {
                     // Log this call
                     let apiToLog = [
