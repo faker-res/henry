@@ -294,8 +294,8 @@ let dbEmailAudit = {
                 message: "Error in getting proposal data",
             });
         }
-        if(proposalProm.length > 0 && proposalProm[0].messageId){
-            emailConfig.messageId = proposalProm[0].messageId;
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -517,8 +517,8 @@ let dbEmailAudit = {
                 message: "Error in getting proposal data",
             });
         }
-        if(proposalProm.length > 0 && proposalProm[0].messageId){
-            emailConfig.messageId = proposalProm[0].messageId;
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -729,8 +729,8 @@ let dbEmailAudit = {
                 message: "Error in getting proposal data",
             });
         }
-        if(proposalProm.length > 0 && proposalProm[0].messageId){
-            emailConfig.messageId = proposalProm[0].messageId;
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -898,8 +898,8 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
             message: "Error in getting proposal data",
         });
     }
-    if(proposalProm.length > 0 && proposalProm[0].messageId){
-        emailConfig.messageId = proposalProm[0].messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -909,7 +909,7 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{
@@ -1057,8 +1057,8 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
         });
     }
     //In order to group same subject&sender into conversation, need to get messageID as reference.
-    if(proposalProm.length > 0 && proposalProm[0].messageId){
-        emailConfig.messageId = proposalProm[0].messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -1067,7 +1067,7 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     //the first proposal will be no message ID, save it, so that following email could group together.
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{
@@ -1222,8 +1222,8 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
             message: "Error in getting proposal data",
         });
     }
-    if(proposalProm.length > 0 && proposalProm[0].messageId){
-        emailConfig.messageId = proposalProm[0].messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -1232,7 +1232,7 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
 
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {messageId: emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{

@@ -46,7 +46,7 @@ var proposalSchema = new Schema({
     inputDevice: {type: Number, default: 0, index: true},
 
     //For send email issue: audi credit change proposal email won't group as conversation, need message id as email references for gmail to group.
-    messageId: {type: String}
+    // messageId: {type: String}
 });
 
 // Index for general proposalId (Descending)c
