@@ -32,7 +32,7 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
 
                 // todo :: change view permission
 div.margin-top-5
-    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditCreditChange && checkViewPermission('Platform', 'Config', 'emailAuditConfig')", ng-click='vm.editAuditConfig.auditCreditChange=!vm.editAuditConfig.auditCreditChange')
+    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditCreditChange && checkViewPermission('Platform', 'ConfigEdit', 'emailAuditConfigEdit')", ng-click='vm.editAuditConfig.auditCreditChange=!vm.editAuditConfig.auditCreditChange')
         text {{'EDIT' | translate}}
         img.img-edit
     button.btn.btn-danger.common-button(ng-if='vm.editAuditConfig.auditCreditChange', ng-click='vm.editAuditConfig.auditCreditChange=!vm.editAuditConfig.auditCreditChange;vm.configTabClicked("emailAuditConfig")') {{"CANCEL" | translate}}
@@ -72,7 +72,7 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
 
                 // todo :: change view permission
 div.margin-top-5
-    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditManualReward && checkViewPermission('Platform', 'Config', 'emailAuditConfig')", ng-click='vm.editAuditConfig.auditManualReward=!vm.editAuditConfig.auditManualReward')
+    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditManualReward && checkViewPermission('Platform', 'ConfigEdit', 'emailAuditConfigEdit')", ng-click='vm.editAuditConfig.auditManualReward=!vm.editAuditConfig.auditManualReward')
         text {{'EDIT' | translate}}
         img.img-edit
     button.btn.btn-danger.common-button(ng-if='vm.editAuditConfig.auditManualReward', ng-click='vm.editAuditConfig.auditManualReward=!vm.editAuditConfig.auditManualReward;vm.configTabClicked("emailAuditConfig")') {{"CANCEL" | translate}}
@@ -112,7 +112,7 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
 
                 // todo :: change view permission
 div.margin-top-5
-    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditRepairTransfer && checkViewPermission('Platform', 'Config', 'emailAuditConfig')", ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer')
+    button.btn.btn-primary.common-button(ng-if="!vm.editAuditConfig.auditRepairTransfer && checkViewPermission('Platform', 'ConfigEdit', 'emailAuditConfigEdit')", ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer')
         text {{'EDIT' | translate}}
         img.img-edit
     button.btn.btn-danger.common-button(ng-if='vm.editAuditConfig.auditRepairTransfer', ng-click='vm.editAuditConfig.auditRepairTransfer=!vm.editAuditConfig.auditRepairTransfer;vm.configTabClicked("emailAuditConfig")') {{"CANCEL" | translate}}

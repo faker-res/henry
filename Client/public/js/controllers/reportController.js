@@ -296,7 +296,8 @@ define(['js/app'], function (myApp) {
         'comparePhoneNum',
         'resetAllPartnerCustomizedCommissionRate',
         'savePreventBlockUrl',
-        'deletePreventBlockUrl'];
+        'deletePreventBlockUrl',
+        'resetGroupPartnerCommissionRate'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
@@ -1847,6 +1848,17 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
+
+            let topUpRecordInputDevice = vm.queryTopup.userAgent;
+            if(vm.queryTopup && vm.queryTopup.userAgent){
+                if(vm.queryTopup.userAgent.indexOf("5") !== -1 && vm.queryTopup.userAgent.indexOf("7") === -1){
+                    topUpRecordInputDevice.push("7");
+                }
+                if(vm.queryTopup.userAgent.indexOf("6") !== -1 && vm.queryTopup.userAgent.indexOf("8") === -1){
+                    topUpRecordInputDevice.push("8");
+                }
+            }
+            
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
@@ -1859,7 +1871,7 @@ define(['js/app'], function (myApp) {
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
-                userAgent: vm.queryTopup.userAgent,
+                userAgent: topUpRecordInputDevice,
                 topupType: vm.queryTopup.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 depositMethod: vm.queryTopup.depositMethod,
@@ -2022,7 +2034,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -4637,10 +4649,12 @@ define(['js/app'], function (myApp) {
                         }
                         else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                             if (item.partner) {
-                                item.registrationAgent$ = "APP Agent";
+                                // item.registrationAgent$ = "APP Agent";
+                                item.registrationAgent$ = "HTML5 Agent";
                             }
                             else {
-                                item.registrationAgent$ = "APP Player";
+                                // item.registrationAgent$ = "APP Player";
+                                item.registrationAgent$ = "HTML5 Player";
                             }
                         }
                         else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
@@ -10972,7 +10986,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -12368,6 +12382,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "generatePartnerCommSettPreview", action: "generatePartnerCommSettPreview"},
                     {group: "PARTNER", text: "cancelPartnerCommissionPreview", action: "cancelPartnerCommissionPreview"},
                     {group: "PARTNER", text: "resetAllPartnerCustomizedCommissionRate", action: "resetAllPartnerCustomizedCommissionRate"},
+                    {group: "PARTNER", text: "resetGroupPartnerCommissionRate", action: "resetGroupPartnerCommissionRate"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},

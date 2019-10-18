@@ -6607,7 +6607,6 @@ API说明：
 					"playerLevelUpPeriod": 3,
 					"manualPlayerLevelUp": true,
 					"autoCheckPlayerLevelUp": true,
-                    "autoCheckPlayerLevelDown": true,
 					"canMultiReward": false,
 					"autoApproveBonusProfitOffset": 2000,
 					"autoApproveProfitTimesMinAmount": 2000,
@@ -7123,6 +7122,7 @@ API说明：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺2项1列; 3 - 平铺3项1列; 5 - 平铺5项1列
 		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干; 7 - 自定义文本
+		* topButtonClick, rightButtonClick, bottomButtonClick, rewardButtonClick: 1 - 前往指定页面； 2 - 返回； 3 - 申请优惠； 4 - 联络客服
 		* code: 
 		    * recommendation - 热门推荐
 			* rewardPoint - 积分说明

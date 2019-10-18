@@ -866,6 +866,16 @@ let dbPlayerInfo = {
                             message: localization.localization.translate("phone number is invalid")
                         });
                     }
+                    if (inputData.phoneNumber){
+                        console.log("checking inputData.phoneNumber", inputData.phoneNumber, inputData.name)
+                        let reg = new RegExp('^[0-9]+$');
+                        if (!reg.test(inputData.phoneNumber.toString())){
+                            return  Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Phone number can only be digits")
+                            });
+                        }
+                    }
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
@@ -913,7 +923,11 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            if (bypassSMSVerify) {
+                                return true;
+                            } else {
+                                return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            }
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
@@ -1874,7 +1888,7 @@ let dbPlayerInfo = {
         };
 
         if (data.userAgent) {
-            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, data);
         }
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
@@ -6767,11 +6781,6 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
-        if(playerData) {
-            console.log("playerData.name", playerData.name);
-            console.log("userAgent", userAgent);
-            console.log("inputDevice", inputDevice);
-        }
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -6881,7 +6890,7 @@ let dbPlayerInfo = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.PLAYER_NAME_INVALID
+                        code: constServerCode.PLAYER_NAME_INVALID,
                     });
                 }
             }
@@ -7010,7 +7019,7 @@ let dbPlayerInfo = {
                 if (playerData.deviceId || playerData.guestDeviceId) {
                     recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
                 } else if (recordData.userAgent) {
-                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
                 }
@@ -7035,15 +7044,18 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice ==>', tempInputDevice);
                 console.log('playerData.osType ==>', playerData.osType);
-                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                console.log('userAgent.browser', userAgent.browser);
+                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                     loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -7051,7 +7063,6 @@ let dbPlayerInfo = {
 
                 console.log('loginDevice ==>', loginDevice);
                 if (loginDevice) {
-                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
                     return dbconfig.collection_players.findOneAndUpdate({
                         _id: record.player,
                         platform: record.platform
@@ -7531,6 +7542,10 @@ let dbPlayerInfo = {
                                                                     if (playerData && playerData.isHitReferralLimit) {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
+                                                                    playerData.isRegister = true;
+
+                                                                    console.log('playerData===', playerData);
+                                                                    console.log('playerData.isRegister===', playerData.isRegister);
 
                                                                     return playerData;
                                                                 }
@@ -7550,6 +7565,8 @@ let dbPlayerInfo = {
                                                         loginPlayerData.isHitReferralLimit = isHitReferralLimit;
                                                         return loginPlayerData;
                                                     }
+                                                    console.log('login-data===', data);
+                                                    console.log('login-data.isRegister===', data.isRegister);
 
                                                     return data;
                                                 }
@@ -7818,8 +7835,9 @@ let dbPlayerInfo = {
                 }
 
                 if (recordData.userAgent) {
-                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 }
+
                 Object.assign(recordData, geoInfo);
 
                 let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -7840,15 +7858,17 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice 1==>', tempInputDevice);
                 console.log('playerData.osType 1==>', playerData.osType);
-                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                     loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -8246,8 +8266,9 @@ let dbPlayerInfo = {
                         }
 
                         if (recordData.userAgent) {
-                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, inputData);
                         }
+
                         Object.assign(recordData, geoInfo);
 
                         let record = new dbconfig.collection_playerLoginRecord(recordData);
@@ -8261,15 +8282,17 @@ let dbPlayerInfo = {
 
                                 console.log('tempInputDevice 2==>', tempInputDevice);
                                 console.log('inputData.osType 2==>', inputData.osType);
-                                if (tempInputDevice == 1 || tempInputDevice == 2) {
+                                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                                     loginDevice = constPlayerLoginDevice.WEB;
-                                } else if (tempInputDevice == 3 || tempInputDevice == 4) {
+                                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
                                     loginDevice = constPlayerLoginDevice.H5;
-                                } else if (tempInputDevice == 5 || tempInputDevice == 6 || tempInputDevice == 7 || tempInputDevice == 8) {
+                                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+                                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
                                     if (inputData && inputData.osType) {
                                         let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                                    }
+                                    else if (userAgent && userAgent.os && userAgent.os.name) {
                                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                                     }
@@ -23536,7 +23559,7 @@ let dbPlayerInfo = {
                     result.totalOnlineTopUpFee = 0;
 
                     let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
-                    let bonusDetail = {};
+                    let bonusDetail = {amount: 0, count: 0};
 
                     if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
                         selftopUpAndBonusDetail.forEach(e => {
@@ -23587,8 +23610,8 @@ let dbPlayerInfo = {
                                 result.topUpAmount += e.amount;
                                 result.topUpTimes += e.count;
                             } else if (e._id.mainType === 'PlayerBonus') {
-                                bonusDetail.amount = e.amount ? e.amount : 0;
-                                bonusDetail.count = e.count ? e.count : 0;
+                                bonusDetail.amount += e.amount ? e.amount : 0;
+                                bonusDetail.count += e.count ? e.count : 0;
                             }
                         })
                     }
@@ -28034,7 +28057,7 @@ let dbPlayerInfo = {
                 topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
             }
 
-            console.log("checking topUpMatchQuery", topUpMatchQuery)
+            console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
             let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
                 {
                     "$match": topUpMatchQuery
@@ -28088,10 +28111,10 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            let feeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
-                path: 'platformFee.gameProvider',
-                model: dbconfig.collection_gameProvider
-            }).lean();
+            // let feeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+            //     path: 'platformFee.gameProvider',
+            //     model: dbconfig.collection_gameProvider
+            // }).lean();
 
             let [players, gameDetail, topUpAndBonusDetail, csOfficerDetail] = await Promise.all([
                 Promise.resolve(playerData), consumptionProm, topupAndBonusProm, promoteWayProm]);
@@ -28246,9 +28269,9 @@ let dbPlayerInfo = {
                     result.aliPayTopUpAmount = 0;
                     result.onlineTopUpFeeDetail = [];
                     result.totalOnlineTopUpFee = 0;
-
+                    console.log("checking yH topUpAndBonusDetail.length", topUpAndBonusDetail && topUpAndBonusDetail.length ? topUpAndBonusDetail.length : 0)
                     let selftopUpAndBonusDetail = topUpAndBonusDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
-                    let bonusDetail = {};
+                    let bonusDetail = {amount: 0, count: 0};
 
                     if (selftopUpAndBonusDetail && selftopUpAndBonusDetail.length) {
                         selftopUpAndBonusDetail.forEach(e => {
@@ -28299,8 +28322,8 @@ let dbPlayerInfo = {
                                 result.topUpAmount += e.amount;
                                 result.topUpTimes += e.count;
                             } else if (e._id.mainType === 'PlayerBonus') {
-                                bonusDetail.amount = e.amount ? e.amount : 0;
-                                bonusDetail.count = e.count ? e.count : 0;
+                                bonusDetail.amount += e.amount ? e.amount : 0;
+                                bonusDetail.count += e.count ? e.count : 0;
                             }
                         })
                     }
@@ -30619,10 +30642,13 @@ function determineRegistrationInterface(inputData) {
         let userAgent = inputData.userAgent[0];
         if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
             if (inputData.partner) {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
             }
             else {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
             }
         }
         else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {

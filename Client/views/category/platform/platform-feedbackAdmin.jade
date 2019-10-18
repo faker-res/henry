@@ -16,7 +16,7 @@
                 select.spicker.form-control(ng-model='vm.feedbackAdminQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.feedbackAdminQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
             .search-filters-item
                 label {{"REGISTRATION_ADMIN"|translate}}
-                select.spicker.form-control(ng-model='vm.feedbackAdminQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+                select.spicker.form-control(ng-model='vm.feedbackAdminQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
             .search-filters-item
                 label {{'PLAYER' | translate}}
                 input.form-control(ng-model='vm.feedbackAdminQuery.player', placeholder="{{'SEARCH' | translate}}")

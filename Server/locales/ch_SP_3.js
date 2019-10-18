@@ -40,6 +40,7 @@ var simplifiedChinese = {
     "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
+    "DAILY_CONSUMPTION": "1天-投注額",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "Please bind phone number first": "请先绑定手机号码",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",

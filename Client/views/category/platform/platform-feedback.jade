@@ -136,7 +136,7 @@
         select.spicker.form-control(ng-model='vm.playerFeedbackQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
     .search-filters-item
         label {{"REGISTRATION_ADMIN"|translate}}
-        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
     .search-filters-item
         label {{"CALL_PERMISSION"|translate}}
         div
