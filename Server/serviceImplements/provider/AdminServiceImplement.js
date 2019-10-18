@@ -37,7 +37,7 @@ var AdminServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
 

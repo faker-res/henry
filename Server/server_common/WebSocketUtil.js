@@ -134,21 +134,8 @@ var WebSocketUtility = {
             return deferred.promise;
         }
         if (conn && wsFunc && dbCall && args && isValid) {
-            return dbCall.apply(null, args).then(
-                result => {
-                    // Log this call
-                    let apiToLog = [
-                        'login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS',
-                        'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'
-                    ];
-
-                    if (
-                        (apiToLog.includes(wsFunc.name) && wsFunc._service.name === 'player')
-                        || conn.playerId && wsFunc.name !== 'getCredit'
-                    ) {
-                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
-                    }
-
+            dbCall.apply(null, args).then(
+                function (result) {
                     //send result as response
                     if (!customResultHandler) {
                         var resObj = {status: constServerCode.SUCCESS, data: result};

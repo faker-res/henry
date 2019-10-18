@@ -97,7 +97,7 @@ var PaymentServiceImplement = function () {
                     data: res
                 }, data);
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.getBonusRequestList.expectsData = '[startIndex]: Number, [requestCount]: Number';
@@ -126,7 +126,7 @@ var PaymentServiceImplement = function () {
                     data: res
                 }, data);
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.requestManualTopup.expectsData = 'amount: Number|String, depositMethod: ?, lastBankcardNo: ?, provinceId: String|Number, cityId: String|Number';
@@ -149,7 +149,7 @@ var PaymentServiceImplement = function () {
                 }, data);
                 // SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.getCashRechargeStatus.onRequest = function (wsFunc, conn, data) {
@@ -161,7 +161,7 @@ var PaymentServiceImplement = function () {
                     data: res
                 }, data);
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.requestAlipayTopup.expectsData = 'amount: Number|String';
