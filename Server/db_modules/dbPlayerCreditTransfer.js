@@ -1792,7 +1792,7 @@ let dbPlayerCreditTransfer = {
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0 && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
                         let hasEbet = false;
                         group.providers.forEach(provider => {
-                            if(provider.code.toUpperCase() === "EBET" || provider.code.toUpperCase() === "EBETSLOTS") {
+                            if(provider.code.toUpperCase() === "EBET" || provider.code.toUpperCase() === "EBETSLOTS" || provider.code.toUpperCase() === "EBETBOARD") {
                                 hasEbet = true;
                             }
                         });
@@ -1808,7 +1808,8 @@ let dbPlayerCreditTransfer = {
                             }).lean().then(RTG => {
                                 console.log("Reward Task Group filter",RTG);
                                 if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" ||
-                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS") || (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
+                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETBOARD") ||
+                                    (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
