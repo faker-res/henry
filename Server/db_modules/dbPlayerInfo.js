@@ -7544,6 +7544,9 @@ let dbPlayerInfo = {
                                                                     }
                                                                     playerData.isRegister = true;
 
+                                                                    console.log('playerData===', playerData);
+                                                                    console.log('playerData.isRegister===', playerData.isRegister);
+
                                                                     return playerData;
                                                                 }
                                                             );
@@ -7562,6 +7565,8 @@ let dbPlayerInfo = {
                                                         loginPlayerData.isHitReferralLimit = isHitReferralLimit;
                                                         return loginPlayerData;
                                                     }
+                                                    console.log('login-data===', data);
+                                                    console.log('login-data.isRegister===', data.isRegister);
 
                                                     return data;
                                                 }
