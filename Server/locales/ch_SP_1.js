@@ -41,6 +41,7 @@ var simplifiedChinese = {
     "Please bind phone number first": "请先绑定手机号码",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
+    "DAILY_CONSUMPTION": "1天-投注額",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",

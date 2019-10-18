@@ -2265,9 +2265,9 @@ API说明：
   * functionName: getBonusRequestList
   * 请求内容：
       ```
-      startTime: 选填|DateTime|开始时间
-      endTime: 选填|DateTime|结束时间
-      status: 选填|DateTime|提案状态(参考提案状态列表，默认：所有状态)
+      startTime: 选填|Date|开始时间
+      endTime: 选填|Date|结束时间
+      status: 选填|String|提案状态(参考提案状态列表，默认：所有状态)
       ```
   * 操作成功:
       ```
@@ -2292,80 +2292,80 @@ API说明：
 <div id='取消提款申请'></div>
 
 * **3. 取消提款申请**
-  * 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
-  * functionName: cancelBonusRequest
-  * 请求内容：
-      ```
-      proposalId: 必填|String|提款提案号
-      ```
+    * 玩家可以取消已提交的提款申请。(前提是提案状态为未处理)
+    * functionName: cancelBonusRequest
+    * 请求内容：
+        ```
+        proposalId: 必填|String|提款提案号
+        ```
 
-  * 操作成功:
-      ```
-      status: 200
-      data: {
-          proposalId: 提款提案号
-      }
-      ```
-  * 操作失败:
-      ```
-      status: 40x
-      data: -
-      errorMessage: 错误信息
-      ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            proposalId: 提款提案号
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取充值记录'></div>
 
-* **21.  获取充值记录**
-	* 获取玩家充值记录
-	* Name: getTopupList
-	* 请求内容：
-		* ```
-			{
-				"topUpType": "2",  //1:手动充值 2:在线充值 3:支付宝充值 4：个人微信
-				"startTime": "xxxx", //date类型
-				"endTime": "xxx", //date类型
-				"startIndex": 0,  //记录开始index， 用于分页
-				"requestCount": 100  //请求记录数量，用于分页,
-				“sort”: true  //按时间排序, false:降序， true：正序
-				“bDirty”: false/true  //充值是否已被占用（已申请过奖励）
-				“bSinceLastConsumption”: true/false //是否是最后投注后的充值
-				“bSinceLastPlayerWithDraw”: true/false //是否是最后提款后的充值
-			}
-	* 响应内容：
-		* ```
-			{
-				"status": 200,  //200:成功 / 4xx:失败
-				"data": {
-					"stats": {
-						"totalCount": 1,  //查询记录总数量，用于分页
-						"totalAmount": 100,  //查询结果总额度
-						"startIndex": 0  //查询结果记录开始index
-					},
-					"records": [  //查询记录列表
-					{
-						"_id": "57e493bd4616da05674073eb",
-						"playerId": "Yun1068",
-						"platformId": "4",
-						"topUpType": "2",
-						"merchantTopUpType": "1",
-						"bankCardType": "1",
-						"amount": 100,
-						"createTime": "2016-09-23T02:30:21.196Z",
-						"__v": 0,
-						bDirty: false //充值记录是否已使用
-					}]
-				}
-			}
+* **4.  获取充值记录**
+    * 获取玩家充值记录
+    * functionName: getTopupList
+    * 请求内容：
+        ```
+        topUpType: 选填|Int|1:手动充值 2:在线充值 3:支付宝充值 4：个人微信
+        startTime：选填|Date|开始时间
+        endTime：选填|Date|结束时间
+        startIndex: 选填|Int|记录开始index， 用于分页
+        requestCount: 选填|Int|请求记录数量，用于分页
+        sort: 选填|Boolean|按时间排序, false:降序， true：正序
+        bDirty: 选填|Boolean|充值是否已被占用（已申请过奖励）
+        bSinceLastConsumption: 选填|Boolean|是否是最后投注后的充值
+        bSinceLastPlayerWithDraw: 选填|Boolean|是否是最后提款后的充值
+        ```
+    * 操作成功:
+        ```
+        status: 200
+        data: {
+            stats: {
+                totalCount: 提案总数
+                startIndex: 当前页面
+                requestCount: 页面总提案数
+                totalAmount: 提案总额度
+            }，
+            records: [{  //查询记录列表
+                "amount": 充值额度
+                "createTime": 充值时间
+                bDirty: 充值记录是否已使用
+            }]
+        }
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 <div id='获取省份列表'></div>
 
-* **22.  获取省份列表**
+* **5.  获取省份列表**
 	* Name: getProvinceList
-	* 请求内容：{}
+	* 请求内容：
+	    ```
+        {}
+        ```
 	* 响应内容：
-		* ```
-			{
-				status: 200/4xx,
+		```
+        {
+            status: 200/4xx,
 				data: [{
 					id: “001”,
 					name: “北京”
@@ -7120,8 +7120,9 @@ API说明：
 	* 操作失败：status--4xx, data-null, errorMessage:””
 	* 特注：
 		* clientType： 1 - PC; 2- H5; 4- APP
-		* displayFormat: 1 - 背景展示; 2 -平铺2项1列; 3 - 平铺3项1列; 5 - 平铺5项1列
-		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干
+		* displayFormat: 1 - 背景展示; 2 - 平铺2项1列; 3 - 平铺3项1列; 5 - 平铺5项1列
+		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干; 7 - 自定义文本
+		* topButtonClick, rightButtonClick, bottomButtonClick, rewardButtonClick: 1 - 前往指定页面； 2 - 返回； 3 - 申请优惠； 4 - 联络客服
 		* code: 
 		    * recommendation - 热门推荐
 			* rewardPoint - 积分说明

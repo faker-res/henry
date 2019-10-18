@@ -787,6 +787,7 @@ const dbPlayerPayment = {
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
+                proposalData.loginDevice = player.loginDevice || null;
                 proposalData.platformId = player.platform._id;
                 if( player.playerLevel ){
                     proposalData.playerLevel = player.playerLevel._id;
@@ -870,6 +871,12 @@ const dbPlayerPayment = {
                 }
                 else if (Number(topupRequest.clientType) == 4) {
                     newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+
+                    if (topupRequest && topupRequest.userAgent && topupRequest.userAgent.browser && topupRequest.userAgent.browser.name
+                        && (topupRequest.userAgent.browser.name.indexOf("WebKit") !== -1 || topupRequest.userAgent.browser.name.indexOf("WebView") !== -1)) {
+                        // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                        newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                    }
                 } else {
                     newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 }

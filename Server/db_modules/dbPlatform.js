@@ -2353,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -2395,7 +2396,8 @@ var dbPlatform = {
                             phoneStatus: 2
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode also
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -6779,6 +6781,22 @@ var dbPlatform = {
 
                 if (setting.voucherClarificationUrl && (setting.voucherClarificationUrl.indexOf('http') == -1 && setting.voucherClarificationUrl.indexOf('https') == -1)) {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
+                }
+
+                if (setting.topButtonRoute && (setting.topButtonRoute.indexOf('http') == -1 && setting.topButtonRoute.indexOf('https') == -1)) {
+                    setting.topButtonRoute = cdnText + setting.topButtonRoute;
+                }
+
+                if (setting.rightButtonRoute && (setting.rightButtonRoute.indexOf('http') == -1 && setting.rightButtonRoute.indexOf('https') == -1)) {
+                    setting.rightButtonRoute = cdnText + setting.rightButtonRoute;
+                }
+
+                if (setting.bottomButtonRoute && (setting.bottomButtonRoute.indexOf('http') == -1 && setting.bottomButtonRoute.indexOf('https') == -1)) {
+                    setting.bottomButtonRoute = cdnText + setting.bottomButtonRoute;
+                }
+
+                if (setting.rewardButtonRoute && (setting.rewardButtonRoute.indexOf('http') == -1 && setting.rewardButtonRoute.indexOf('https') == -1)) {
+                    setting.rewardButtonRoute = cdnText + setting.rewardButtonRoute;
                 }
 
                 return setting

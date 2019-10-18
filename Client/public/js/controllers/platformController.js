@@ -5,6 +5,7 @@ define(['js/app'], function (myApp) {
             let $translate = $filter('translate');
             let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
             let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
+            let $noDecimalPlacesString = $filter('noDecimalPlacesString');
             let vm = this;
 
             // For debugging:
@@ -38,6 +39,12 @@ define(['js/app'], function (myApp) {
                 DAILY_CONSUMPTION: 7
             };
 
+            vm.constVoiceCodeProvider = {
+                TENCENT_CLOUD: 1, // 腾讯云 default
+                NETEASE: 2, // 网易云
+                YUNPIAN: 3 // 云片
+            };
+
             vm.popularRecommendationCategory = {
                 "Navigation_Bar": 1,
                 "Body": 2,
@@ -64,6 +71,13 @@ define(['js/app'], function (myApp) {
                 "redirectToOfficialWebPage": 4,
                 "startGame": 5,
                 "doNothing": 6,
+            };
+
+            vm.frontEndRewardButtonOnClickAction = {
+                "redirectToParticularPage": 1,
+                "return": 2,
+                "applyReward": 3,
+                "contactCS": 4,
             };
 
             vm.frontEndSettingDevices = {
@@ -577,8 +591,10 @@ define(['js/app'], function (myApp) {
                 0: 'Common Wallet',
                 1: 'Live Wallet',
                 2: 'Slots Wallet',
-                3: 'Sports Wallet',
-                4: 'Keno Wallet'
+                3: 'Battle Wallet',
+                4: 'Casino Wallet',
+                5: 'Sports Wallet',
+                6: 'Keno Wallet',
             };
 
             vm.betType = [
@@ -1607,6 +1623,7 @@ define(['js/app'], function (myApp) {
                     if (preventBlockUrl) {
                         item = preventBlockUrl + item;
                     }
+                    item = item.replace('&', '%26');
                     return item.trim();
                 });
                 let sendData = { "urls": urls };
@@ -1620,6 +1637,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.generateSingleUrl = function(url, no) {
+                url = url.replace('&', '%26');
                 let sendData = { "urls": [ url ] };
                 $('#urlShortenerSpin').show();
 
@@ -4557,6 +4575,17 @@ define(['js/app'], function (myApp) {
                     })
                     $scope.$evalAsync();
                 })
+
+                vm.loginButtonText = "NO_LOG_IN_SHOW_OFF"
+                vm.loginShowButton = true; // show off button
+                if (platform && platform.platformId) {
+                    vm.disableLoginShowButton = false;
+                    if (vm.SelectedProvider && vm.SelectedProvider.needLoginShow && vm.SelectedProvider.needLoginShow[platform.platformId]) {
+                        vm.loginShowButton = false;
+                    }
+                } else {
+                    vm.disableLoginShowButton = true;
+                }
             }
 
             function processImgAddr(mainAddr, addr) {//img in platformGame, and img in game
@@ -4816,6 +4845,23 @@ define(['js/app'], function (myApp) {
 
                     }
                 );
+            }
+
+            vm.updateProviderNeedLoginShow = function (providerData) {
+                let platform = vm.allPlatformData.find(item => String(item._id) == String(vm.filterGamePlatform))
+                let platformId = platform && platform.platformId? platform.platformId: null;
+                let sendData = {
+                    platformId: platformId,
+                    gameProviderObjId: providerData && providerData._id? providerData._id: null,
+                    needLoginShow: vm.loginShowButton
+                }
+
+                socketService.$socket($scope.AppSocket, 'updateProviderNeedLoginShow', sendData, function(data) {
+                    vm.getPlatformGameData(vm.filterGamePlatform, true);
+                    $scope.$evalAsync();
+                });
+
+
             }
 
             vm.getPlatformsPrefixForProvider = function (platformData, gameProviderData) {
@@ -18271,7 +18317,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length) {
-                    vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
+                    vm.feedbackAdminQuery.admins = vm.feedbackAdminQuery.admins.filter(admin=> admin); // filter ""/ none
                 }
                 if ( (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0) || admins.length) {
                     sendQuery.csOfficer = vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length > 0 ? vm.feedbackAdminQuery.admins : admins;
@@ -26113,12 +26159,22 @@ define(['js/app'], function (myApp) {
                                           if (object && object.pc && object.pc.hasOwnProperty('displayFormat')){
                                               object.pc.displayFormat = object.pc.displayFormat.toString();
                                           }
-                                          else if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
+                                          if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')){
                                               object.h5.displayFormat = object.h5.displayFormat.toString();
                                           }
-                                          else if (object && object.app && object.app.hasOwnProperty('displayFormat')){
+                                          if (object && object.app && object.app.hasOwnProperty('displayFormat')){
                                               object.app.displayFormat = object.app.displayFormat.toString();
                                           }
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.pc.onClickAction = object.pc.onClickAction.toString();
+                                          }
+                                          if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.h5.onClickAction = object.h5.onClickAction.toString();
+                                          }
+                                          if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
                                           return object;
                                       }
                                   )
@@ -26138,6 +26194,31 @@ define(['js/app'], function (myApp) {
                     }, true);
                 }
 
+            };
+
+            vm.resetOnClickRewardButton  = function (holder, type, button, actionId) {
+                switch (button) {
+                    case "topButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['topButtonRoute'] = null;
+                        }
+                        break;
+                    case "rightButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rightButtonRoute'] = null;
+                        }
+                        break;
+                    case "bottomButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['bottomButtonRoute'] = null;
+                        }
+                        break;
+                    case "rewardButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rewardButtonRoute'] = null;
+                        }
+                        break;
+                }
             };
 
             vm.enableSortableCategoryChange = function (holder) {
@@ -28466,6 +28547,10 @@ define(['js/app'], function (myApp) {
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                                         sendData.platformObjId = vm.filterCreatePromoCodePlatform;
                                         sendData.smsContent = sendData.promoCodeType.smsContent;
+                                        if (!sendData.promoCodeType.platformObjId || sendData.promoCodeType.platformObjId !== vm.filterCreatePromoCodePlatform) {
+                                            socketService.showErrorMessage($translate("System abnormal, please consider refresh the page."));
+                                            return
+                                        }
 
                                         if(!sendData.allowedProviders){
                                             sendData.allowedProviders = [];
@@ -29196,7 +29281,7 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('PROMO_REWARD_AMOUNT'),
                             data: "amount",
-                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? data + "%" : data
+                            render: (data, index, row) => (row.promoCodeTypeObjId && row.promoCodeTypeObjId.type == 3) || row.type == 3 || (row.promoCodeTemplateObjId && row.promoCodeTemplateObjId.type == 3) ? $noDecimalPlacesString(data) + "%" : $noRoundTwoDecimalPlaces(data)
                         },
                         {
                             title: $translate('PROMO_minTopUpAmount'),
@@ -32200,6 +32285,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isEbet4 = platformData.isEbet4;
                         vm.platformBasic.useVoiceCode = platformData.useVoiceCode;
+                        vm.platformBasic.voiceCodeProvider = platformData.voiceCodeProvider || vm.constVoiceCodeProvider.TENCENT_CLOUD;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -33247,6 +33333,7 @@ define(['js/app'], function (myApp) {
                         if (data) {
                             $scope.$evalAsync(() => {
                                 vm.gameProviderGroup = data.data;
+                                vm.cloneGameProviderGroup = vm.gameProviderGroup?JSON.parse(JSON.stringify(vm.gameProviderGroup)): [];
                                 vm.gameProviderGroupNames = {};
                                 for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                     let providerGroup = vm.gameProviderGroup[i];
@@ -34736,6 +34823,7 @@ define(['js/app'], function (myApp) {
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         isEbet4: srcData.isEbet4,
                         useVoiceCode: srcData.useVoiceCode,
+                        voiceCodeProvider: srcData.voiceCodeProvider,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
@@ -35355,7 +35443,10 @@ define(['js/app'], function (myApp) {
                 vm.configTableEdit = false;
 
                 vm.removeProviderGroup();
-
+                let socketActionLog = getProviderChanged();
+                if(!(socketActionLog && Object.keys(socketActionLog).length)) {
+                    return;
+                }
                 let sendData = {
                     platformObjId: vm.filterConfigPlatform,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
@@ -35369,7 +35460,8 @@ define(['js/app'], function (myApp) {
                             gameProviderGroupData.ebetWallet = e.ebetWallet;
                         }
                         return gameProviderGroupData;
-                    })
+                    }),
+                    socketActionLog: socketActionLog // for socket action log only 后台操作记录
                 };
 
                 console.log('sendData2', sendData);
@@ -35379,6 +35471,7 @@ define(['js/app'], function (myApp) {
                     if (data) {
                         $scope.$evalAsync(() => {
                             vm.gameProviderGroup = data.data;
+                            vm.cloneGameProviderGroup = JSON.parse(JSON.stringify(vm.gameProviderGroup));
                             vm.gameProviderGroupNames = {};
                             for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                 let providerGroup = vm.gameProviderGroup[i];
@@ -35387,6 +35480,131 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 });
+            }
+
+            function getProviderChanged () {
+                let newObjKey = 0;
+                let gameProvidersName = {};
+                if (vm.platformProviderList && vm.platformProviderList.length) {
+                    vm.platformProviderList.forEach(item => {
+                        gameProvidersName[item._id] = item.name;
+                    })
+                }
+                let socketActionLog = {};
+                if (vm.gameProviderGroup && vm.gameProviderGroup.length && vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.forEach(cloneGameProvider => {
+                        let providerGroupName = cloneGameProvider.name || " ";
+                        let providerGroupId = (cloneGameProvider.providerGroupId || cloneGameProvider.providerGroupId == 0)? cloneGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        for (let j = 0; j < vm.gameProviderGroup.length; j++) {
+                            let editedGameProvider = vm.gameProviderGroup[j];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            let key = cloneGameProvider._id || newObjKey++;
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                deleted: true
+                            }
+                            if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                socketActionLog[key].deletedProviders = cloneGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                    vm.gameProviderGroup.forEach(editedGameProvider => {
+                        let providerGroupName = editedGameProvider.name || " ";
+                        let providerGroupId = (editedGameProvider.providerGroupId || editedGameProvider.providerGroupId == 0)? editedGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        let key = editedGameProvider._id || newObjKey++;
+                        for (let i = 0; i < vm.cloneGameProviderGroup.length; i++) {
+                            let cloneGameProvider = vm.cloneGameProviderGroup[i];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                let isProviderChanged = false;
+                                let addedProviders = [];
+                                let deletedProviders = [];
+                                if (cloneGameProvider.providers && cloneGameProvider.providers.length && editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    editedGameProvider.providers.map(provider => {
+                                        if (!cloneGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            addedProviders.push(provider);
+                                        }
+                                    })
+                                    cloneGameProvider.providers.map(provider => {
+                                        if (!editedGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            deletedProviders.push(provider);
+                                        }
+                                    })
+                                } else if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    addedProviders = editedGameProvider.providers;
+                                } else if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    deletedProviders = cloneGameProvider.providers;
+                                }
+
+                                if (isProviderChanged) {
+                                    socketActionLog[key] = {
+                                        name: providerGroupName,
+                                        providerGroupId: providerGroupId,
+                                    };
+                                }
+                                if (addedProviders && addedProviders.length) {
+                                    socketActionLog[key].addedProviders = addedProviders.map(item => gameProvidersName[item]);
+                                }
+
+                                if (deletedProviders && deletedProviders.length) {
+                                    socketActionLog[key].deletedProviders = deletedProviders.map(item => gameProvidersName[item]);
+                                }
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                newAdd: true
+                            }
+                            if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                socketActionLog[key].addedProviders = editedGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                } else if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                    vm.gameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            newAdd: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].addedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                } else if (vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            deleted: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].deletedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                }
+                return socketActionLog;
             }
 
             vm.removeProviderGroup = () => {
@@ -43426,28 +43644,39 @@ define(['js/app'], function (myApp) {
                         }
                         switch (actionId) {
                             case 1:
+                            case "1":
                                 holder[type] = {};
-                                holder[type].onClickAction = 1;
+                                holder[type].onClickAction = '1';
                                 break;
                             case 2:
+                            case "2":
                                 holder[type] = {};
-                                holder[type].onClickAction = 2;
+                                holder[type].onClickAction = '2';
                                 break;
                             case 3:
+                            case "3":
                                 holder[type] = {};
-                                holder[type].onClickAction = 3;
+                                holder[type].onClickAction = '3';
                                 break;
                             case 4:
+                            case "4":
                                 holder[type] = {};
-                                holder[type].onClickAction = 4;
+                                holder[type].onClickAction = '4';
                                 break;
                             case 5:
+                            case "5":
                                 holder[type] = {};
-                                holder[type].onClickAction = 5;
+                                holder[type].onClickAction = '5';
                                 break;
                             case 6:
+                            case "6":
                                 holder[type] = {};
-                                holder[type].onClickAction = 6;
+                                holder[type].onClickAction = '6';
+                                break;
+                            case 7:
+                            case "7":
+                                holder[type] = {};
+                                holder[type].onClickAction = '7';
                                 break;
                         }
 
@@ -43466,27 +43695,30 @@ define(['js/app'], function (myApp) {
                         holder[type].imageUrl = tempImageUrl;
                     }
                 }
-                else{
-                    if (holder['newPageUrl']){
+                else {
+                    if (holder['newPageUrl']) {
                         holder['newPageUrl'] = null;
                     }
-                    if (holder['activityUrl']){
+                    if (holder['activityUrl']) {
                         holder['activityUrl'] = null;
                     }
-                    if (holder['newPageDetail']){
+                    if (holder['newPageDetail']) {
                         holder['newPageDetail'] = null;
                     }
-                    if (holder['activityDetail']){
+                    if (holder['activityDetail']) {
                         holder['activityDetail'] = null;
                     }
-                    if (holder['rewardEventObjId']){
-                        holder['rewardEventObjId']= null;
+                    if (holder['rewardEventObjId']) {
+                        holder['rewardEventObjId'] = null;
                     }
-                    if (holder['route']){
+                    if (holder['route']) {
                         holder['route'] = null;
                     }
-                    if (holder['gameCode']){
+                    if (holder['gameCode']) {
                         holder['gameCode'] = null;
+                    }
+                    if (holder['script']) {
+                        holder['script'] = null;
                     }
                 }
             };

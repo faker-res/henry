@@ -87,7 +87,7 @@
 
                 div(ng-if='vm.selectedConfigTab=="player" && !vm.configPlayerLevelTableHasDefaultLevel()')
                     label.text-danger {{'PLAYER_LEVEL_NOTE' | translate}}
-                div(ng-if='vm.selectedConfigTab=="player"')
+                div(ng-if='vm.selectedConfigTab == "player" && checkViewPermission("Platform", "ConfigRead", "PlayerLevelRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -442,10 +442,10 @@
                                             option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
 
                     .pull-right(style='margin-bottom:1em')
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelCreate')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'ConfigEdit', 'PlayerLevelEdit')", ng-click='vm.configTableAdd=true; vm.initNewPlayerLvl(); vm.focusNewPlayerLevelUI(); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'ADD_LEVEL' | translate}}
                             img.img-create
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PlayerLevelUpdate')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'ConfigEdit', 'PlayerLevelEdit')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
@@ -458,7 +458,7 @@
                             text {{"CONFIRM" | translate}}
                             .fa.fa-check
 
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')")
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%', ng-if="checkViewPermission('Platform', 'ConfigRead', 'PlayerLevelRead')")
                         thead
                             tr
                                 th {{"LEVEL" | translate}}
@@ -479,7 +479,7 @@
                                     //input(type='text', ng-model='level.liveCommentColor', ng-disabled='!vm.configTableEdit')
 
                     .pull-right(style='margin-top:1em')
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'XBET_PLAYER_LEVEL_CONFIG')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'ConfigEdit', 'PlayerLevelEdit')", ng-click='vm.configStartEdit("player"); vm.initPlayerLevelPeriod(); vm.endLoadWeekDay();')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configCancelEditOrAdd("player");')
@@ -492,61 +492,61 @@
                             text {{"CONFIRM" | translate}}
                             .fa.fa-check
 
-                div(ng-if='vm.selectedConfigTab=="partner"')
-                    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
-                        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-                            thead
-                                tr
-                                    th {{"PARTNER" | translate}}
-                                    th.narrowTableCol {{'VALUE' | translate}}
-                                    th.narrowTableCol {{"NO_OF_RECOMMANDATION" | translate}}
-                                    th.narrowTableCol {{"DEMOTION_PERIOD" | translate}}
-                                    th.narrowTableCol {{"CONSUMPTION_AMOUNT" | translate}}
-                                    th.narrowTableCol {{"CONSUMPTION_RETURN" | translate}}
-                            tbody
-                                tr(ng-repeat='(key,partner) in vm.allPartner')
-                                    td
-                                        text {{partner.name | translate}}
-                                    td
-                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].value')
-                                        text(ng-if='!vm.configTableEdit') {{partner.value}}
-                                    td
-                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].limitPlayers')
-                                        text(ng-if='!vm.configTableEdit') {{partner.limitPlayers}}
-                                    td
-                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].demoteWeeks')
-                                        text(ng-if='!vm.configTableEdit') {{partner.demoteWeeks}}
-                                    td
-                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionAmount')
-                                        text(ng-if='!vm.configTableEdit') {{partner.consumptionAmount}}
-                                    td
-                                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionReturn')
-                                        text(ng-if='!vm.configTableEdit') {{partner.consumptionReturn}}
-                                tr(ng-if='vm.configTableAdd')
-                                    td
-                                        input(type='text' , ng-model='vm.newPartnerLvl.name')
-                                    td
-                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.value')
-                                    td
-                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.limitPlayers')
-                                    td
-                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.demoteWeeks')
-                                    td
-                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionAmount')
-                                    td
-                                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionReturn')
-                    .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PartnerLevelCreate')", ng-click='vm.configTableAdd=!vm.configTableAdd;vm.newPartnerLvl={};')
-                            text {{'ADD_LEVEL' | translate}}
-                            img.img-create
-                        button.btn.btn-primary.common-button(ng-if='vm.configTableAdd', ng-click='vm.configTableAdd=!vm.configTableAdd;vm.submitAddPartnerLvl()') {{"SUBMIT" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'Config', 'PartnerLevelUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit')
-                            text {{'EDIT' | translate}}
-                            img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configTableEdit=false;vm.configTableAdd=false') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partner")') {{"CONFIRM" | translate}}
+                //div(ng-if='vm.selectedConfigTab=="partner"')
+                //    div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
+                //        table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                //            thead
+                //                tr
+                //                    th {{"PARTNER" | translate}}
+                //                    th.narrowTableCol {{'VALUE' | translate}}
+                //                    th.narrowTableCol {{"NO_OF_RECOMMANDATION" | translate}}
+                //                    th.narrowTableCol {{"DEMOTION_PERIOD" | translate}}
+                //                    th.narrowTableCol {{"CONSUMPTION_AMOUNT" | translate}}
+                //                    th.narrowTableCol {{"CONSUMPTION_RETURN" | translate}}
+                //            tbody
+                //                tr(ng-repeat='(key,partner) in vm.allPartner')
+                //                    td
+                //                        text {{partner.name | translate}}
+                //                    td
+                //                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].value')
+                //                        text(ng-if='!vm.configTableEdit') {{partner.value}}
+                //                    td
+                //                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].limitPlayers')
+                //                        text(ng-if='!vm.configTableEdit') {{partner.limitPlayers}}
+                //                    td
+                //                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].demoteWeeks')
+                //                        text(ng-if='!vm.configTableEdit') {{partner.demoteWeeks}}
+                //                    td
+                //                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionAmount')
+                //                        text(ng-if='!vm.configTableEdit') {{partner.consumptionAmount}}
+                //                    td
+                //                        input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.allPartner[key].consumptionReturn')
+                //                        text(ng-if='!vm.configTableEdit') {{partner.consumptionReturn}}
+                //                tr(ng-if='vm.configTableAdd')
+                //                    td
+                //                        input(type='text' , ng-model='vm.newPartnerLvl.name')
+                //                    td
+                //                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.value')
+                //                    td
+                //                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.limitPlayers')
+                //                    td
+                //                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.demoteWeeks')
+                //                    td
+                //                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionAmount')
+                //                    td
+                //                        input(type='number', min='0' , ng-model='vm.newPartnerLvl.consumptionReturn')
+                //    .pull-right
+                //        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'ConfigEdit', 'PartnerLevelCreate')", ng-click='vm.configTableAdd=!vm.configTableAdd;vm.newPartnerLvl={};')
+                //            text {{'ADD_LEVEL' | translate}}
+                //            img.img-create
+                //        button.btn.btn-primary.common-button(ng-if='vm.configTableAdd', ng-click='vm.configTableAdd=!vm.configTableAdd;vm.submitAddPartnerLvl()') {{"SUBMIT" | translate}}
+                //        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && !vm.configTableAdd && checkViewPermission('Platform', 'ConfigEdit', 'PartnerLevelUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                //            text {{'EDIT' | translate}}
+                //            img.img-edit
+                //        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit || vm.configTableAdd', ng-click='vm.configTableEdit=false;vm.configTableAdd=false') {{"CANCEL" | translate}}
+                //        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partner")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="callRequestConfig"')
+                div(ng-if='vm.selectedConfigTab=="callRequestConfig" && checkViewPermission("Platform", "ConfigRead", "CallRequestRead")')
                     table.simple-table.callConfigUrlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -605,14 +605,14 @@
                                 td
                                     i.fa.fa-plus(ng-click='vm.updateCallRequestConfigInEdit("add",  vm.tempCallRequestEntry);vm.tempCallRequestEntry={}')
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'CallRequest')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'CallRequestEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("callRequestConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("callRequestConfig")') {{"CONFIRM" | translate}}
 
 
-                div(ng-if='vm.selectedConfigTab=="validActive"')
+                div(ng-if='vm.selectedConfigTab=="validActive" && checkViewPermission("Platform", "ConfigRead", "ValidActiveRead")')
                     div(ng-if='vm.allGameTypes' style="margin-bottom:5px")
                         form(name="formValidActivePlayer", novalidate)
                             table.simple-table.validActiveTable(style='width:auto;min-width:99.9%')
@@ -723,13 +723,13 @@
                                             text(ng-if='!vm.configTableEdit') {{vm.partnerLevelConfig.validPlayerValue}}
                                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.partnerLevelConfigEdit.validPlayerValue')
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.partnerLevelConfigEdit=vm.partnerLevelConfig')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'ValidActiveEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.partnerLevelConfigEdit=vm.partnerLevelConfig')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-disabled="formValidActivePlayer.$invalid", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("validActive")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="partnerCommission"')
+                div(ng-if='vm.selectedConfigTab=="partnerCommission" && checkViewPermission("Platform", "ConfigRead", "PartnerCommissionRead")')
                     form(name="formPartnerCommission", novalidate)
                         //.col-md-12(ng-if='vm.partnerCommission.showConfig')
                         //    h4 {{"Foundation Config" | translate}}
@@ -925,14 +925,15 @@
                                                                     span.percentage
                                                                         input(type='number', percentage, style="display: inline-block", ng-model='val.commissionRate' ng-disabled='!val.isEditing')
                                                                 td
-                                                                    a(href="" ng-if="!val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                                                    a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
-                                                                    text(ng-if="!val.isCreateNew") /
-                                                                    a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
-                                                                    a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'INSERT' | translate}}
-                                                                    text /
-                                                                    a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
-                                                                    a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
+                                                                    div(ng-if='checkViewPermission("Platform", "ConfigEdit", "PartnerCommissionEdit")')
+                                                                        a(href="" ng-if="!val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
+                                                                        a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                                                        text(ng-if="!val.isCreateNew") /
+                                                                        a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
+                                                                        a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'INSERT' | translate}}
+                                                                        text /
+                                                                        a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
+                                                                        a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
 
                                                     div(ng-repeat="gpg in vm.partnerCommission.gameProviderGroup track by $index" ng-if="vm.partnerCommission.isGameProviderIncluded")
                                                         table.simple-table(style='width:auto;min-width:99.9%')
@@ -965,23 +966,24 @@
                                                                         span.percentage
                                                                             input(type='number', step='0.01' style="display: inline-block", ng-model='commissionSetting.commissionRate' ng-disabled='!commissionSetting.isEditing')
                                                                     td
-                                                                        a(href="" ng-if="!commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true, false)", style="cursor:pointer") {{'CANCEL' | translate}}
-                                                                        text(ng-if="!commissionSetting.isCreateNew") /
-                                                                        a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
-                                                                        a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'INSERT' | translate}}
-                                                                        text /
-                                                                        a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
-                                                                        a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
+                                                                        div(ng-if='checkViewPermission("Platform", "ConfigEdit", "PartnerCommissionEdit")')
+                                                                            a(href="" ng-if="!commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
+                                                                            a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="vm.commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true, false)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                                                            text(ng-if="!commissionSetting.isCreateNew") /
+                                                                            a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingNewRow(gpg.showConfig.commissionSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
+                                                                            a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'INSERT' | translate}}
+                                                                            text /
+                                                                            a(href="", ng-if='vm.isSettingExist', ng-click="vm.commissionSettingDeleteRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'DELETE' | translate}}
+                                                                            a(href="", ng-if='!vm.isSettingExist', style="pointer-events:none;") {{'DELETE' | translate}}
                                                             br
                                                     br
                                                     .pull-right
                                                         button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, false, false,vm.partnerCommission.srcConfig)') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommissionEdit')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.createUpdatePartnerCommissionConfig()') {{'SUBMIT' | translate}}
 
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommissionEdit')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
                                                     br
                                                     div(ng-if="vm.updateCommissionRateRequirement")
@@ -1032,7 +1034,7 @@
                                                     br
                                                     .pull-right
                                                         button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.cancelPartnerRateSetting()') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if='!vm.isCommissionRateEditing' ng-click='vm.editPartnerRateSetting()') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if='!vm.isCommissionRateEditing && checkViewPermission("Platform", "ConfigEdit", "PartnerCommissionEdit")' ng-click='vm.editPartnerRateSetting()') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.createUpdateCommissionRateSetting()') {{'SUBMIT' | translate}}
 
                         .col-md-12
@@ -1064,10 +1066,10 @@
                                                     h5 *{{'Represent a player winlose share between 2 levels' | translate}}
                                                     .pull-right
                                                         button.btn.btn-primary.common-button(ng-if='vm.isParentRateEditing' ng-click='vm.cancelParentRateSetting()') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if='!vm.isParentRateEditing' ng-click='vm.editParentRateSetting()') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if='!vm.isParentRateEditing && checkViewPermission("Platform", "ConfigEdit", "PartnerCommissionEdit")' ng-click='vm.editParentRateSetting()') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if='vm.isParentRateEditing' ng-click='vm.submitParentCommissionRateSetting()') {{'SUBMIT' | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="platformBasic"')
+                div(ng-if='vm.selectedConfigTab=="platformBasic" && checkViewPermission("Platform", "ConfigRead", "platformBasicRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1262,10 +1264,11 @@
                             tr
                                 td {{'VOICE_VERIFICATION_CODE' | translate}}
                                 td
+                                    select(ng-model='vm.platformBasic.voiceCodeProvider' ng-options='v as i | translate for (i,v) in vm.constVoiceCodeProvider', ng-disabled='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.useVoiceCode', ng-disabled='!vm.configTableEdit')
 
                             br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'platformBasicEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformBasic")') {{"CANCEL" | translate}}
@@ -1281,19 +1284,20 @@
                             tr
                                 th(width="40%") {{'Provider Delay Duration' | translate}}
                                 th(width="40%") {{'COLOR_CODE' | translate}}
-                                th(width="20%" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')") {{'INLINE_EDIT' | translate}}
+                                th(width="20%" ng-if="checkViewPermission('Platform', 'ConfigRead', 'platformBasicRead')") {{'INLINE_EDIT' | translate}}
                         tbody
                             // before edit enabled
                             tr(ng-repeat='config in vm.durationGroupConfig', ng-if='!vm.delayDurationGroupInlineEdit')
                                 td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;") {{config.duration}}
                                 td(style="background-color:{{config.color}}") {{config.color}}
-                                td(style="background-color:{{config.color}}" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
-                                    button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
-                                        i.fa.fa-pencil-square-o
-                                        text {{'EDIT' | translate}}
-                                    button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();" ng-if="checkViewPermission('Platform', 'Config', 'platformBasic')")
-                                        i.fa.fa-trash
-                                        text {{'DELETE' | translate}}
+                                td(style="background-color:{{config.color}}")
+                                    div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'platformBasicEdit')")
+                                        button.btn.btn-primary.common-button(ng-click="vm.delayDurationGroupInlineEdit=true" ng-if="checkViewPermission('Platform', 'ConfigEdit', 'platformBasicEdit')")
+                                            i.fa.fa-pencil-square-o
+                                            text {{'EDIT' | translate}}
+                                        button.btn.btn-danger.common-button(ng-click=" vm.durationGroupConfig.splice($index, 1);vm.saveDelayDurationGroup();" ng-if="checkViewPermission('Platform', 'ConfigEdit', 'platformBasicEdit')")
+                                            i.fa.fa-trash
+                                            text {{'DELETE' | translate}}
                             // after edit enabled
                             tr(ng-repeat='config in vm.durationGroupConfig', ng-if='vm.delayDurationGroupInlineEdit')
                                 td(style="background-color:{{config.color}}", ng-click="vm.selectedDelayDurationGroup=config;")
@@ -1318,14 +1322,14 @@
                                 td(colspan="2")
                                     i.fa.fa-plus(ng-click='vm.durationGroupConfig.push(vm.newDelayDurationGroup); vm.newDelayDurationGroup={};')
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
+                        button.btn.btn-primary.common-button(ng-if="!vm.delayDurationGroupEdit && checkViewPermission('Platform', 'ConfigEdit', 'platformBasicEdit')", ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.delayDurationGroupEdit', ng-click='vm.delayDurationGroupEdit=!vm.delayDurationGroupEdit;vm.saveDelayDurationGroup()') {{"CONFIRM" | translate}}
 
                 /// end of 投注记录收录报告
-                div(ng-if='vm.selectedConfigTab=="partnerBasic"')
+                div(ng-if='vm.selectedConfigTab=="partnerBasic" && checkViewPermission("Platform", "ConfigRead", "PartnerBasicRead")' )
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1422,14 +1426,14 @@
                                     select.form-control(style = 'max-width:80%; margin-left:10%' ng-show="vm.configTableEdit", ng-model="vm.partnerBasic.partnerDefaultCommissionGroup")
                                         option(ng-repeat='(i,j) in vm.constPartnerCommisionType', value= '{{j}}') {{i | translate}}
                             br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'PartnerBasicEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("partnerBasic")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("partnerBasic")') {{"CONFIRM" | translate}}
 
 
-                div(ng-if='vm.selectedConfigTab=="bonusBasic"')
+                div(ng-if='vm.selectedConfigTab=="bonusBasic" && checkViewPermission("Platform", "ConfigRead", "bonusBasicRead")')
                     //bonus basic
 
                     br
@@ -1483,13 +1487,13 @@
                                             input(type='checkbox', ng-model='vm.bonusBasic.withdrawalFeeNoDecimal', ng-disabled='!vm.configTableEdit')
 
                             br
-                            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'bonusBasic')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'bonusBasicEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                                 text {{'EDIT' | translate}}
                                 img.img-edit
                             button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bonusBasic")') {{"CANCEL" | translate}}
                             button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bonusBasic")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="referral"')
+                div(ng-if='vm.selectedConfigTab=="referral" && checkViewPermission("Platform", "ConfigRead", "referralRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1516,13 +1520,13 @@
                                 td(style="text-align: left;") {{"The total number of referees is limited during the period. (The minimum value is mandatory)" | translate }}
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'referral')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'referralEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("referral")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("referral")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="autoApproval"')
+                div(ng-if='vm.selectedConfigTab=="autoApproval" && checkViewPermission("Platform", "ConfigRead", "autoApprovalRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1681,12 +1685,12 @@
                                 td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The withdrawing amount is larger than the commission" | translate }}
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'autoApprovalEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("autoApproval")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("autoApproval")') {{"CONFIRM" | translate}}
-                div(ng-if='vm.selectedConfigTab=="monitor"')
+                div(ng-if='vm.selectedConfigTab=="monitor" && checkViewPermission("Platform", "ConfigRead", "MonitorRead")')
                     table.common-table.playerLvlTable#monitorTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1747,14 +1751,14 @@
                                     select.form-control(ng-disabled="!vm.configTableEdit", ng-model="vm.monitorBasic.monitorTopUpAmountSoundChoice", required, ng-change="vm.testSound(vm.monitorBasic.monitorTopUpAmountSoundChoice)")
                                         option(ng-repeat='(i,j) in vm.soundChoice', value='{{j}}') {{i}}
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.refreshSPicker();')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'MonitorEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.refreshSPicker();')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("monitor");vm.refreshSPicker();') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("monitor");vm.refreshSPicker();') {{"CONFIRM" | translate}}
 
                 br
-                div(ng-if='vm.selectedConfigTab=="monitor"')
+                div(ng-if='vm.selectedConfigTab=="monitor" && checkViewPermission("Platform", "ConfigRead", "MonitorRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -1777,13 +1781,13 @@
                                 td
                                     input(type='checkbox', ng-disabled="!vm.reminderConfigTableEdit" ng-model='vm.monitorBasic.monitorCommonTopUpCountNotify')
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.reminderConfigTableEdit && checkViewPermission('Platform', 'Config', 'Monitor')", ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.reminderConfigTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'MonitorEdit')", ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configTabClicked("monitor")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.reminderConfigTableEdit', ng-click='vm.reminderConfigTableEdit=!vm.reminderConfigTableEdit;vm.configSubmitUpdate("monitor")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="playerValue"')
+                div(ng-if='vm.selectedConfigTab=="playerValue" && checkViewPermission("Platform", "ConfigRead", "PlayerValueRead")')
                     h4 {{'General Settings' | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
@@ -1922,14 +1926,14 @@
                                     i.fa.fa-plus(ng-click='vm.updatePlayerValueConfigInEdit("add", "WinRatio", vm.tempWinRatioScores);vm.tempWinRatioScores={}')
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'PlayerValue')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'PlayerValueEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("PlayerValue")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("PlayerValue")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="credibility"')
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'Credibility')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                div(ng-if='vm.selectedConfigTab=="credibility" && checkViewPermission("Platform", "ConfigRead", "CredibilityRead")')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'CredibilityEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("credibility")') {{"CANCEL" | translate}}
@@ -2004,7 +2008,7 @@
                                             td.text-center(colspan=3)
                                                 i.fa.fa-plus.text-success(ng-show='vm.configTableEdit', ng-click='vm.updateRemarkInEdit("neutral", "add", {})')
 
-                div(ng-if='vm.selectedConfigTab=="providerGroup"')
+                div(ng-if='vm.selectedConfigTab=="providerGroup" && checkViewPermission("Platform", "ConfigRead", "providerGroupRead")')
                     table#providerGroupTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2039,13 +2043,13 @@
                                         option(ng-repeat='(i,v) in vm.ebetWalletList', value='{{i}}' ng-selected="i==0") {{v | translate}}
                                 td
                                     i.fa.fa-plus(ng-click='vm.gameProviderGroup.push(vm.newProviderGroup); vm.newProviderGroup={ebetWallet:"0"};')
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'providerGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'providerGroupEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
                         label(ng-if="vm.providerGroupConfig.showWarning") {{"Update successful, unallocated providers exist" | translate}}
-                div(ng-if='vm.selectedConfigTab=="smsGroup"')
+                div(ng-if='vm.selectedConfigTab=="smsGroup" && checkViewPermission("Platform", "ConfigRead", "smsGroupRead")')
                     .col-md-4
                         table.common-table.playerLvlTable
                             thead
@@ -2083,12 +2087,12 @@
                             text {{"ADD GROUP" | translate}}
                             img.img-edit
 
-                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'smsGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'smsGroupEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("smsGroup")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("smsGroup")') {{"CONFIRM" | translate}}
-                div(ng-if='vm.selectedConfigTab=="keywordFilter"')
+                div(ng-if='vm.selectedConfigTab=="keywordFilter" && checkViewPermission("Platform", "ConfigRead", "sensitiveKeywordRead")')
                     button.btn.btn-primary.common-button(ng-click='vm.keywordFilterTypeChange("sms");' ) {{"SMS" | translate}}
                     button.btn.btn-primary.common-button(ng-click='vm.keywordFilterTypeChange("email");' ) {{"MAIL" | translate}}
 
@@ -2106,13 +2110,13 @@
                             textarea(ng-model="vm.keywordFilterNew" rows="20" style="height: 90%; width: 100%")
                         div.col-sm-1(style="top:162.5px; text-align:center")
                             div(style="display: inline-block")
-                                button.btn.btn-primary(ng-click="vm.addFilterKeywords()" style="display: block") {{"ATTACH" | translate}}
-                                button.btn.btn-primary(ng-click="vm.removeKeywordsFromFilter()" style="display: block;margin-top:0.5em") {{"DETACH" | translate}}
+                                button.btn.btn-primary(ng-click="vm.addFilterKeywords()" style="display: block" ng-if='checkViewPermission("Platform", "ConfigEdit", "sensitiveKeywordEdit")') {{"ATTACH" | translate}}
+                                button.btn.btn-primary(ng-click="vm.removeKeywordsFromFilter()" style="display: block;margin-top:0.5em" ng-if='checkViewPermission("Platform", "ConfigEdit", "sensitiveKeywordEdit")') {{"DETACH" | translate}}
                         div.col-sm-2(style="height:400px")
                             h5
                                 strong {{"ADDED_SENSITIVE_KEYWORD_LIST" | translate}} ({{vm.currentKeywords.length}})
                             select#keywordFilterSelect(ng-model="vm.keywordRemoveList" multiple="multiple" ng-options='keyword for keyword in vm.currentKeywords' size="20" style="height: 90%; width: 100%")
-                div(ng-if='vm.selectedConfigTab=="bulkPhoneCallSetting"')
+                div(ng-if='vm.selectedConfigTab=="bulkPhoneCallSetting" && checkViewPermission("Platform", "ConfigRead", "BulkCallRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2162,32 +2166,32 @@
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
                                     select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
-                            tr(ng-if="checkViewPermission('Platform', 'Config', 'DecomposeAfterNDays')")
+                            tr(ng-if="checkViewPermission('Platform', 'ConfigRead', 'DecomposeAfterNDaysRead')")
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "DecomposeAfterNDays")' type="number" step="1" min="0")
-                            tr(ng-if="checkViewPermission('Platform', 'Config', 'AutoExportListOrMaxNumOfTxnEveryday')")
+                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-if='checkViewPermission("Platform", "ConfigEdit", "DecomposeAfterNDaysEdit")' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                            tr(ng-if="checkViewPermission('Platform', 'ConfigRead', 'AutoExportListOrMaxNumOfTxnEverydayRead')")
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
+                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-if='checkViewPermission("Platform", "ConfigEdit", "AutoExportListOrMaxNumOfTxnEverydayEdit")' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
 
                     .margin-small.pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'BulkCallEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bulkPhoneCallSetting")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("bulkPhoneCallSetting")') {{"CONFIRM" | translate}}
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%' ng-if='checkViewPermission("Platform", "Config", "AddCtiUrl") || checkViewPermission("Platform", "Config", "RemoveCtiUrl")')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%' ng-if='checkViewPermission("Platform", "ConfigRead", "BulkCallRead") || checkViewPermission("Platform", "ConfigRead", "RemoveCtiUrl")')
 
                         tbody
-                            tr(ng-if='checkViewPermission("Platform", "Config", "AddCtiUrl")')
+                            tr(ng-if='checkViewPermission("Platform", "ConfigEdit", "BulkCallEdit")')
                                 td {{'Add New Cti Route' | translate}}
                                 td
                                     input(ng-model='vm.newCtiSubDomain')
                                     text /cti/
                                 td
                                     button.btn.btn-primary.common-button(ng-disabled='!vm.newCtiSubDomain' ng-click='vm.addNewCtiSubDomain()') {{'ATTACH' | translate}}
-                            tr(ng-if='checkViewPermission("Platform", "Config", "RemoveCtiUrl")')
+                            tr(ng-if='checkViewPermission("Platform", "ConfigEdit", "BulkCallEdit")')
                                 td {{'Remove Cti Route' | translate}}
                                 td
                                     select.form-control(style = 'max-width:40%;display:inline' ng-model="vm.deleteCtiUrl")
@@ -2196,7 +2200,7 @@
                                 td
                                     button.btn.btn-primary.common-button(ng-disabled='!vm.deleteCtiUrl' ng-click='vm.deleteCtiSubDomain()') {{'DELETE' | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="phoneFilterConfig"')
+                div(ng-if='vm.selectedConfigTab=="phoneFilterConfig" && checkViewPermission("Platform", "ConfigRead", "phoneFilterConfigRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2225,7 +2229,7 @@
                                     textarea(ng-model='vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$', ng-disabled='!vm.configTableEdit')
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'phoneFilterConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
@@ -2287,13 +2291,13 @@
                                 td
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.blacklistIpConfigTableEdit && checkViewPermission('Platform', 'Config', 'blacklistIpConfig')", ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.blacklistIpConfigTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'phoneFilterConfigEdit')", ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.blacklistIpConfigTableEdit', ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.blacklistIpConfigTableEdit', ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit;vm.configSubmitUpdate("blacklistIpConfig")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="financialSettlementConfig"')
+                div(ng-if='vm.selectedConfigTab=="financialSettlementConfig" && checkViewPermission("Platform", "ConfigRead", "financialSettlementConfigRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2329,14 +2333,14 @@
                                         option(value = 0) {{"DISABLED" | translate}}
                                         option(value = 1) {{"ENABLED" | translate}}
 
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'financialSettlementConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("financialSettlementConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("financialSettlementConfig")') {{"CONFIRM" | translate}}
                     br
                     .pull-right
-                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
+                        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'financialSettlementConfigEdit')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
 
                     br
                     br
@@ -2376,17 +2380,17 @@
                                     span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
 
                     div.margin-top-10
-                        button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalMinPointNotiRecipientSetting', ng-click='vm.initMinPointNotiRecipientSetting()')
+                        button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalMinPointNotiRecipientSetting', ng-click='vm.initMinPointNotiRecipientSetting()', ng-if="checkViewPermission('Platform', 'ConfigEdit', 'financialSettlementConfigEdit')")
                             text {{'email recipient settings' | translate}}
 
-                        button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
+                        button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'financialSettlementConfigEdit')", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.getPaymentSystemConfigByPlatform()') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.updatePaymentSystemConfigByPlatform()') {{"CONFIRM" | translate}}
 
 
-                div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')
+                div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting" && checkViewPermission("Platform", "ConfigRead", "platformFeeEstimateSettingRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2400,13 +2404,13 @@
                                     input(type='text' ng-if='vm.configTableEdit' ng-init='vm.platformFeeEstimate[v._id] = vm.platformFeeEstimate[v._id] || 0 ' ng-model='vm.platformFeeEstimate[v._id]')
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'platformFeeEstimateSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'platformFeeEstimateSettingEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformFeeEstimateSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformFeeEstimateSetting")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="WeChatGroupControlSetting"')
+                div(ng-if='vm.selectedConfigTab=="WeChatGroupControlSetting" && checkViewPermission("Platform", "ConfigRead", "WeChatGroupControlRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2441,7 +2445,7 @@
                                 td
 
                     div(style='display:inline-block;margin:20px 0 0 0;font-size:15px;float:right;')
-                        button.btn.btn-primary.common-button(ng-click='vm.disableWechatGroupControl(true);' ng-if='!vm.wechatGroupControlEdit')
+                        button.btn.btn-primary.common-button(ng-click='vm.disableWechatGroupControl(true);' ng-if='!vm.wechatGroupControlEdit && checkViewPermission("Platform", "ConfigEdit", "WeChatGroupControlEdit")')
                             i.fa.fa-pencil-square-o
                             text {{"EDIT" | translate}}
                         button.btn.btn-success.common-button(ng-click='vm.submitWechatGroupControlSetting();vm.disableWechatGroupControl(false);' ng-if='vm.wechatGroupControlEdit')
@@ -2451,13 +2455,13 @@
                             i.fa.fa-ban
                             text {{"CANCEL" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="qqGroupControlSetting"')
+                div(ng-if='vm.selectedConfigTab=="qqGroupControlSetting" && checkViewPermission("Platform", "ConfigRead","qqGroupControlRead")')
                     include platform-settings/qqGroupControlSetting
-                div(ng-if='vm.selectedConfigTab=="emailAuditConfig"')
+                div(ng-if='vm.selectedConfigTab=="emailAuditConfig" && checkViewPermission("Platform", "ConfigRead","emailAuditConfigRead")')
                     include platform-settings/email-audit
-                div(ng-if='vm.selectedConfigTab=="emailNotificationConfig"')
+                div(ng-if='vm.selectedConfigTab=="emailNotificationConfig" && checkViewPermission("Platform", "ConfigRead","emailNotificationConfigRead")')
                     include platform-settings/email-notification
-                div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
+                div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting" && checkViewPermission("Platform", "ConfigRead","largeWithdrawalSettingRead")')
                     h4(style='text-align:center;font-weight:bold') {{"PLAYER" | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
@@ -2740,7 +2744,7 @@
                                     text {{'Manual fill in transfer in out status and etc.' | translate}}
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'largeWithdrawalSettingEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
@@ -2872,13 +2876,13 @@
                                     text {{'email all proposal created between two withdrawal times' | translate}}
 
                     br
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'largeWithdrawalSettingEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalSetting")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="winnerMonitorSetting"')
+                div(ng-if='vm.selectedConfigTab=="winnerMonitorSetting" && checkViewPermission("Platform", "ConfigRead", "WinnerMonitorRead")')
                     table#winnerMonitorConfigTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2898,13 +2902,13 @@
                                 td
                                     input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='config.consumptionTimes')
 
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'WinnerMonitor')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'WinnerMonitorEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("winnerMonitorSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("winnerMonitorSetting")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="defaultFeedbackConfig"')
+                div(ng-if='vm.selectedConfigTab=="defaultFeedbackConfig" && checkViewPermission("Platform", "ConfigRead", "defaultFeedbackConfigRead")')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2942,13 +2946,13 @@
                                     select.form-control(ng-model="vm.defaultFeedback.defaultTsFeedbackTopic" ng-options="a.key as a.value for (i,a) in vm.playerFeedbackTopic" ng-disabled="!vm.configTableEdit")
                                         option(value="") {{''}}
                     .margin-small.pull-right
-                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'defaultFeedbackConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'defaultFeedbackConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                             text {{'EDIT' | translate}}
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("defaultFeedbackConfig")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("defaultFeedbackConfig")') {{"CONFIRM" | translate}}
 
-                div(ng-if='vm.selectedConfigTab=="topUpAmountConfig"')
+                div(ng-if='vm.selectedConfigTab=="topUpAmountConfig" && checkViewPermission("Platform", "ConfigRead", "TopUpAmountConfigRead") ')
                     include platform-settings/topUpAmountConfig
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
@@ -3205,16 +3209,18 @@
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'Config', 'DownloadTranslationCSV')")
+.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'ConfigRead', 'DownloadTranslationCSVRead')")
     .col-md-3
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"CHINESE_TRANSLATION_CSV" | translate}}
             .panel-body
-                button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
-                    i.fa.fa-cog
-                    text {{"PREPARE_CSV" | translate}}
-                button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
-                    i.fa.fa-download
-                    text {{"DOWNLOAD_CSV" | translate}}
+                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
+                    button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+                        i.fa.fa-cog
+                        text {{"PREPARE_CSV" | translate}}
+                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
+                    button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
+                        i.fa.fa-download
+                        text {{"DOWNLOAD_CSV" | translate}}
