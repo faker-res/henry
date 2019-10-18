@@ -37,14 +37,19 @@ var PlatformServiceImplement = function () {
     };
 
     this.getConfig.expectsData = 'platformId: String';
-    this.getConfig.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId);
+    this.getConfig.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId);
         data = data || {};
 
-        if(!data.device){
+        if (!data.device) {
             data.device = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], false);
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getConfig, [data.platformId, data.device, 'player'], isValidData, null, null, true);
+
+        let args = [data.platformId, data.device, 'player'];
+
+        WebSocketUtil.performAction(
+            conn, wsFunc, data, dbPlatform.getConfig, args, isValidData, null, null, true
+        );
     };
 
     this.getLiveStream.expectsData = '';
