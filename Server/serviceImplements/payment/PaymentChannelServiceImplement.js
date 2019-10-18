@@ -41,7 +41,7 @@ var PaymentChannelServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     //delete api handler
@@ -67,7 +67,7 @@ var PaymentChannelServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     //update status api handler
@@ -90,7 +90,7 @@ var PaymentChannelServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.all.expectsData = '';
@@ -111,7 +111,7 @@ var PaymentChannelServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
 };

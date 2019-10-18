@@ -103,7 +103,7 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.authenticate.expectsData = 'partnerId: String, token: String';
@@ -188,7 +188,8 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
     };
 
     this.captcha.expectsData = '';
@@ -209,7 +210,7 @@ var PartnerServiceImplement = function () {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
 
-            }).catch(WebSocketUtil.errorHandler);
+            }).catch(WebSocketUtil.errorHandler).done();
     };
 
     //player get api handler
@@ -229,7 +230,7 @@ var PartnerServiceImplement = function () {
                 }, data);
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.updatePartnerCommissionType.expectsData = 'partnerId: String, token: String';
@@ -259,7 +260,7 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler);
+        ).catch(WebSocketUtil.errorHandler).done();
     };
 
     this.getPlayerSimpleList.expectsData = 'partnerId: String';
