@@ -20,6 +20,8 @@ var dbDepartment = require('../db_modules/dbDepartment');
 var dbRole = require('../db_modules/dbRole');
 var dbPartner = require('../db_modules/dbPartner');
 var dbProposal = require('../db_modules/dbProposal');
+var dbSmsGroup = require('../db_modules/dbSmsGroup');
+var dbPlayerMail = require('../db_modules/dbPlayerMail');
 var constProposalType = require('./../const/constProposalType');
 var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var constProposalStepStatus = require('../const/constProposalStepStatus');
@@ -200,6 +202,14 @@ let commonTestFunc = {
             topUpType: "VISA"
         };
         return dbPlayerTopUpRecord.createPlayerTopUpRecord(topUpData);
+    },
+
+    createTestSMSVerificationLog: function (obj) {
+        return new dbconfig.collection_smsVerificationLog(obj).save();
+    },
+
+    createTestSMSLog: function (obj) {
+        return new dbconfig.collection_smsLog(obj).save();
     },
 
     createConsumptionRecord: function (playerObjId, platformObjId, amount = 500) {
@@ -387,10 +397,16 @@ let commonTestFunc = {
 
         let rmSVL = dbconfig.collection_smsVerificationLog.remove({platformObjId:platformObjId});
         let rmSL = dbconfig.collection_smsLog.remove({platform:platformObjId});
+        let rmP = dbconfig.collection_players.remove({platform:platformObjId});
+        let rmQnAS = dbconfig.collection_clientQnATemplateConfig.remove({platform:platformObjId});
+
+        let rmSmsGrp = dbconfig.collection_smsGroup.remove({platformObjId:platformObjId});
+        let rmPM = dbconfig.collection_playerMail.remove({platformId:platformObjId});
 
         return Q.all([pm1, pm2, pm3, pm4, pm5, pm6, pm7, pm8, pm9, pmA, pmB, pmC, pmC1, pmD, pmD1,
             pmE, pmE1, pmF, pmF1, pmG, pmG1, pmH, pmH1, pmI, pmJ, pmK, pmL, pmM, pmN, pmO, pmO1, pmO2, pmO3,
-            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1, pmState, rmSVL, rmSL]);
+            pmP, pmQ, pmR, pmR2, pmR3, pmR1, pmS, pmS1, pmT, pmU, pmU1, pmState, rmSVL, rmSL, rmP, rmQnAS,
+            rmSmsGrp, rmPM]);
     },
 
     removeTestProposalData: function (adminRoleObjIds, platformObjId, proposalTypeObjIds, playerObjId) {
@@ -464,6 +480,35 @@ let commonTestFunc = {
                 return data;
             }
         );
+    },
+
+    createClientQnATemplate: function(processNo, type, updateData) {
+        return dbconfig.collection_clientQnATemplate.update({"processNo": processNo, "type": type}, {
+            $set: updateData
+        }, {upsert: true});
+    },
+
+    createTestClientQnAConfig: function (platformObjId, updateObj) {
+        return dbconfig.collection_clientQnATemplateConfig.findOne({platform: platformObjId}).then(data => {
+            if (data) {
+                return dbconfig.collection_clientQnATemplateConfig.update({platform: platformObjId}, updateObj);
+            } else {
+                updateObj.platform = platformObjId;
+                return new dbconfig.collection_clientQnATemplateConfig(updateObj).save();
+            }
+        });
+    },
+
+    createTestSMSGroup: function(platformObjId) {
+        return dbSmsGroup.addNewSmsGroup(platformObjId);
+    },
+
+    updateTestSMSGroup: function(platformObjId, smsGroups) {
+        return dbSmsGroup.updatePlatformSmsGroups(platformObjId, smsGroups);
+    },
+
+    createTestPlayerMail: function(platformId, adminId, adminName, playerIds, title, content) {
+        return dbPlayerMail.sendPlayerMailFromAdminToPlayer(platformId, adminId, adminName, playerIds, title, content);
     },
 };
 

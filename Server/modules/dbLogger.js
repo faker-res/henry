@@ -472,7 +472,7 @@ var dbLogger = {
                 }else if(logAction == 'updateAutoApprovalConfig') {
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0]._id ? adminActionRecordData.data[0]._id : adminActionRecordData.platforms;
                 }else if(logAction == 'updatePlayerLevelScores' || logAction == 'updateCredibilityRemarksInBulk'
-                || logAction == 'setFixedCredibilityRemarks' || logAction == 'updatePlatformProviderGroup' || logAction == 'updatePlatformSmsGroups') {
+                || logAction == 'setFixedCredibilityRemarks' || logAction == 'updatePlatformSmsGroups') {
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
                 }else if(logAction == 'setFilteredKeywords' || logAction == 'removeFilteredKeywords'){
                     adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
@@ -796,6 +796,47 @@ var dbLogger = {
                     errorText += commissionMode;
                     adminActionRecordData.error =  errorText;
                     adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                }else if(logAction == 'updatePlatformProviderGroup') {
+                    adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                    if (adminActionRecordData.data[2] && Object.keys(adminActionRecordData.data[2]).length) {
+                        let errorText = "";
+                        let logData = adminActionRecordData.data[2];
+                        for (let key in logData) {
+                            errorText += "ID:" + logData[key].providerGroupId + ", ";
+                            errorText += logData[key].name;
+                            if (logData[key].newAdd) {
+                                errorText += ", 新增此组";
+                            }
+                            if (logData[key].deleted) {
+                                errorText += ", 移除此组";
+                            }
+                            if (logData[key].addedProviders && logData[key].addedProviders.length) {
+                                errorText += ", 加入";
+                                let providerText = "";
+                                logData[key].addedProviders.map(item => {
+                                    if (providerText) {
+                                        providerText += ",";
+                                    }
+                                    providerText += item;
+                                })
+                                errorText += providerText;
+                            }
+                            if (logData[key].deletedProviders && logData[key].deletedProviders.length) {
+                                errorText += ", 移除";
+                                let providerText = "";
+                                logData[key].deletedProviders.map(item => {
+                                    if (providerText) {
+                                        providerText += ",";
+                                    }
+                                    providerText += item;
+                                })
+                                errorText += providerText;
+                            }
+                            errorText += "; "
+                        }
+
+                        adminActionRecordData.error = errorText;
+                    }
                 }
 
 

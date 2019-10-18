@@ -20,7 +20,7 @@ var TopUpIntentionServiceImplement = function(){
                     self.sendMessage(constMessageClientTypes.MANAGEMENT, "management", "notifyTopUpIntentionUpdate", res);
                 }
             )
-            .catch(WebSocketUtil.errorHandler).done();
+            .catch(WebSocketUtil.errorHandler);
     };
 
     //update api handler

@@ -100,11 +100,6 @@
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.autoCheckPlayerLevelUp', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
                             tr
-                                td {{'Auto Check Player Level Down' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit')
-                                    input(type='checkbox', ng-model='vm.autoCheckPlayerLevelDown', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
-                            tr
                                 td {{'PLAYER_SELF_LEVELUP' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit')
@@ -1269,6 +1264,7 @@
                             tr
                                 td {{'VOICE_VERIFICATION_CODE' | translate}}
                                 td
+                                    select(ng-model='vm.platformBasic.voiceCodeProvider' ng-options='v as i | translate for (i,v) in vm.constVoiceCodeProvider', ng-disabled='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.useVoiceCode', ng-disabled='!vm.configTableEdit')
 
                             br

@@ -280,7 +280,7 @@
                                 a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='MULTI_LEVEL_PARTNER'")
                                     text.span {{"MULTI_LEVEL_PARTNER" | translate}}
                             li(ng-class="vm.selectedDownlineTab == 'DIRECT_DOWN_LINE'?'active':''")
-                                a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='DIRECT_DOWN_LINE'")
+                                a.common-tab(data-toggle="tab", ng-click="vm.selectedDownlineTab ='DIRECT_DOWN_LINE';vm.getChildrenDetails(vm.currentSelectedPartnerObjId, false, true)")
                                     text.span {{"DIRECT_DOWN_LINE" | translate}}
 
 
@@ -308,34 +308,38 @@
                                         tr
                                             th {{'TOTAL_CHILDREN_COUNT' | translate}}
                                             th {{'REAL_NAME' | translate}}
-                                            th {{'TOPUPMANUAL' | translate}}
-                                            th {{'TOPUPONLINE' | translate}}
-                                            th {{'ALIPAY' | translate}}
-                                            th {{'WECHATPAY' | translate}}
+                                            //th {{'TOPUPMANUAL' | translate}}
+                                            //th {{'TOPUPONLINE' | translate}}
+                                            //th {{'ALIPAY' | translate}}
+                                            //th {{'WECHATPAY' | translate}}
+                                            th {{'REGISTRATION_TIME' | translate}}
+                                            th {{'LAST_LOGIN_TIME' | translate}}
                                             th {{'TOTAL_TOPUP' | translate}}
                                             th {{'TOTAL_BONUS' | translate}}
                                             th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
                                             th {{'TOTAL_CHILDREN_BALANCE' | translate}}
                                     tbody
                                         tr(ng-if="vm.playerDetailsSummary.length == 0")
-                                            td(colspan = 10) {{ 'No data available in table' | translate }}
+                                            td(colspan = 8) {{ 'No data available in table' | translate }}
                                         tr(ng-if="vm.playerDetailsSummary.length > 0", ng-repeat="v in vm.playerDetailsSummary")
                                             td {{v.name}}
                                             td {{v.realName}}
-                                            td {{v.manualTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{v.onlineTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{v.aliPayTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{v.wechatTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{v.manualTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{v.onlineTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{v.aliPayTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{v.wechatTopUp | noRoundTwoDecimalPlaces}}
+                                            td {{v.registrationTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+                                            td {{v.lastAccessTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                                             td {{v.topUpSum | noRoundTwoDecimalPlaces}}
                                             td {{v.totalBonus | noRoundTwoDecimalPlaces}}
                                             td {{v.totalDepositAmount | noRoundTwoDecimalPlaces}}
                                             td {{v.validCredit | noRoundTwoDecimalPlaces}}
                                         tr(ng-if="vm.playerDetailsSummary.length > 0")
-                                            td(colspan=2) {{"Totalsum" | translate}}
-                                            td {{vm.playerDetailsSummary.sumOfManualTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{vm.playerDetailsSummary.sumOfOnlineTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{vm.playerDetailsSummary.sumOfAliPayTopUp | noRoundTwoDecimalPlaces}}
-                                            td {{vm.playerDetailsSummary.sumOfWechatTopUp | noRoundTwoDecimalPlaces}}
+                                            td(colspan=4) {{"Totalsum" | translate}}
+                                            //td {{vm.playerDetailsSummary.sumOfManualTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{vm.playerDetailsSummary.sumOfOnlineTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{vm.playerDetailsSummary.sumOfAliPayTopUp | noRoundTwoDecimalPlaces}}
+                                            //td {{vm.playerDetailsSummary.sumOfWechatTopUp | noRoundTwoDecimalPlaces}}
                                             td {{vm.playerDetailsSummary.sumOfTotalTopUp | noRoundTwoDecimalPlaces}}
                                             td {{vm.playerDetailsSummary.sumOfTotalBonus | noRoundTwoDecimalPlaces}}
                                             td {{vm.playerDetailsSummary.sumOfTotalDeposit | noRoundTwoDecimalPlaces}}
@@ -354,34 +358,38 @@
                             tr
                                 th {{'TOTAL_CHILDREN_COUNT' | translate}}
                                 th {{'REAL_NAME' | translate}}
-                                th {{'TOPUPMANUAL' | translate}}
-                                th {{'TOPUPONLINE' | translate}}
-                                th {{'ALIPAY' | translate}}
-                                th {{'WECHATPAY' | translate}}
+                                //th {{'TOPUPMANUAL' | translate}}
+                                //th {{'TOPUPONLINE' | translate}}
+                                //th {{'ALIPAY' | translate}}
+                                //th {{'WECHATPAY' | translate}}
+                                th {{'REGISTRATION_TIME' | translate}}
+                                th {{'LAST_LOGIN_TIME' | translate}}
                                 th {{'TOTAL_TOPUP' | translate}}
                                 th {{'TOTAL_BONUS' | translate}}
                                 th {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
                                 th {{'TOTAL_CHILDREN_BALANCE' | translate}}
                         tbody
                             tr(ng-if="vm.playerDetailsSummary.length == 0")
-                                td(colspan = 10) {{ 'No data available in table' | translate }}
+                                td(colspan = 8) {{ 'No data available in table' | translate }}
                             tr(ng-if="vm.playerDetailsSummary.length > 0", ng-repeat="v in vm.playerDetailsSummary")
                                 td {{v.name}}
                                 td {{v.realName}}
-                                td {{v.manualTopUp | noRoundTwoDecimalPlaces}}
-                                td {{v.onlineTopUp | noRoundTwoDecimalPlaces}}
-                                td {{v.aliPayTopUp | noRoundTwoDecimalPlaces}}
-                                td {{v.wechatTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{v.manualTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{v.onlineTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{v.aliPayTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{v.wechatTopUp | noRoundTwoDecimalPlaces}}
+                                td {{v.registrationTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+                                td {{v.lastAccessTime | date : 'yyyy-MM-dd HH:mm:ss'}}
                                 td {{v.topUpSum | noRoundTwoDecimalPlaces}}
                                 td {{v.totalBonus | noRoundTwoDecimalPlaces}}
                                 td {{v.totalDepositAmount | noRoundTwoDecimalPlaces}}
                                 td {{v.validCredit | noRoundTwoDecimalPlaces}}
                             tr(ng-if="vm.playerDetailsSummary.length > 0")
-                                td(colspan=2) {{"Totalsum" | translate}}
-                                td {{vm.playerDetailsSummary.sumOfManualTopUp | noRoundTwoDecimalPlaces}}
-                                td {{vm.playerDetailsSummary.sumOfOnlineTopUp | noRoundTwoDecimalPlaces}}
-                                td {{vm.playerDetailsSummary.sumOfAliPayTopUp | noRoundTwoDecimalPlaces}}
-                                td {{vm.playerDetailsSummary.sumOfWechatTopUp | noRoundTwoDecimalPlaces}}
+                                td(colspan=4) {{"Totalsum" | translate}}
+                                //td {{vm.playerDetailsSummary.sumOfManualTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{vm.playerDetailsSummary.sumOfOnlineTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{vm.playerDetailsSummary.sumOfAliPayTopUp | noRoundTwoDecimalPlaces}}
+                                //td {{vm.playerDetailsSummary.sumOfWechatTopUp | noRoundTwoDecimalPlaces}}
                                 td {{vm.playerDetailsSummary.sumOfTotalTopUp | noRoundTwoDecimalPlaces}}
                                 td {{vm.playerDetailsSummary.sumOfTotalBonus | noRoundTwoDecimalPlaces}}
                                 td {{vm.playerDetailsSummary.sumOfTotalDeposit | noRoundTwoDecimalPlaces}}

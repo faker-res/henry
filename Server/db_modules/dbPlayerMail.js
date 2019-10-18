@@ -329,7 +329,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode, voiceCodeProvider) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -337,7 +337,7 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode): smsAPI.sending_sendMessage(sendObj);
+        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode, voiceCodeProvider): smsAPI.sending_sendMessage(sendObj);
         return sendSMSProm.then(
             retData => {
                 console.log(retData);
@@ -956,7 +956,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner, isUseVoiceCode);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner, isUseVoiceCode, platform.voiceCodeProvider);
                 }
             }
         ).then(
@@ -1207,8 +1207,11 @@ const dbPlayerMail = {
         };
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
+        console.log('smsVerificationLogQuery', smsVerificationLogQuery);
+
         return smsProm.then(
             verificationSMS => {
+                console.log('verificationSMS', verificationSMS);
                 if (!verificationSMS || !verificationSMS[0] || !verificationSMS[0].code) {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,

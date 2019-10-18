@@ -104,7 +104,7 @@ let RewardServiceImplement = function () {
                 }, data);
                 //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_REWARD);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getPlayerReferralList.expectsData = '[startIndex]: Number, [requestCount]: Number';

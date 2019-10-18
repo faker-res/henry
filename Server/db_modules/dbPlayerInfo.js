@@ -923,7 +923,11 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            if (bypassSMSVerify) {
+                                return true;
+                            } else {
+                                return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            }
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
@@ -30638,10 +30642,13 @@ function determineRegistrationInterface(inputData) {
         let userAgent = inputData.userAgent[0];
         if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
             if (inputData.partner) {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
             }
             else {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
             }
         }
         else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
