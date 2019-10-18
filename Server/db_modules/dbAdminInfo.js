@@ -682,10 +682,12 @@ var dbAdminInfo = {
         let path = "views." + permission;
         let query = {};
         query[path] = true;
+        // console.log('admin by permit', query);
         return dbconfig.collection_role.find(query, {departments: 1}).lean().then(
             roles => {
                 let departments = [];
                 if (!roles || !roles.length) {
+                    // console.log('roles return', roles);
                     return [];
                 }
 
@@ -696,6 +698,8 @@ var dbAdminInfo = {
                         departments = departments.concat(role.departments);
                     }
                 }
+                // console.log('departments permit', departments);
+                // console.log('roleObjIds permit', roleObjIds);
 
                 return dbconfig.collection_department.find({_id: {$in: departments}, $or:[{platforms: platformObjId}, {parent: null}]}).lean();
             }
@@ -703,6 +707,7 @@ var dbAdminInfo = {
             departments => {
                 let departmentObjIds = departments.map(department => department._id);
 
+                // console.log('departments permit 1', departmentObjIds);
                 return dbconfig.collection_admin.find({departments: {$in: departmentObjIds}, roles: {$in: roleObjIds}}).lean();
             }
         );
