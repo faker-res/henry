@@ -19,4 +19,4 @@ console.log('triggered...');
 //         }
 //     }
 // );
-dbPlayerInfo.migratePermission("5d785c1242f529084162b4cb");
+dbPlayerInfo.migratePermission("5cebb27843d8f20296c7cde1");

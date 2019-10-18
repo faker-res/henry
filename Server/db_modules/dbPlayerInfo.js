@@ -1888,6 +1888,8 @@ let dbPlayerInfo = {
                     return Promise.reject("Save verification log failed");
                 }else{
                     let deleteLog = await dbconfig.collection_players.update({_id: playerData[i]._id}, {$unset:{permission: ""}}).exec();
+                    console.log('delete data..', deleteLog);
+                    console.log('delete data id..', playerData[i]._id);
                     if(!deleteLog) {
                         return Promise.reject("delete failed");
                     }
@@ -3453,7 +3455,9 @@ let dbPlayerInfo = {
         let isUpdatePMSPermission = false;
         let updateObj = {};
         let pmsUpdateProm = Promise.resolve(true);
-
+        console.log('update query..', query);
+        console.log('update permission..', permission);
+        console.log('update selected..', selected);
         if (selected && selected.mainPermission) {
             permission = {};
             permission[selected.mainPermission] = selected.status;
@@ -3463,6 +3467,7 @@ let dbPlayerInfo = {
             if (permission.hasOwnProperty(key)) {
                 updateObj["permission." + key] = permission[key];
 
+                console.log('updated obj..', updateObj);
                 if (paymentChannelPermission.includes(key)) {
                     isUpdatePMSPermission = true;
                 }
@@ -3479,6 +3484,7 @@ let dbPlayerInfo = {
 
                     }
 
+                    console.log('updated param..', pmsUpdateProm + " / " + query + " / " + updateObj + " / " + permission);
                     return startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark);
 
                 } else {
@@ -6433,12 +6439,12 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, playerPermission) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
-        console.log('Data...', data);
+        console.log('Data...', playerPermission);
         let advancedQuery = {};
         let isProviderGroup = false;
         let dataSize = 0;
@@ -6569,21 +6575,21 @@ let dbPlayerInfo = {
                         return dbconfig.collection_players
                             .find(advancedQuery, {similarPlayers: 0})
                             .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                                async players => {
+                                players => {
                                     // console.log('playerData...', players);
                                     let calculatePlayerValueProms = [];
                                     let updatePlayerCredibilityRemarksProm = [];
                                     for (let i = 0; i < players.length; i++) {
-                                        if(!players[i].permission){
-                                            console.log('this one...', players[i])
-                                            let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
-                                            if(!getData){
-                                                return Promise.reject("Get permission failed");
-                                            }
-                                            console.log('permission...', getData);
-                                            players[i].permission = getData[0].permission
-                                        }
-                                        console.log('player Data...',players[i]);
+                                        // if(!players[i].permission){
+                                        //     console.log('this one...', players[i])
+                                        //     let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
+                                        //     if(!getData){
+                                        //         return Promise.reject("Get permission failed");
+                                        //     }
+                                        //     console.log('permission...', getData);
+                                        //     players[i].permission = getData[0].permission
+                                        // }
+                                        // console.log('player Data...',players[i]);
                                         let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                         calculatePlayerValueProms.push(calculateProm);
 
@@ -6644,9 +6650,16 @@ let dbPlayerInfo = {
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .read("secondaryPreferred")
                     .lean().then(
-                        playerData => {
+                        async playerData => {
                             var players = [];
                             for (var ind in playerData) {
+                                if(playerData[ind] && !playerData[ind].permission){
+                                    let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
+                                    if(!getData){
+                                        return Promise.reject("Get permission failed");
+                                    }
+                                    playerData[ind].permission = getData[0].permission
+                                }
                                 if (playerData[ind]) {
                                     let newInfo;
 
@@ -6685,7 +6698,6 @@ let dbPlayerInfo = {
                                     }
 
                                     newInfo = getRewardGroupData(playerData[ind]);
-
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
 
@@ -6716,20 +6728,49 @@ let dbPlayerInfo = {
                                         dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
                                     }
                                 }
+
                             }
                             return Promise.all(players)
                         }
                     ).then(
                         playerData => {
                             let players = [];
+                            console.log('return data...', playerPermission);
                             for (let ind in playerData) {
-                                if (playerData[ind]) {
-                                    let newInfo;
 
-                                    newInfo = getReferralIdAndUrl(playerData[ind]);
-                                    let prom1 = Promise.resolve(newInfo);
-                                    players.push(prom1);
+                                console.log('return data 2...', Object.keys(playerData[ind].permission));
+                                console.log('return data 3...', Object.keys(playerData[ind].permission).length);
+
+                                for(var i = 0; i < Object.keys(playerData[ind].permission).length; i++){
+                                    console.log('return data 4...', Object.keys(playerData[ind].permission)[i]);
+                                    if(Object.keys(playerData[ind].permission)[i] === playerPermission){
+                                        console.log('do something');
+                                        if (playerData[ind]) {
+                                            let newInfo;
+
+                                            newInfo = getReferralIdAndUrl(playerData[ind]);
+                                            let prom1 = Promise.resolve(newInfo);
+                                            players.push(prom1);
+                                        }
+                                    }
                                 }
+
+                                // for( var key in playerData[ind].permission){
+                                //
+                                //     console.log('return data 3...', Object.keys(playerData[ind].permission));
+                                //
+                                //     if (Object.keys(playerData[ind].permission) === data.playerPermission) {
+                                //
+                                //         console.log('do something');
+                                //     }
+                                // }
+                                // if (playerData[ind]) {
+                                //     let newInfo;
+                                //
+                                //     newInfo = getReferralIdAndUrl(playerData[ind]);
+                                //     let prom1 = Promise.resolve(newInfo);
+                                //     players.push(prom1);
+                                // }
                             }
                             return Promise.all(players)
                         }
@@ -30218,7 +30259,11 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
     return pmsUpdateProm.then(
         updatePMSSuccess => {
             if (updatePMSSuccess) {
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                let updateQuery = {_id: query._id};
+                console.log('updateQuery obj..', updateQuery);
+                console.log('Query obj..', query);
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
+                // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
                         if (playerData) {
                             return dbconfig.collection_platform.populate(playerData, {
