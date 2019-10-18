@@ -3099,13 +3099,13 @@ var dbRewardEvent = {
                                         if (consumptionPlayers && consumptionPlayers.length > 0) {
                                             consumptionPlayers.forEach(player => {
                                                 if (player && player.validAmount && (parseFloat(player.validAmount) > 0)) {
-                                                    let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
+                                                    let splitRewardAmount = Number(parseFloat(player.validAmount * selectedRewardParam.rewardPercentage).toFixed(2));
                                                     referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
                                                 }
                                             });
                                         }
 
-                                        rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
+                                        rewardAmount = Number(parseFloat(totalValidConsumption * selectedRewardParam.rewardPercentage).toFixed(2));
                                         returnData.result.totalValidConsumptionAmount = totalValidConsumption;
 
                                     } else {
@@ -3125,7 +3125,7 @@ var dbRewardEvent = {
                                         if (firstDepositPlayers && firstDepositPlayers.length > 0) {
                                             firstDepositPlayers.forEach(player => {
                                                 if (player && (player.amount >= selectedRewardParam.firstTopUpAmount) && (player.count >= selectedRewardParam.topUpCount)) {
-                                                    let tempRewardAmount = player.amount * selectedRewardParam.rewardPercentage;
+                                                    let tempRewardAmount = Number(parseFloat(player.amount * selectedRewardParam.rewardPercentage).toFixed(2));
 
                                                     if (selectedRewardParam && selectedRewardParam.maxRewardInSingleTopUp && (tempRewardAmount > selectedRewardParam.maxRewardInSingleTopUp)) {
                                                         tempRewardAmount = selectedRewardParam.maxRewardInSingleTopUp;

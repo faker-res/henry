@@ -172,10 +172,15 @@ let dbPlayerRewardPoints = {
                     if (Number(todayConvertedRewardPoints) + Number(convertRewardPointsAmount) > playerLvlRewardPointsConfig.pointToCreditManualMaxPoints) {
                         //this variable store the remaining reward points left before reaching the daily limit
                         let pointsLeftToReachQuota =  playerLvlRewardPointsConfig.pointToCreditManualMaxPoints - todayConvertedRewardPoints;
-                        actualConvertRewardPointsAmount = pointsLeftToReachQuota - (pointsLeftToReachQuota % playerLvlRewardPointsConfig.pointToCreditManualRate);
+                        // actualConvertRewardPointsAmount = pointsLeftToReachQuota - (pointsLeftToReachQuota % playerLvlRewardPointsConfig.pointToCreditManualRate);
+
+                        actualConvertRewardPointsAmount = pointsLeftToReachQuota;
+
                         limitReach = true;
                     }else{
-                        actualConvertRewardPointsAmount = convertRewardPointsAmount - (convertRewardPointsAmount % playerLvlRewardPointsConfig.pointToCreditManualRate);
+                        // actualConvertRewardPointsAmount = convertRewardPointsAmount - (convertRewardPointsAmount % playerLvlRewardPointsConfig.pointToCreditManualRate);
+
+                        actualConvertRewardPointsAmount = Number(convertRewardPointsAmount);
                     }
 
                     rewardPointsRemainder = convertRewardPointsAmount - actualConvertRewardPointsAmount;
@@ -188,7 +193,9 @@ let dbPlayerRewardPoints = {
                         });
                     }
 
-                    convertCredit = Math.floor(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
+                    // convertCredit = Math.floor(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate);
+                    convertCredit = Number(parseFloat(actualConvertRewardPointsAmount / playerLvlRewardPointsConfig.pointToCreditManualRate).toFixed(2));
+
                     let spendingAmount = convertCredit * playerLvlRewardPointsConfig.spendingAmountOnReward;
                     let proposalData = {
                         type: rewardPointsProposalType._id,
