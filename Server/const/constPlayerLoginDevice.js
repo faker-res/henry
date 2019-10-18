@@ -2,7 +2,22 @@ const constPlayerLoginDevice = {
     WEB: 1,
     H5: 2,
     APP_IOS: 3,
-    APP_ANDROID: 4
+    APP_ANDROID: 4,
+    // new const
+    WEB_PLAYER: 1,
+    WEB_PARTNER_EU: 1403,
+    WEB_PARTNER_V68: 1402,
+    WEB_PARTNER_EU_CHESS: 1401,
+    H5_PLAYER: 2,
+    H5_PARTNER_EU: 2403,
+    H5_PARTNER_V68: 2402,
+    H5_PARTNER_EU_CHESS: 2401,
+    APP_PLAYER_ANDROID_EU: 3403,
+    APP_PLAYER_ANDROID_EU_CHESS: 3401,
+    APP_PLAYER_ANDROID_V68: 3402,
+    APP_PLAYER_IOS_EU: 4403,
+    APP_PLAYER_IOS_EU_CHESS: 4401,
+    APP_PLAYER_IOS_V68: 4402
 };
 
 module.exports = constPlayerLoginDevice;
