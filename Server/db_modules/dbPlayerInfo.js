@@ -6737,24 +6737,6 @@ let dbPlayerInfo = {
                             let players = [];
                             console.log('return data...', playerPermission);
                             for (let ind in playerData) {
-
-                                console.log('return data 2...', Object.keys(playerData[ind].permission));
-                                console.log('return data 3...', Object.keys(playerData[ind].permission).length);
-
-                                for(var i = 0; i < Object.keys(playerData[ind].permission).length; i++){
-                                    console.log('return data 4...', Object.keys(playerData[ind].permission)[i]);
-                                    if(Object.keys(playerData[ind].permission)[i] === playerPermission){
-                                        console.log('do something');
-                                        if (playerData[ind]) {
-                                            let newInfo;
-
-                                            newInfo = getReferralIdAndUrl(playerData[ind]);
-                                            let prom1 = Promise.resolve(newInfo);
-                                            players.push(prom1);
-                                        }
-                                    }
-                                }
-
                                 // for( var key in playerData[ind].permission){
                                 //
                                 //     console.log('return data 3...', Object.keys(playerData[ind].permission));
@@ -6764,13 +6746,13 @@ let dbPlayerInfo = {
                                 //         console.log('do something');
                                 //     }
                                 // }
-                                // if (playerData[ind]) {
-                                //     let newInfo;
-                                //
-                                //     newInfo = getReferralIdAndUrl(playerData[ind]);
-                                //     let prom1 = Promise.resolve(newInfo);
-                                //     players.push(prom1);
-                                // }
+                                if (playerData[ind]) {
+                                    let newInfo;
+
+                                    newInfo = getReferralIdAndUrl(playerData[ind]);
+                                    let prom1 = Promise.resolve(newInfo);
+                                    players.push(prom1);
+                                }
                             }
                             return Promise.all(players)
                         }
@@ -6804,6 +6786,24 @@ let dbPlayerInfo = {
                     });
                     playerData = data[0];
                 }
+                // console.log('return data 2...', Object.keys(playerData[ind].permission));
+                // console.log('return data 3...', Object.keys(playerData[ind].permission).length);
+                if(playerPermission){
+                    for (var index in playerData){
+                        for(var i = 0; i < Object.keys(playerData[index].permission).length; i++){
+                            console.log('return data 4...', Object.keys(playerData[index].permission)[i]);
+                            if(Object.keys(playerData[index].permission)[i] === playerPermission){
+                                console.log('do something..', playerData[index]);
+                                // returnData.push(playerData[index]);
+                                playerData.splice(index, 1);
+                            }
+                        }
+                    }
+                }
+
+
+
+                console.log('return data...', playerData);
                 return {data: playerData, size: dataSize}
             },
             err => {
