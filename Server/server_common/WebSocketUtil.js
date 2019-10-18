@@ -42,7 +42,7 @@ var WebSocketUtility = {
 
         if (!limitCall || conn.thisSecondAPICall < constSystemParam.MAX_API_CALL_PER_SEC) {
             await WebSocketUtility.responsePromise(
-                conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
+                conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, startTime
             ).catch(
                 function (error) {
                     // Do not log authentication failures or invalid requests.
@@ -56,20 +56,7 @@ var WebSocketUtility = {
                         WebSocketUtility.errorHandler(error);
                     }
                 }
-            ).done();
-
-            let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
-            let functionName = wsFunc && wsFunc.name;
-            let totalSecond = (new Date().getTime() - startTime) / 1000;
-            if (totalSecond > 1) {
-                dbconfig.collection_apiResponseLog({
-                    serviceName: serviceName,
-                    functionName: functionName,
-                    totalSecond: totalSecond
-                }).save().catch(errorUtils.reportError);
-
-                console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
-            }
+            );
         }
     },
 
@@ -97,13 +84,14 @@ var WebSocketUtility = {
      * @param {function} dbCall - Function for db operation
      * @param {json} reqData - request data sent from client
      * @param {array} args - array for dbCall function arguments
-     * @param {WebSocketFunction} wsFunc - websocketfunction used to respond
+     * @param {WebSocketFunction} wsFunc - websocket function used to respond
      * @param {Boolean} isValidData - flag for data validation
      * @param {Boolean} customResultHandler - if handle error status after promise
      * @param {Boolean} customErrorHandler - if handle result status after promise
      * @param {Boolean} noAuth - no need auth check
+     * @param {number} callTime - the time when this is called
      */
-    responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
+    responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, callTime = new Date().getTime()) {
 
         //todo::need to update expacts data properly for each service function first then enable the check below
         // if (wsFunc && wsFunc.expectsData) {
@@ -150,6 +138,21 @@ var WebSocketUtility = {
                         dbApiLog.createApiLog(conn, wsFunc, result, reqData);
                     }
 
+                    // Benchmark time needed for this call
+                    let totalSecond = (new Date().getTime() - callTime) / 1000;
+                    if (totalSecond > 1) {
+                        let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
+                        let functionName = wsFunc && wsFunc.name;
+
+                        dbconfig.collection_apiResponseLog({
+                            serviceName: serviceName,
+                            functionName: functionName,
+                            totalSecond: totalSecond
+                        }).save().catch(errorUtils.reportError);
+
+                        console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
+                    }
+
                     //send result as response
                     if (!customResultHandler) {
                         let resObj = {status: constServerCode.SUCCESS, data: result};
@@ -193,6 +196,8 @@ var WebSocketUtility = {
             WebSocketUtility.invalidDataResponse(conn, wsFunc, reqData);
             return Promise.reject($translate("INVALID_DATA"));
         }
+
+
     },
 
     /*
