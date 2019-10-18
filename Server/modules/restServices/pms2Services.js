@@ -71,7 +71,7 @@ function sendRequest (paramStr) {
     );
 }
 
-function postRequest (reqData, urlName, method, paymentSystemKey) {
+function postRequest (reqData, urlName, method, paymentSystemKey, logReturn = true) {
     //console.log('reqData ::',urlName, reqData);
     let options = {
         method: method,
@@ -82,7 +82,12 @@ function postRequest (reqData, urlName, method, paymentSystemKey) {
 
     return rp(options).then(
         data => {
-            console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
+            if (logReturn) {
+                console.log(`${urlName} SUCCESS: ${data ? JSON.stringify(data) : data}`);
+            } else {
+                console.log(`${urlName} SUCCESS!`);
+            }
+
             return data;
         }
     ).catch(
@@ -165,7 +170,7 @@ function postCreateTopup (reqData, paymentSystemKey) {
 }
 
 function postBankCardList (reqData, paymentSystemKey) {
-    return postRequest(reqData, 'getBankCardList', 'POST', paymentSystemKey)
+    return postRequest(reqData, 'getBankCardList', 'POST', paymentSystemKey, false)
 }
 
 function postBankCard (reqData, paymentSystemKey) {
@@ -177,7 +182,7 @@ function postBankType (reqData, paymentSystemKey) {
 }
 
 function postBankTypeList (reqData, paymentSystemKey) {
-    return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey)
+    return postRequest(reqData, 'bankTypes', 'POST', paymentSystemKey, false)
 }
 
 function postSyncPlatform (reqData, paymentSystemKey) {
@@ -189,11 +194,11 @@ function postTopupForceMatch (reqData, paymentSystemKey) {
 }
 
 function postMerchantList (reqData, paymentSystemKey) {
-    return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey)
+    return postRequest(reqData, 'getMerchantList', 'POST', paymentSystemKey, false)
 }
 
 function postMerchantTypeList (reqData, paymentSystemKey) {
-    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey)
+    return postRequest(reqData, 'getMerchantTypeList', 'POST', paymentSystemKey, false)
 }
 
 function postPaymentGroup (reqData, paymentSystemKey) {
