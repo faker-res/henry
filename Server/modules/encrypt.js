@@ -500,6 +500,10 @@ var encrypt = {
                 query["data.PROMO_CODE_TYPE"] = {$in: data.promoTypeName};
             }
 
+            if (data.inputDevice && data.inputDevice == -1){
+                data.inputDevice = null;
+            }
+
             if (data.inputDevice) {
                 query.inputDevice = data.inputDevice;
             }
