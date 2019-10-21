@@ -12,7 +12,7 @@
                             select.form-control(ng-model='vm.sendMultiMessage.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getAllDepartment(vm.sendMultiMessage.platformList);vm.getPlatformCredibilityRemarks(vm.sendMultiMessage.platformList);' )
                         .search-filters-item
                             label {{"USER TYPE" | translate}}
-                            select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                            select.form-control(ng-model="vm.sendMultiMessage.playerType", required, ng-change="vm.resetPartnerName()")
                                 option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                                 option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                                 option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}

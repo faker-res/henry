@@ -40976,6 +40976,12 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.resetPartnerName = function () {
+                if(vm.sendMultiMessage.playerType !== "underPartner"){
+                    vm.sendMultiMessage.partnerName = " ";
+                }
+            };
+
             vm.createCallOutMission = function () {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) return;
                 $('#platformFeedbackSpin').show();
