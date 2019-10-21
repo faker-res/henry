@@ -7377,7 +7377,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.find(
+                                    return dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -7388,19 +7388,16 @@ let dbPlayerInfo = {
                                             platform: platformData._id,
                                             // 'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
-                                    ).sort({lastAccessTime: -1}).limit(1).lean();
+                                    ).sort({lastAccessTime: -1}).lean();
                                 }
                             }
                         ).then(
                             async player => {
-                                if (player && player.length) {
+                                if (player) {
                                     let thisPlayer;
 
-                                    for (let i = 0; i < player.length; i++) {
-                                        if (!player[i].permission.forbidPlayerFromLogin) {
-                                            thisPlayer = player[i];
-                                            break;
-                                        }
+                                    if (!player.permission.forbidPlayerFromLogin) {
+                                        thisPlayer = player;
                                     }
 
                                     if (!thisPlayer) {
