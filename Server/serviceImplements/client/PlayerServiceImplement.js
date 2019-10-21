@@ -1466,6 +1466,9 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = player.csOfficer ? player.csOfficer : "";
 
+                console.log('player===', player);
+                console.log('player.isRegister===', player.isRegister);
+
                 // 1.手机号登录不产生注册意向
                 // 2.手机号注册产生注册意向，并由【免验】归类到【尝试】
                 if (player && player.isRegister) {
