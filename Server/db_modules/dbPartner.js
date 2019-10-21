@@ -8681,11 +8681,11 @@ let dbPartner = {
 
         for (let i = 0; i < fakeCommissionBillBoardRecords.length; i++) {
             let record = fakeCommissionBillBoardRecords[i];
-            let remarks = " - ";
+            let remarks = "-";
 
             if (record.useFluctuation) {
-                let fluctuationType = record.fluctuationType ? "比例" : "数值";
-                remarks = `佣金起伏，${fluctuationType}，${record.fluctuationLow}${record.fluctuationType ? "%" : ""}≤${record.fluctuationHigh}${record.fluctuationType ? "%" : ""}，每周`;
+                let fluctuationType = record.fluctuationType ? "比例" : "输值";
+                remarks = `佣金起伏，${record.fluctuationType}，${record.fluctuationLow}≤${record.fluctuationHigh}，每周`;
                 if (record.flucOnSunday) {
                     remarks += "日";
                 }
