@@ -8441,6 +8441,7 @@ let dbPartner = {
             name: 1,
             amount: 1,
             fakeSource: 1,
+            remarks: 1,
         }).sort({
             amount: -1,
             name: 1,
@@ -8667,12 +8668,12 @@ let dbPartner = {
             if (record.fluctuationType) {
                 // percentile
                 let initAmount = record.commissionAmount;
-                let percentileFluctuated = dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 10);
+                let percentileFluctuated = dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 10);
                 fluctuatedAmount = math.chain(initAmount).multiply(100 + Number(percentileFluctuated) || 100).divide(100).round(2).done();
             }
             else {
                 // value
-                fluctuatedAmount = Number(dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 2));
+                fluctuatedAmount = Number(dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 2));
             }
             record.commissionAmount = fluctuatedAmount;
             await dbconfig.collection_fakeCommissionBillBoardRecord.update({_id: record._id}, {commissionAmount: fluctuatedAmount, lastAmountUpdate: calTime});
@@ -8680,6 +8681,35 @@ let dbPartner = {
 
         for (let i = 0; i < fakeCommissionBillBoardRecords.length; i++) {
             let record = fakeCommissionBillBoardRecords[i];
+            let remarks = "-";
+
+            if (record.useFluctuation) {
+                let fluctuationType = record.fluctuationType ? "比例" : "输值";
+                remarks = `佣金起伏，${record.fluctuationType}，${record.fluctuationLow}≤${record.fluctuationHigh}，每周`;
+                if (record.flucOnSunday) {
+                    remarks += "日";
+                }
+                if (record.flucOnMonday) {
+                    remarks += "一";
+                }
+                if (record.flucOnTuesday) {
+                    remarks += "二";
+                }
+                if (record.flucOnWednesday) {
+                    remarks += "三";
+                }
+                if (record.flucOnThursday) {
+                    remarks += "四";
+                }
+                if (record.flucOnFriday) {
+                    remarks += "五";
+                }
+                if (record.flucOnSaturday) {
+                    remarks += "六";
+                }
+
+            }
+
             await dbconfig.collection_commissionBBRecord.update({
                 platform: platformObj._id,
                 period: periodCheck,
@@ -8692,6 +8722,7 @@ let dbPartner = {
                 name: record.name,
                 amount: record.commissionAmount,
                 fakeSource: record._id,
+                remarks: remarks,
             }, {
                 upsert: true
             }).catch(err => {
