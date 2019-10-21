@@ -109,7 +109,6 @@ var emailer = {
         }
         if (config.messageId) {
             mailOptions.references = config.messageId;
-            mailOptions.inReplyTo = config.messageId;
         }
         console.log('mail option before send...', mailOptions);
         // send mail with defined transport object
