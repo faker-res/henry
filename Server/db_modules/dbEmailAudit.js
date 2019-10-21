@@ -892,6 +892,12 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         emailConfig.replyTo = allEmailStr;
     }
 
+    console.log(`sending audit email, AuditCreditChange, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
+
+    let emailResult = await emailer.sendEmail(emailConfig);
+
+    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
     console.log('check obj id..', emailContents.ObjId);
     //In order to group same subject&sender into conversation, need to get messageID as reference.
     let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
@@ -902,17 +908,8 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         });
     }
     console.log('check proposal..', proposal);
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
-        hasMsgID = true;
-    }
-
-    console.log(`sending audit email, AuditCreditChange, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-
-    let emailResult = await emailer.sendEmail(emailConfig);
-
-    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
-    if(!hasMsgID){
+    console.log('message id..', emailResult.messageId);
+    if(proposal.length > 0 && !proposal[0].data.messageId){
         dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
@@ -920,8 +917,6 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
                 console.log('success...', doc);
             }
         });
-
-
     }
     return emailResult;
 }
@@ -1052,6 +1047,11 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
     }
+
+    console.log(`sending audit email, AuditManualReward, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
+    let emailResult = await emailer.sendEmail(emailConfig);
+    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
     console.log('check obj id..', emailContents.ObjId);
     let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
     if (!proposal) {
@@ -1062,16 +1062,7 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
     }
     console.log('check proposal..', proposal);
     //In order to group same subject&sender into conversation, need to get messageID as reference.
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
-        hasMsgID = true;
-    }
-
-    console.log(`sending audit email, AuditManualReward, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-    let emailResult = await emailer.sendEmail(emailConfig);
-    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
-    //the first proposal will be no message ID, save it, so that following email could group together.
-    if(!hasMsgID){
+    if(proposal.length > 0 && !proposal[0].data.messageId){
         dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
@@ -1079,8 +1070,6 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
                 console.log('success...', doc);
             }
         });
-
-
     }
     return emailResult;
 }
@@ -1219,8 +1208,13 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
     }
+
+    console.log(`sending audit email, AuditRepairTransfer, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
+    let emailResult = await emailer.sendEmail(emailConfig);
+    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
     console.log('check obj id..', emailContents.ObjId);
-//In order to group same subject&sender into conversation, need to get messageID as reference.
+    //In order to group same subject&sender into conversation, need to get messageID as reference.
     let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
     if (!proposal) {
         return Promise.reject({
@@ -1229,16 +1223,7 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
         });
     }
     console.log('check proposal..', proposal);
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
-        hasMsgID = true;
-    }
-
-    console.log(`sending audit email, AuditRepairTransfer, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-    let emailResult = await emailer.sendEmail(emailConfig);
-    console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
-
-    if(!hasMsgID){
+    if(proposal.length > 0 && !proposal[0].data.messageId){
         dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
@@ -1247,6 +1232,7 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
             }
         });
     }
+
     return emailResult;
 }
 
