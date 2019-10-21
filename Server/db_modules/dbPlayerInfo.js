@@ -6654,11 +6654,13 @@ let dbPlayerInfo = {
                             var players = [];
                             for (var ind in playerData) {
                                 if(playerData[ind] && !playerData[ind].permission){
-                                    let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
-                                    if(!getData){
-                                        return Promise.reject("Get permission failed");
-                                    }
-                                    playerData[ind].permission = getData[0].permission
+                                    let permission = dbPlayerInfo.getPermissionbyPlayerid(playerData[ind]._id);
+                                    // let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
+                                    // if(!getData){
+                                    //     return Promise.reject("Get permission failed");
+                                    // }
+                                    // playerData[ind].permission = getData[0].permission
+                                    playerData[ind].permission = permission
                                 }
                                 if (playerData[ind]) {
                                     let newInfo;
@@ -6790,19 +6792,23 @@ let dbPlayerInfo = {
                 // console.log('return data 3...', Object.keys(playerData[ind].permission).length);
                 if(playerPermission){
                     for (var index in playerData){
-                        for(var i = 0; i < Object.keys(playerData[index].permission).length; i++){
-                            console.log('return data 4...', Object.keys(playerData[index].permission)[i]);
-                            if(Object.keys(playerData[index].permission)[i] === playerPermission){
-                                console.log('do something..', playerData[index]);
-                                // returnData.push(playerData[index]);
-                                playerData.splice(index, 1);
-                            }
+                        console.log('return data 4...', playerData[index].permission);
+                        if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
+                            console.log('the value..', playerData[index].permission[playerPermission]);
+                            playerData.splice(index, 1);
                         }
+
+
+                        // for(var i = 0; i < Object.keys(playerData[index].permission).length; i++){
+                        //     // console.log('return data 4...', Object.keys(playerData[index].permission)[i]);
+                        //     if(Object.keys(playerData[index].permission)[i] === playerPermission){
+                        //         console.log('do something..', playerData[index]);
+                        //         // returnData.push(playerData[index]);
+                        //         playerData.splice(index, 1);
+                        //     }
+                        // }
                     }
                 }
-
-
-
                 console.log('return data...', playerData);
                 return {data: playerData, size: dataSize}
             },
@@ -6811,6 +6817,14 @@ let dbPlayerInfo = {
                 return {error: err};
             }
         );
+    },
+
+    getPermissionbyPlayerid: async function(playerId){
+        let getData = await dbconfig.collection_playerPermission.find({_id: playerId}).lean();
+        if(!getData){
+            return Promise.reject("Get permission failed");
+        }
+        return getData[0].permission;
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {

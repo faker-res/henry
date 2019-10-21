@@ -427,7 +427,7 @@ define(['js/app'], function (myApp) {
             allowPromoCode: "allowPromoCode",
             rewardPointsTask: "rewardPointsTask",
             levelChange: "levelChange"
-        }
+        };
 
         vm.partnerCommissionLog= {};
 
