@@ -19872,7 +19872,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let playerObjArr = [];
+                let playerObjArr = query.playerObjIds || [];
                 let relevantPlayerQuery = {
                     platform: platform,
                     startTime: {$gte: startDate, $lt: endDate}
@@ -19893,8 +19893,10 @@ let dbPlayerInfo = {
                     consumptionData => {
                         console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
                         if (consumptionData && consumptionData.length) {
-                            playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj);
+                            consumptionData.forEach(playerIdObj => {
+                                if (playerIdObj && playerObjArr.indexOf(String(playerIdObj)) === -1) {
+                                    playerObjArr.push(String(playerIdObj));
+                                }
                             });
                         }
 
@@ -20196,6 +20198,9 @@ let dbPlayerInfo = {
                     query.start = postSummaryStartTime;
                     query.end = postSummaryEndTime;
 
+                    // force existing records player into search
+                    query.playerObjIds = returnedObj.data.map(e => String(e._id));
+
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
             }
@@ -20287,6 +20292,9 @@ let dbPlayerInfo = {
                 if (preSummaryStartTime && preSummaryEndTime) {
                     query.start = preSummaryStartTime;
                     query.end = preSummaryEndTime;
+
+                    // force existing records player into search
+                    query.playerObjIds = returnedObj.data.map(e => String(e._id));
 
                     let preSummaryPlayerReportData = await dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
 
