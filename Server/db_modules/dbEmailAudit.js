@@ -287,17 +287,15 @@ let dbEmailAudit = {
             isHTML: true
         };
 
-        // let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
-        // if (!proposalProm) {
-        //     return Promise.reject({
-        //         name: "DataError",
-        //         message: "Error in getting proposal data",
-        //     });
-        // }
-
-        console.log('proposal...', proposal);
-        if(proposal && proposal.data.messageId){
-            emailConfig.messageId = proposal.data.messageId;
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -512,15 +510,15 @@ let dbEmailAudit = {
             isHTML: true
         };
         //In order to group same subject&sender into conversation, need to get messageID as reference.
-        // let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
-        // if (!proposalProm) {
-        //     return Promise.reject({
-        //         name: "DataError",
-        //         message: "Error in getting proposal data",
-        //     });
-        // }
-        if(proposal && proposal.data.messageId){
-            emailConfig.messageId = proposal.data.messageId;
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -724,15 +722,15 @@ let dbEmailAudit = {
             isHTML: true
         };
 
-        // let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
-        // if (!proposalProm) {
-        //     return Promise.reject({
-        //         name: "DataError",
-        //         message: "Error in getting proposal data",
-        //     });
-        // }
-        if(proposal && proposal.data.messageId){
-            emailConfig.messageId = proposal.data.messageId;
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
             hasMsgID = true;
         }
 
@@ -892,18 +890,16 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         emailConfig.replyTo = allEmailStr;
     }
 
-    console.log('check obj id..', emailContents.ObjId);
     //In order to group same subject&sender into conversation, need to get messageID as reference.
-    let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
-    if (!proposal) {
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
         return Promise.reject({
             name: "DataError",
             message: "Error in getting proposal data",
         });
     }
-    console.log('check proposal..', proposal);
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -913,7 +909,7 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{
@@ -1052,18 +1048,17 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
     }
-    console.log('check obj id..', emailContents.ObjId);
-    let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
-    if (!proposal) {
+
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
         return Promise.reject({
             name: "DataError",
             message: "Error in getting proposal data",
         });
     }
-    console.log('check proposal..', proposal);
     //In order to group same subject&sender into conversation, need to get messageID as reference.
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -1072,7 +1067,7 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
     //the first proposal will be no message ID, save it, so that following email could group together.
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{
@@ -1219,18 +1214,16 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
     }
-    console.log('check obj id..', emailContents.ObjId);
 //In order to group same subject&sender into conversation, need to get messageID as reference.
-    let proposal = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
-    if (!proposal) {
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
         return Promise.reject({
             name: "DataError",
             message: "Error in getting proposal data",
         });
     }
-    console.log('check proposal..', proposal);
-    if(proposal.length > 0 && proposal[0].data.messageId){
-        emailConfig.messageId = proposal[0].data.messageId;
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
         hasMsgID = true;
     }
 
@@ -1239,7 +1232,7 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
 
     if(!hasMsgID){
-        dbconfig.collection_proposal.update({_id: proposal[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
             if(err){
                 console.log('update failed...', err);
             }else{
