@@ -6654,13 +6654,13 @@ let dbPlayerInfo = {
                             var players = [];
                             for (var ind in playerData) {
                                 if(playerData[ind] && !playerData[ind].permission){
-                                    let permission = dbPlayerInfo.getPermissionbyPlayerid(playerData[ind]._id);
-                                    // let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
-                                    // if(!getData){
-                                    //     return Promise.reject("Get permission failed");
-                                    // }
-                                    // playerData[ind].permission = getData[0].permission
-                                    playerData[ind].permission = permission
+                                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(playerData[ind]._id);
+                                    let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
+                                    if(!getData){
+                                        return Promise.reject("Get permission failed");
+                                    }
+                                    playerData[ind].permission = getData[0].permission
+                                    // playerData[ind].permission = permission
                                 }
                                 if (playerData[ind]) {
                                     let newInfo;

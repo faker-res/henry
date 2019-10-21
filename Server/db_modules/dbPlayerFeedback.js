@@ -742,6 +742,7 @@ var dbPlayerFeedback = {
         let playerResult;
         let players;
         let count;
+        let consumptionDetail;
         if(isMany.searchType === "one"){
             players = await dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
@@ -754,12 +755,16 @@ var dbPlayerFeedback = {
                 playerResult = players[0];
                 console.log('player result...', playerResult);
                 if(!playerResult.permission){
-                    let permission = dbPlayerInfo.getPermissionbyPlayerid(playerResult._id);
+                    let getData = await dbconfig.collection_playerPermission.find({_id: playerResult._id}).lean();
+                    if(!getData){
+                        return Promise.reject("Get permission failed");
+                    }
+                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(playerResult._id);
                     console.log('permission..', permission);
-                    playerResult.permission = permission;
+                    playerResult.permission = getData[0].permission;
                 }
 
-                let consumptionDetail = await dbPlayerInfo.getConsumptionDetailOfPlayers(players[0].platform, players[0].registrationTime, new Date().toISOString(), {}, [players[0]._id]);
+                consumptionDetail = await dbPlayerInfo.getConsumptionDetailOfPlayers(players[0].platform, players[0].registrationTime, new Date().toISOString(), {}, [players[0]._id]);
             }else{
                 return null;
             }
@@ -783,17 +788,23 @@ var dbPlayerFeedback = {
             for(var i = 0; i < players.length; i++){
                 if(!players[i].permission){
                     console.log('no permission players...', players[i]);
-                    let permission = dbPlayerInfo.getPermissionbyPlayerid(players[i]._id);
-                    players[i].permission = permission;
+                    let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
+                    if(!getData){
+                        return Promise.reject("Get permission failed");
+                    }
+                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(players[i]._id);
+                    players[i].permission = getData[0].permission;
                 }
-
-                for(var p = 0; p < playerPermission.length; p++){
-                    console.log('players permission...', players[i].permission);
-                    console.log('check permission...', players[i].permission[playerPermission[p]]);
-                    if(players[i].permission.hasOwnProperty(playerPermission[p]) && players[i].permission[playerPermission[p]] === true){
-                        players.splice(i, 1);
+                if(playerPermission && playerPermission.length > 0){
+                    for(var p = 0; p < playerPermission.length; p++){
+                        console.log('players permission...', players[i].permission);
+                        console.log('check permission...', players[i].permission[playerPermission[p]]);
+                        if(players[i].permission.hasOwnProperty(playerPermission[p]) && players[i].permission[playerPermission[p]] === true){
+                            players.splice(i, 1);
+                        }
                     }
                 }
+
             }
         }
 
