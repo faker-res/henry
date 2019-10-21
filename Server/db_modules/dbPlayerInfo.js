@@ -23006,7 +23006,10 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 let db_password = String(playerData.password);
 
-                if (dbUtility.isMd5(db_password)) {
+                if (String(playerPassword) === db_password) {
+                    return true;
+                }
+                else if (dbUtility.isMd5(db_password)) {
                     return Boolean(md5(playerPassword) === db_password);
                 }
                 else {
