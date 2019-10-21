@@ -43,6 +43,7 @@ const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTrans
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
+const constDevice = require('./../const/constDevice');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
@@ -510,8 +511,10 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        let device = 0;
-                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
+                        let device = constDevice.BACKSTAGE;
+                        if(proposalData.creator.type == "admin") {
+                            device = constDevice.BACKSTAGE;
+                        } else if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
                             device = data[2].registrationDevice;
                         } else if (data[2].hasOwnProperty('loginDevice')) {
                             device = data[2].loginDevice;
