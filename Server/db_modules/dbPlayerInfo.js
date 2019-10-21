@@ -7338,6 +7338,7 @@ let dbPlayerInfo = {
     playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
         let isHitReferralLimit = false;
         let isSMSVerified = false;
+        let isRegister = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
@@ -7542,10 +7543,9 @@ let dbPlayerInfo = {
                                                                     if (playerData && playerData.isHitReferralLimit) {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
-                                                                    playerData.isRegister = true;
+                                                                    isRegister = true;
 
-                                                                    console.log('playerData===', playerData);
-                                                                    console.log('playerData.isRegister===', playerData.isRegister);
+                                                                    console.log('here===');
 
                                                                     return playerData;
                                                                 }
@@ -7564,6 +7564,9 @@ let dbPlayerInfo = {
                                                     if (loginPlayerData && isHitReferralLimit) {
                                                         loginPlayerData.isHitReferralLimit = isHitReferralLimit;
                                                         return loginPlayerData;
+                                                    }
+                                                    if (isRegister) {
+                                                        data.isRegister = true;
                                                     }
                                                     console.log('login-data===', data);
                                                     console.log('login-data.isRegister===', data.isRegister);
