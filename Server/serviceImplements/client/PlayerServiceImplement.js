@@ -1474,7 +1474,7 @@ let PlayerServiceImplement = function () {
                             console.log("checking isUpdateData", isUpdateData)
                             if (!(isUpdateData[0] && isUpdateData[0]._id)) {
                                 console.log("checking data.platformId", data.platformId)
-                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.PENDING, inputDevice, true).catch(errorUtils.reportError);
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).catch(errorUtils.reportError);
                             }
                         }
                     );

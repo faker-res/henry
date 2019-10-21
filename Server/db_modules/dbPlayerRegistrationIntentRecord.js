@@ -25,14 +25,14 @@ var dbPlayerRegistrationIntentRecord = {
      * create top up intent record
      * @param {Json} data
      */
-    createPlayerRegistrationIntentRecordAPI: function (data, status, inputDevice, isRegisterWithSMS) {
+    createPlayerRegistrationIntentRecordAPI: function (data, status, inputDevice) {
         if (data && data.platformId) {
             return dbconfig.collection_platform.findOne({platformId: data.platformId}).then(
                 function (plat) {
                     if (plat && plat._id) {
                         data.platformId = plat.platformId;
                         data.platform = plat._id;
-                        return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status, inputDevice, null, isRegisterWithSMS);
+                        return dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, status, inputDevice);
                     } else {
                         return Q.reject({name: "DataError", message: "Platform does not exist"});
                     }
@@ -67,7 +67,7 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
-    createPlayerRegistrationIntentRecord: function (data, status, inputDevice, isReceiveSMS, isRegisterWithSMS) {
+    createPlayerRegistrationIntentRecord: function (data, status, inputDevice, isReceiveSMS) {
         if(data){
             let proposalData = {
                 creator: data.adminInfo || {
@@ -99,7 +99,7 @@ var dbPlayerRegistrationIntentRecord = {
                     data.phoneType = queryRes.sp;
                 }
             }
-            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status, isReceiveSMS, isRegisterWithSMS);
+            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status, isReceiveSMS);
 
             if (typeof(data.platform) != 'object') {
                 data.platform = ObjectId(data.platform);
@@ -140,7 +140,7 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
-    createPlayerRegistrationIntentionProposal: (platform, data, status, isReceiveSMS = true, isRegisterWithSMS) => {
+    createPlayerRegistrationIntentionProposal: (platform, data, status, isReceiveSMS = true) => {
         var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
             typeData => {
@@ -158,7 +158,7 @@ var dbPlayerRegistrationIntentRecord = {
                                             // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
                                             require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(data, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
                                         }
-                                        if (status === constProposalStatus.SUCCESS || status === constProposalStatus.MANUAL || status === constProposalStatus.NOVERIFY || isRegisterWithSMS) {
+                                        if (status === constProposalStatus.SUCCESS || status === constProposalStatus.MANUAL || status === constProposalStatus.NOVERIFY) {
                                             let endTime = new Date();
                                             let startTime = dbUtil.getOneMonthAgoSGTime(endTime);
 
