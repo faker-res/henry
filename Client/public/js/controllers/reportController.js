@@ -104,6 +104,8 @@ define(['js/app'], function (myApp) {
 
         vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
+        vm.playerLoginDevice = $scope.constDevice;
+
         vm.claimStatus = {
             valid: "STILL VALID",
             accepted: "ACCEPTED",
@@ -7401,6 +7403,10 @@ define(['js/app'], function (myApp) {
                 newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
             }
 
+            if (vm.proposalQuery && typeof vm.proposalQuery.inputDevice == 'string' && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length){
+                return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
@@ -7426,6 +7432,10 @@ define(['js/app'], function (myApp) {
                 sortCol: newproposalQuery.sortCol,
                 isExport: isExport
             };
+
+            if (sendData && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length && vm.playerLoginDevice && vm.proposalQuery.loginDevice.length != Object.keys(vm.playerLoginDevice).length){
+                sendData.loginDevice = vm.proposalQuery.loginDevice;
+            }
 
             console.log('sendData', sendData);
 

@@ -526,6 +526,10 @@ var encrypt = {
             if (data.remark) {
                 query["data.remark"] = data.remark;
             }
+
+            if (data.loginDevice && data.loginDevice.length){
+                query.device = data.loginDevice;
+            }
         }
         return query;
     },

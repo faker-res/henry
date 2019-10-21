@@ -86,8 +86,9 @@
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
                     select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
-                    label {{"REGISTRATION_AGENT"|translate}}
+                    label {{"REGISTRATION_AGENT"|translate}} {{"Old" | translate}}
                     select.form-control(ng-model="vm.proposalQuery.inputDevice")
+                        option(value= null)
                         option(value='') {{'all'|translate}}
                         option(value=0) {{'Backstage'|translate}}
                         option(value=1) {{'Web Player'|translate}}
@@ -96,6 +97,9 @@
                         option(value=4) {{'HTML5 Agent'|translate}}
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
+                .search-filters-item
+                    label {{"Login Device"|translate}}
+                    select.spiker.form-control(ng-model='vm.proposalQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constProposalLoginDevice')
                 .search-filters-item
                     label {{"Proposal Type"|translate}}
                     select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')

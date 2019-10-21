@@ -857,6 +857,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         6: "Custom"
     };
 
+    $scope.constDevice = {
+
+    };
+
     $scope.constRewardPointsApplyMethod = {
         1: "Manual Apply",
         2: "Auto Apply"
