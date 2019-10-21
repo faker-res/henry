@@ -156,10 +156,7 @@ let dbPartner = {
                         delete partnerData.commissionType;
                     }
 
-                    let deviceCode = partnerData && partnerData.deviceType && partnerData.subPlatformId ? partnerData.deviceType.toString() + partnerData.subPlatformId.toString() : partnerData.deviceType;
-                    if (deviceCode) {
-                        partnerData.registrationDevice = deviceCode;
-                    }
+                    partnerData.registrationDevice = dbUtil.getDeviceValue(partnerData, true);
 
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
@@ -453,12 +450,9 @@ let dbPartner = {
                             partnerdata.loginTimes = 1;
                         }
 
-                        if (partnerdata.registrationDevice && partnerdata.registrationDevice != 0) {
+                        if (partnerdata.registrationDevice && partnerdata.registrationDevice !== "0") {
                             partnerdata.loginTimes = 1;
-                            let deviceCode = partnerdata && partnerdata.deviceType && partnerdata.subPlatformId ? partnerdata.deviceType.toString() + partnerdata.subPlatformId.toString() : partnerdata.deviceType;
-                            if (deviceCode) {
-                                partnerdata.loginDevice = deviceCode;
-                            }
+                            partnerdata.loginDevice = dbUtil.getDeviceValue(partnerdata, true);
                         }
 
                         if(playerId){
@@ -1647,10 +1641,7 @@ let dbPartner = {
                         }
                     }
 
-                    let deviceCode = partnerData && partnerData.deviceType && partnerData.subPlatformId ? partnerData.deviceType.toString() + partnerData.subPlatformId.toString() : partnerData.deviceType;
-                    if (deviceCode) {
-                        updateData.loginDevice = deviceCode;
-                    }
+                    updateData.loginDevice = dbUtil.getDeviceValue(partnerData, true);
 
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
@@ -11435,10 +11426,10 @@ let dbPartner = {
             commissionType: parent.commissionType,
             parent: parent._id,
             phoneNumber: phoneNumber,
-            depthInTree: parent.depthInTree++,
+            depthInTree: parent.depthInTree++
         };
 
-        let deviceCode = inputData && inputData.deviceType && inputData.subPlatformId ? inputData.deviceType.toString() + inputData.subPlatformId.toString() : inputData.deviceType;
+        let deviceCode = dbUtil.getDeviceValue(inputData, true);
         if (deviceCode) {
             newPartnerData.registrationDevice = deviceCode;
             newPartnerData.deviceType = inputData.deviceType;
