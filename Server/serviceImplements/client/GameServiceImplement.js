@@ -207,11 +207,6 @@ var GameServiceImplement = function () {
             os: ua.os.name || ''
         }];
 
-        if (inputDevice && (inputDevice == constPlayerRegistrationInterface.APP_PLAYER || inputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-            ua && ua.browser && (ua.browser.indexOf("WebKit") !== -1 || ua.browser.indexOf("WebView") !== -1)) {
-            inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
-        }
-
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getLoginURL, [conn.playerId, data.gameId, ip, data.lang, data.clientDomainName, data.clientType, inputDevice, userAgent, data.tableId, data.closeMusic], isValidData);
     };
 

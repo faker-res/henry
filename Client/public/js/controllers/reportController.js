@@ -296,7 +296,8 @@ define(['js/app'], function (myApp) {
         'comparePhoneNum',
         'resetAllPartnerCustomizedCommissionRate',
         'savePreventBlockUrl',
-        'deletePreventBlockUrl'];
+        'deletePreventBlockUrl',
+        'resetGroupPartnerCommissionRate'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
@@ -2033,7 +2034,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -4648,10 +4649,12 @@ define(['js/app'], function (myApp) {
                         }
                         else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                             if (item.partner) {
-                                item.registrationAgent$ = "APP Agent";
+                                // item.registrationAgent$ = "APP Agent";
+                                item.registrationAgent$ = "HTML5 Agent";
                             }
                             else {
-                                item.registrationAgent$ = "APP Player";
+                                // item.registrationAgent$ = "APP Player";
+                                item.registrationAgent$ = "HTML5 Player";
                             }
                         }
                         else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
@@ -10983,7 +10986,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }

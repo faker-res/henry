@@ -139,6 +139,16 @@
         });
     };
 
+    proto.verifyUserPasswordWithTransferIn = function (callback, requestData) {
+        let data = requestData || {name: 'testclientplayer'};
+        this._service.verifyUserPasswordWithTransferIn.request(data);
+        this._service.verifyUserPasswordWithTransferIn.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = PlatformAPITest;
     } else {

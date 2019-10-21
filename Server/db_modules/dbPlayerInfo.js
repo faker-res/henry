@@ -866,6 +866,16 @@ let dbPlayerInfo = {
                             message: localization.localization.translate("phone number is invalid")
                         });
                     }
+                    if (inputData.phoneNumber){
+                        console.log("checking inputData.phoneNumber", inputData.phoneNumber, inputData.name)
+                        let reg = new RegExp('^[0-9]+$');
+                        if (!reg.test(inputData.phoneNumber.toString())){
+                            return  Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Phone number can only be digits")
+                            });
+                        }
+                    }
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
@@ -913,7 +923,11 @@ let dbPlayerInfo = {
                         }
 
                         if (platformObj.requireSMSVerification) {
-                            return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            if (bypassSMSVerify) {
+                                return true;
+                            } else {
+                                return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode, inputData.name);
+                            }
                         }
                         else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
                             return true;
@@ -1874,7 +1888,7 @@ let dbPlayerInfo = {
         };
 
         if (data.userAgent) {
-            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, data);
         }
         var record = new dbconfig.collection_playerLoginRecord(recordData);
         record.save().then().catch(errorUtils.reportError);
@@ -4334,10 +4348,7 @@ let dbPlayerInfo = {
             }
         ).then(
             updatedData => {
-                console.log('updatePlayerPayment() playerName', userAgent);
                 let inputDeviceData = dbUtility.getInputDevice(userAgent, false);
-                console.log('updatePlayerPayment() playerName', playerObj.name);
-                console.log('updatePlayerPayment()', inputDeviceData);
                 //updateData.isPlayerInit = true;
                 // updateData.playerName = playerObj.name;
                 updateData.isIgnoreAudit = true; // bypass the audit process if the update is made from the frontend API by the user
@@ -6770,11 +6781,6 @@ let dbPlayerInfo = {
      *  @param include name and password of the player and some more additional info to log the player's login
      */
     playerLogin: function (playerData, userAgent, inputDevice, mobileDetect, checkLastDeviceId, loginFromApp) {
-        if(playerData) {
-            console.log("playerData.name", playerData.name);
-            console.log("userAgent", userAgent);
-            console.log("inputDevice", inputDevice);
-        }
         let db_password = null;
         let newAgentArray = [];
         let platformId = null;
@@ -6884,7 +6890,7 @@ let dbPlayerInfo = {
                     return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
-                        code: constServerCode.PLAYER_NAME_INVALID
+                        code: constServerCode.PLAYER_NAME_INVALID,
                     });
                 }
             }
@@ -7013,15 +7019,9 @@ let dbPlayerInfo = {
                 if (playerData.deviceId || playerData.guestDeviceId) {
                     recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
                 } else if (recordData.userAgent) {
-                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
-                }
-
-                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                    // H5
-                    recordData.inputDeviceType = 2;
                 }
 
                 if (playerData && playerData.osType) {
@@ -7044,6 +7044,7 @@ let dbPlayerInfo = {
 
                 console.log('tempInputDevice ==>', tempInputDevice);
                 console.log('playerData.osType ==>', playerData.osType);
+                console.log('userAgent.browser', userAgent.browser);
                 if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
                     loginDevice = constPlayerLoginDevice.WEB;
                 } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
@@ -7053,10 +7054,8 @@ let dbPlayerInfo = {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
-                        loginDevice = constPlayerLoginDevice.H5;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -7064,7 +7063,6 @@ let dbPlayerInfo = {
 
                 console.log('loginDevice ==>', loginDevice);
                 if (loginDevice) {
-                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
                     return dbconfig.collection_players.findOneAndUpdate({
                         _id: record.player,
                         platform: record.platform
@@ -7340,6 +7338,7 @@ let dbPlayerInfo = {
     playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
         let isHitReferralLimit = false;
         let isSMSVerified = false;
+        let isRegister = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
@@ -7544,6 +7543,9 @@ let dbPlayerInfo = {
                                                                     if (playerData && playerData.isHitReferralLimit) {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
+                                                                    isRegister = true;
+
+                                                                    console.log('here===');
 
                                                                     return playerData;
                                                                 }
@@ -7563,6 +7565,11 @@ let dbPlayerInfo = {
                                                         loginPlayerData.isHitReferralLimit = isHitReferralLimit;
                                                         return loginPlayerData;
                                                     }
+                                                    if (isRegister) {
+                                                        data.isRegister = true;
+                                                    }
+                                                    console.log('login-data===', data);
+                                                    console.log('login-data.isRegister===', data.isRegister);
 
                                                     return data;
                                                 }
@@ -7831,13 +7838,7 @@ let dbPlayerInfo = {
                 }
 
                 if (recordData.userAgent) {
-                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
-                }
-
-                if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                    (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                    // H5
-                    recordData.inputDeviceType = 2;
+                    recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 }
 
                 Object.assign(recordData, geoInfo);
@@ -7869,10 +7870,8 @@ let dbPlayerInfo = {
                     if (playerData && playerData.osType) {
                         let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
-                        loginDevice = constPlayerLoginDevice.H5;
-                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                    }
+                    else if (userAgent && userAgent.os && userAgent.os.name) {
                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                     }
@@ -8270,13 +8269,7 @@ let dbPlayerInfo = {
                         }
 
                         if (recordData.userAgent) {
-                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent);
-                        }
-
-                        if (recordData.inputDeviceType && (recordData.inputDeviceType == 3 || recordData.inputDeviceType == 4) && uaObj && uaObj.browser &&
-                            (uaObj.browser.indexOf("WebKit") !== -1 || uaObj.browser.indexOf("WebView") !== -1)) {
-                            // H5
-                            recordData.inputDeviceType = 2;
+                            recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, inputData);
                         }
 
                         Object.assign(recordData, geoInfo);
@@ -8301,10 +8294,8 @@ let dbPlayerInfo = {
                                     if (inputData && inputData.osType) {
                                         let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                                    } else if ((tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT) &&
-                                        userAgent && userAgent.browser && (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1)) {
-                                        loginDevice = constPlayerLoginDevice.H5;
-                                    } else if (userAgent && userAgent.os && userAgent.os.name) {
+                                    }
+                                    else if (userAgent && userAgent.os && userAgent.os.name) {
                                         let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
                                         loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
                                     }
@@ -9540,7 +9531,7 @@ let dbPlayerInfo = {
 
                 if (playerData.platform.useProviderGroup) {
                     // Platform supporting provider group
-                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
+                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS" || providerData.name.toUpperCase() === "EBETBOARD")) {
                         // if use eBet Wallet
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
@@ -10154,7 +10145,7 @@ let dbPlayerInfo = {
                                 gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                             // Platform supporting provider group
-                            if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS")) {
+                            if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
                                 // if use eBet Wallet
                                 console.log("using eBetWallet");
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -10176,7 +10167,7 @@ let dbPlayerInfo = {
                     gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                 // Platform supporting provider group
-                if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS")) {
+                if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
                     // if use eBet Wallet
                     console.log("using eBetWallet");
                     return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -23023,7 +23014,10 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 let db_password = String(playerData.password);
 
-                if (dbUtility.isMd5(db_password)) {
+                if (String(playerPassword) === db_password) {
+                    return true;
+                }
+                else if (dbUtility.isMd5(db_password)) {
                     return Boolean(md5(playerPassword) === db_password);
                 }
                 else {
@@ -30654,10 +30648,13 @@ function determineRegistrationInterface(inputData) {
         let userAgent = inputData.userAgent[0];
         if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
             if (inputData.partner) {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_AGENT;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_AGENT;
             }
             else {
-                inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                // inputData.registrationInterface = constPlayerRegistrationInterface.APP_PLAYER;
+                inputData.registrationInterface = constPlayerRegistrationInterface.H5_PLAYER;
             }
         }
         else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {

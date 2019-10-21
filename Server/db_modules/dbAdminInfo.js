@@ -130,6 +130,12 @@ var dbAdminInfo = {
      * @param live800Acc
      */
     checkLive800AccValidity: function(live800Acc,adminName){
+        if (live800Acc && live800Acc.length) {
+            live800Acc.forEach((acc, index) => {
+                live800Acc[index] = new RegExp("^" + acc + "$", "i")
+            })
+        }
+
         return dbconfig.collection_admin.find({live800Acc: {$in:live800Acc}, adminName: {$ne:adminName}}).count().then(
             adminCount => {
                 return adminCount > 0 ? false : true;
@@ -676,10 +682,12 @@ var dbAdminInfo = {
         let path = "views." + permission;
         let query = {};
         query[path] = true;
+        // console.log('admin by permit', query);
         return dbconfig.collection_role.find(query, {departments: 1}).lean().then(
             roles => {
                 let departments = [];
                 if (!roles || !roles.length) {
+                    // console.log('roles return', roles);
                     return [];
                 }
 
@@ -690,6 +698,8 @@ var dbAdminInfo = {
                         departments = departments.concat(role.departments);
                     }
                 }
+                // console.log('departments permit', departments);
+                // console.log('roleObjIds permit', roleObjIds);
 
                 return dbconfig.collection_department.find({_id: {$in: departments}, $or:[{platforms: platformObjId}, {parent: null}]}).lean();
             }
@@ -697,6 +707,7 @@ var dbAdminInfo = {
             departments => {
                 let departmentObjIds = departments.map(department => department._id);
 
+                // console.log('departments permit 1', departmentObjIds);
                 return dbconfig.collection_admin.find({departments: {$in: departmentObjIds}, roles: {$in: roleObjIds}}).lean();
             }
         );

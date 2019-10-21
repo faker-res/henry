@@ -182,8 +182,7 @@ let PlayerServiceImplement = function () {
                     //dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.FAIL).then();
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.createGuestPlayer.onRequest = function (wsFunc, conn, data) {
@@ -314,8 +313,7 @@ let PlayerServiceImplement = function () {
                     wsFunc.response(conn, resObj, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getLastPlayedGameInfo.onRequest = function (wsFunc, conn, data) {
@@ -405,8 +403,7 @@ let PlayerServiceImplement = function () {
                         token: token,
                     }, data);
                 }
-            ).catch(WebSocketUtil.errorHandler)
-                .done();
+            ).catch(WebSocketUtil.errorHandler);
         }
         else {
             conn.captchaCode = null;
@@ -615,8 +612,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     // player and partner login api handler
@@ -706,8 +702,7 @@ let PlayerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.loginPlayerPartnerWithSMS.expectsData = 'phoneNumber: String, smsCode: String, platformId: String';
@@ -805,8 +800,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     //added case
@@ -830,7 +824,7 @@ let PlayerServiceImplement = function () {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
 
-            }).catch(WebSocketUtil.errorHandler).done();
+            }).catch(WebSocketUtil.errorHandler);
     };
 
     //player logout api handler
@@ -847,7 +841,7 @@ let PlayerServiceImplement = function () {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
-            }).catch(WebSocketUtil.errorHandler).done();
+            }).catch(WebSocketUtil.errorHandler);
     };
 
     //
@@ -876,7 +870,7 @@ let PlayerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.isValidRealName.expectsData = 'realName: String, platformId: String';
@@ -908,7 +902,7 @@ let PlayerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     //added case
@@ -925,7 +919,7 @@ let PlayerServiceImplement = function () {
                 }, data);
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.settingPlayerPassword.expectsData = 'playerId: String, password: String';
@@ -941,7 +935,7 @@ let PlayerServiceImplement = function () {
                     data: res
                 }, data);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.inquireAccountByPhoneNumber.onRequest = function (wsFunc, conn, data) {
@@ -966,7 +960,7 @@ let PlayerServiceImplement = function () {
                 }, data);
                 SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     //added case
@@ -978,7 +972,7 @@ let PlayerServiceImplement = function () {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
-            }).catch(WebSocketUtil.errorHandler).done();
+            }).catch(WebSocketUtil.errorHandler);
     };
 
     //added case
@@ -992,7 +986,6 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        console.log('service Implement updatePaymentInfo', userAgent);
         let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
@@ -1044,7 +1037,7 @@ let PlayerServiceImplement = function () {
             //         }, data);
             //     }
             // }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.updatePlayerPartnerPaymentInfo.expectsData = 'playerId: String';
@@ -1096,7 +1089,7 @@ let PlayerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.captcha.expectsData = '';
@@ -1473,15 +1466,22 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = player.csOfficer ? player.csOfficer : "";
 
-                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                    isUpdateData => {
-                        console.log("checking isUpdateData", isUpdateData)
-                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                            console.log("checking data.platformId", data.platformId)
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                console.log('player===', player);
+                console.log('player.isRegister===', player.isRegister);
+
+                // 1.手机号登录不产生注册意向
+                // 2.手机号注册产生注册意向，并由【免验】归类到【尝试】
+                if (player && player.isRegister) {
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData => {
+                            console.log("checking isUpdateData", isUpdateData)
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                console.log("checking data.platformId", data.platformId)
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.ATTEMPT, inputDevice).catch(errorUtils.reportError);
+                            }
                         }
-                    }
-                );
+                    );
+                }
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -1557,8 +1557,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.phoneNumberLoginWithPassword.onRequest = function (wsFunc, conn, data) {
@@ -1657,8 +1656,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getBindBankCardList.onRequest = function (wsFunc, conn, data) {
@@ -1799,8 +1797,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
@@ -1891,8 +1888,7 @@ let PlayerServiceImplement = function () {
                     }
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.setPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {

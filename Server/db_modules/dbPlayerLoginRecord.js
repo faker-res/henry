@@ -17,7 +17,7 @@ var dbPlayerLoginRecord = {
     createPlayerLoginRecord: function (playerLoginData) {
         var playerLoginRecord = new dbconfig.collection_playerLoginRecord(playerLoginData);
         if(playerLoginData.userAgent){
-            playerLoginData.inputDeviceType = dbUtil.getInputDeviceType(playerLoginData.userAgent);
+            playerLoginData.inputDeviceType = dbUtil.getInputDeviceType(playerLoginData.userAgent, playerLoginData);
         }
         return playerLoginRecord.save();
     },
@@ -63,7 +63,7 @@ var dbPlayerLoginRecord = {
                     if(playerLoginRecord && playerLoginRecord.length){
                         playerLoginRecord.forEach(
                             loginRecord => {
-                                if(loginRecord && loginRecord.player._id){
+                                if(loginRecord && loginRecord.player && loginRecord.player._id){
                                     let indexNo = finalResult.findIndex(f => f.player && f.player._id && f.player._id.toString() == loginRecord.player._id.toString());
 
                                     if(indexNo == -1){

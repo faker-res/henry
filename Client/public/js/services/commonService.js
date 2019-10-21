@@ -404,7 +404,7 @@ define([], () => {
             return lineAcc;
         };
 
-        self.convertClientTypeToInputDevice = function (clientType) {
+        self.convertClientTypeToInputDevice = function (clientType, userAgent) {
             let inputDevice;
 
             //clientType
@@ -422,6 +422,10 @@ define([], () => {
                         break;
                     case 4:
                         inputDevice = 5;
+                        if (userAgent && userAgent.browser && userAgent.browser.name &&
+                            (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1)) {
+                            inputDevice = 3;
+                        }
                         break;
                 }
             }
@@ -822,7 +826,7 @@ define([], () => {
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
             proposalDetail.platformId = proposalDetail.platformId._id;
 
-            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType) : null;
+            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType, proposalDetail.userAgent) : null;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
@@ -1039,7 +1043,11 @@ define([], () => {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
             }
             //#endregion
 

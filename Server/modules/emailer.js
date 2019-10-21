@@ -94,8 +94,7 @@ directTransporter.use('compile', htmlToText({}));   // For options see: https://
  * @returns {*}
  */
 var emailer = {
-    sendEmail: function(config)
-    {
+    sendEmail: function(config) {
         const mailOptions = {
             from: config.sender,
             to: config.recipient,
@@ -108,9 +107,13 @@ var emailer = {
         } else {
             mailOptions.text = config.body;
         }
-
+        if (config.messageId) {
+            mailOptions.references = config.messageId;
+            mailOptions.inReplyTo = config.messageId;
+        }
+        console.log('mail option before send...', mailOptions);
         // send mail with defined transport object
-        return Q.Promise(function (resolve, reject) {
+        return Q.Promise(function(resolve, reject) {
             try {
                 // if (smtpTransporter) {
                 //     console.log('smtp transporter ready')
@@ -119,7 +122,7 @@ var emailer = {
                 //     console.log('using direct')
                 // }
                 let transporter = smtpTransporter || directTransporter;
-                transporter.sendMail(mailOptions, function (error, info) {
+                transporter.sendMail(mailOptions, function(error, info) {
                     if (error) {
                         reject(error);
                     } else {

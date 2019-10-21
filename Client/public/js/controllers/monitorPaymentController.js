@@ -1088,7 +1088,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                 link.append($('<div>', {
@@ -2493,6 +2493,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.email = row.data.email;
                 // vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                vm.newPlayer.encodedPhoneNumber = row.data.phoneNumber ? utilService.encodePhoneNum(row.data.phoneNumber) : null;
                 vm.newPlayer.referralName = row.data.referral;
                 vm.newPlayer.platform = row.data.platformId;
                 vm.newPlayer.platformId = vm.platformByAdminId.filter(platform => platform._id.toString() === row.data.platformId.toString())[0].platformId;
@@ -2735,10 +2736,27 @@ define(['js/app'], function (myApp) {
         };
 
 
-        vm.createNewPlayer = function () {
+        vm.createNewPlayer = async function () {
             // vm.newPlayer.platform = vm.selectedPlatform._id;
             // vm.newPlayer.platformId = vm.selectedPlatform.platformId;
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
+
+            // replace the phone number if the encoded phone number has been re-entered
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                vm.newPlayer.phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if (vm.newPlayer.encodedPhoneNumber){
+                delete vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if(vm.newPlayer.phoneNumber){
+                let reg = new RegExp('^[0-9]+$');
+
+                if (!reg.test(vm.newPlayer.phoneNumber)){
+                    return socketService.showErrorMessage($translate("Phone number can only be digits"));
+                }
+            }
 
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
@@ -2825,7 +2843,7 @@ define(['js/app'], function (myApp) {
             if (!vm.newPlayer.phoneNumber) {
                 return
             }
-
+            let phoneNumber = vm.newPlayer.phoneNumber;
             if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
                 // $scope.$evalAsync(() => {
                 //     vm.existPhone = false;
@@ -2835,13 +2853,17 @@ define(['js/app'], function (myApp) {
                 return;
             }
 
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
             //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
             var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
             var sendData = {
                 adminId: authService.adminId,
                 platformId: vm.selectedPlatform._id,
                 type: ["PlayerRegistrationIntention"],
-                phoneNumber: vm.newPlayer.phoneNumber,
+                phoneNumber: phoneNumber,
                 size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
                 index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
                 // sortCol: vm.newPlayerRecords.sortCol || null,
@@ -4156,7 +4178,7 @@ define(['js/app'], function (myApp) {
                     let typeId = vm.selectedProposal.type._id;
                     let typeName = [vm.selectedProposal.type.name];
                     let playerId = vm.selectedProposal.data.playerId;
-                    let inputDevice = vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.clientType ? commonService.convertClientTypeToInputDevice(vm.selectedProposal.data.clientType) : null;
+                    let inputDevice = vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.clientType ? commonService.convertClientTypeToInputDevice(vm.selectedProposal.data.clientType, vm.selectedProposal.data.userAgent) : null;
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
@@ -4229,7 +4251,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -4399,7 +4421,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         },
@@ -4607,7 +4629,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }

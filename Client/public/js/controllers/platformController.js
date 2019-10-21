@@ -39,6 +39,12 @@ define(['js/app'], function (myApp) {
                 DAILY_CONSUMPTION: 7
             };
 
+            vm.constVoiceCodeProvider = {
+                TENCENT_CLOUD: 1, // 腾讯云 default
+                NETEASE: 2, // 网易云
+                YUNPIAN: 3 // 云片
+            };
+
             vm.popularRecommendationCategory = {
                 "Navigation_Bar": 1,
                 "Body": 2,
@@ -65,6 +71,13 @@ define(['js/app'], function (myApp) {
                 "redirectToOfficialWebPage": 4,
                 "startGame": 5,
                 "doNothing": 6,
+            };
+
+            vm.frontEndRewardButtonOnClickAction = {
+                "redirectToParticularPage": 1,
+                "return": 2,
+                "applyReward": 3,
+                "contactCS": 4,
             };
 
             vm.frontEndSettingDevices = {
@@ -578,8 +591,10 @@ define(['js/app'], function (myApp) {
                 0: 'Common Wallet',
                 1: 'Live Wallet',
                 2: 'Slots Wallet',
-                3: 'Sports Wallet',
-                4: 'Keno Wallet'
+                3: 'Battle Wallet',
+                4: 'Casino Wallet',
+                5: 'Sports Wallet',
+                6: 'Keno Wallet',
             };
 
             vm.betType = [
@@ -26181,6 +26196,31 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.resetOnClickRewardButton  = function (holder, type, button, actionId) {
+                switch (button) {
+                    case "topButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['topButtonRoute'] = null;
+                        }
+                        break;
+                    case "rightButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rightButtonRoute'] = null;
+                        }
+                        break;
+                    case "bottomButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['bottomButtonRoute'] = null;
+                        }
+                        break;
+                    case "rewardButtonClick":
+                        if (actionId && actionId != 1){
+                            holder[type]['rewardButtonRoute'] = null;
+                        }
+                        break;
+                }
+            };
+
             vm.enableSortableCategoryChange = function (holder) {
                 let tempId = holder && holder.length? holder[holder.length -1]._id : "";
                 utilService.actionAfterLoaded('#' + tempId, function () {
@@ -28507,6 +28547,10 @@ define(['js/app'], function (myApp) {
                                         sendData.promoCodeTypeObjId = sendData.promoCodeType._id;
                                         sendData.platformObjId = vm.filterCreatePromoCodePlatform;
                                         sendData.smsContent = sendData.promoCodeType.smsContent;
+                                        if (!sendData.promoCodeType.platformObjId || sendData.promoCodeType.platformObjId !== vm.filterCreatePromoCodePlatform) {
+                                            socketService.showErrorMessage($translate("System abnormal, please consider refresh the page."));
+                                            return
+                                        }
 
                                         if(!sendData.allowedProviders){
                                             sendData.allowedProviders = [];
@@ -30659,7 +30703,6 @@ define(['js/app'], function (myApp) {
                                     console.log('getAllPlayerLevels--getPlatform', data.data);
                                     let platformData = data.data;
                                     vm.autoCheckPlayerLevelUp = platformData.autoCheckPlayerLevelUp;
-                                    vm.autoCheckPlayerLevelDown = platformData.autoCheckPlayerLevelDown;
                                     vm.disableAutoPlayerLevelUpReward = platformData.disableAutoPlayerLevelUpReward;
                                     vm.manualPlayerLevelUp = platformData.manualPlayerLevelUp;
                                     vm.playerLevelPeriod.playerLevelUpPeriod = platformData.playerLevelUpPeriod ? platformData.playerLevelUpPeriod : vm.allPlayerLevelUpPeriod.MONTH;
@@ -32242,6 +32285,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.ipCheckPeriod = platformData.ipCheckPeriod;
                         vm.platformBasic.isEbet4 = platformData.isEbet4;
                         vm.platformBasic.useVoiceCode = platformData.useVoiceCode;
+                        vm.platformBasic.voiceCodeProvider = platformData.voiceCodeProvider || vm.constVoiceCodeProvider.TENCENT_CLOUD;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
                     });
@@ -33289,6 +33333,7 @@ define(['js/app'], function (myApp) {
                         if (data) {
                             $scope.$evalAsync(() => {
                                 vm.gameProviderGroup = data.data;
+                                vm.cloneGameProviderGroup = vm.gameProviderGroup?JSON.parse(JSON.stringify(vm.gameProviderGroup)): [];
                                 vm.gameProviderGroupNames = {};
                                 for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                     let providerGroup = vm.gameProviderGroup[i];
@@ -33322,8 +33367,7 @@ define(['js/app'], function (myApp) {
                                 query: {_id: vm.selectedPlatform.id},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
-                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                                    autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown
+                                    autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
                                 }
                             }
                             socketService.$socket($scope.AppSocket, 'updatePlatform', updateData, function (data) {
@@ -33451,7 +33495,6 @@ define(['js/app'], function (myApp) {
                         
                         updatePlatformBasic({
                             autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                            autoCheckPlayerLevelDown: vm.autoCheckPlayerLevelDown,
                             manualPlayerLevelUp: vm.manualPlayerLevelUp,
                             playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
                             playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
@@ -34745,7 +34788,6 @@ define(['js/app'], function (myApp) {
                         checkDuplicateBankAccountNameIfEditBankCardSecondTime: srcData.checkDuplicateBankAccountNameIfEditBankCardSecondTime,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
-                        autoCheckPlayerLevelDown: srcData.autoCheckPlayerLevelDown,
                         disableAutoPlayerLevelUpReward: srcData.disableAutoPlayerLevelUpReward,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
                         platformBatchLevelUp: srcData.platformBatchLevelUp,
@@ -34781,6 +34823,7 @@ define(['js/app'], function (myApp) {
                         playerIPRegionLimit: srcData.playerIPRegionLimit,
                         isEbet4: srcData.isEbet4,
                         useVoiceCode: srcData.useVoiceCode,
+                        voiceCodeProvider: srcData.voiceCodeProvider,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
                         appDataVer: srcData.appDataVer
@@ -35400,7 +35443,10 @@ define(['js/app'], function (myApp) {
                 vm.configTableEdit = false;
 
                 vm.removeProviderGroup();
-
+                let socketActionLog = getProviderChanged();
+                if(!(socketActionLog && Object.keys(socketActionLog).length)) {
+                    return;
+                }
                 let sendData = {
                     platformObjId: vm.filterConfigPlatform,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
@@ -35414,7 +35460,8 @@ define(['js/app'], function (myApp) {
                             gameProviderGroupData.ebetWallet = e.ebetWallet;
                         }
                         return gameProviderGroupData;
-                    })
+                    }),
+                    socketActionLog: socketActionLog // for socket action log only 后台操作记录
                 };
 
                 console.log('sendData2', sendData);
@@ -35424,6 +35471,7 @@ define(['js/app'], function (myApp) {
                     if (data) {
                         $scope.$evalAsync(() => {
                             vm.gameProviderGroup = data.data;
+                            vm.cloneGameProviderGroup = JSON.parse(JSON.stringify(vm.gameProviderGroup));
                             vm.gameProviderGroupNames = {};
                             for (let i = 0; i < vm.gameProviderGroup.length; i++) {
                                 let providerGroup = vm.gameProviderGroup[i];
@@ -35432,6 +35480,131 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 });
+            }
+
+            function getProviderChanged () {
+                let newObjKey = 0;
+                let gameProvidersName = {};
+                if (vm.platformProviderList && vm.platformProviderList.length) {
+                    vm.platformProviderList.forEach(item => {
+                        gameProvidersName[item._id] = item.name;
+                    })
+                }
+                let socketActionLog = {};
+                if (vm.gameProviderGroup && vm.gameProviderGroup.length && vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.forEach(cloneGameProvider => {
+                        let providerGroupName = cloneGameProvider.name || " ";
+                        let providerGroupId = (cloneGameProvider.providerGroupId || cloneGameProvider.providerGroupId == 0)? cloneGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        for (let j = 0; j < vm.gameProviderGroup.length; j++) {
+                            let editedGameProvider = vm.gameProviderGroup[j];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            let key = cloneGameProvider._id || newObjKey++;
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                deleted: true
+                            }
+                            if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                socketActionLog[key].deletedProviders = cloneGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                    vm.gameProviderGroup.forEach(editedGameProvider => {
+                        let providerGroupName = editedGameProvider.name || " ";
+                        let providerGroupId = (editedGameProvider.providerGroupId || editedGameProvider.providerGroupId == 0)? editedGameProvider.providerGroupId: " ";
+                        let isMatch = false;
+                        let key = editedGameProvider._id || newObjKey++;
+                        for (let i = 0; i < vm.cloneGameProviderGroup.length; i++) {
+                            let cloneGameProvider = vm.cloneGameProviderGroup[i];
+                            if (cloneGameProvider._id && editedGameProvider._id && String(cloneGameProvider._id) == String(editedGameProvider._id)) {
+                                isMatch = true;
+                                let isProviderChanged = false;
+                                let addedProviders = [];
+                                let deletedProviders = [];
+                                if (cloneGameProvider.providers && cloneGameProvider.providers.length && editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    editedGameProvider.providers.map(provider => {
+                                        if (!cloneGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            addedProviders.push(provider);
+                                        }
+                                    })
+                                    cloneGameProvider.providers.map(provider => {
+                                        if (!editedGameProvider.providers.includes(provider)) {
+                                            isProviderChanged = true;
+                                            deletedProviders.push(provider);
+                                        }
+                                    })
+                                } else if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    addedProviders = editedGameProvider.providers;
+                                } else if (cloneGameProvider.providers && cloneGameProvider.providers.length) {
+                                    isProviderChanged = true;
+                                    deletedProviders = cloneGameProvider.providers;
+                                }
+
+                                if (isProviderChanged) {
+                                    socketActionLog[key] = {
+                                        name: providerGroupName,
+                                        providerGroupId: providerGroupId,
+                                    };
+                                }
+                                if (addedProviders && addedProviders.length) {
+                                    socketActionLog[key].addedProviders = addedProviders.map(item => gameProvidersName[item]);
+                                }
+
+                                if (deletedProviders && deletedProviders.length) {
+                                    socketActionLog[key].deletedProviders = deletedProviders.map(item => gameProvidersName[item]);
+                                }
+                                break;
+                            }
+                        }
+                        if (!isMatch) {
+                            socketActionLog[key] = {
+                                providerGroupId: providerGroupId,
+                                name: providerGroupName,
+                                newAdd: true
+                            }
+                            if (editedGameProvider.providers && editedGameProvider.providers.length) {
+                                socketActionLog[key].addedProviders = editedGameProvider.providers.map(item => gameProvidersName[item]);
+                            }
+                        }
+                    })
+                } else if (vm.gameProviderGroup && vm.gameProviderGroup.length) {
+                    vm.gameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            newAdd: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].addedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                } else if (vm.cloneGameProviderGroup && vm.cloneGameProviderGroup.length) {
+                    vm.cloneGameProviderGroup.map(item => {
+                        let providerGroupName = item.name || " ";
+                        let providerGroupId = (item.providerGroupId || item.providerGroupId == 0)? item.providerGroupId: " ";
+                        let key = item._id || newObjKey++;
+                        socketActionLog[key] = {
+                            name: providerGroupName,
+                            deleted: true,
+                            providerGroupId: providerGroupId
+                        }
+                        if (item.providers && item.providers.length) {
+                            socketActionLog[item._id].deletedProviders = item.providers.map(item => gameProvidersName[item]);
+                        }
+                    })
+                }
+                return socketActionLog;
             }
 
             vm.removeProviderGroup = () => {
