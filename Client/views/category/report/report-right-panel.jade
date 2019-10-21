@@ -27,7 +27,7 @@
                     select.form-control.merchantNoList(ng-options='i as v|translate for (i,v) in vm.topUpReportInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"Login Device"|translate}}
-                    select.spiker.form-control(ng-model='vm.queryTopup.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                    select.spiker.form-control(ng-model='vm.queryTopup.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
                 .search-filters-item
                     label {{'Online Topup Type' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.topupType', multiple, static-bsp, data-actions-box='true')
