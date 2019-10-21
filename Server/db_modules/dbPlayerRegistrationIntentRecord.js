@@ -158,6 +158,53 @@ var dbPlayerRegistrationIntentRecord = {
                                             // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
                                             require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(data, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
                                         }
+                                        if (status === constProposalStatus.SUCCESS || status === constProposalStatus.MANUAL || status === constProposalStatus.NOVERIFY) {
+                                            let endTime = new Date();
+                                            let startTime = dbUtil.getOneMonthAgoSGTime(endTime);
+
+                                            let updateQuery = {
+                                                _id: ObjectId(newProposal._id),
+                                                createTime: newProposal.createTime
+                                            };
+                                            let updateOldProposalQuery = {
+                                                createTime: {$gte: startTime, $lt: endTime},
+                                                $or: [
+                                                    {'data.playerName': newProposal.data.playerName}
+                                                ]
+                                            };
+
+                                            if (newProposal.data.phoneNumber) {
+                                                updateOldProposalQuery.$or.push(
+                                                    {'data.phoneNumber': newProposal.data.phoneNumber}
+                                                );
+                                            }
+
+                                            // requirement by echo
+                                            // 1.同账号 不同手机号尝试开户；
+                                            // 2.同账号 同一手机号，
+                                            // 3.不同账号 同一手机号
+                                            // 这三种情况，只要开户成功了，之前的历史记录都隐藏
+                                            // mark as isRegistered, so New Player List will encode phone number
+                                            let updateData = {
+                                                $set: {
+                                                    'data.isRegistered': true,
+                                                    'data.isRegisteredTime': new Date(),
+                                                }
+                                            };
+
+                                            // update current proposal
+                                            let prom1 = dbconfig.collection_proposal.findOneAndUpdate(updateQuery, updateData, {new: true}).lean();
+
+                                            // update old proposal that has same account name or phone number
+                                            let prom2 = dbconfig.collection_proposal.update(updateOldProposalQuery, updateData, {multi: true, new: true}).lean();
+
+                                            Promise.all([prom1, prom2]).then(
+                                                data => {
+                                                    console.log('data[0]===', data[0]);
+                                                    console.log('data[1]===', data[1]);
+                                                }
+                                            )
+                                        }
                                        deferred.resolve(data);
                                     },
                                     function (error) {
@@ -193,7 +240,7 @@ var dbPlayerRegistrationIntentRecord = {
             }
         }
         let updateQuery = {
-            data: query
+            data: Object.assign({}, query)
         };
 
         if(updateData != "Fail"){

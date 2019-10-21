@@ -3,11 +3,20 @@
         .well.col-xs-12
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}} ({{'Multiple' | translate}})
-                select.form-control(ng-model='vm.feedbackAdminQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getUniqueAdminFeedbacks();' )
-            .search-filters-item
+                select.form-control(ng-model='vm.feedbackAdminQuery.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getDepartmentDetailsByPlatformObjId(vm.feedbackAdminQuery.platformList);' )
+            //.search-filters-item
                 label {{'Customer Service Name' | translate}}
-                select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName group by a.departmentName for a in vm.csNameByDepartment')
+                select.form-control.feedbackOption(ng-model='vm.feedbackAdminQuery.admin', ng-options='a.adminName as a.adminName for a in vm.departmentUsers')
                     option(value="") {{'any' | translate}}
+            .search-filters-item
+                label {{"REGISTRATION_DEPARTMENT"|translate}}
+                select.spicker.form-control(ng-model='vm.feedbackAdminQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.feedbackAdminQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+            .search-filters-item
+                label {{"REGISTRATION_ROLE"|translate}}
+                select.spicker.form-control(ng-model='vm.feedbackAdminQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.feedbackAdminQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+            .search-filters-item
+                label {{"REGISTRATION_ADMIN"|translate}}
+                select.spicker.form-control(ng-model='vm.feedbackAdminQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
             .search-filters-item
                 label {{'PLAYER' | translate}}
                 input.form-control(ng-model='vm.feedbackAdminQuery.player', placeholder="{{'SEARCH' | translate}}")
@@ -46,7 +55,9 @@
                     input.threeBoxes.form-control(type="number" ng-model="vm.feedbackAdminQuery.topUpTimesValueTwo" ng-if="vm.feedbackAdminQuery.topUpTimesOperator === 'range'")
             .col-xs-12.text-right
                 button.btn.btn-primary(ng-if="checkViewPermission('Platform', 'FeedbackQuery', 'Read')",ng-click='vm.submitAdminPlayerFeedbackQuery(true)') {{"SEARCH" | translate}}
-                i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                //i#loadPlayerFeedbackAdminIcon.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
+                span#loadPlayerFeedbackAdminIcon.collapse
+                    i.fa.fa-refresh.fa-spin.collapse.margin-left-5.text-danger.fa-2x
 .row.margin-top-bottom-small(ng-show='!vm.selectedPlatform')
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}

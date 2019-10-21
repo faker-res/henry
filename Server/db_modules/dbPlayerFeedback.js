@@ -79,38 +79,132 @@ var dbPlayerFeedback = {
         let query = {};
         if (platformList && platformList.length) {
             query = {
-                platform: {$in: platformList}
+                _id: {$in: platformList}
             }
         }
 
-        return dbconfig.collection_playerFeedback.distinct('adminId', query).read("secondaryPreferred").then(
-            adminList => {
-                if (adminList && adminList.length === 0) {
-                    return [];
-                }
-                if (adminList && adminList.length) {
-                    return dbconfig.collection_admin.find({_id: {$in: adminList}}).lean()
-                        .populate({path: "departments", model: dbconfig.collection_department})
-                        .then(
-                            data => {
-                                if (data && data.length) {
-                                    let selectedUniqueAdmin = data;
-                                    selectedUniqueAdmin.map(admin => {
-                                        if (admin.departments && admin.departments.length) {
-                                            admin.departmentName = admin.departments[0].departmentName;
+        // display all cs name that are found in departments based on selected platform
+        return dbconfig.collection_platform.find(query).lean().then(
+            platformData => {
+                let platformNameList = [];
+                if (platformData && platformData.length) {
+                    platformData.forEach(data => {
+                        if (data && data.name) {
+                            platformNameList.push(data.name);
+                        }
+                    });
+                    console.log('platformNameList===', platformNameList);
+                    console.log('platformNameList.length===', platformNameList.length);
+
+                    let queryDept = {
+                        departmentName: {$in: platformNameList}
+                    };
+
+                    if (platformNameList && platformNameList.length) {
+                        return dbconfig.collection_department.find(queryDept).lean().then(
+                            departmentData => {
+                                console.log('departmentData===', departmentData);
+                                console.log('departmentData.length===', departmentData.length);
+
+                                let adminList = [];
+                                let departmentChildrenList = [];
+                                if (departmentData && departmentData.length) {
+                                    departmentData.forEach(data => {
+                                        if (data && data.users) {
+                                            adminList = adminList.concat(data.users);
+                                        }
+                                        if (data && data.children) {
+                                            departmentChildrenList = departmentChildrenList.concat(data.children);
                                         }
                                     });
-                                    return selectedUniqueAdmin;
                                 }
+                                console.log('adminList===', adminList);
+                                console.log('adminList.length===', adminList.length);
+                                console.log('departmentChildrenList===', departmentChildrenList);
+                                console.log('departmentChildrenList.length===', departmentChildrenList.length);
+
+                                let queryChildrenDept = {
+                                    _id: {$in: departmentChildrenList}
+                                };
+
+                                let prom1 = Promise.resolve();
+                                let prom2 = Promise.resolve();
+
+                                if (adminList && adminList.length) {
+                                    // get all admin under parent department
+                                    prom1 = dbconfig.collection_admin.find({_id: {$in: adminList}})
+                                        .populate({path: "departments", model: dbconfig.collection_department}).lean();
+                                }
+                                if (departmentChildrenList && departmentChildrenList.length) {
+                                    // get all children department data
+                                    prom2 = dbconfig.collection_department.find(queryChildrenDept).lean();
+                                }
+
+                                return Promise.all([prom1, prom2]).then(
+                                    ([adminData, childrenDeptData]) => {
+                                        console.log('adminData===', adminData);
+                                        console.log('adminData.length===', adminData.length);
+                                        console.log('childrenDeptData===', childrenDeptData);
+                                        console.log('childrenDeptData.length===', childrenDeptData.length);
+                                        let selectedCS = [];
+                                        let childrenDeptUserList = [];
+
+                                        // all admin under parent department
+                                        if (adminData && adminData.length) {
+                                            selectedCS = selectedCS.concat(adminData);
+                                            selectedCS.map(admin => {
+                                                if (admin.departments && admin.departments.length) {
+                                                    admin.departmentName = admin.departments[0].departmentName;
+                                                }
+                                            });
+                                        }
+                                        console.log('selectedCS.length===11', selectedCS.length);
+
+                                        // children department data
+                                        if (childrenDeptData && childrenDeptData.length) {
+                                            childrenDeptData.forEach(data => {
+                                                if (data && data.users) {
+                                                    childrenDeptUserList = childrenDeptUserList.concat(data.users);
+                                                }
+                                            });
+
+                                            // get all admin under children department
+                                            return dbconfig.collection_admin.find({_id: {$in: childrenDeptUserList}})
+                                                .populate({path: "departments", model: dbconfig.collection_department}).lean().then(
+                                                    childrenAdminData => {
+                                                        let childrenAdminList = [];
+                                                        if (childrenAdminData && childrenAdminData.length) {
+                                                            childrenAdminList = childrenAdminList.concat(childrenAdminData);
+                                                            console.log('childrenAdminList===', childrenAdminList);
+                                                            console.log('childrenAdminList.length===', childrenAdminList.length);
+                                                            childrenAdminList.map(admin => {
+                                                                if (admin.departments && admin.departments.length) {
+                                                                    admin.departmentName = admin.departments[0].departmentName;
+                                                                }
+                                                            });
+                                                        }
+
+                                                        // combine admin for parent and children department
+                                                        selectedCS = selectedCS.concat(childrenAdminList);
+                                                        console.log('selectedCS.length===22', selectedCS.length);
+                                                        return selectedCS;
+                                                    }
+                                                );
+                                        } else {
+                                            return selectedCS;
+                                        }
+                                    }
+                                );
                             }
-                    )
+                        )
+                    }
                 }
             }
-        )
+        );
     },
 
     getAllPlayerFeedbacks: function (query, admin, player, index, limit, sortCol, topUpTimesOperator, topUpTimesValue, topUpTimesValueTwo) {
-        var adminArr = [];
+        var adminArr = admin || [];
         var playerArr = [];
         var returnedData = [];
         var playerIdArr = [];
@@ -121,13 +215,18 @@ var dbPlayerFeedback = {
         sortCol = sortCol || {};
 
         function getTopUpCountWithinPeriod(feedback) {
+            let matchObj = {
+                platformId: feedback.platform,
+                createTime: {$gte: feedback.createTime, $lt: endTime}
+            };
+
+            if (feedback && feedback.playerId) {
+                matchObj.playerId = feedback.playerId._id
+            }
+
             return dbconfig.collection_playerTopUpRecord.aggregate([
                 {
-                    $match: {
-                        playerId: feedback.playerId._id,
-                        platformId: feedback.platform,
-                        createTime: {$gte: feedback.createTime, $lt: endTime}
-                    }
+                    $match: matchObj
                 },
                 {
                     $group: {
@@ -165,15 +264,15 @@ var dbPlayerFeedback = {
                 }
 
                 // return dbconfig.collection_admin.find({adminName: {$regex: ".*" + cs + ".*"}}).lean();
-                return dbconfig.collection_admin.find({adminName: admin}).lean();
-            }
-        ).then(
-            data => {
-                if (data && data[0]) {
-                    data.map(item => {
-                        adminArr.push(item._id);
-                    });
-                }
+                // return dbconfig.collection_admin.find({adminName: admin}).lean();
+            // }
+        // ).then(
+        //     data => {
+                // if (data && data[0]) {
+                //     data.map(item => {
+                //         adminArr.push(item._id);
+                //     });
+                // }
                 if (playerArr.length > 0) {
                     query.playerId = {$in: playerArr};
                 } else if (playerArr.length == 0 && player) {
@@ -185,8 +284,12 @@ var dbPlayerFeedback = {
                     return [];
                 }
 
-                if (query && query.platform && typeof query.platform === "string") {
-                    query.platform = {$in: [query.platform]};
+                if (query && query.platform) {
+                    if (typeof query.platform === "string") {
+                        query.platform = {$in: [query.platform]};
+                    } else {
+                        query.platform = {$in: query.platform};
+                    }
                 }
 
                 var a = dbconfig.collection_playerFeedback
@@ -229,12 +332,14 @@ var dbPlayerFeedback = {
                 var key = Object.keys(sortCol)[0];
                 var val = sortCol[key];
 
-                var finalData = returnedData.map(item => {
-                    var newObj = Object.assign({}, item);
-                    let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
-                    newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
-                    newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
-                    return newObj;
+                let finalData = returnedData.map(item => {
+                    if (item && item.playerId) {
+                        var newObj = Object.assign({}, item);
+                        let keyStr = newObj.playerId._id + new Date(newObj.createTime).getTime();
+                        newObj.topupTimes = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].topupTimes : 0;
+                        newObj.amount = objPlayerToTopupTimes[keyStr] ? objPlayerToTopupTimes[keyStr].amount : 0;
+                        return newObj;
+                    }
                 }).sort((a, b) => {
                     var test = 0;
                     if (a[key] > b[key]) {
@@ -681,6 +786,7 @@ var dbPlayerFeedback = {
             }
             console.log('return data', data);
             return {
+                backEndQuery: JSON.stringify(searchQuery),
                 data: data[0] ? data[0] : {},
                 index: index,
                 total: total
@@ -763,13 +869,13 @@ var dbPlayerFeedback = {
         } else {
             let range;
             if(query.lastAccess){
-                range = query.lastAccess.split("-");
-            }
-            sendQuery.lastAccessTime = {
-                $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
-            };
-            if (range[1]) {
-                sendQuery.lastAccessTime["$gte"] = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[1])));
+                range = query.lastAccess.split("-") || [];
+                sendQuery.lastAccessTime = {
+                    $lt: dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[0])))
+                };
+                if (range[1]) {
+                    sendQuery.lastAccessTime["$gte"] = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), parseInt(range[1])));
+                }
             }
         }
 
@@ -992,6 +1098,14 @@ var dbPlayerFeedback = {
         }
 
         let admins = [];
+        if (query.departments && query.departments.length && query.departments.includes('')) {
+            let deptArray = query.departments;
+            query.departments = deptArray.filter(a => {
+                if (a !== '') {
+                    return a;
+                }
+            });
+        }
         let department = await dbconfig.collection_department.find({
             _id: {$in: query.departments}
         }).lean();

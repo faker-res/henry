@@ -6200,7 +6200,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
+            topupMatchQuery.oriAmount = {$gte: eventData.condition && eventData.condition.requiredTopUpAmount ? eventData.condition.requiredTopUpAmount : 0};
             topupMatchQuery.$or = [{'bDirty': false}];
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
@@ -6269,7 +6269,7 @@ let dbPlayerReward = {
                         let yerTopupProbability = 0;
                         if (topup && topup.length) {
                             topup.forEach(data => {
-                                yerTopupAmount += data.amount;
+                                yerTopupAmount += data.oriAmount || data.amount;
                             });
                             yerTopupProbability = yerTopupAmount / topup.length;
                         }
@@ -6329,7 +6329,7 @@ let dbPlayerReward = {
             ]);
 
             promArr.push(periodConsumptionProm);
-            topupMatchQuery.amount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
+            topupMatchQuery.oriAmount = {$gte: selectedRewardParam && selectedRewardParam.minTopUpAmount ? selectedRewardParam.minTopUpAmount : 0};
 
             if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
                 let ignoreUsedTopupReward = [];
@@ -7786,7 +7786,7 @@ let dbPlayerReward = {
                         let topUpAmountToParticipates = selectedRewardParam && selectedRewardParam.hasOwnProperty('minTopUpAmount') ? selectedRewardParam.minTopUpAmount : 0;
                         let operationOptions = eventData.condition && eventData.condition.operatorOption ? true : false;
 
-                        let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + value.amount, 0) : 0;
+                        let topUpSum = topUpData ? topUpData.reduce((sum, value) => sum + (value.oriAmount || value.amount), 0) : 0;
                         let consumptionSum = consumptionData ? consumptionData.reduce((sum, value) => sum + value.validAmount, 0): 0
                         let applyRewardSum = periodData ? periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0): 0;
 
@@ -7859,7 +7859,7 @@ let dbPlayerReward = {
                             //For set topup bDirty Use
                             topUpData.forEach((topUpRecord) => {
                                 if (useTopupRecordAmount < topUpAmountToParticipates) {
-                                    useTopupRecordAmount += topUpRecord.amount;
+                                    useTopupRecordAmount += (topUpRecord.oriAmount || topUpRecord.amount);
                                     updateTopupRecordIds.push(topUpRecord._id);
                                 }
                             });
@@ -7922,7 +7922,7 @@ let dbPlayerReward = {
                         let topUpAmountToParticipate = eventData.condition && eventData.condition.hasOwnProperty('requiredTopUpAmount') ? eventData.condition.requiredTopUpAmount : 0;
                         let operationOption = eventData.condition && eventData.condition.operatorOption ? true : false;
 
-                        let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
+                        let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.oriAmount || value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardAmount = periodProps.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         useTopUpAmount = 0;
@@ -7999,7 +7999,7 @@ let dbPlayerReward = {
                             //For set topup bDirty Use
                             topUpRecords.forEach((topUpRecord) => {
                                 if (useTopupRecordAmount < topUpAmountToParticipate) {
-                                    useTopupRecordAmount += topUpRecord.amount;
+                                    useTopupRecordAmount += topUpRecord.oriAmount || topUpRecord.amount;
                                     updateTopupRecordIds.push(topUpRecord._id);
                                 }
                             });
@@ -8897,14 +8897,14 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FESTIVAL_REWARD_GROUP) {
                             if ((selectedRewardParam.rewardType == 2 || selectedRewardParam.rewardType == 5) && lastTopUpData) {
                                 console.log('MT --checking lastTopUpData', lastTopUpData.amount, selectedRewardParam.amountPercent);
-                                proposalData.data.rewardAmount = lastTopUpData.amount * selectedRewardParam.amountPercent;
+                                proposalData.data.rewardAmount = (lastTopUpData.oriAmount || lastTopUpData.amount) * selectedRewardParam.amountPercent;
                                 if (selectedRewardParam && selectedRewardParam.spendingTimes) {
                                     selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
                                     spendingAmount = proposalData.data.rewardAmount * selectedRewardParam.spendingTimes;
                                     proposalData.data.spendingAmount = spendingAmount;
                                 }
                                 if (lastTopUpData && lastTopUpData.amount) {
-                                    proposalData.data.applyAmount = lastTopUpData.amount;
+                                    proposalData.data.applyAmount = lastTopUpData.oriAmount || lastTopUpData.amount;
                                     proposalData.data.actualAmount = lastTopUpData.amount;
                                 }
                             }
@@ -9705,7 +9705,8 @@ let dbPlayerReward = {
      */
     checkAvailableRewardGroupTaskToApply: (platformObjId, playerObj, data) => {
         return dbConfig.collection_rewardType.find({
-            isGrouped: true
+            isGrouped: true,
+            name: {$ne: constRewardType.REFERRAL_REWARD_GROUP}
         }).lean().then(
             rewardTypes => {
                 if (rewardTypes && rewardTypes.length > 0) {
@@ -9725,6 +9726,36 @@ let dbPlayerReward = {
                     rewardEvents.forEach(event => {
                         if (event && event.code) {
                             p = p.then(() => dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data))
+                        }
+                    });
+
+                    return p;
+                }
+            }
+        )
+    },
+    checkAvailableReferralRewardGroupTaskToApply: (platformObjId, playerObj, referralMode) => {
+        return dbConfig.collection_rewardType.find({
+            isGrouped: true,
+            name: constRewardType.REFERRAL_REWARD_GROUP
+        }).lean().then(
+            rewardTypes => {
+                if (rewardTypes && rewardTypes.length > 0) {
+                    return dbConfig.collection_rewardEvent.find({
+                        platform: platformObjId,
+                        type: {$in: rewardTypes.map(e => e._id)},
+                        "condition.applyType": constRewardApplyType.AUTO_APPLY,
+                        "condition.referralRewardMode": referralMode
+                    }).lean();
+                }
+            }
+        ).then(
+            rewardEvents => {
+                if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId) {
+                    let p = Promise.resolve();
+                    rewardEvents.forEach(event => {
+                        if (event && event.code) {
+                            p = p.then(() => dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code))
                         }
                     });
 

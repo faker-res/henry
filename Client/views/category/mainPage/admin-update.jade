@@ -29,7 +29,7 @@ form(name="form_update_admin", novalidate)
 		label.control-label {{"TeleMarketing" | translate}}{{"DID" | translate}}
 		input.form-control(type="number", placeholder="电销用DID", ng-model="vm.newAdmin.tsDid")
 	div.form-group.col-lg-6
-		label.control-label {{"LIVE800 ACC" | translate}}
+		label.control-label {{"LIVE800 ACC (Can use comma to separate multiple account, and without spacing in between)" | translate}}
 		input.form-control(type="text", placeholder="LIVE800 Acc", ng-model="vm.updateAdminLive800.live800AccTXT")
 	div.form-group.col-lg-6
 		label.control-label {{"CTI_QUEUE_NUM" | translate}}

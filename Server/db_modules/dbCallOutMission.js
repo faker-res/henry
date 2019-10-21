@@ -1,6 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 const dbCtiCallOut = require('./../db_modules/dbCtiCallOut');
+const dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 
 const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
 const constCallOutMissionCalleeStatus = require('./../const/constCallOutMissionCalleeStatus');
@@ -13,7 +14,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 let dbCallOutMission = {
-    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
+    createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers, backEndQuery) => {
         let platform, admin, calleeList, callOutMission, availableCallOutMission;
         searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
@@ -42,7 +43,7 @@ let dbCallOutMission = {
                     });
                 }
 
-                return getCalleeList(searchQuery, sortCol, selectedPlayers);
+                return getCalleeList(searchQuery, sortCol, selectedPlayers, backEndQuery);
             }
         ).then(
             calleeData => {
@@ -408,53 +409,57 @@ function getPlayerDetails(players) {
     return Promise.all(proms);
 }
 
-function getCalleeList (query, sortCol, selectedPlayers) {
-    switch (query.playerType) {
-        case 'Test Player':
-            query.isRealPlayer = false;
-            break;
-        case 'Real Player (all)':
-            query.isRealPlayer = true;
-            break;
-        case 'Real Player (Individual)':
-            query.isRealPlayer = true;
-            query.partner = null;
-            break;
-        case 'Real Player (Under Partner)':
-            query.isRealPlayer = true;
-            query.partner = {$ne: null};
-    }
-    if (query.playerType) {
-        delete query.playerType;
-    }
-
-    if (query.csOfficer && query.csOfficer.length) {
-        let noneCSOfficerQuery = {}, csOfficerArr = [];
-
-        query.csOfficer.forEach(item => {
-            if (item == "") {
-                noneCSOfficerQuery = {csOfficer: {$exists: false}};
-            } else {
-                csOfficerArr.push(ObjectId(item));
-            }
-        });
-
-        if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
-            query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
-            delete query.csOfficer;
-
-        } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
-            query.csOfficer = {$exists: false};
-
-        } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
-            query.csOfficer = {$in: csOfficerArr};
-
-        }
-    }
-
+function getCalleeList (query, sortCol, selectedPlayers, previousBackEndQuery) {
     if(selectedPlayers && selectedPlayers.length > 0){
         query = {};
         query.playerId = {$in: selectedPlayers}
+    }
+    else if (previousBackEndQuery) {
+        query = JSON.parse(previousBackEndQuery);
+    } else {
+        // deprecated
+        switch (query.playerType) {
+            case 'Test Player':
+                query.isRealPlayer = false;
+                break;
+            case 'Real Player (all)':
+                query.isRealPlayer = true;
+                break;
+            case 'Real Player (Individual)':
+                query.isRealPlayer = true;
+                query.partner = null;
+                break;
+            case 'Real Player (Under Partner)':
+                query.isRealPlayer = true;
+                query.partner = {$ne: null};
+        }
+        if (query.playerType) {
+            delete query.playerType;
+        }
+
+        if (query.csOfficer && query.csOfficer.length) {
+            let noneCSOfficerQuery = {}, csOfficerArr = [];
+
+            query.csOfficer.forEach(item => {
+                if (item == "") {
+                    noneCSOfficerQuery = {csOfficer: {$exists: false}};
+                } else {
+                    csOfficerArr.push(ObjectId(item));
+                }
+            });
+
+            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+                query.$or = [noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}];
+                delete query.csOfficer;
+
+            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                query.csOfficer = {$exists: false};
+
+            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+                query.csOfficer = {$in: csOfficerArr};
+
+            }
+        }
     }
 
     let players;

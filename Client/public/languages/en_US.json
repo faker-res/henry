@@ -1834,5 +1834,11 @@
   "AppPlayer": "APP Player",
   "referralName": "Referral Name",
   "REFERRAL_VALID": "Valid",
-  "REFERRAL_UNBIND": "Unbind"
+  "REFERRAL_UNBIND": "Unbind",
+  "TOP_UP_AMOUNT_RANGE": "Top Up Amount Range",
+  "QQGroupControl": "QQ Group Control Monitor",
+  "QQ_GROUP_CONTROL_MONITOR": "QQ Group Control Monitor",
+  "LOGIN_DEVICE": "Login Device",
+  "APP_IOS": "APP - iOS",
+  "APP_ANDROID": "APP - Android"
 }

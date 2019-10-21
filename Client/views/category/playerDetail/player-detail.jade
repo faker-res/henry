@@ -33,7 +33,7 @@
                             textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
                     .text-right
                         button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
-                        button.btn.btn-success(ng-disabled="!vm.isFeedbackAddValid()", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+                        button.btn.btn-success(ng-show="vm.toggleSubmitFeedbackButton" ng-disabled="!vm.isFeedbackAddValid()", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
 
                 h4 {{"CREDIBILITY_RECORD" | translate}}
                 table.simple-table

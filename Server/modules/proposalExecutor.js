@@ -724,7 +724,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
-                            if (proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
+                            if (data && proposalData.data.platformId && proposalData.data.partner && proposalData.data._id) {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
                                 checkIsPlayerBindToPartner(proposalData.data._id, platformObjId);
                             }
@@ -1710,18 +1710,6 @@ var proposalExecutor = {
 
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData, oriAmount).then(
                     data => {
-                        let wsMessageClient = serverInstance.getWebSocketMessageClient();
-                        if (wsMessageClient) {
-                            wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                                {
-                                    proposalId: proposalData.proposalId,
-                                    amount: topUpAmount,
-                                    handleTime: new Date(),
-                                    status: proposalData.status,
-                                    playerId: proposalData.data.playerId
-                                }
-                            )//.catch(errorUtils.reportError);
-                        }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
                         return proposalData;
@@ -1738,19 +1726,6 @@ var proposalExecutor = {
             executePlayerAlipayTopUp: function (proposalData) {
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
                     data => {
-                        //todo::add top up notify here ???
-                        // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                        // if (wsMessageClient) {
-                        //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                        //         {
-                        //             proposalId: proposalData.proposalId,
-                        //             amount: proposalData.data.amount,
-                        //             handleTime: new Date(),
-                        //             status: proposalData.status,
-                        //             playerId: proposalData.data.playerId
-                        //         }
-                        //     );
-                        // }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
                         return proposalData;
@@ -1765,19 +1740,6 @@ var proposalExecutor = {
             executePlayerQuickpayTopUp: function (proposalData) {
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
                     data => {
-                        //todo::add top up notify here ???
-                        // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                        // if (wsMessageClient) {
-                        //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                        //         {
-                        //             proposalId: proposalData.proposalId,
-                        //             amount: proposalData.data.amount,
-                        //             handleTime: new Date(),
-                        //             status: proposalData.status,
-                        //             playerId: proposalData.data.playerId
-                        //         }
-                        //     );
-                        // }
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1790,19 +1752,6 @@ var proposalExecutor = {
             executePlayerWechatTopUp: function (proposalData) {
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.WECHAT, proposalData).then(
                     data => {
-                        //todo::add top up notify here ???
-                        // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                        // if (wsMessageClient) {
-                        //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                        //         {
-                        //             proposalId: proposalData.proposalId,
-                        //             amount: proposalData.data.amount,
-                        //             handleTime: new Date(),
-                        //             status: proposalData.status,
-                        //             playerId: proposalData.data.playerId
-                        //         }
-                        //     );
-                        // }
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
                         return proposalData;
@@ -1820,20 +1769,6 @@ var proposalExecutor = {
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
                     return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
                         data => {
-                            // SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
-                            // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                            // if (wsMessageClient) {
-                            //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
-                            //         {
-                            //             proposalId: proposalData.proposalId,
-                            //             amount: proposalData.data.amount,
-                            //             handleTime: new Date(),
-                            //             status: proposalData.status,
-                            //             playerId: proposalData.data.playerId
-                            //         }
-                            //     );
-                            // }
-                            // DEBUG: Reward sometime not applied issue
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
                             return proposalData;
@@ -4922,27 +4857,11 @@ var proposalExecutor = {
              * reject function for player top up
              */
             rejectPlayerTopUp: function (proposalData, deferred) {
-                var wsMessageClient = serverInstance.getWebSocketMessageClient();
                 let paymentSystemId;
-                if (wsMessageClient) {
-                    wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                        {
-                            proposalId: proposalData.proposalId,
-                            amount: proposalData.data.amount,
-                            handleTime: new Date(),
-                            status: proposalData.status,
-                            playerId: proposalData.data.playerId
-                        }
-                    );
-                }
 
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType) {
                     paymentSystemId = proposalData.data.topUpSystemType;
                 }
-
-                // pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
-                //     deferred.resolve, deferred.reject
-                // );
 
                 RESTUtils.getPMS2Services("postCancelTopup", {proposalId: proposalData.proposalId}, paymentSystemId).then(deferred.resolve, deferred.reject);
             },
@@ -4951,26 +4870,10 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
-            // rejectPlayerCommonTopUp: function (proposalData, deferred) {
-            //     deferred.resolve("Proposal is rejected");
-            // },
-
             /**
              * reject function for player alipay top up
              */
             rejectPlayerAlipayTopUp: function (proposalData, deferred) {
-                // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                // if (wsMessageClient) {
-                //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                //         {
-                //             proposalId: proposalData.proposalId,
-                //             amount: proposalData.data.amount,
-                //             handleTime: new Date(),
-                //             status: proposalData.status,
-                //             playerId: proposalData.data.playerId
-                //         }
-                //     );
-                // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
                     && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {
@@ -5002,18 +4905,6 @@ var proposalExecutor = {
              * reject function for player wechat top up
              */
             rejectPlayerWechatTopUp: function (proposalData, deferred) {
-                // var wsMessageClient = serverInstance.getWebSocketMessageClient();
-                // if (wsMessageClient) {
-                //     wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
-                //         {
-                //             proposalId: proposalData.proposalId,
-                //             amount: proposalData.data.amount,
-                //             handleTime: new Date(),
-                //             status: proposalData.status,
-                //             playerId: proposalData.data.playerId
-                //         }
-                //     );
-                // }
                 if (proposalData && proposalData.data && proposalData.data.topUpSystemType
                     && proposalData.data.topUpSystemName && proposalData.data.topUpSystemName !== 'FPMS') {
                     let data = {

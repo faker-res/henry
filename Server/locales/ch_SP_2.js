@@ -40,6 +40,7 @@ var simplifiedChinese = {
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
     "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
     "CLOSED_COMMISSION": "关闭",
+    "DAILY_CONSUMPTION": "1天-投注額",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "Please bind phone number first": "请先绑定手机号码",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
@@ -72,6 +73,7 @@ var simplifiedChinese = {
     "The verification limit has been reached (5/hour), please try again later": "已达到验证上限（5次/小时）,请稍后再试",
     "The verification limit has been reached (1/minute), please try again later": "已达到验证上限（1次/分钟）,请稍后再试",
     "The verification limit has been reached today, please try again tomorrow": "已达到今日验证上限，请明日再试",
+    "Fail to get bank card info": "银行卡获取失败",
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
@@ -506,6 +508,11 @@ var simplifiedChinese = {
     "First Top Up Amount and Top Up Count setting cannot be zero": "首次单笔存款额和存款笔数不允许输入数据为0",
     "Does not meet top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
     "Does not meet first top up amount and top up count": "被推荐人未达到首次单笔存款额或存款笔数",
+    "Player not exist, Please contact cs.": "您的帐号信息不存在，请联系客服确认。",
+    "This phone number has been registered": "该手机号码已注册",
+    "Phone number and password don't match": "手机号码和密码不匹配",
+    "Password is mandatory": "密码必填",
+    "Please fill in correct amount": "请填写正确金额",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

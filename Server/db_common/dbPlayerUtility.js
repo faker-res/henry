@@ -1,3 +1,7 @@
+var dbPlayerUtilFunc = function () {
+};
+module.exports = new dbPlayerUtilFunc();
+
 const Q = require("q");
 
 const cpmsAPI = require("../externalAPI/cpmsAPI");
@@ -451,4 +455,8 @@ const dbPlayerUtility = {
     //endregion
 };
 
+var proto = dbPlayerUtilFunc.prototype;
+proto = Object.assign(proto, dbPlayerUtility);
+
+// This make WebStorm navigation work
 module.exports = dbPlayerUtility;

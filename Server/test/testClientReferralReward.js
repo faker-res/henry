@@ -1,4 +1,4 @@
-let should = require('should');
+var should = require('chai').should();
 let dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 let dbRewardEvent = require('../db_modules/dbRewardEvent');
 let dbRewardType = require('../db_modules/dbRewardType');

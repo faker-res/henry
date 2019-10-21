@@ -128,6 +128,12 @@ var dbPlatformGameStatus = {
         ).exec();
     },
 
+    updateProviderNeedLoginShow: function (platformId, gameProviderObjId, needLoginShow) {
+        let updateData = {};
+        updateData[`needLoginShow.${platformId}`] = needLoginShow;
+        return dbconfig.collection_gameProvider.update({_id: gameProviderObjId}, updateData);
+    },
+
     addProviderGamesToPlatform: function (providerObjId, platformObjId) {
         //find all provider games
         return dbconfig.collection_game.find({provider: providerObjId}).then(
@@ -377,6 +383,10 @@ var dbPlatformGameStatus = {
 
                             if(game.smallShow && !game.smallShow.includes("http")){
                                 game.smallShow = playerRouteSetting ? playerRouteSetting + game.smallShow : (game.sourceURL ? game.sourceURL + game.smallShow : game.smallShow);
+                            }
+
+                            if (game.webp && !game.webp.includes("http")) {
+                                game.webp = playerRouteSetting ? playerRouteSetting + game.webp : (game.sourceURL ? game.sourceURL + game.webp : game.webp);
                             }
 
                             game.provider = game.provider.providerId;

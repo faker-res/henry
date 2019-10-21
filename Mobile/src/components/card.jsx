@@ -30,7 +30,7 @@ class Card extends Component {
 
                         </div> 
 
-                        <a href="#">
+                        <a href="/">
                             <div className={this.footerColor()}>
                                 <div className="row">
                                     <div className="col-7 col-sm-12 col-md-7">

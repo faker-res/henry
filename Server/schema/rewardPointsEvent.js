@@ -31,7 +31,9 @@ var rewardPointsEvent = new Schema({
     // event details base on category
     target: {type: JSON, default: {}},
     // player level
-    level: {type: Schema.ObjectId, ref: 'playerLevel', index: true}
+    level: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
+    // pointMode: 1-登陆，2-签到
+    pointMode: {type: Number, default: 1},
 });
 
 module.exports = rewardPointsEvent;

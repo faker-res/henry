@@ -145,12 +145,6 @@
         });
     };
 
-    proto.getBonusList = function (callback, requestData) {
-        var data = requestData || {};
-        this._service.getBonusList.request(data);
-        this._service.getBonusList.once(callback);
-    };
-
     proto.applyBonus = function (callback, requestData) {
         var data = requestData || {
                 playerId: testPlayerId,
@@ -229,20 +223,6 @@
         var data = requestData || {};
         this._service.getOnlineTopupType.request(data);
         this._service.getOnlineTopupType.once(callback);
-    };
-
-    proto.manualTopupStatusNotify = function (callback, requestData) {
-        var responseFunc = function(data){
-            callback(data);
-        };
-        this._service.manualTopupStatusNotify.addListener(responseFunc);
-    };
-
-    proto.onlineTopupStatusNotify = function (callback, requestData) {
-        var responseFunc = function(data){
-            callback(data);
-        };
-        this._service.onlineTopupStatusNotify.addListener(responseFunc);
     };
 
     proto.getProvinceList = function (callback, requestData) {

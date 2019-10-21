@@ -1,7 +1,7 @@
 .well
     .search-filters-item
         label {{'PRODUCT_NAME'| translate}}
-        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();vm.getAllGameProvidersLocal();vm.loadFeedbackDepartment(vm.playerFeedbackQuery.selectedPlatform);' )
+        select.form-control(ng-model="vm.playerFeedbackQuery.selectedPlatform" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.feedbackPlatformChanged();vm.getAllGameProvidersLocal();vm.getDepartmentDetailsByPlatformObjId(vm.playerFeedbackQuery.selectedPlatform);' )
     .search-filters-item
         label {{"USER_TYPE"|translate}}
         select.form-control(ng-model="vm.playerFeedbackQuery.playerType")
@@ -136,7 +136,7 @@
         select.spicker.form-control(ng-model='vm.playerFeedbackQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerFeedbackQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
     .search-filters-item
         label {{"REGISTRATION_ADMIN"|translate}}
-        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
     .search-filters-item
         label {{"CALL_PERMISSION"|translate}}
         div
@@ -204,7 +204,7 @@ div
                     textarea.form-control(rows='4' cols="40", ng-model='vm.addFeedback.content')
             .text-right
                 button.btn.btn-danger.margin-right-5(ng-click='vm.addFeedback.content="";vm.addFeedback.result="";vm.addFeedback.topic="";') {{'Reset' | translate}}
-                button.btn.btn-success(ng-disabled="!vm.isFeedbackAddValid()", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
+                button.btn.btn-success(ng-show="vm.toggleSubmitFeedbackButton" ng-disabled="!vm.isFeedbackAddValid()", ng-click='vm.addPlayerFeedback(vm.addFeedback)') {{'CONFIRM' | translate}}
 
         h4 {{"CREDIBILITY_RECORD" | translate}}
         table.simple-table

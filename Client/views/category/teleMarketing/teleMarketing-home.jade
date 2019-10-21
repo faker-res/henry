@@ -805,7 +805,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
 
                     .pull-right(ng-if='vm.sendSMSResult.sent===true')
                         .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
-                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}l
+                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}
                         .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
                             text {{'SEND' | translate}} {{'FAIL' | translate}}
                     .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
@@ -1287,9 +1287,6 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                     .form-group-col-md-6
                         label.control-label {{'CREDIT' | translate}}
                         input.leftALignNumber.form-control(type='number' min="0" ng-model='vm.playerBonus.amount' required)
-                    .form-group-col-md-6(ng-hide='vm.playerBonus.bonusId')
-                        label.control-label {{'BONUS_ID' | translate}}
-                        input.form-control(ng-model='vm.playerBonus.bonusId', required)
                     .form-group-col-md-6
                         label.control-label {{'HONOREE_DETAIL' | translate}}
                         input.form-control(ng-model='vm.playerBonus.honoreeDetail')
@@ -1712,6 +1709,7 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         .pull-right(ng-if='vm.sendSMSResult.sent===true')
                             .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
                                 text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                        .pull-right(ng-if='vm.sendSMSResult.sent === false')
                             .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
                                 text {{'SEND' | translate}} {{'FAIL' | translate}}
                         .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')

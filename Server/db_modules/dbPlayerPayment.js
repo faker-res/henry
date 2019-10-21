@@ -352,11 +352,14 @@ const dbPlayerPayment = {
         // let url = "";
         let topUpSystemConfig;
         let topUpSystemName;
-        let platformMinTopUpAmount = 0;
+        let defaultMinTopUpAmount = 10;
+        let defaultMaxTopUpAmount = 1000000;
         let result = {};
         let proposalData = {};
         let newProposal = {};
         let playerRecord = {};
+        let platformTopUpAmountConfig;
+        let playerTopUpCount;
 
         console.log('getMinMaxCommonTopupAmount before get player', playerId, new Date());
 
@@ -374,10 +377,6 @@ const dbPlayerPayment = {
 
                     if (topUpSystemConfig && topUpSystemConfig.name) {
                         topUpSystemName = topUpSystemConfig.name;
-                    }
-
-                    if (playerData.platform && playerData.platform.minTopUpAmount) {
-                        platformMinTopUpAmount = playerData.platform.minTopUpAmount;
                     }
 
                     proposalData.playerId = playerId;
@@ -414,17 +413,45 @@ const dbPlayerPayment = {
                         newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
                     }
 
-                    if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
-                        let reqData = {
-                            platformId: playerData.platform.platformId,
-                            name: playerData.name,
-                            clientType: clientType
-                        };
+                    let topUpCountProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                        [
+                            {
+                                $match: {
+                                    platformId: playerRecord.platform._id,
+                                    createTime: {$gte: new Date(playerRecord.registrationTime), $lte: new Date()},
+                                    playerId: playerRecord._id
+                                }
+                            },
+                            {
+                                $group: {
+                                    _id: null,
+                                    count: {$sum: 1}
+                                }
+                            }
+                        ]
+                    ).allowDiskUse(true).exec();
 
-                        return RESTUtils.getPMS2Services("getMinMax", reqData);
-                    } else {
-                        return true;
-                    }
+                    let platformTopUpAmount = dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: playerRecord.platform._id}).lean();
+
+                    return Promise.all([topUpCountProm, platformTopUpAmount]).then(
+                        data => {
+                            playerTopUpCount = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                            platformTopUpAmountConfig = data[1];
+
+                            if (!topUpSystemConfig || topUpSystemName === 'PMS' || topUpSystemName === 'PMS2') {
+                                let reqData = {
+                                    platformId: playerData.platform.platformId,
+                                    name: playerData.name,
+                                    clientType: clientType
+                                };
+
+                                return RESTUtils.getPMS2Services("getMinMax", reqData);
+                            } else {
+                                return true;
+                            }
+                        }
+                    )
+
                 }
             }
         ).then(
@@ -447,13 +474,116 @@ const dbPlayerPayment = {
                             );
                         }
 
-                        result.minDepositAmount = Number(ret.min) || 0;
-                        result.maxDepositAmount = Number(ret.max) || 0
+                        let newMinDepositAmount;
+                        let newMaxDepositAmount;
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+                            && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount && platformTopUpAmountConfig.commonTopUpAmountRange.maxAmount) {
+                            let tempMinConfig = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                            let tempMaxConfig = platformTopUpAmountConfig.commonTopUpAmountRange.maxAmount;
+
+                            if(Number(ret.min) && (tempMinConfig > Number(ret.min))) {
+                                newMinDepositAmount = tempMinConfig;
+                            } else {
+                                newMinDepositAmount = Number(ret.min)
+                            }
+
+                            if (ret.max && Number(ret.max) && (tempMaxConfig > Number(ret.max))) {
+                                newMaxDepositAmount = Number(ret.max);
+                            } else {
+                                newMaxDepositAmount = tempMaxConfig;
+                            }
+                        } else {
+                            let tempMinConfig = defaultMinTopUpAmount;
+                            let tempMaxConfig = defaultMaxTopUpAmount;
+
+                            if(Number(ret.min) && (tempMinConfig > Number(ret.min))) {
+                                newMinDepositAmount = tempMinConfig;
+                            } else {
+                                newMinDepositAmount = Number(ret.min)
+                            }
+
+                            if (ret.max && Number(ret.max) && (tempMaxConfig > Number(ret.max))) {
+                                newMaxDepositAmount = Number(ret.max);
+                            } else {
+                                newMaxDepositAmount = tempMaxConfig;
+                            }
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
+                            let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
+
+                            for (let i = 0; i < topUpCountAmountRanges.length; i++) {
+                                let range = topUpCountAmountRanges[i];
+                                if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
+                                    if(range && range.minAmount && Number(ret.min)) {
+                                        if(range.minAmount > Number(ret.min)) {
+                                            newMinDepositAmount = range.minAmount;
+                                        } else {
+                                            newMinDepositAmount = Number(ret.min)
+                                        }
+                                    }
+
+                                    if (range && range.maxAmount && ret.max && Number(ret.max)) {
+                                        if (range.maxAmount > Number(ret.max)) {
+                                            newMaxDepositAmount = Number(ret.max);
+                                        } else {
+                                            newMaxDepositAmount = range.maxAmount;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+
+                        }
+
+                        if (!newMinDepositAmount && !newMaxDepositAmount) {
+                            newMinDepositAmount = Number(ret.min);
+                            newMaxDepositAmount = Number(ret.max);
+                        }
+
+                        result.minDepositAmount = newMinDepositAmount || 0;
+                        result.maxDepositAmount = newMaxDepositAmount || 0
 
                         return result;
 
                     } else {
-                        result.minDepositAmount = Number(platformMinTopUpAmount);
+                        let newMinTopUpAmount;
+                        let newMaxTopUpAmount;
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+                            && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount && platformTopUpAmountConfig.commonTopUpAmountRange.maxAmount) {
+                            newMinTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                            newMaxTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.maxAmount;
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
+                            let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
+
+                            for (let i = 0; i < topUpCountAmountRanges.length; i++) {
+                                let range = topUpCountAmountRanges[i];
+                                if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
+                                    if(range && range.minAmount) {
+                                        newMinTopUpAmount = range.minAmount;
+                                    }
+
+                                    if (range && range.maxAmount) {
+                                        newMaxTopUpAmount = range.maxAmount;
+                                    }
+                                    break;
+                                }
+                            }
+
+                        }
+
+                        if (!newMinTopUpAmount && !newMaxTopUpAmount) {
+                            newMinTopUpAmount = defaultMinTopUpAmount;
+                            newMaxTopUpAmount = defaultMaxTopUpAmount;
+                        }
+
+                        result.minDepositAmount = newMinTopUpAmount;
+                        result.maxDepositAmount = newMaxTopUpAmount;
 
                         return result;
                     }
@@ -484,7 +614,18 @@ const dbPlayerPayment = {
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
         let player, rewardEvent, proposal, topUpSystemConfig;
+        let playerTopUpCount;
+        let platformTopUpAmountConfig;
+        let defaultMinTopUpAmount = 10;
+        let minTopUpAmount = 0;
         console.log('topupRequest JY::', topupRequest);
+        if (!(topupRequest.amount && Number.isInteger(topupRequest.amount) && topupRequest.amount < 10000000)) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Please fill in correct amount"
+            });
+        }
+
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -494,7 +635,8 @@ const dbPlayerPayment = {
         }
 
         return dbconfig.collection_players.findOne({
-            playerId: playerId
+            playerId: playerId,
+            isRealPlayer: true
         }).populate({
             path: "platform", model: dbconfig.collection_platform
         }).populate({
@@ -540,6 +682,64 @@ const dbPlayerPayment = {
             eventData => {
                 rewardEvent = eventData;
 
+                let topUpCountProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                    [
+                        {
+                            $match: {
+                                platformId: player.platform._id,
+                                createTime: {$gte: new Date(player.registrationTime), $lte: new Date()},
+                                playerId: player._id
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: null,
+                                count: {$sum: 1}
+                            }
+                        }
+                    ]
+                ).allowDiskUse(true).exec();
+
+                let platformTopUpAmount = dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: player.platform._id}).lean();
+
+                return Promise.all([topUpCountProm, platformTopUpAmount]).then(
+                    data => {
+                        playerTopUpCount = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                        platformTopUpAmountConfig = data[1];
+
+                        let newMinTopUpAmount;
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+                            && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            newMinTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                        }
+
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
+                            let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+                            topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
+
+                            for (let i = 0; i < topUpCountAmountRanges.length; i++) {
+                                let range = topUpCountAmountRanges[i];
+                                if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
+                                    if(range && range.minAmount) {
+                                        newMinTopUpAmount = range.minAmount;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!newMinTopUpAmount) {
+                            newMinTopUpAmount = defaultMinTopUpAmount;
+                        }
+
+                        return newMinTopUpAmount;
+                    }
+                )
+            }
+        ).then(
+            minAmountData => {
+                minTopUpAmount = minAmountData;
+
                 // Check limited offer and promo code condition
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
@@ -561,7 +761,6 @@ const dbPlayerPayment = {
             }
         ).then(
             res => {
-                let minTopUpAmount = player.platform.minTopUpAmount || 0;
                 let limitedOfferTopUp = res[0];
                 let bonusCodeValidity = res[1];
 
@@ -588,6 +787,7 @@ const dbPlayerPayment = {
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
+                proposalData.loginDevice = player.loginDevice || null;
                 proposalData.platformId = player.platform._id;
                 if( player.playerLevel ){
                     proposalData.playerLevel = player.playerLevel._id;
@@ -671,6 +871,12 @@ const dbPlayerPayment = {
                 }
                 else if (Number(topupRequest.clientType) == 4) {
                     newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+
+                    if (topupRequest && topupRequest.userAgent && topupRequest.userAgent.browser && topupRequest.userAgent.browser.name
+                        && (topupRequest.userAgent.browser.name.indexOf("WebKit") !== -1 || topupRequest.userAgent.browser.name.indexOf("WebView") !== -1)) {
+                        // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                        newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                    }
                 } else {
                     newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 }

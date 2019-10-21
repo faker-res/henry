@@ -1246,6 +1246,7 @@ let dbTeleSales = {
                         if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
                             workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
                                 csOfficer: item.csOfficer._id,
+                                adminId: item.csOfficer._id,
                                 adminName: item.csOfficer.adminName,
                                 phoneListObjId: item.tsPhoneList._id,
                                 phoneListName: item.tsPhoneList.name,

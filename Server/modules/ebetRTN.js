@@ -108,11 +108,12 @@ function sendQueryCommand(tableType, size) {
         data: {
             tableType: tableType || 1,
             // table: "B2",
-            // size: 30
+            // size: 30 // size refer to notification size
         }
     };
     if (size) {
-        sendData.data.size = size;
+        // sendData.data.size = size;
+        sendData.data.numberOfTable = size;
     }
     var json = JSON.stringify(sendData);
 
@@ -127,7 +128,7 @@ function sendQueryCommand(tableType, size) {
 
         setTimeout(function() {
             if (!handled) {
-                events.removeListener(requestId);
+                events.removeAllListeners([requestId]);
                 reject({code: constServerCode.EXTERNAL_API_TIMEOUT, message: "luzhu not available"});
             }
         }, 60000);

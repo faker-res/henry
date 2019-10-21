@@ -601,7 +601,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: "银行柜台(Counter)",
         4: "支付宝转账(AliPay Transfer)",
         5: "微信转帐(WeChatPay Transfer)",
-        6: "云闪付(CloudFlashPay)"
+        6: "云闪付(CloudFlashPay)",
+        7: "云闪付转账(CloudFlashPay Transfer)"
     };
 
     $scope.depositMethodList = {
@@ -610,7 +611,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         Counter: 3,
         AliPayTransfer: 4,
         weChatPayTransfer: 5,
-        CloudFlashPay: 6
+        CloudFlashPay: 6,
+        CloudFlashPayTransfer: 7
     };
 
     $scope.counterDepositType = {
@@ -840,7 +842,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         3: 'H5_PLAYER',
         4: 'H5_AGENT',
         5: 'APP_PLAYER',
-        6: 'APP_AGENT'
+        6: 'APP_AGENT',
+        7: 'APP_NATIVE_PLAYER',
+        8: 'APP_NATIVE_PARTNER',
     };
 
     $scope.constRewardPointsIntervalPeriod = {
@@ -1075,12 +1079,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.getUsableChannelList = function (callback) {
         $scope.usableChannelList = $scope.usableChannelList && $scope.usableChannelList.length > 0 ? $scope.usableChannelList : [4]; // Bubles said default to channel 4 if get channel connection error
-        socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId}, onSuccess, onFail, true);
+        socketService.$socket($scope.AppSocket, 'getUsableChannelList', {platformId: $scope.curPlatformId || 4}, onSuccess, onFail, true);
 
         function onSuccess(data) {
             $scope.usableChannelList = data.data.channels.filter(item => {
                 return (item != 1) && (item != '1'); //channel 1 is only for sending sms code
             });
+
+            if (!$scope.usableChannelList || !$scope.usableChannelList.length) {
+                $scope.usableChannelList = [4]
+            }
+
+            $scope.channelList = $scope.usableChannelList;
             console.log("Got usable channelList:", $scope.usableChannelList);
             if (callback) {
                 callback.call(this);
@@ -1176,7 +1186,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 return;
             }
 
-            if (!adminData.did || !adminData.tsdid) {
+            if (!adminData.did && !adminData.tsdid) {
                 alert("还没设置前缀。。。");
                 return;
             }
@@ -1277,9 +1287,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 let firstLevelMd5 = convertToMD5(adminData.callerId + "");
                 let password = convertToMD5(firstLevelMd5 + formattedNow);
                 //http://ipaddress:port/cti/previewcallout.action?User=***&Password=***&Callee=***&Taskid=***&isMessage=***&MessageUrl=***&DID=***;
-                let did = admin.did || admin.tsDid;
+                let did = adminData.did || adminData.tsDid;
                 if (isTs) {
-                    did = admin.tsDid || admin.did;
+                    did = adminData.tsDid || adminData.did;
                 }
                 let urlWithParams = url + "?User=" + adminData.callerId + "&Password=" + password + "&Callee=" + did + $scope.phoneCall.phone + "&username=" + $scope.phoneCall.username + "&Taskid=&isMessage=0&MessageUrl=&DID=";
 
@@ -1749,7 +1759,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
         });
 
-        $scope.getChannelList();
+        $scope.getUsableChannelList();
         $scope.phoneCall = {};
         utilService.initTranslate($filter('translate'));
         socketService.initTranslate($filter('translate'));

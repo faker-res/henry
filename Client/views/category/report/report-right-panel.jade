@@ -43,6 +43,7 @@
                         option(value='4') 支付宝转帐(AliPay Transfer)
                         option(value='5') 微信转帐(WeChatPay Transfer)
                         option(value='6') 云闪付(CloudFlashPay)
+                        option(value='7') 云闪付转账(CloudFlashPay Transfer)
                         //option(value='5') 支付宝(AliPay)
 
 
@@ -344,7 +345,7 @@
                     select.spicker.form-control(ng-model='vm.playerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                      div
@@ -411,6 +412,108 @@
             table.common-table#playerReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerReportTablePage
             table.common-table#playerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
+
+
+        div(ng-if='vm.showPageName=="DEVICE_REPORT"')
+            .col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.deviceQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.deviceQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
+                    label {{'LEVEL' | translate}}
+                    select.form-control(ng-model="vm.deviceQuery.level", ng-options='a as b.name for (a,b) in vm.playerLvlData')
+                        option(value='') {{'any' | translate}}
+                .search-filters-item
+                    label {{"Provider"|translate}}
+                    select.form-control(ng-model='vm.deviceQuery.providerId', style='max-width:300px', required)
+                        option(value='') {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
+                .search-filters-item
+                    label {{'Start date' | translate}}
+                        .startTime
+                    #deviceStartingDateTimePicker
+                .search-filters-item
+                    label {{'End date' | translate}}
+                        .endTime
+                    #deviceEndingEndDateTimePicker
+                .search-filters-item
+                    label {{'Player Name' | translate}}
+                    input.form-control(ng-model="vm.deviceQuery.name")
+                .search-filters-item
+                    label {{"csPromoteWay"|translate}}
+                    select.spicker.form-control(ng-model='vm.deviceQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                .search-filters-item
+                    label {{"Login Device"|translate}}
+                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.consumptionTimesOperator === "range")}')
+                    label {{"Consumption Times"|translate}}
+                        div
+                            select.threeBoxes.form-control(ng-model="vm.deviceQuery.consumptionTimesOperator")
+                                option(value='>=') {{'>='}}
+                                option(value='=') {{'='}}
+                                option(value='<=') {{'<='}}
+                                option(value='range') {{'range'|translate}}
+                            input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.consumptionTimesValue")
+                            div.symbol(ng-if="vm.deviceQuery.consumptionTimesOperator === 'range'") ~
+                            input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.consumptionTimesValueTwo" ng-if="vm.deviceQuery.consumptionTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.profitAmountOperator === "range")}')
+                    label {{"PLAYER_PROFIT_AMOUNT"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.profitAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.profitAmountValue")
+                        div.symbol(ng-if="vm.deviceQuery.profitAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.profitAmountValueTwo"  ng-if="vm.deviceQuery.profitAmountOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.topUpTimesOperator === "range")}')
+                    label {{"TOP_UP_TIMES"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.topUpTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpTimesValue")
+                        div.symbol(ng-if="vm.deviceQuery.topUpTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpTimesValueTwo" ng-if="vm.deviceQuery.topUpTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.bonusTimesOperator === "range")}')
+                    label {{"BonusTime"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.bonusTimesOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.bonusTimesValue")
+                        div.symbol(ng-if="vm.deviceQuery.bonusTimesOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.bonusTimesValueTwo" ng-if="vm.deviceQuery.bonusTimesOperator === 'range'")
+                .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.topUpAmountOperator === "range")}')
+                    label {{"TOTAL_TOP_UP"|translate}}
+                    div
+                        select.threeBoxes.form-control(ng-model="vm.deviceQuery.topUpAmountOperator")
+                            option(value='>=') {{'>='}}
+                            option(value='=') {{'='}}
+                            option(value='<=') {{'<='}}
+                            option(value='range') {{'range'|translate}}
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpAmountValue" )
+                        div.symbol(ng-if="vm.deviceQuery.topUpAmountOperator === 'range'") ~
+                        input.threeBoxes.form-control(type="number" ng-model="vm.deviceQuery.topUpAmountValueTwo" ng-if="vm.deviceQuery.topUpAmountOperator === 'range'")
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDeviceReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchDeviceReport(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.reCalculateDeviceReportSummary()') {{'RECALCULATE' | translate}}
+                    span#loadingDeviceReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            label {{"Total" | translate}} {{vm.deviceQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            table.common-table#deviceReportTable.display(style="width:100% ;overflow-x: scroll")
+            #deviceReportTablePage
+            table.common-table#deviceReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_ANALYSIS_REPORT"')
             .col-md-12.well
@@ -1153,6 +1256,10 @@
                 //    label.control-label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
                 //    select.form-control.merchantNoList.spicker(ng-model='vm.queryTopup.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.dxTrackingQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.dxTrackingQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.dxTrackingQuery.name")
                 .search-filters-item
@@ -1170,6 +1277,17 @@
                 .search-filters-item
                     label {{'End date' | translate}}
                     .queryEndTime
+
+                .search-filters-item
+                    label {{"REGISTRATION_DEPARTMENT"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.dxTrackingQuery)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                .search-filters-item
+                    label {{"REGISTRATION_ROLE"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxTrackingQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                .search-filters-item
+                    label {{"REGISTRATION_ADMIN"|translate}}
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
+
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                         div
@@ -1276,7 +1394,7 @@
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.valueScoreOperator === "range")}')
                     label {{"PlayerValue"|translate}}
                     div
@@ -1421,7 +1539,7 @@
                     select.spicker.form-control(ng-model='vm.playerDomain.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setPDQueryAdmins()", ng-options='dp._id as dp.roleName | translate for dp in vm.pdQueryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins | unique: "_id"')
                 .search-filters-item
                     label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
@@ -1702,7 +1820,7 @@
                     select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryAdmins(vm.feedbackQuery)", ng-options='a._id as a.roleName | translate for (i,a) in vm.queryRoles', bsp)
                 .search-filters-item
                     label {{"FEEDBACK_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins', bsp)
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins | unique: "_id"', bsp)
                 .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true', ng-options='a._id as a.name for (i,a) in vm.filterCredibilityRemarks', bsp)
@@ -2221,6 +2339,9 @@
                     label {{"End date"|translate}}
                     .endTime
                 .search-filters-item
+                    label {{'Login Device'| translate}}
+                    select.spicker.form-control(ng-model='vm.winRateQuery.loginDevice', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform()", ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                .search-filters-item
                     input.symbol(type="checkbox", ng-model='vm.winRateQuery.searchBySummaryData')
                     label {{'测试数据'}}
                 .text-right.widthto100
@@ -2407,6 +2528,35 @@
                 #wechatGroupReportTablePage
                 table#wechatGroupReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
 
+        div(ng-if='vm.showPageName=="QQ_GROUP_REPORT"')
+            #qqGroupQuery.col-md-12.well
+                .search-filters-item
+                    label.control-label  {{'PRODUCT' | translate}}
+                    select.form-control.spicker(ng-model='vm.qqGroupQuery.product', ng-change='vm.getQQSessionDeviceNickName(vm.qqGroupQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName", multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label.control-label  {{'Device Name' | translate}}
+                    select.form-control.spicker(ng-model='vm.qqGroupQuery.deviceNickName', ng-change='vm.getQQSessionCsOfficer(vm.qqGroupQuery.product, vm.qqGroupQuery.deviceNickName)', ng-options="a  for a in vm.qqSessionNickName",  multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label.control-label  {{'Login Account' | translate}}
+                    select.form-control.spicker(ng-model='vm.qqGroupQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.qqSessionCsOfficer",  multiple, bsp, data-actions-box='true')
+                .search-filters-item
+                    label {{"Connection Start Time"|translate}}
+                    .startTime
+                .search-filters-item
+                    label {{"Connection End Time"|translate}}
+                    .endTime
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.searchQQControlSession(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.btn-space(ng-click='vm.loadPage("QQ_GROUP_REPORT")') {{'Reset' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.searchQQControlSession(true, true)') {{'EXPORT_EXCEL' | translate}}
+                    span#qqGroupReportTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+                label {{"Total" | translate}} {{vm.qqGroupQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                table#qqGroupReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                #qqGroupReportTablePage
+                table#qqGroupReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+
         div(ng-if='vm.showPageName == "PROVIDER_CONSUMPTION_REPORT"')
             #providerConsumptionQuery.col-md-12.well
                 .search-filters-item
@@ -2469,6 +2619,7 @@
                         option(value='4') 支付宝转帐(AliPay Transfer)
                         option(value='5') 微信转帐(WeChatPay Transfer)
                         option(value='6') 云闪付(CloudFlashPay)
+                        option(value='7') 云闪付转账(CloudFlashPay Transfer)
 
                 .search-filters-item
                     label {{'From Bank Type' | translate}}

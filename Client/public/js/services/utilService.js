@@ -23,7 +23,7 @@ define([], function () {
 
         this.encodePhoneNum = function (str) {
             str = str || '';
-            return str.substring(0, 3) + "******" + str.slice(-4);
+            return str.substring(0, 3) + "****" + str.slice(-4);
         }
 
         this.encodeQQ = function (str) {
@@ -806,6 +806,18 @@ define([], function () {
                             })
                         }
                         pageValue = (-consumptionBonusAmount) / validConsumptionAmount * 100;
+                        totalValue = getFloat(totalValue).toFixed(2);
+                        pageValue = getFloat(pageValue).toFixed(2);
+                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                    } else if (classes.indexOf('dxNewPlayerReportProfit') > -1) {
+                        if (sumData && sumData[i]) {
+                            totalValue = sumData[i]
+                        } else {
+                            totalValue = api.column(i).data().reduce(function (a, b) {
+                                return getFloat(a) + getFloat(b);
+                            })
+                        }
+                        pageValue = (-validConsumptionAmount) / consumptionBonusAmount * 100;
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");

@@ -87,6 +87,7 @@ style.
                         thead
                             tr
                                 th {{'rewardPointsCategory' | translate}}
+                                th {{'TYPE' | translate}}
                                 th {{'LEVEL' | translate}}↑
                                 th {{'refreshPeriod' | translate}}
                                 th {{'displayOrder' | translate}}
@@ -99,7 +100,9 @@ style.
                                 th
                         tbody
                             tr(ng-repeat="(idx,val) in vm.rewardPointsEvent | orderBy: 'index'" ng-class="{'bg-secondary': !val.status}")
-                                td {{'loginRewardPoints' | translate}}
+                                td(style="min-width:100px;") {{'loginRewardPoints' | translate}}
+                                td(style="min-width:100px;")
+                                    select.form-control(ng-model="val.pointMode" ng-options="+(i) as v | translate for (i,v) in vm.loginRewardPointsMode" ng-disabled='!val.isEditing')
                                 td(style="min-width:80px;")
                                     select.form-control(ng-model="val.level" ng-disabled='!val.isEditing')
                                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}

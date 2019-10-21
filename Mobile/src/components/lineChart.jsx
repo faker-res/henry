@@ -7,24 +7,24 @@ class LineChart extends Component{
     }
 
 
-        render(){
+    render(){
         return (
-                <div className="col-12 col-md-6 col-xl-4">
-                    <Line
-                        data= {this.props.data}
-                        options={{
-                            title:{
-                                display:true,
-                                text: this.props.title,
-                                fontSize:25
-                            },
-                            legend:{
-                                position:'bottom'
-                            }
+            <div className="col-12 col-md-6 col-xl-4">
+                <Line
+                    data = {this.props.data}
+                    options = {{
+                        title: {
+                            display: true,
+                            text: this.props.title,
+                            fontSize: 25
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
 
-                        }}
-                    />
-                </div>
+                    }}
+                />
+            </div>
 
         )
     }

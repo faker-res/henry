@@ -442,7 +442,14 @@ var dbGameProvider = {
         }).lean();
     },
 
-    updatePlatformProviderGroup: (platformObjId, gameProviderGroup) => {
+    /**
+     *
+     * @param platformObjId
+     * @param gameProviderGroup
+     * @param socketActionLog - Just for socket action logs record
+     * @returns {*}
+     */
+    updatePlatformProviderGroup: (platformObjId, gameProviderGroup, socketActionLog) => {
         let promArr = [];
 
         gameProviderGroup.map(e => {

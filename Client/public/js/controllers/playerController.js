@@ -397,7 +397,8 @@ define(['js/app'], function (myApp) {
             3: 'Counter',
             4: 'AliPayTransfer',
             5: 'weChatPayTransfer',
-            6: 'CloudFlashPay'
+            6: 'CloudFlashPay',
+            7: 'CloudFlashPayTransfer'
         };
 
         vm.commissionType = {
@@ -1990,7 +1991,7 @@ define(['js/app'], function (myApp) {
                 messageType: "sms",
                 sendBtnText: $translate("SEND")
             };
-            $scope.getChannelList(function () {
+            $scope.getUsableChannelList(function () {
                 vm.sendMultiMessage.channel = $scope.channelList ? $scope.channelList[0] : null;
             });
             setTimeout(
@@ -2595,7 +2596,7 @@ define(['js/app'], function (myApp) {
             vm.batchCreditTransferOut = null;
         }
         //get all platform data from server
-        vm.getPlatformGameData = function () {
+        vm.getPlatformGameData = function (platformObjId) {
             //init gametab start===============================
             vm.SelectedProvider = null;
             vm.showGameCate = "include";
@@ -2604,8 +2605,11 @@ define(['js/app'], function (myApp) {
             if (!vm.selectedPlatform) {
                 return
             }
+            let sendData = {
+                _id: platformObjId ? platformObjId : vm.selectedPlatform.id
+            };
             //console.log("getGames", gameIds);
-            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
                 console.log('getPlatform', data.data);
                 //provider list init
                 vm.platformProviderList = data.data.gameProviders;
@@ -3918,7 +3922,7 @@ define(['js/app'], function (myApp) {
                                 }));
                             }
 
-                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
                                 action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
                                 link.append($('<div>', {
@@ -3980,6 +3984,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayer.email = row.data.email;
                 vm.newPlayer.domain = row.data.domain;
                 vm.newPlayer.phoneNumber = row.data.phoneNumber;
+                vm.newPlayer.encodedPhoneNumber = row.data.phoneNumber ? utilService.encodePhoneNum(row.data.phoneNumber) : null;
                 vm.newPlayer.referralName = row.data.referral;
             });
         }
@@ -6002,7 +6007,7 @@ define(['js/app'], function (myApp) {
                             var that = this;
                             var row = JSON.parse(this.dataset.row);
 
-                            vm.selectedPlayerValidCredit = row.validCredit;
+                            vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
                             if (vm.selectedPlatform.data.useProviderGroup) {
                                 vm.getRewardTaskGroupDetail(row._id, function (data) {
                                     vm.showAnyLobby = false;
@@ -8640,11 +8645,19 @@ define(['js/app'], function (myApp) {
             var sendData = null;
             if (type === 'change' && editObj.referralName) {
                 sendData = {name: editObj.referralName}
+                if(editObj.platform){
+                    sendData.platform = editObj.platform;
+                }
+                //In edit: playerName will be selected player name.
+                //In create: playerName will be new player name.
+                if(editObj.name){
+                    sendData.playerName = editObj.name;
+                }
             } else if (type === 'new' && editObj.referral) {
                 sendData = {_id: editObj.referral}
             }
             if (sendData) {
-                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
+                // sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'getReferralPlayerInfo', sendData, function (retData) {
                     var player = retData.data;
                     if (player && player.name !== editObj.name) {
@@ -9090,8 +9103,9 @@ define(['js/app'], function (myApp) {
             var selectedPlayer = vm.isOneSelectedPlayer();
             return selectedPlayer ? selectedPlayer.status : false;
         };
+
         //Create new player
-        vm.createNewPlayer = function () {
+        vm.createNewPlayer = async function () {
             vm.newPlayer.platformId = vm.getPlatformIdFromByObjId(vm.newPlayer.platform);
 
             let calendarDate = $('#datepickerDOB input').val();
@@ -9104,6 +9118,20 @@ define(['js/app'], function (myApp) {
 
             vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
             vm.newPlayer.isFromBackstage = Boolean(true);
+
+            // replace the phone number if the encoded phone number has been re-entered
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                vm.newPlayer.phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
+
+            if(vm.newPlayer.phoneNumber){
+                let reg = new RegExp('^[0-9]+$');
+
+                if (!reg.test(vm.newPlayer.phoneNumber)){
+                    return socketService.showErrorMessage($translate("Phone number can only be digits"));
+                }
+            }
+
             console.log('newPlayer', vm.newPlayer);
             if (vm.newPlayer.createPartner) {
                 socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
@@ -10283,6 +10311,7 @@ define(['js/app'], function (myApp) {
         }
         //get player's game provider credit
         vm.showPlayerCreditinProvider = function (row) {
+            vm.getPlatformGameData(row.platform);
             vm.gameProviderCreditPlayerName = row.name;
             vm.queryPlatformCreditTransferPlayerName = row.name;
             // vm.creditModal = $('#modalPlayerGameProviderCredit').modal();
@@ -13442,6 +13471,7 @@ define(['js/app'], function (myApp) {
             switch (choice) {
                 case 'bank1':
                     sendData = $.extend({}, vm.playerPayment);
+                    sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
                     sendData.bankAccountDistrict = vm.currentDistrict.district;
@@ -13455,6 +13485,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank2':
                     sendData = $.extend({}, vm.playerPayment2);
+                    sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
@@ -13470,6 +13501,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank3':
                     sendData = $.extend({}, vm.playerPayment3);
+                    sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
@@ -15202,6 +15234,10 @@ define(['js/app'], function (myApp) {
 
             let phoneNumber = (vm.modifyCritical && vm.modifyCritical.newPhoneNumber) || vm.newPlayer.phoneNumber;
             let platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.newPlayer.platform;
+
+            if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+                phoneNumber = vm.newPlayer.encodedPhoneNumber;
+            }
 
             if (phoneNumber && platform) {
                 socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
@@ -20255,17 +20291,25 @@ define(['js/app'], function (myApp) {
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
 
-            if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
-                if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
-                    let str = vm.newPlayerProposal.data.phoneNumber;
-                    vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
-                }
+            console.log('vm.newPlayerProposal.data.isRegistered===', vm.newPlayerProposal.data.isRegistered);
+            console.log('vm.newPlayerProposal.data.isRegisteredTime===', vm.newPlayerProposal.data.isRegisteredTime);
+
+            if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+                let str = vm.newPlayerProposal.data.phoneNumber;
+                vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
             }
+
+            // if (vm.newPlayerProposal.status === "Success" || vm.newPlayerProposal.status === "Manual" || vm.newPlayerProposal.status === "NoVerify") {
+            //     if (vm.newPlayerProposal.data && vm.newPlayerProposal.data.phoneNumber) {
+            //         let str = vm.newPlayerProposal.data.phoneNumber;
+            //         vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
+            //     }
+            // }
 
             // requirement by echo
             // 1.同账号 不同手机号尝试开户；
             // 2.同账号 同一手机号，
-            // 3. 不同账号 同一手机号
+            // 3.不同账号 同一手机号
             // 这三种情况，只要开户成功了，之前的历史记录都隐藏
             // need to encode phone num for older proposal with attempt (pending) status, if this new player has already successful open account
             if (vm.newPlayerProposal.status === "Pending" && (vm.newPlayerRecordsSuccessNames.includes(vm.newPlayerProposal.name) || vm.newPlayerRecordsSuccessPhone.includes(vm.newPlayerProposal.data.phoneNumber))) {

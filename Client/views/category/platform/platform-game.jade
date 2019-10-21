@@ -23,7 +23,7 @@
                         div(ng-if='provider.status !== 3')
                             .fa.fa-circle.colorRed(ng-if='vm.getPlatformsProviderEnable(provider)=="ENABLE"')
                             .fa.fa-circle.colorGreen(ng-if='vm.getPlatformsProviderEnable(provider)=="DISABLE"')
-                            text(class='{{vm.getProviderStatusClass(vm.getProviderStatus(provider))}}') {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.selectedPlatform.data, provider)}} )
+                            text(class='{{vm.getProviderStatusClass(vm.getProviderStatus(provider))}}') {{provider.name}} ({{'PROVIDER_NICKNAME' | translate}} : {{vm.getPlatformsNickNameForProvider(vm.nickNamePlatform, provider)}} )
                             text(ng-show="provider.batchCreditTransferOut.processedAmount != provider.batchCreditTransferOut.totalAmount && provider.batchCreditTransferOut") [{{'TRANSFER_OUT' | translate}} {{provider.batchCreditTransferOut.processedAmount}}/{{provider.batchCreditTransferOut.totalAmount}}]
                         div(ng-if='provider.status === 3')
                             .fa.fa-circle
@@ -43,6 +43,11 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'BatchCreditTransferOut')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", data-toggle="modal", data-target='#modalBatchCreditTransferOut', ng-click='vm.initBatchCreditTransferOut(vm.selectedPlatform.data, vm.SelectedProvider);')
                         text {{"BATCH_CREDIT_TRANSFER_OUT" | translate}}
                         .fa.fa-gamepad
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'EditAttachedProvider')", ng-disabled="!vm.filterGamePlatform || !vm.SelectedProvider || vm.disableLoginShowButton", ng-click='vm.updateProviderNeedLoginShow(vm.SelectedProvider)')
+                        text(ng-if="vm.loginShowButton") {{"NO_LOG_IN_SHOW_OFF" | translate}}
+                        text(ng-if="!vm.loginShowButton") {{"NO_LOG_IN_SHOW_ON" | translate}}
+                        //text {{vm.getPlatformsProviderEnable(vm.SelectedProvider) | translate}}
+                        .fa.fa-edit
                     //- button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform", data-toggle="modal", data-target='#modalTachProvider', ng-click='vm.linkProvider("detach");vm.linkProviderType="DETACH"')
                     //button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Game', 'DetachProvider')", ng-disabled="!vm.selectedPlatform || !vm.SelectedProvider", ng-click='vm.confirmDetachProvider()')
                     //    text {{"DETACH" | translate}}
@@ -107,7 +112,8 @@
                                         label(ng-click="vm.selectedGameName = vm.includedGames[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}') {{v.name$}}
                                     form(ng-submit="vm.submitGameNameChange(i);")
                                         .text-center(style="margin-left: 10px; margin-top: -17px;" ng-if="vm.selectedGameName == vm.includedGames[i].name$")
-                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGames[i].name$" style="color: black")
+                                            label(ng-click="vm.selectedGameName = vm.includedGames[i].name$" ng-style='v.isDefaultName ? {color:"blue"} : {color:"red"}' ng-if="!checkViewPermission('Platform', 'Game', 'EditGameName')") {{v.name$}}
+                                            input(ng-model="vm.editingGameName" ng-init="vm.editingGameName = vm.includedGames[i].name$" style="color: black" ng-if="checkViewPermission('Platform', 'Game', 'EditGameName')")
 
                     .panel.panel-default
                         .panel-heading.panel-heading-sm(data-toggle='collapse',data-parent="#gameList", href='#excludedGames', ng-click='vm.showGameCate="exclude";vm.toggleGameType();vm.gameListCollapseOut();')

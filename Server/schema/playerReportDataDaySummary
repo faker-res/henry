@@ -56,6 +56,8 @@ var playerReportDataDaySummarySchema = new Schema({
     totalPlatformFeeEstimate: {type: Number, required: true, default: 0},
     //scheduler summary data create time
     createTime: {type: Date, index: true, default: Date.now},
+    // constPlayerLoginDevice
+    loginDevice: {type: Number, index: true}
 });
 
 module.exports = playerReportDataDaySummarySchema;

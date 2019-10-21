@@ -47,9 +47,9 @@ form(name='form_800Record')
                     select.form-control(ng-model='vm.inspection800.displayWay')
                         option(value='true') {{'EXTEND_CONVERSATION' | translate}}
                         option(value='false') {{'COLLAPSE_CONVERSATION' | translate}}
-                .search-filters-item
-                    input.symbol(type="checkbox", ng-model='vm.inspection800.searchBySummaryData')
-                    label {{'测试数据'}}
+                //.search-filters-item
+                //    input.symbol(type="checkbox", ng-model='vm.inspection800.searchBySummaryData')
+                //    label {{'测试数据'}}
                 .text-right.widthto100(ng-show="checkViewPermission('QualityInspection', 'Live800Record', 'Read')")
                     button.btn.btn-primary(ng-click='vm.searchLive800();vm.pgn.index=0;vm.getWorkingCSName();' ng-disabled="form_800Record.$invalid") {{"SEARCH" | translate}}
                     span.collapse

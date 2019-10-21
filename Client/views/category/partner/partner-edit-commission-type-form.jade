@@ -41,10 +41,13 @@ form(name="form_edit_partner_commission_type", novalidate)
                     a.common-tab(data-toggle="tab", ng-click="switchCommissionTab(vmm.commissionSettingTab, newPartner.commissionType);getCommissionRateGameProviderGroup()")
                         text.span {{"Customize commission rate" | translate}}
                 li.active
-                    a.common-tab(data-toggle="tab", ng-click="switchCommissionTab(vmm.commissionSettingTab, newPartner.commissionType, true);getCommissionRateGameProviderGroup()")
+                    a.common-tab(data-toggle="tab", ng-click="vmm.isEditAllGroupMode=false;switchCommissionTab(vmm.commissionSettingTab, newPartner.commissionType, true);getCommissionRateGameProviderGroup()")
                         text.span {{"customizeMultiLevelPartnerCommission" | translate}}
+                li
+                    a.common-tab(data-toggle="tab", ng-if="!vmm.checkIsChildPartner()", ng-click="vmm.isEditAllGroupMode=true")
+                        text.span {{"BULK_SETTING_ALL_GROUP" | translate}}
         .panel-body.common-right-panel-body
-            div.tab-content
+            div.tab-content(ng-if="!vmm.isEditAllGroupMode")
                 //h4 {{'Customize commission rate' | translate}}
                 table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded")
                     thead
@@ -126,9 +129,47 @@ form(name="form_edit_partner_commission_type", novalidate)
                     button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded" ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
                     button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && partnerCommission.isGameProviderIncluded && !commissionSettingIsEditAll(0)" ng-click = "commissionSettingEditAll(partnerCommission.gameProviderGroup, true)") {{"EDIT_ALL_COMMISSION_RATE" | translate}}
                     button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && partnerCommission.isGameProviderIncluded && commissionSettingIsEditAll(0)" ng-click = "updateAllCustomizeCommissionRate(partnerCommission.gameProviderGroup)") {{"UPDATE_ALL_COMMISSION_RATE" | translate}}
-                    button.btn.btn-primary.common-button(ng-click='resetAllCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
+                    //button.btn.btn-primary.common-button(ng-click='resetAllCustomizedCommissionRate()') {{'RESET_ALL_COMMISSION_RATE' | translate}}
+            div.tab-content(ng-if="vmm.isEditAllGroupMode")
+                table.simple-table
+                    thead
+                        tr
+                            th(colspan=6) {{vmm.commissionSettingTab | translate}}
+                        tr
+                            th(colspan=2) {{vmm.playerConsumptionTableHeader | translate}}
+                            th(colspan=2) {{vmm.activePlayerTableHeader | translate}}
+                            th(rowspan=2) {{'Commission Rate' | translate}}
+                            th(rowspan=2) {{'ACTION_BUTTON' | translate}}
+                        tr
+                            th {{'From' | translate}}
+                            th {{'To' | translate}}
+                            th {{'From' | translate}}
+                            th {{'To' | translate}}
+                    tbody
+                        tr(ng-repeat='commissionSetting in vmm.allGroupCommRateSetting track by $index')
+                            td
+                                input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountFrom')
+                            td
+                                input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountTo')
+                            td
+                                input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom')
+                            td
+                                input.form-control(type='number', ng-model='commissionSetting.activePlayerValueTo')
+                            td
+                                span.percentage
+                                    input(type='number' step='0.01', ng-model='commissionSetting.commissionRate')
+                            td
+                                a(href="", ng-click="allGroupCommSettingNewRow(vmm.allGroupCommRateSetting, $index)", style="cursor:pointer") {{'INSERT' | translate}}
+                                text /
+                                a(href="", ng-click="allGroupCommSettingDeleteRow($index, vmm.allGroupCommRateSetting)", style="cursor:pointer") {{'DELETE' | translate}}
+                    br
+                br
+                br
+                .pull-right
+                    button.btn.btn-primary.common-button(ng-click = "updateAllCustomizeCommissionRate(vmm.allGroupCommRateSetting, true)") {{"UPDATE_ALL_COMMISSION_RATE" | translate}}
 
-    .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;", ng-if='newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7 && (!vmm.checkIsChildPartner() || !vmm.isMultiLevelCommission)')
+
+    .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;", ng-if='newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7 && (!vmm.checkIsChildPartner() || !vmm.isMultiLevelCommission) && !vmm.isEditAllGroupMode')
         div
             h4 {{'Partner Rate Setting' | translate}}
             table.common-table.playerLvlTable
@@ -201,9 +242,11 @@ form(name="form_edit_partner_commission_type", novalidate)
                             text /
                             a(href="" ng-if='vmm.commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(vmm.commissionRateConfig, 'rateAfterRebateTotalWithdrawal')") {{'Customize' | translate}}
                             a(href="" ng-if='!vmm.commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(vmm.commissionRateConfig, 'rateAfterRebateTotalWithdrawal', true)") {{'Reset default' | translate}}
-    .pull-right
+    .pull-right(ng-if="!vmm.isEditAllGroupMode")
         button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && !commissionRateIsEditAll() && newPartner.commissionType == vmm.selectedSinglePartner.commissionType && newPartner.commissionType != 7 && (!vmm.checkIsChildPartner() || !vmm.isMultiLevelCommission)" ng-click = "commissionRateEditAll(true)") {{"EDIT_ALL_FEE_RATE" | translate}}
         button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && commissionRateIsEditAll()" ng-click = "commissionRateEditAll(false); customizePartnerRate(vmm.commissionRateConfig)") {{"UPDATE" | translate}}
         button.btn.btn-warning.common-button(data-dismiss='dialog') {{"EXIT" | translate}}
         button.btn.btn-primary.common-button(ng-if="!partnerCommission.isCustomized" data-dismiss='dialog', ng-disabled='form_edit_partner_commission_type.$invalid || form_edit_partner_commission_type.$pristine', ng-click="updateEditedPartner();") {{"SUBMIT_CHANGES" | translate}}
         button.btn.btn-danger.common-button(ng-if="!partnerCommission.isCustomized && newPartner.commissionType == vmm.selectedSinglePartner.commissionType" ng-click="partnerCommission.isCustomized = true;") {{"Customize commission rate" | translate}}
+    .pull-right(ng-if="vmm.isEditAllGroupMode")
+        button.btn.btn-warning.common-button(data-dismiss='dialog') {{"EXIT" | translate}}

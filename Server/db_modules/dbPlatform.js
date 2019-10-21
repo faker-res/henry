@@ -1851,7 +1851,7 @@ var dbPlatform = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 40, //100
+                                batchSize: 30, //100
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "checkPlayerLevelDownForPlayers", {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {
@@ -2053,7 +2053,8 @@ var dbPlatform = {
             message: data.message,
             delay: data.delay
         };
-        var recipientName = data.name || '';
+        let encodePhoneNum = dbUtility.encodePhoneNum(sendObj.tel) || '';
+        let recipientName = data.name || encodePhoneNum || '';
         return smsAPI.sending_sendMessage(sendObj).then(
             retData => {
                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, data.platform, 'success');
@@ -2352,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -2394,7 +2396,8 @@ var dbPlatform = {
                             phoneStatus: 2
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode also
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -3137,6 +3140,7 @@ var dbPlatform = {
             let playerLevels = [];
             let themeIdList = [];
             let themeStyleObjId = null;
+            let platformTopUpAmountConfig;
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3200,10 +3204,18 @@ var dbPlatform = {
                     if (data) {
 
                         platformData = data;
-                        return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
+
+                        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformData._id});
+
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
                     }
+                }
+            ).then(
+                topUpAmountConfig => {
+                    platformTopUpAmountConfig = topUpAmountConfig;
+
+                    return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
             ).then(
                 playerLevelData => {
@@ -3462,6 +3474,12 @@ var dbPlatform = {
                             return appendPartnerConfig(platformData._id, returnedObj);
                         }
 
+                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                        } else {
+                            returnedObj.minDepositAmount = 10;
+                        }
+
                         return returnedObj;
                     }
                 }
@@ -3478,7 +3496,7 @@ var dbPlatform = {
             if (data[list].length > 0) {
                 data[list].forEach(pair => {
 
-                    if (pair.content.indexOf(',') !== -1) {
+                    if (pair.content && pair.content.indexOf(',') !== -1) {
                         let splitString = pair.content.split(',');
 
                         if (splitString && splitString.length > 0) {
@@ -3503,7 +3521,7 @@ var dbPlatform = {
                         }
                     }
                     else {
-                        if (pair.isImg === 1 && pair.content.indexOf("http") === -1) {
+                        if (pair.content && pair.isImg === 1 && pair.content.indexOf("http") === -1) {
                             if (subject === 'player' && data.playerRouteSetting) {
                                 pair.content = data.playerRouteSetting.trim() + pair.content.trim();
                             } else if (subject === 'partner' && data.partnerRouteSetting) {
@@ -6640,27 +6658,45 @@ var dbPlatform = {
                 let objList = {};
                 let allObjList = {name: "全部", list: [], defaultShow: false};
                 let arrayList = [];
+                let allCategory = null;
                 let defaultCategory = null;
+                let listedCategory = null;
 
                 if (code == "reward"){
-                    defaultCategory = await dbconfig.collection_frontEndRewardCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
+                    allCategory = await dbconfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
                 else if (code == "registrationGuidance"){
-                    defaultCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.findOne({categoryName: "全部分类", platformObjId: ObjectId(platformObjId)}).lean();
+                    allCategory = await dbconfig.collection_frontEndRegistrationGuidanceCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
                 }
 
-                if (defaultCategory){
+                if (allCategory && allCategory.length){
+                    defaultCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "全部分类"});
+                    if (defaultCategory && defaultCategory.length){
+                        defaultCategory = defaultCategory[0];
+                    }
                     allObjList.defaultShow = defaultCategory.defaultShow || false;
                     if (defaultCategory.displayFormat){
                         allObjList.displayFormat = defaultCategory.displayFormat;
                     }
+                    listedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName != "全部分类"});
                 }
+
+                if (listedCategory && listedCategory.length){
+                    listedCategory.forEach(
+                        p => {
+                            if (p && p.categoryName){
+                                objList[p.categoryName] = [];
+                            }
+                        }
+                    )
+                }
+
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
-                            if (objList && !objList[p.categoryObjId.categoryName]){
-                                objList[p.categoryObjId.categoryName] = [];
-                            }
+                            // if (objList && !objList[p.categoryObjId.categoryName]){
+                            //     objList[p.categoryObjId.categoryName] = [];
+                            // }
                             objList[p.categoryObjId.categoryName].push(p);
                             if (allObjList && allObjList.list){
                                 allObjList.list.push(p);
@@ -6745,6 +6781,22 @@ var dbPlatform = {
 
                 if (setting.voucherClarificationUrl && (setting.voucherClarificationUrl.indexOf('http') == -1 && setting.voucherClarificationUrl.indexOf('https') == -1)) {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
+                }
+
+                if (setting.topButtonRoute && (setting.topButtonRoute.indexOf('http') == -1 && setting.topButtonRoute.indexOf('https') == -1)) {
+                    setting.topButtonRoute = cdnText + setting.topButtonRoute;
+                }
+
+                if (setting.rightButtonRoute && (setting.rightButtonRoute.indexOf('http') == -1 && setting.rightButtonRoute.indexOf('https') == -1)) {
+                    setting.rightButtonRoute = cdnText + setting.rightButtonRoute;
+                }
+
+                if (setting.bottomButtonRoute && (setting.bottomButtonRoute.indexOf('http') == -1 && setting.bottomButtonRoute.indexOf('https') == -1)) {
+                    setting.bottomButtonRoute = cdnText + setting.bottomButtonRoute;
+                }
+
+                if (setting.rewardButtonRoute && (setting.rewardButtonRoute.indexOf('http') == -1 && setting.rewardButtonRoute.indexOf('https') == -1)) {
+                    setting.rewardButtonRoute = cdnText + setting.rewardButtonRoute;
                 }
 
                 return setting
@@ -7268,6 +7320,28 @@ var dbPlatform = {
 
     getReferralConfig: function (platformObjId) {
         return dbconfig.collection_platformReferralConfig.findOne({platform: platformObjId}).lean();
+    },
+
+    getPlatformTopUpAmountConfig: function (platformObjId) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformObjId}).lean();
+    },
+
+    updatePlatformTopUpAmount: function (query, updateData) {
+        return dbconfig.collection_platformTopUpAmountConfig.findOne(query).lean().then(
+            setting => {
+                if (setting) {
+                    return dbconfig.collection_platformTopUpAmountConfig.update(query, updateData);
+                } else {
+                    let newSetting = {
+                        platformObjId: query.platformObjId,
+                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpCountAmountRange: updateData.topUpCountAmountRange
+                    }
+
+                    return dbconfig.collection_platformTopUpAmountConfig(newSetting).save();
+                }
+            }
+        )
     },
 
     toggleFrontEndRewardPointsRankingData: function (platformObjId, updateData) {

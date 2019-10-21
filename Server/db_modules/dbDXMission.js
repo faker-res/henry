@@ -941,8 +941,8 @@ let dbDXMission = {
                             }
                         };
 
-                        let recipientName = msg.name || '';
-
+                        let encodePhoneNum = dbUtility.encodePhoneNum(sendObj.tel) || '';
+                        let recipientName = msg.name || encodePhoneNum || '';
                         return smsAPI.sending_sendMessage(sendObj).then(
                             retData => {
                                 dbLogger.createSMSLog(adminObjId, adminName, recipientName, msg, sendObj, msg.platformId, 'success');
@@ -1579,12 +1579,16 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let platformPrefix = platform.prefix || "";
 
     return dbconfig.collection_players.findOne({
-        phoneNumber: {$in: [rsaCrypto.encrypt(dxPhone.phoneNumber), rsaCrypto.oldEncrypt(dxPhone.phoneNumber)]},
+        phoneNumber: {$in: [
+            rsaCrypto.encrypt(dxPhone.phoneNumber),
+            rsaCrypto.oldEncrypt(dxPhone.phoneNumber)]
+        },
         platform: platform._id,
         isRealPlayer: true
-    }, {_id: 1}).lean().then(
+    }, {_id: 1, name: 1, phoneNumber: 1}).lean().then(
         playerExist=> {
             if (playerExist) {
+                console.log('debug dx not auto login', playerExist);
                 return Promise.reject({isPlayerExist: true, message: "Your phone number is registered, please verify and login."});
             }
 
@@ -1674,7 +1678,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
                 //after created new player, need to create login record and apply login reward
                 dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
-                dbApiLog.createApiLog(conn, wsFunc, null, null, newPlayerData).catch(errorUtils.reportError);
+                dbApiLog.createApiLog(conn, wsFunc, null, {}, newPlayerData).catch(errorUtils.reportError);
             }
 
             if (!dxMission.loginUrl) {
@@ -1684,6 +1688,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             if (isNew) {
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
                 dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
+                console.log('Updating DxPhone to used.');
                 updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
             }
 

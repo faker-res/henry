@@ -23,7 +23,8 @@ var frontEndPartnerUrlConfigurationSchema = new Schema({
     h5: {
         skin: {type: Schema.Types.ObjectId, ref: 'frontEndPartnerSkinSetting', index: true},
     },
-
+    // favicon
+    faviconUrl: {type: String},
 });
 
 module.exports = frontEndPartnerUrlConfigurationSchema;

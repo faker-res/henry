@@ -394,6 +394,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('monitor.qqGroup', {
+                    url: '/qqGroup',
+                    templateUrl: 'category/monitor/monitor-qq-group',
+                    controller: 'monitorQQCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/monitorQQController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('monitor.consumptionRecord', {
                     url: '/consumptionRecord',
                     templateUrl: 'category/monitor/monitor-consumption-record',

@@ -21,7 +21,7 @@ let partnerCommissionRateConfigSchema = new Schema({
     rateAfterRebateTotalWithdrawalCustom: {type: Boolean, default: false},
 });
 
-partnerCommissionRateConfigSchema.index({platform: 1, partner: 1});
+partnerCommissionRateConfigSchema.index({platform: 1, partner: 1}, {unique: true});
 
 module.exports = partnerCommissionRateConfigSchema;
 

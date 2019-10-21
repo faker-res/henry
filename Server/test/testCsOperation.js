@@ -1,27 +1,14 @@
-var should = require('should');
-var dbconfig = require('../modules/dbproperties');
+const should = require('chai').should();
 
 var WebSocketClient = require('../server_common/WebSocketClient');
 var PlayerService = require('../services/client/ClientServices').PlayerService;
 var RegistrationIntentionService = require('../services/client/ClientServices').RegistrationIntentionService;
 
-var TopUpIntentionService = require('../services/client/ClientServices').TopUpIntentionService;
-var ConsumptionService = require('../services/client/ClientServices').ConsumptionService;
-
-var ClientPlayerAPITest = require('../testAPI/clientAPITest/ClientPlayerAPITest');
-var ClientRegistrationIntentionAPITest = require('../testAPI/clientAPITest/ClientRegistrationIntentionAPITest');
-var ClientTopUpIntentionAPITest = require('../testAPI/clientAPITest/ClientTopUpIntentionAPITest');
-var ClientConsumptionAPITest = require('../testAPI/clientAPITest/ClientConsumptionAPITest');
-
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
-var dbPlatform = require('../db_modules/dbPlatform');
 var dbAdminInfo = require('../db_modules/dbAdminInfo');
-var dbProposal = require('../db_modules/dbProposal');
 var dbPlayer = require('../db_modules/dbPlayerInfo');
 
 var env = require("../config/env").config();
 var commonTestFun = require('../test_modules/commonTestFunc');
-
 
 var testPlatformObjId = null;
 var testPlatformId = null;

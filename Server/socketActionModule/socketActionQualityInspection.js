@@ -277,6 +277,36 @@ function socketActionQualityInspection(socketIO, socket) {
             socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationReport, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, index, limit], actionName, isDataValid);
         },
 
+        getQQDeviceNickNameList: function getQQDeviceNickNameList(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.getQQDeviceNickNameList, [data.platform], actionName, isDataValid);
+        },
+
+        getQQConversationDeviceList: function getQQConversationDeviceList(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 1000;
+            socketUtil.emitter(self.socket, dbQualityInspection.getQQConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerQQRemark, index, limit], actionName, isDataValid);
+        },
+
+        getQQConversation: function getQQConversation(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbQualityInspection.getQQConversation, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerQQRemark, index, limit, data.sortCol], actionName, isDataValid);
+        },
+
+        getQQConversationReport: function getQQConversationReport(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbQualityInspection.getQQConversationReport, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, index, limit], actionName, isDataValid);
+        },
+
         getManualProcessRecord: function getManualProcessRecord(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.startDate && data.endDate && data.adminObjId);

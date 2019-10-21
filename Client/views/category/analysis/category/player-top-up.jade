@@ -265,6 +265,7 @@
                                 th(ng-click="vm.typeDataSort('methodSort','AliPayTransfer.amount')") {{'AliPayTransfer' | translate}}
                                 th(ng-click="vm.typeDataSort('methodSort','weChatPayTransfer.amount')") {{'weChatPayTransfer' | translate}}
                                 th(ng-click="vm.typeDataSort('methodSort','CloudFlashPay.amount')") {{'CloudFlashPay' | translate}}
+                                th(ng-click="vm.typeDataSort('methodSort','CloudFlashPayTransfer.amount')") {{'CloudFlashPayTransfer' | translate}}
 
                         tbody
                             tr(ng-repeat='(i, v) in vm.manualTopUpMethod | orderBy: vm.platformTopupTableSort.methodSort')
@@ -284,6 +285,8 @@
                                     span {{v.weChatPayTransfer.amount}}
                                 td
                                     span {{v.CloudFlashPay.amount}}
+                                td
+                                    span {{v.CloudFlashPayTransfer.amount}}
                             tr
                                 td
                                     span {{ "average value" | translate }}
@@ -301,7 +304,8 @@
                                     span {{ vm.manualTopUpMethodAmountAverage.weChatPayTransfer }}
                                 td
                                     span {{ vm.manualTopUpMethodAmountAverage.CloudFlashPay }}
-
+                                td
+                                    span {{ vm.manualTopUpMethodAmountAverage.CloudFlashPayTransfer }}
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")

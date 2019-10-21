@@ -329,7 +329,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode, voiceCodeProvider) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -337,7 +337,7 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode): smsAPI.sending_sendMessage(sendObj);
+        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode, voiceCodeProvider): smsAPI.sending_sendMessage(sendObj);
         return sendSMSProm.then(
             retData => {
                 console.log(retData);
@@ -496,11 +496,21 @@ const dbPlayerMail = {
                         ) {
                             playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                             playerQuery['permission.forbidPlayerFromLogin'] = {$ne: true};
+                        } else if (purpose && !playerName && inputData && !inputData.playerId && inputData.phoneNumber && inputData.deviceId) {
+                            playerQuery["$or"] = [
+                                {guestDeviceId: inputData.deviceId},
+                                {guestDeviceId: rsaCrypto.encrypt(inputData.deviceId)},
+                                {guestDeviceId: rsaCrypto.oldEncrypt(inputData.deviceId)}
+                            ];
                         } else {
                             playerQuery.playerId = inputData.playerId;
                         }
                         return dbconfig.collection_players.findOne(playerQuery).lean().then(
                             playerData => {
+                                if (!playerName && playerData && playerData.name) {
+                                    playerName = playerData.name;
+                                }
+
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
                                     player = playerData;
@@ -532,6 +542,13 @@ const dbPlayerMail = {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: "Phone number not found, please register first!"
+                                        });
+                                    }
+
+                                    if (purpose && purpose === constSMSPurpose.INQUIRE_ACCOUNT) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Player not exist, Please contact cs."
                                         });
                                     }
                                 }
@@ -769,7 +786,7 @@ const dbPlayerMail = {
                     }
 
                     if (purpose && purpose === constSMSPurpose.REGISTRATION) {
-                        if ((platform.playerNameMaxLength > 0 && pName.length > platform.playerNameMaxLength) || (platform.playerNameMinLength > 0 && pName.length < platform.playerNameMinLength)) {
+                        if ((platform.playerNameMaxLength > 0 && (pName && (pName.length > platform.playerNameMaxLength))) || (platform.playerNameMinLength > 0 && (pName && (pName.length < platform.playerNameMinLength)))) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NAME_INVALID,
                                 name: "DBError",
@@ -939,7 +956,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner, isUseVoiceCode);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner, isUseVoiceCode, platform.voiceCodeProvider);
                 }
             }
         ).then(
@@ -1190,8 +1207,11 @@ const dbPlayerMail = {
         };
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
+        console.log('smsVerificationLogQuery', smsVerificationLogQuery);
+
         return smsProm.then(
             verificationSMS => {
+                console.log('verificationSMS', verificationSMS);
                 if (!verificationSMS || !verificationSMS[0] || !verificationSMS[0].code) {
                     return Promise.reject({
                         status: constServerCode.VALIDATION_CODE_EXPIRED,

@@ -305,9 +305,8 @@ style.
                                 label(style="width: 30%;") {{"DISPLAY FORMAT"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     select.form-control(ng-model='vm.newFrontEndGameSetting.displayFormat')
-                                        option(ng-repeat='(i,v) in vm.displayFormat', value='{{v}}') {{ i | translate}}
-
-
+                                        option(ng-if="vm.newFrontEndGameSetting.device != 2", ng-repeat='(i,v) in vm.displayFormat.pc', value='{{v}}') {{ i | translate}}
+                                        option(ng-if="vm.newFrontEndGameSetting.device == 2", ng-repeat='(i,v) in vm.displayFormat.h5', value='{{v}}') {{ i | translate}}
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.submitGameSetting(vm.newFrontEndGameSetting)') {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
@@ -346,7 +345,9 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ON-CLICK ACTION"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'pc', vm.rewardSetting.pc.onClickAction)")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.onClickAction", ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'pc', vm.rewardSetting.pc.onClickAction)")
+                                        option(ng-repeat='(i, v) in vm.frontEndSettingOnClickAction', value='{{v}}') {{i | translate}}
+                                        option(value = 7) {{"customScript" | translate }}
                             .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -369,6 +370,41 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.pc.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
+                                label(style="width: 30%;") {{"customScript" | translate}}
+                                div.inline-block(style="width: 70%;")
+                                    label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
+                                        a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
+                                            | http://baowang.webcontent.cloud/ume/
+                                    textarea.form-control.inline-block(style="resize: none;", ng-model="vm.rewardSetting.pc.script", placeholder='{{"Please write down the script" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
+                                label(style="width: 30%;") {{"FUNCTIONALITY OF TOP BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.topButtonText", placeholder='{{"Please write down the text for the button (Return as default)" | translate}}')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.topButtonClick", ng-options='v as i | translate for (i, v) in vm.frontEndRewardButtonOnClickAction', ng-change="vm.resetOnClickRewardButton(vm.rewardSetting, 'pc', 'topButtonClick', vm.rewardSetting.pc.topButtonClick)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.topButtonClick == 1")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.topButtonRoute", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
+                                label(style="width: 30%;") {{"FUNCTIONALITY OF RIGHT BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.rightButtonText", placeholder='{{"Please write down the text for the button (Instant apply as default)" | translate}}')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.rightButtonClick", ng-options='v as i | translate for (i, v) in vm.frontEndRewardButtonOnClickAction', ng-change="vm.resetOnClickRewardButton(vm.rewardSetting, 'pc', 'rightButtonClick', vm.rewardSetting.pc.rightButtonClick)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.rightButtonClick == 1")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.rightButtonRoute", placeholder='{{"Please write down the page code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
+                                label(style="width: 30%;") {{"FUNCTIONALITY OF BOTTOM BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.bottomButtonText", placeholder='{{"Please write down the text for the button (Return to reward page as default)" | translate}}')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.pc.bottomButtonClick", ng-options='v as i | translate for (i, v) in vm.frontEndRewardButtonOnClickAction', ng-change="vm.resetOnClickRewardButton(vm.rewardSetting, 'pc', 'bottomButtonClick', vm.rewardSetting.pc.bottomButtonClick)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.bottomButtonClick == 1")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.pc.bottomButtonRoute", placeholder='{{"Please write down the page code" | translate}}')
+
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -387,7 +423,9 @@ style.
                             .full-width-input-block
                                 label(style="width: 30%;") H5 {{"ON-CLICK ACTION"|translate}}
                                 div.inline-block(style="width: 70%;")
-                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction', ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'h5', vm.rewardSetting.h5.onClickAction)")
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.onClickAction", ng-change="vm.resetOnClickSetting(vm.rewardSetting, 'h5', vm.rewardSetting.h5.onClickAction)")
+                                        option(ng-repeat='(i, v) in vm.frontEndSettingOnClickAction', value='{{v}}') {{i | translate}}
+                                        option(value = 7) {{"customScript" | translate }}
                             .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 1")
                                 label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -410,6 +448,22 @@ style.
                                 label(style="width: 30%;") {{"GAME"|translate}} Code
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.h5.gameCode", placeholder='{{"Please write down the game code" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 7")
+                                label(style="width: 30%;") {{"customScript" | translate}}
+                                div.inline-block(style="width: 70%;")
+                                    label * {{'RICH_TEXT_EDITOR' | translate}}:&nbsp
+                                        a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
+                                            | http://baowang.webcontent.cloud/ume/
+                                    textarea.form-control.inline-block(style="resize: none;", ng-model="vm.rewardSetting.h5.script", placeholder='{{"Please write down the script" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 7")
+                                label(style="width: 30%;") {{"FUNCTIONALITY OF REWARD BUTTON"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.rewardButtonText", placeholder='{{"Please write down the text for the button (Return as default)" | translate}}')
+                                    select.form-control.inline-block(ng-model="vm.rewardSetting.h5.rewardButtonClick", ng-options='v as i | translate for (i, v) in vm.frontEndRewardButtonOnClickAction', ng-change="vm.resetOnClickRewardButton(vm.rewardSetting, 'h5', 'rewardButtonClick', vm.rewardSetting.h5.bottomButtonClick)")
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.rewardButtonClick == 1")
+                                label(style="width: 30%;") {{"ROUTE"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(ng-model="vm.rewardSetting.h5.rewardButtonRoute", placeholder='{{"Please write down the page code" | translate}}')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")

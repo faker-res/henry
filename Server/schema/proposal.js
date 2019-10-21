@@ -43,13 +43,16 @@ var proposalSchema = new Schema({
     // times that the proposal had run
     processedTimes: {type: Number, default: 0},
     // input device
-    inputDevice: {type: Number, default: 0, index: true}
+    inputDevice: {type: Number, default: 0, index: true},
+
+    //For send email issue: audi credit change proposal email won't group as conversation, need message id as email references for gmail to group.
+    // messageId: {type: String}
 });
 
 // Index for general proposalId (Descending)c
 proposalSchema.index({proposalId: 1});
 // Index for top up report without proposalId search
-proposalSchema.index({createTime: 1, mainType: 1});
+// proposalSchema.index({createTime: 1, mainType: 1}); // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
 
 proposalSchema.index({"data.bankCardNo": 1});
 proposalSchema.index({"data.accountNo": 1});
@@ -58,11 +61,11 @@ proposalSchema.index({"data.wechatAccount": 1});
 proposalSchema.index({"data.weChatAccount": 1});
 
 // Index for player report
-proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status: 1, type: 1});
+// proposalSchema.index({"data.playerObjId": 1, createTime: 1, mainType: 1, status: 1, type: 1}); // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
 // Index based on type
-proposalSchema.index({type: 1, createTime: -1});
+// proposalSchema.index({type: 1, createTime: -1}); // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
 // Merchant No related
-proposalSchema.index({"data.merchantNo": 1, createTime: -1, status: 1, type: 1});
+// proposalSchema.index({"data.merchantNo": 1, createTime: -1, status: 1, type: 1});  // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
 
 proposalSchema.index({"data.playerName": 1});
 proposalSchema.index({"data.playerId": 1});
@@ -87,7 +90,6 @@ proposalSchema.index({"data.topupType": 1});
 proposalSchema.index({"data.consecutiveNumber": 1});
 proposalSchema.index({"data.bConsumptionReturnRequest": 1});
 proposalSchema.index({"data.eventId": 1});
-proposalSchema.index({"data.alipayer": 1});
 proposalSchema.index({"data.alipayerAccount": 1});
 proposalSchema.index({"data.alipayerNickName": 1});
 proposalSchema.index({"data.line": 1});
@@ -106,8 +108,10 @@ proposalSchema.index({"data.followUpContent": 1});
 proposalSchema.index({"data.bankTypeId": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.depositMethod": 1});
 proposalSchema.index({createTime: 1, "data.platformId": 1, mainType: 1, type: 1, status: 1, "data.topupType": 1});
-proposalSchema.index({"data.topUpSystemName": 1});
-proposalSchema.index({"data.merchantName": 1});
+// proposalSchema.index({"data.topUpSystemName": 1}); // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
+// proposalSchema.index({"data.merchantName": 1});  // ERROR: add index fails, too many indexes for logsdb.proposal key: {createTime: 1, mainType:1}
+// note :: add index fails, to add these indexes successfully, other unnecessary indexes should be removed
+
 // proposalSchema.index({"data.retentionApplicationDate": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId

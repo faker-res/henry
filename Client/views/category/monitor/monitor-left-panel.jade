@@ -35,3 +35,12 @@
                         div
                             a.list-group-item(class="{{vm.seleDataType.WECHAT_GROUP_CONTROL_MONITOR}}", ng-if="checkViewPermission('Monitor', 'WechatGroupControl', 'Read')",href="/monitor/wechatGroup", ng-click="vm.showPlatformList = true; vm.loadPage('WECHAT_GROUP_CONTROL_MONITOR');")
                                 text {{'WeChatGroupControlMonitor' | translate}}
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#qqMonitor')
+                    h4.panel-title
+                        label.text-success {{'QQ Monitor' | translate}}
+                #qqMonitor.panel-collapse.collapse
+                    .panel-body
+                        div
+                            a.list-group-item(class="{{vm.seleDataType.QQ_GROUP_CONTROL_MONITOR}}", ng-if="checkViewPermission('Monitor', 'QQGroupControl', 'Read')",href="/monitor/qqGroup", ng-click="vm.showPlatformList = true; vm.loadPage('QQ_GROUP_CONTROL_MONITOR');")
+                                text {{'QQ Group Control Monitor' | translate}}

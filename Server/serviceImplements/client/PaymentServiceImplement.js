@@ -80,51 +80,53 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.clientType, data.bPMSGroup, userIp], isValidData);
     };
 
-    this.getBonusList.expectsData = '';
-    this.getBonusList.onRequest = function (wsFunc, conn, data) {
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getBonusList, [data], true);
-    };
+    this.applyBonus.expectsData = 'amount: Number|String';
+    this.applyBonus.onRequest = function(wsFunc, conn, data) {
+        data.userAgent = conn['upgradeReq']['headers']['user-agent'];
+        let isValidData = Boolean(conn.playerId && data && typeof data.amount === 'number' && data.amount > 0);
+        let param = [
+            data.userAgent, conn.playerId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId
+        ];
 
-    this.applyBonus.expectsData = 'bonusId: Number|String, amount: Number|String, honoreeDetails: String';
-    this.applyBonus.onRequest = function (wsFunc, conn, data) {
-        let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        data.userAgent = userAgent;
-        console.log('userAgent JY ==========', userAgent);
-        var isValidData = Boolean(conn.playerId && data && data.bonusId && typeof data.amount === 'number' && data.amount > 0);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyBonus, [data.userAgent, conn.playerId, data.bonusId, data.amount, data.honoreeDetail, null, null, null, null, data.bankId], isValidData, true, false, false).then(
-            function (res) {
+        WebSocketUtil.responsePromise(
+            conn, wsFunc, data, dbPlayerInfo.applyBonus, param, isValidData, true, false, false
+        ).then(
+            function(res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                // Handle by proposal executor
-                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_BONUS);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getBonusRequestList.expectsData = '[startIndex]: Number, [requestCount]: Number';
-    this.getBonusRequestList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId);
+    this.getBonusRequestList.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAppliedBonusList, [conn.playerId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort], isValidData);
+        let param = [
+            conn.playerId, data.startIndex, data.requestCount, data.startTime, data.endTime, data.status, !data.sort
+        ];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getAppliedBonusList, param, isValidData);
     };
 
     this.cancelBonusRequest.expectsData = 'proposalId: String';
-    this.cancelBonusRequest.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data.proposalId);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.cancelBonusRequest, [conn.playerId, data.proposalId], isValidData, true, false, false).then(
-            function (res) {
+    this.cancelBonusRequest.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(conn.playerId && data.proposalId);
+        let param = [conn.playerId, data.proposalId];
+
+        WebSocketUtil.responsePromise(
+            conn, wsFunc, data, dbPlayerInfo.cancelBonusRequest, param, isValidData, true, false, false
+        ).then(
+            function(res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: res
                 }, data);
-                // Handle by proposal executor
-                //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.CANCEL_BONUS);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.requestManualTopup.expectsData = 'amount: Number|String, depositMethod: ?, lastBankcardNo: ?, provinceId: String|Number, cityId: String|Number';
@@ -147,7 +149,7 @@ var PaymentServiceImplement = function () {
                 }, data);
                 // SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.MANUAL_TOPUP);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getCashRechargeStatus.onRequest = function (wsFunc, conn, data) {
@@ -159,7 +161,7 @@ var PaymentServiceImplement = function () {
                     data: res
                 }, data);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.requestAlipayTopup.expectsData = 'amount: Number|String';
@@ -241,18 +243,6 @@ var PaymentServiceImplement = function () {
         var isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getWechatTopupRequestList, [conn.playerId], isValidData);
     };
-
-    this.manualTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "manualTopupStatusNotify", data);
-        }
-    );
-
-    this.onlineTopupStatusNotify.addListener(
-        function (data) {
-            WebSocketUtil.notifyMessageClient(self, "onlineTopupStatusNotify", data);
-        }
-    );
 
     this.getProvinceList.expectsData = '';
     this.getProvinceList.onRequest = function (wsFunc, conn, data) {
@@ -438,7 +428,7 @@ var PaymentServiceImplement = function () {
         }
 
         let lastLoginIp = dbUtility.getIpAddress(conn);
-        let isValidData = Boolean(data && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        let isValidData = Boolean(data);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.createCommonTopupProposal, [conn.playerId, data, lastLoginIp, "CLIENT"], isValidData);
     };
 

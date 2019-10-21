@@ -848,9 +848,9 @@ function socketActionPlayer(socketIO, socket) {
          */
         applyBonusRequest: function applyBonusRequest(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.bonusId && data.amount);
+            var isValidData = Boolean(data && data.playerId && data.amount);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [userAgent, data.playerId, data.bonusId, data.amount, data.honoreeDetail, data.bForce, {
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyBonus, [userAgent, data.playerId, data.amount, data.honoreeDetail, data.bForce, {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()

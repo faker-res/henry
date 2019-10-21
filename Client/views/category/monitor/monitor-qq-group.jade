@@ -1,0 +1,61 @@
+div
+    #qqGroupControlMonitor.block-query.col-md-12.well
+        .search-filters-item
+            label.control-label  {{'PRODUCT' | translate}}
+            select.form-control.spicker(ng-model='vm.qqGroupControlMonitorQuery.product', ng-change='vm.getQQSessionDeviceNickName(vm.qqGroupControlMonitorQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName",  multiple, bsp, data-actions-box='true')
+        .search-filters-item
+            label.control-label  {{'Device Name' | translate}}
+            select.form-control.spicker(ng-model='vm.qqGroupControlMonitorQuery.deviceNickName', ng-change='vm.getQQSessionCsOfficer(vm.qqGroupControlMonitorQuery.product, vm.qqGroupControlMonitorQuery.deviceNickName)', ng-options="a  for a in vm.qqSessionNickName", multiple, bsp, data-actions-box='true')
+        .search-filters-item
+            label.control-label  {{'Login Account' | translate}}
+            select.form-control.spicker(ng-model='vm.qqGroupControlMonitorQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.qqSessionCsOfficer",  multiple, bsp, data-actions-box='true')
+        .text-right.widthto100
+            button.btn.btn-warning.btn-space(ng-click='vm.resetQQGroupControlMonitor()') {{'Reset' | translate}}
+            button.btn.btn-success.btn-space(ng-click='vm.searchQQMonitorRecord(true)') {{'SEARCH' | translate}}
+            span#qqGroupMonitorTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+        .proposalMessage
+            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastQQRefresh}}
+            label.text-danger.newProposalAlert
+            a(ng-click='vm.searchQQMonitorRecord()')
+                .fa.fa-refrestimeLeftRefreshOperationh
+            .pull-right
+                label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                    input#autoRefreshQQFlag.margin-left-5(type='checkbox', checked)
+                .inlineBlk.hidden
+                    text {{"Time left until next refresh" | translate}} :&nbsp;
+                    text#timeLeftRefreshOperation
+                    text s
+        label {{"Total" | translate}} {{vm.qqGroupControlMonitorQuery.totalCount}} {{"records" | translate}}
+        table#qqGroupMonitorTable.common-table.display(style="min-width:100%; overflow: scroll")
+        #qqGroupMonitorTablePage
+
+#modalQQGroupControlSessionHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"7 Day(s) History" | translate}}
+            .modal-body
+                #qqGroupControlSessionHistoryQuery.well
+                    .search-filters-item
+                        label {{"PRODUCT" | translate}}
+                        input.form-control(ng-model='vm.qqGroupControlSessionHistory.platformName' disabled)
+                    .search-filters-item
+                        label {{"Device Name" | translate}}
+                        input.form-control(ng-model='vm.qqGroupControlSessionHistory.deviceNickName' disabled)
+                    .search-filters-item
+                        label {{"Login Account" | translate}}
+                        select.form-control.spicker(ng-model='vm.qqGroupControlSessionHistory.csOfficer', ng-options="a._id as a.adminName  for a in vm.qqGroupControlHistoryAdminList",  multiple, bsp, data-actions-box='true')
+                    .search-filters-item
+                        label {{"Start Connection Time" | translate}}
+                        .startTime
+                    .search-filters-item
+                        label {{"Offline Time" | translate}}
+                        .endTime
+                    .text-right.widthto100
+                        button.btn.btn-primary(ng-click='vm.getQQGroupControlSessionHistory(true)') {{"SEARCH" | translate}}
+                label {{"Total" | translate}} {{vm.qqGroupControlSessionHistory.totalCount}} {{"records" | translate}}
+                table#qqGroupControlSessionHistoryTable.common-table.display(style='min-width:100%; overflow: scroll')
+                #qqGroupControlSessionHistoryTablePage.height30

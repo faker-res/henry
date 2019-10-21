@@ -598,8 +598,8 @@ function socketActionPlatform(socketIO, socket) {
 
         updatePlatformProviderGroup: function updatePlatformProviderGroup(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup);
-            socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup && data.socketActionLog);
+            socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup, data.socketActionLog], actionName, isValidData);
         },
 
         batchCreditTransferOut: function batchCreditTransferOut(data) {
@@ -1124,6 +1124,17 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.toggleFrontEndRewardPointsRankingData, [data.platform, data.displayFrontEndRewardPointsRankingData], actionName, isValidData);
         },
 
+        getPlatformTopUpAmountConfig: function getPlatformTopUpAmountConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getPlatformTopUpAmountConfig, [data.platformObjId], actionName, isValidData);
+        },
+
+        updatePlatformTopUpAmount: function updatePlatformTopUpAmount(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updatePlatformTopUpAmount, [data.query, data.updateData], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

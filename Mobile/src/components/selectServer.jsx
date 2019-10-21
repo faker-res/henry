@@ -15,7 +15,7 @@ class SelectServer extends Component{
             lowestLatency: 9999,
             servers: WSCONFIG,
         };
-        this.pingAllServers();
+        // this.pingAllServers();
     }
 
     handleFocus = () => {
@@ -125,6 +125,10 @@ class SelectServer extends Component{
         //reconnect server
     }
 
+    componentDidMount() {
+        this.pingAllServers();
+    }
+    
     render(){
         console.log(this.props);
         return (

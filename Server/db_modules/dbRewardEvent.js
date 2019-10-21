@@ -817,7 +817,7 @@ var dbRewardEvent = {
                                                             select: "providerGroupId name providers"
                                                         }).then(
                                                             populatedProviderGroup => {
-                                                                if (populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
+                                                                if (populatedProviderGroup.result.providerGroup && populatedProviderGroup.result.providerGroup.providers && populatedProviderGroup.result.providerGroup.providers.length) {
                                                                     return dbconfig.collection_gameProvider.populate(populatedProviderGroup, {
                                                                         path: 'result.providerGroup.providers',
                                                                         model: dbconfig.collection_gameProvider,
@@ -3020,7 +3020,7 @@ var dbRewardEvent = {
                         let periodData = rewardSpecificData[2];
                         let festivalData = rewardSpecificData[3];
                         let applyFestivalTimes = 0;
-                        let topUpSum = topUpDatas.reduce((sum, value) => sum + value.amount, 0);
+                        let topUpSum = topUpDatas.reduce((sum, value) => sum + (value.oriAmount || value.amount), 0);
                         let consumptionSum = consumptionData.reduce((sum, value) => sum + value.validAmount, 0);
                         let applyRewardSum = periodData.reduce((sum, value) => sum + value.data.useConsumptionAmount, 0);
                         console.log('MT --checking before festivalData', festivalData);
@@ -3099,13 +3099,13 @@ var dbRewardEvent = {
                                         if (consumptionPlayers && consumptionPlayers.length > 0) {
                                             consumptionPlayers.forEach(player => {
                                                 if (player && player.validAmount && (parseFloat(player.validAmount) > 0)) {
-                                                    let splitRewardAmount = player.validAmount * selectedRewardParam.rewardPercentage;
+                                                    let splitRewardAmount = Number(parseFloat(player.validAmount * selectedRewardParam.rewardPercentage).toFixed(2));
                                                     referralRewardDetails.push({playerObjId: player._id, validAmount: player.validAmount, rewardAmount: splitRewardAmount});
                                                 }
                                             });
                                         }
 
-                                        rewardAmount = totalValidConsumption * selectedRewardParam.rewardPercentage;
+                                        rewardAmount = Number(parseFloat(totalValidConsumption * selectedRewardParam.rewardPercentage).toFixed(2));
                                         returnData.result.totalValidConsumptionAmount = totalValidConsumption;
 
                                     } else {
@@ -3125,7 +3125,7 @@ var dbRewardEvent = {
                                         if (firstDepositPlayers && firstDepositPlayers.length > 0) {
                                             firstDepositPlayers.forEach(player => {
                                                 if (player && (player.amount >= selectedRewardParam.firstTopUpAmount) && (player.count >= selectedRewardParam.topUpCount)) {
-                                                    let tempRewardAmount = player.amount * selectedRewardParam.rewardPercentage;
+                                                    let tempRewardAmount = Number(parseFloat(player.amount * selectedRewardParam.rewardPercentage).toFixed(2));
 
                                                     if (selectedRewardParam && selectedRewardParam.maxRewardInSingleTopUp && (tempRewardAmount > selectedRewardParam.maxRewardInSingleTopUp)) {
                                                         tempRewardAmount = selectedRewardParam.maxRewardInSingleTopUp;
@@ -3675,7 +3675,7 @@ var dbRewardEvent = {
     },
 
     updateRewardEventGroup: function (query, updateData) {
-        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
     },
 
     updateForbidRewardEvents: function (rewardObjId) {

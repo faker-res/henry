@@ -38,7 +38,7 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaDescription" placeholder="{{'Please insert meta(Description)'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
-.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+.full-width-input-block
     label favicon
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")

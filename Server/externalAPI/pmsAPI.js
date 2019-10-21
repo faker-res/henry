@@ -137,10 +137,6 @@ const pmsAPI = {
         return callPMSAPI("bonus", "applyBonus", data);
     },
 
-    bonus_getBonusList: function (data) {
-        return callPMSAPI("bonus", "getBonusList", data);
-    },
-
     bonus_setBonusStatus: function (data) {
         return callPMSAPI("bonus", "setBonusStatus", data);
     },

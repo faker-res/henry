@@ -7,6 +7,7 @@ const uaParser = require('ua-parser-js');
 const dbUtility = require('./../modules/dbutility');
 const mobileDetect = require('mobile-detect');
 const ObjectId = mongoose.Types.ObjectId;
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 
 let dbApiLog = {
     createApiLog: function (conn, wsFunc, actionResult, reqData, playerData) {
@@ -35,13 +36,15 @@ let dbApiLog = {
             "submitDXCode",
             "createGuestPlayer",
             "playerLoginOrRegisterWithSMS",
+            "registerByPhoneNumberAndPassword",
+            "loginByPhoneNumberAndPassword",
         ];
 
         if (wsFunc.name == 'submitDXCode' && playerData && playerData._id && playerData.platform) {
             playerObjId = playerData._id;
             platform = playerData.platform;
         } else {
-            if (['login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS'].includes(wsFunc.name) && wsFunc._service.name === 'player') {
+            if (['login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword', "loginByPhoneNumberAndPassword"].includes(wsFunc.name) && wsFunc._service.name === 'player') {
                 playerObjId = actionResult._id;
                 platform = actionResult.platform;
             } else {
@@ -68,7 +71,7 @@ let dbApiLog = {
             }
         }
 
-        if (actionName == 'createGuestPlayer' || actionName == 'playerLoginOrRegisterWithSMS'){
+        if (actionName == 'createGuestPlayer' || actionName == 'playerLoginOrRegisterWithSMS' || actionName == 'registerByPhoneNumberAndPassword' || actionName == 'loginByPhoneNumberAndPassword'){
             actionName = "login";
         }
 
@@ -80,6 +83,9 @@ let dbApiLog = {
             ipAddress: ipAddress
         };
         logData.inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        if(reqData.deviceId || reqData.guestDeviceId) {
+            logData.inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        }
 
         var uaString = conn.upgradeReq.headers['user-agent'];
         var ua = uaParser(uaString);

@@ -98,6 +98,19 @@ let authService = {
     getAdminObjId: () => {
         return cookie.load(authKey.adminObjId);
     },
+
+    hasLogin: () => {
+        console.log("hasLogin?");
+        let token = authService.getToken();
+        let adminObjId = authService.getAdminObjId();
+        if(token && adminObjId){
+            console.log("yes logged in");
+            return true;
+        } else {
+            console.log("not logged in");
+            return false;
+        }
+    },
 };
 
 export default authService;

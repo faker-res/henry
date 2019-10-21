@@ -37,7 +37,8 @@ define(['js/app'], function (myApp) {
                 3: 'Counter',
                 4: 'AliPayTransfer',
                 5: 'weChatPayTransfer',
-                6: 'CloudFlashPay'
+                6: 'CloudFlashPay',
+                7: 'CloudFlashPayTransfer'
             };
 
             vm.constQualityInspectionStatus = {
@@ -114,6 +115,7 @@ define(['js/app'], function (myApp) {
             vm.fuzzyWechatDeviceList;
             vm.wechatReportDeviceList;
             vm.inspectionWechat = {
+                type: 'wechat',
                 totalCount: 0,
                 currentPage: 1,
                 index: 0,
@@ -146,7 +148,9 @@ define(['js/app'], function (myApp) {
                 80089990020: "Xbet"
             };
 
-            vm.inspectionWechatReport = {};
+            vm.inspectionWechatReport = {
+                type: 'wechat'
+            };
             vm.showDeviceTable = false;
 
             ////////////////Mark::Platform functions//////////////////
@@ -768,7 +772,7 @@ define(['js/app'], function (myApp) {
                         status: '1',
                         qiUser: 'all',
                         displayWay: 'true',
-                        searchBySummaryData: true
+                        searchBySummaryData: false
                     }
                 }
                 vm.pgn = vm.pgn || {index:0, currentPage:1, totalPage:1, limit:100, count:0};
@@ -2341,7 +2345,7 @@ define(['js/app'], function (myApp) {
                             vm.selectedCompanyId.push(companyId);
                         })
                     }
-                    if (platform.data.csDepartment.length >0) {
+                    if (platform.data && platform.data.csDepartment && platform.data.csDepartment.length >0) {
 
                        platform.data.csDepartment.forEach(department =>{
                            vm.allCSDepartmentId.push(department._id);
@@ -3167,11 +3171,11 @@ define(['js/app'], function (myApp) {
                     console.log("Error when gather summarized Live 800 Record Data:", error)
                 });
 
-                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
-                   console.log("Live800 records has gathered completely")
-                }, function (error){
-                    console.log("Error when gather Live800 records: ", error)
-                });
+                // socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                //    console.log("Live800 records has gathered completely")
+                // }, function (error){
+                //     console.log("Error when gather Live800 records: ", error)
+                // });
             }
 
             vm.resummarizeLive800Record = function(){
@@ -3194,11 +3198,11 @@ define(['js/app'], function (myApp) {
                     console.log("Error when gather summarized Live 800 Record Data:", error)
                 });
 
-                socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
-                    console.log("Live800 records has gathered completely")
-                }, function (error){
-                    console.log("Error when gather Live800 records: ", error)
-                });
+                // socketService.$socket($scope.AppSocket, 'getLive800Records', sendData, function (data) {
+                //     console.log("Live800 records has gathered completely")
+                // }, function (error){
+                //     console.log("Error when gather Live800 records: ", error)
+                // });
             }
 
             vm.getSummarizedLive800RecordCount = function(){
@@ -3230,25 +3234,23 @@ define(['js/app'], function (myApp) {
             vm.initWechatConversationRecord = function(){
                 vm.getWechatDeviceNickNameList();
 
-                if(vm.selectedPlatform){
-                    utilService.actionAfterLoaded('#wechatMessageBeginDatetimePicker', function () {
-                        $('#wechatMessageBeginDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
-
-                        $("#wechatMessageBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                        $('#wechatMessageEndDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
-
-                        $("#wechatMessageEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                utilService.actionAfterLoaded('#wechatMessageBeginDatetimePicker', function () {
+                    $('#wechatMessageBeginDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
-                }
+
+                    $("#wechatMessageBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#wechatMessageEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#wechatMessageEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                });
             };
 
             vm.getWechatDeviceNickNameList = function(isFuzzy = false){
@@ -3258,7 +3260,12 @@ define(['js/app'], function (myApp) {
                     sendData.platform = isFuzzy ? vm.inspectionWechat.fuzzyPlatform : vm.inspectionWechat.platform;
                 }
 
-                socketService.$socket($scope.AppSocket, 'getWechatDeviceNickNameList', sendData, function (data) {
+                let serviceName = 'getWechatDeviceNickNameList';
+                if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                    serviceName = 'getQQDeviceNickNameList'
+                }
+
+                socketService.$socket($scope.AppSocket, serviceName, sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data.data){
                             if(isFuzzy){
@@ -3301,7 +3308,6 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime,
                     content: vm.inspectionWechat.content,
-                    playerWechatRemark: vm.inspectionWechat.playerWechatRemark,
                     index: vm.inspectionWechat.index || 0,
                     limit: vm.inspectionWechat.limit || 1000
                 };
@@ -3309,9 +3315,17 @@ define(['js/app'], function (myApp) {
                 vm.deviceListTotal = 0;
                 vm.showDeviceTable = true;
                 $('#wechatConversationTableSpin').show();
-                let playerWechatRemarkList = [];
+                let playerRemarkList = [];
 
-                socketService.$socket($scope.AppSocket, 'getWechatConversationDeviceList', sendData, function (data) {
+                let serviceName = 'getWechatConversationDeviceList';
+                if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                    serviceName = 'getQQConversationDeviceList'
+                    sendData.playerQQRemark = vm.inspectionWechat.playerQQRemark;
+                } else {
+                    sendData.playerWechatRemark = vm.inspectionWechat.playerWechatRemark;
+                }
+
+                socketService.$socket($scope.AppSocket, serviceName, sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data){
                             vm.getWechatDeviceNickNameList(true);
@@ -3319,13 +3333,27 @@ define(['js/app'], function (myApp) {
                             vm.deviceListTotal = data.data.size;
 
                             data.data.data.forEach(data => {
-                                if(data && data._id && data._id.platformName && data._id.deviceNickName && data._id.playerWechatRemark){
-                                    let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
-                                    playerWechatRemarkList.push(data._id.playerWechatRemark);
+                                let outputPlayerWechatOrQQRemark;
+                                if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                                    outputPlayerWechatOrQQRemark = data && data._id && data._id.playerQQRemark;
+                                } else {
+                                    outputPlayerWechatOrQQRemark = data && data._id && data._id.playerWechatRemark;
+                                }
 
-                                    if (data && data._id && data._id.playerWechatId) {
-                                        let str = data._id.playerWechatId;
-                                        data._id.encodedPlayerWechatId = str.substring(0, 3) + "******" + str.slice(-4);
+                                if(data && data._id && data._id.platformName && data._id.deviceNickName && outputPlayerWechatOrQQRemark){
+                                    let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
+                                    playerRemarkList.push(outputPlayerWechatOrQQRemark);
+
+                                    let outputPlayerWechatOrQQId;
+                                    if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                                        outputPlayerWechatOrQQId = data && data._id && data._id.playerQQId;
+                                    } else {
+                                        outputPlayerWechatOrQQId = data && data._id && data._id.playerWechatId;
+                                    }
+
+                                    if (data && data._id && outputPlayerWechatOrQQId) {
+                                        let str = outputPlayerWechatOrQQId;
+                                        data._id.encodedPlayerWechatOrQQId = str.substring(0, 3) + "******" + str.slice(-4);
                                     }
 
                                     if(indexByPlatform > -1){
@@ -3334,19 +3362,19 @@ define(['js/app'], function (myApp) {
 
                                             if(indexByDevice > -1){
                                                 if(vm.deviceList[indexByPlatform].deviceNickName[indexByDevice]){
-                                                    vm.deviceList[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push({playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''});
+                                                    vm.deviceList[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push({playerWechatRemark: outputPlayerWechatOrQQRemark, playerWechatId: outputPlayerWechatOrQQId, encodedPlayerWechatOrQQId: data._id.encodedPlayerWechatOrQQId || ''});
                                                 }else{
-                                                    vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]});
+                                                    vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: outputPlayerWechatOrQQRemark, playerWechatId: outputPlayerWechatOrQQId, encodedPlayerWechatOrQQId: data._id.encodedPlayerWechatOrQQId || ''}]});
                                                 }
                                             }else{
-                                                vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]});
+                                                vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: outputPlayerWechatOrQQRemark, playerWechatId: outputPlayerWechatOrQQId, encodedPlayerWechatOrQQId: data._id.encodedPlayerWechatOrQQId || ''}]});
                                             }
                                         }else{
-                                            vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName, deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]}]});
+                                            vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName, deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: outputPlayerWechatOrQQRemark, playerWechatId: outputPlayerWechatOrQQId, encodedPlayerWechatOrQQId: data._id.encodedPlayerWechatOrQQId || ''}]}]});
                                         }
 
                                     }else{
-                                        vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName,deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]}]});
+                                        vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName,deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: outputPlayerWechatOrQQRemark, playerWechatId: outputPlayerWechatOrQQId, encodedPlayerWechatOrQQId: data._id.encodedPlayerWechatOrQQId || ''}]}]});
                                     }
                                 }
                             });
@@ -3367,7 +3395,7 @@ define(['js/app'], function (myApp) {
 
                             $('#wechatConversationTableSpin').hide();
                             vm.oriDeviceList = vm.deviceList;
-                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, playerWechatRemarkList);
+                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, playerRemarkList);
                         }
                     })
                 });
@@ -3399,10 +3427,10 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.searchWechatConversation = function (platform, deviceNickName, playerWechatRemark) {
+            vm.searchWechatConversation = function (platform, deviceNickName, playerWechatOrQQRemark) {
                 vm.inspectionWechat.conversationPlatform = platform;
                 vm.inspectionWechat.conversationDeviceNickName = deviceNickName;
-                vm.inspectionWechat.conversationPlayerWechatRemark = playerWechatRemark;
+                vm.inspectionWechat.conversationPlayerWechatOrQQRemark = playerWechatOrQQRemark;
 
                 utilService.actionAfterLoaded(('#wechatMessageBeginDatetimePicker'), function () {
                     vm.inspectionWechat.pageObj = utilService.createPageForPagingTable("#wechatMessageTablePage", {}, $translate, function (curP, pageSize) {
@@ -3419,8 +3447,6 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platform: vm.inspectionWechat.conversationPlatform,
                     deviceNickName: vm.inspectionWechat.conversationDeviceNickName,
-                    playerWechatRemark: vm.inspectionWechat.conversationPlayerWechatRemark && vm.inspectionWechat.conversationPlayerWechatRemark.length > 0 ?
-                        vm.inspectionWechat.conversationPlayerWechatRemark : [],
                     startTime: startTime,
                     endTime: endTime,
                     content: vm.inspectionWechat.content,
@@ -3429,7 +3455,17 @@ define(['js/app'], function (myApp) {
                     sortCol: vm.inspectionWechat.sortCol || null,
                 };
 
-                socketService.$socket($scope.AppSocket, 'getWechatConversation', sendData, function (data) {
+                let serviceName = 'getWechatConversation';
+                if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                    sendData.playerQQRemark = vm.inspectionWechat.conversationPlayerWechatOrQQRemark && vm.inspectionWechat.conversationPlayerWechatOrQQRemark.length > 0 ?
+                        vm.inspectionWechat.conversationPlayerWechatOrQQRemark : [];
+                    serviceName = 'getQQConversation';
+                } else {
+                    sendData.playerWechatRemark = vm.inspectionWechat.conversationPlayerWechatOrQQRemark && vm.inspectionWechat.conversationPlayerWechatOrQQRemark.length > 0 ?
+                        vm.inspectionWechat.conversationPlayerWechatOrQQRemark : [];
+                }
+
+                socketService.$socket($scope.AppSocket, serviceName, sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.data){
                             console.log("Wechat Conversation", data.data.data);
@@ -3448,13 +3484,21 @@ define(['js/app'], function (myApp) {
 
             vm.drawWechatMessageTable = function (newSearch, tblData, size) {
                 console.log("wechatMessageTable",tblData);
+                let sortCol4 = 'playerWechatRemark';
+                let column4Title = 'wechatReceivingPlayer';
+                let column4Data = 'playerWechatRemark';
+                if (vm.inspectionWechat && vm.inspectionWechat.type && (vm.inspectionWechat.type === 'qq')) {
+                    sortCol4 = 'playerQQRemark';
+                    column4Title = 'qqReceivingPlayer';
+                    column4Data = 'playerQQRemark';
+                }
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
                         {'sortCol': 'platformObjId', bSortable: true, 'aTargets': [0]},
                         {'sortCol': 'deviceNickName', bSortable: true, 'aTargets': [1]},
                         {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'playerWechatRemark', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': sortCol4, bSortable: true, 'aTargets': [3]},
                         {'sortCol': 'csReplyTime', bSortable: true, 'aTargets': [4]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
@@ -3466,7 +3510,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PRODUCT'), data: "platformObjId.name"},
                         {title: $translate('Create Device Name'), data: "deviceNickName"},
                         {title: $translate('CS Account'), data: "csOfficer.adminName"},
-                        {title: $translate('wechatReceivingPlayer'), data: "playerWechatRemark"},
+                        {title: $translate(column4Title), data: column4Data},
                         {title: $translate('Message Time'), data: "csReplyTime"},
                         {title: $translate('Message Content'), data: "csReplyContent"},
                     ],
@@ -3615,25 +3659,23 @@ define(['js/app'], function (myApp) {
             vm.initWechatConversationReport = function(){
                 vm.getWechatDeviceNickNameListForReport();
 
-                if(vm.selectedPlatform){
-                    utilService.actionAfterLoaded('#wechatMessageReportBeginDatetimePicker', function () {
-                        $('#wechatMessageReportBeginDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
-
-                        $("#wechatMessageReportBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
-
-                        $('#wechatMessageReportEndDatetimePicker').datetimepicker({
-                            language: 'en',
-                            format: 'dd/MM/yyyy hh:mm:ss',
-                            pick12HourFormat: true
-                        });
-
-                        $("#wechatMessageReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                utilService.actionAfterLoaded('#wechatMessageReportBeginDatetimePicker', function () {
+                    $('#wechatMessageReportBeginDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
-                }
+
+                    $("#wechatMessageReportBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                    $('#wechatMessageReportEndDatetimePicker').datetimepicker({
+                        language: 'en',
+                        format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
+                    });
+
+                    $("#wechatMessageReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                });
             };
 
             vm.getWechatDeviceNickNameListForReport = function(){
@@ -3643,7 +3685,12 @@ define(['js/app'], function (myApp) {
                     sendData.platform = vm.inspectionWechatReport.platform
                 }
 
-                socketService.$socket($scope.AppSocket, 'getWechatDeviceNickNameList', sendData, function (data) {
+                let serviceName = 'getWechatDeviceNickNameList';
+                if (vm.inspectionWechatReport && vm.inspectionWechatReport.type && (vm.inspectionWechatReport.type === 'qq')) {
+                    serviceName = 'getQQDeviceNickNameList'
+                }
+
+                socketService.$socket($scope.AppSocket, serviceName, sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data.data){
                             vm.wechatReportDeviceList = data.data.sort();
@@ -3678,15 +3725,24 @@ define(['js/app'], function (myApp) {
                     limit: vm.inspectionWechatReport.limit || 10,
                 };
 
+                let serviceName = 'getWechatConversationReport';
+                if (vm.inspectionWechatReport && vm.inspectionWechatReport.type && (vm.inspectionWechatReport.type === 'qq')) {
+                    serviceName = 'getQQConversationReport';
+                }
+
                 $('#wechatConversationReportTableSpin').show();
-                socketService.$socket($scope.AppSocket, 'getWechatConversationReport', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, serviceName, sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.data){
                             console.log("Wechat Conversation", data.data.data);
                             data.data.data.forEach(
                                 data => {
                                     if(data){
-                                        data.totalPlayerWechatId = data.totalPlayerWechatId || 0;
+                                        if (vm.inspectionWechatReport && vm.inspectionWechatReport.type && (vm.inspectionWechatReport.type === 'qq')) {
+                                            data.totalPlayerQQId = data.totalPlayerQQId || 0;
+                                        } else {
+                                            data.totalPlayerWechatId = data.totalPlayerWechatId || 0;
+                                        }
                                     }
                                 }
                             );
@@ -3703,6 +3759,12 @@ define(['js/app'], function (myApp) {
 
             vm.drawWechatMessageReportTable = function (newSearch, tblData, size) {
                 console.log("wechatMessageReportTable",tblData);
+                let column4title = 'Total Player In Conversation(By Wechat ID)';
+                let column4Data = 'totalPlayerWechatId';
+                if (vm.inspectionWechatReport && vm.inspectionWechatReport.type && (vm.inspectionWechatReport.type === 'qq')) {
+                    column4title = 'Total Player In Conversation(By QQ ID)';
+                    column4Data = 'totalPlayerQQId';
+                }
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
@@ -3716,7 +3778,7 @@ define(['js/app'], function (myApp) {
                         {title: $translate('PRODUCT'), data: "platformName"},
                         {title: $translate('CS Account'), data: "csOfficerName"},
                         {title: $translate('Total Conversation(Message Sent)'), data: "totalConversation"},
-                        {title: $translate('Total Player In Conversation(By Wechat ID)'), data: "totalPlayerWechatId"},
+                        {title: $translate(column4title), data: column4Data},
                     ],
                     "paging": false,
                     fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -4345,7 +4407,6 @@ define(['js/app'], function (myApp) {
                     $('#manualProcessRecordStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
                     });
 
                     $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
@@ -4353,7 +4414,6 @@ define(['js/app'], function (myApp) {
                     $('#manualProcessRecordEndDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true
                     });
 
                     $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());

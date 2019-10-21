@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import $ from 'jquery';
 import WSCONFIG from '../wsconfig.js';
 import authService from '../services/authService.js';
@@ -29,11 +29,11 @@ class Login extends Component {
         let setObject = {};
         setObject[key] = ev.currentTarget.value;
         this.setState(setObject);
-    }
+    };
     handlePropsUpdate = (obj) => {
         console.log("***handlePropsUpdate , triggered***");
         this.setState(obj);
-    }
+    };
     
     getPlatformByAdminId = () => {
         return socketService.emit("getPlatformByAdminId", {adminObjId: authService.getAdminObjId()}).then(platforms => {
@@ -43,7 +43,7 @@ class Login extends Component {
             }
             return platforms.data;
         });
-    }
+    };
 
     login() {
         console.log("login...");
@@ -56,14 +56,14 @@ class Login extends Component {
             },
             url: url + '/login',
             timeout: 5000
-        }
+        };
         console.log("Login --> Send Data", sendData);
         $.ajax(sendData).done(data => {
             console.log("login done!");
             console.log(data);
             if(data.success) {
                 let exp = new Date();
-                exp.setSeconds(exp.getSeconds() + 60 * 60 * 12);
+                exp.setSeconds(exp.getSeconds() + 60 * 60 * 5);
                 
                 localStorageService.set("socketUrl", url);
                 authService.storeAuth(data.token, data._id, data.adminName, data.departments, data.roles, data.language, exp);
@@ -71,18 +71,28 @@ class Login extends Component {
                     if(platforms && platforms.length > 0) {
                         let selectedPlatform;
                         platforms.forEach(platform=>{
-                            if(platform.platformId == defaultPlatformId) {
+                            if(platform.platformId === defaultPlatformId) {
                                 selectedPlatform = platform;
                             }
                         })
                         localStorageService.set("selectedPlatform", selectedPlatform);
                     }
-                    navService.goto('dashboard');
+                    navService.goto("dashboard");
                 });
             } else {
                 console.log(data.error.message);
             }
         })
+    };
+
+    checkLogin() {
+        if(authService.hasLogin()){
+            navService.goto("dashboard");
+        }
+    };
+    
+    componentWillMount() {
+        this.checkLogin();
     }
     
     render() { 
@@ -91,7 +101,7 @@ class Login extends Component {
             <div className="container centerMenu">
                 <div className="login card col-12">
                     <div className="text-center">
-                        <h4>FMPS</h4>
+                        <h4>FPMS</h4>
                     </div>
 
                     <div className="login-group">
@@ -112,7 +122,7 @@ class Login extends Component {
                         </label>
                     </div>
                     <div className="login-group">
-                        <a href="#">Forgot Password?</a>
+                        <a href="/">Forgot Password?</a>
                     </div>
                     <div className="login-group ">
                         <button type="button" onClick={()=>{this.login()}} className="float-right btn-sm btn-dark">LOGIN</button>

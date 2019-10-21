@@ -36,7 +36,7 @@
                                 span {{"SMS Records" | translate}}
 
                         .col-md-12
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'Read')" ng-class='{active: vm.platformPageName === "Config"}' ng-click="vm.loadTab('Config');")
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'ConfigRead', 'Read')" ng-class='{active: vm.platformPageName === "Config"}' ng-click="vm.loadTab('Config');")
                                 span {{"CONFIG" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'PlatformSetting', 'Read')" ng-class='{active: vm.platformPageName === "platformSetting"}' ng-click="vm.loadTab('platformSetting');")
                                 span {{"platformSetting" | translate}}
@@ -48,7 +48,7 @@
                                 span {{"RegistrationUrlConfig" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Proposal', 'Read')" ng-class='{active: vm.platformPageName === "Proposal"}' ng-click="vm.loadTab('Proposal');")
                                 span {{"PROPOSAL_PROCESS" | translate}}
-                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'Read')" ng-class='{active: vm.platformPageName === "MessageTemplates"}' ng-click="vm.loadTab('MessageTemplates');")
+                            button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'ConfigRead', 'Read')" ng-class='{active: vm.platformPageName === "MessageTemplates"}' ng-click="vm.loadTab('MessageTemplates');")
                                 span {{"MESSAGE_TEMPLATES_SHORT" | translate}}
                             button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'batchPermit', 'Read')" ng-class='{active: vm.platformPageName === "batchPermit"}' ng-click="vm.loadTab('batchPermit');")
                                 span {{"Batch Setting" | translate}}
@@ -331,7 +331,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                {{ 'DETAILS' | translate }}
+                div {{ 'DETAILS' | translate }}
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
             .modal-body
                 .panel.panel-primary
@@ -357,7 +357,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                {{ 'DETAILS' | translate }}
+                div {{ 'DETAILS' | translate }}
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
             .modal-body
                 .panel.panel-primary
@@ -384,7 +384,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                {{ 'DETAILS' | translate }}
+                div {{ 'DETAILS' | translate }}
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
             .modal-body
                 .panel.panel-primary

@@ -112,6 +112,7 @@ var dbPlayerTopUpRecord = {
         let onlineTopUpTypeId;
         let playerReportSummary;
         let merchantList;
+        let consumptionDetailArr = [];
 
         return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
             platformData => {
@@ -184,7 +185,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType"},
+                                    _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType", loginDevice: "$loginDevice"},
                                     amount: {$sum: "$amount"},
                                     oriAmount: {$sum: "$oriAmount"},
                                     times: {$sum: 1},
@@ -222,7 +223,8 @@ var dbPlayerTopUpRecord = {
                                     _id: {
                                         playerId: "$playerId",
                                         gameId: "$gameId",
-                                        platformId: "$platformId"
+                                        platformId: "$platformId",
+                                        loginDevice: "$loginDevice"
                                     },
                                     gameId: {"$first": "$gameId"},
                                     providerId: {"$first": "$providerId"},
@@ -259,7 +261,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId"},
+                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
                                     "count": {"$sum": 1},
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -291,7 +293,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
                             }
@@ -323,7 +325,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
 
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
@@ -359,7 +361,8 @@ var dbPlayerTopUpRecord = {
                                     "_id": {
                                         "playerId": "$data.playerObjId",
                                         "merchantName": "$data.merchantName",
-                                        "merchantNo": "$data.merchantNo"
+                                        "merchantNo": "$data.merchantNo",
+                                        "loginDevice": "$data.loginDevice"
                                     },
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -370,6 +373,7 @@ var dbPlayerTopUpRecord = {
                                     playerId: "$_id.playerId",
                                     merchantName: "$_id.merchantName",
                                     merchantNo: "$_id.merchantNo",
+                                    loginDevice: "$_id.loginDevice",
                                     amount: 1
                                 }
                             }
@@ -400,13 +404,14 @@ var dbPlayerTopUpRecord = {
                             topUpDetails.forEach(
                                 topUp => {
                                     if(topUp && topUp._id && topUp._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == topUp._id.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && topUp._id && topUp._id.playerId && p.playerId.toString() == topUp._id.playerId.toString() && p.loginDevice == topUp._id.loginDevice);
 
                                         if(indexNo == -1){
                                             let topUpObj = {
                                                 playerId: topUp._id.playerId,
                                                 platformId: topUp._id.platformId,
-                                                topUpTimes: topUp.times
+                                                topUpTimes: topUp.times,
+                                                loginDevice: topUp._id.loginDevice || null
                                             }
 
                                             if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
@@ -443,7 +448,7 @@ var dbPlayerTopUpRecord = {
                             consumptionDetails.forEach(
                                 consumption => {
                                     if(consumption && consumption._id && consumption._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == consumption._id.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
                                         let providerDetail = {};
                                         let providerId = consumption.providerId.toString();
                                         consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
@@ -472,7 +477,8 @@ var dbPlayerTopUpRecord = {
                                                 consumptionValidAmount: consumption.validAmount,
                                                 consumptionBonusAmount: consumption.bonusAmount,
                                                 providerDetail: providerDetail,
-                                                gameDetail: [consumption]
+                                                gameDetail: [consumption],
+                                                loginDevice: consumption._id.loginDevice || null,
                                             });
                                         }else{
                                             if(typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined"){
@@ -533,6 +539,98 @@ var dbPlayerTopUpRecord = {
 
                                         }
                                     }
+                                    // to get the consumption array without categorized by login device for calculating platform fee for involved game provider
+                                    if(consumption && consumption._id && consumption._id.playerId){
+                                        let indexNo = consumptionDetailArr.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString());
+                                        let providerDetail = {};
+                                        let providerId = consumption.providerId.toString();
+                                        consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
+
+                                        if (!providerDetail.hasOwnProperty(providerId)) {
+                                            providerDetail[providerId] = {
+                                                count: 0,
+                                                amount: 0,
+                                                validAmount: 0,
+                                                bonusAmount: 0
+                                            };
+                                        }
+
+                                        providerDetail[providerId].count += consumption.count;
+                                        providerDetail[providerId].amount += consumption.amount;
+                                        providerDetail[providerId].validAmount += consumption.validAmount;
+                                        providerDetail[providerId].bonusAmount += consumption.bonusAmount;
+                                        providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
+
+                                        if(indexNo == -1){
+                                            consumptionDetailArr.push({
+                                                playerId: consumption._id.playerId,
+                                                platformId: consumption._id.platformId,
+                                                consumptionTimes: consumption.count,
+                                                consumptionAmount: consumption.amount,
+                                                consumptionValidAmount: consumption.validAmount,
+                                                consumptionBonusAmount: consumption.bonusAmount,
+                                                providerDetail: providerDetail,
+                                                gameDetail: [consumption],
+                                            });
+                                        }else{
+                                            if(typeof consumptionDetailArr[indexNo].consumptionTimes != "undefined"){
+                                                consumptionDetailArr[indexNo].consumptionTimes += consumption.count;
+                                            }else{
+                                                consumptionDetailArr[indexNo].consumptionTimes = consumption.count;
+                                            }
+
+                                            if(typeof consumptionDetailArr[indexNo].consumptionAmount != "undefined"){
+                                                consumptionDetailArr[indexNo].consumptionAmount += consumption.amount;
+                                            }else{
+                                                consumptionDetailArr[indexNo].consumptionAmount = consumption.amount;
+                                            }
+
+                                            if(typeof consumptionDetailArr[indexNo].consumptionValidAmount != "undefined"){
+                                                consumptionDetailArr[indexNo].consumptionValidAmount += consumption.validAmount;
+                                            }else{
+                                                consumptionDetailArr[indexNo].consumptionValidAmount = consumption.validAmount;
+                                            }
+
+                                            if(typeof consumptionDetailArr[indexNo].consumptionBonusAmount != "undefined"){
+                                                consumptionDetailArr[indexNo].consumptionBonusAmount += consumption.bonusAmount;
+                                            }else{
+                                                consumptionDetailArr[indexNo].consumptionBonusAmount = consumption.bonusAmount;
+                                            }
+
+                                            if(typeof consumptionDetailArr[indexNo].providerDetail != "undefined"){
+                                                let providerId = providerDetail && Object.keys(providerDetail) && Object.keys(providerDetail).length ? Object.keys(providerDetail)[0] : null;
+                                                if(providerId && consumptionDetailArr[indexNo].providerDetail[providerId]){
+                                                    consumptionDetailArr[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
+                                                    consumptionDetailArr[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
+                                                    consumptionDetailArr[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
+                                                    consumptionDetailArr[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
+                                                    consumptionDetailArr[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
+                                                }else{
+                                                    consumptionDetailArr[indexNo].providerDetail = Object.assign(consumptionDetailArr[indexNo].providerDetail, providerDetail);
+                                                }
+                                            }else{
+                                                consumptionDetailArr[indexNo].providerDetail = providerDetail;
+                                            }
+
+                                            // Push game detail
+                                            if (consumptionDetailArr[indexNo].gameDetail && consumptionDetailArr[indexNo].gameDetail.length) {
+                                                let idx = consumptionDetailArr[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
+
+                                                if (idx !== -1){
+                                                    consumptionDetailArr[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
+                                                    consumptionDetailArr[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
+                                                    consumptionDetailArr[indexNo].gameDetail[idx].amount += consumption.amount;
+                                                    consumptionDetailArr[indexNo].gameDetail[idx].count += consumption.count;
+                                                    consumptionDetailArr[indexNo].gameDetail[idx].bonusRatio = (consumptionDetailArr[indexNo].gameDetail[idx].bonusAmount / consumptionDetailArr[indexNo].gameDetail[idx].validAmount);
+                                                } else {
+                                                    consumptionDetailArr[indexNo].gameDetail.push(consumption);
+                                                }
+                                            } else {
+                                                consumptionDetailArr[indexNo].gameDetail = [consumption];
+                                            }
+
+                                        }
+                                    }
                                 }
                             )
                         }
@@ -542,14 +640,15 @@ var dbPlayerTopUpRecord = {
                             bonusDetails.forEach(
                                 bonus => {
                                     if(bonus && bonus._id && bonus._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == bonus._id.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && bonus._id && bonus._id.playerId && p.playerId.toString() == bonus._id.playerId.toString() && p.loginDevice == bonus._id.loginDevice);
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
                                                 playerId: bonus._id.playerId,
                                                 platformId: bonus._id.platformId,
                                                 bonusTimes: bonus.count,
-                                                bonusAmount: bonus.amount
+                                                bonusAmount: bonus.amount,
+                                                loginDevice: bonus._id.loginDevice || null
                                             });
                                         }else{
                                             playerReportDaySummary[indexNo].bonusTimes = bonus.count;
@@ -565,13 +664,14 @@ var dbPlayerTopUpRecord = {
                             consumptionReturnDetails.forEach(
                                 consumptionReturn => {
                                     if(consumptionReturn && consumptionReturn._id && consumptionReturn._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == consumptionReturn._id.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumptionReturn._id && consumptionReturn._id.playerId && p.playerId.toString() == consumptionReturn._id.playerId.toString() && p.loginDevice == consumptionReturn._id.loginDevice);
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
                                                 playerId: consumptionReturn._id.playerId,
                                                 platformId: consumptionReturn._id.platformId,
-                                                consumptionReturnAmount: consumptionReturn.amount
+                                                consumptionReturnAmount: consumptionReturn.amount,
+                                                loginDevice: consumptionReturn._id.loginDevice || null
                                             });
                                         }else{
                                             playerReportDaySummary[indexNo].consumptionReturnAmount = consumptionReturn.amount;
@@ -586,13 +686,14 @@ var dbPlayerTopUpRecord = {
                             rewardDetails.forEach(
                                 reward => {
                                     if(reward && reward._id && reward._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == reward._id.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && reward._id && reward._id.playerId && p.playerId.toString() == reward._id.playerId.toString() && p.loginDevice == reward._id.loginDevice);
 
                                         if(indexNo == -1) {
                                             playerReportDaySummary.push({
                                                 playerId: reward._id.playerId,
                                                 platformId: reward._id.platformId,
-                                                rewardAmount: parseFloat(reward.amount)
+                                                rewardAmount: parseFloat(reward.amount),
+                                                loginDevice: reward._id.loginDevice
                                             })
                                         }else if(typeof playerReportDaySummary[indexNo].rewardAmount != "undefined"){
                                             playerReportDaySummary[indexNo].rewardAmount += parseFloat(reward.amount);
@@ -609,7 +710,7 @@ var dbPlayerTopUpRecord = {
                             onlineTopUpByMerchantDetails.forEach(
                                 onlineTopUpByMerchant => {
                                     if(onlineTopUpByMerchant && onlineTopUpByMerchant.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == onlineTopUpByMerchant.playerId.toString());
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && onlineTopUpByMerchant.playerId && p.playerId.toString() == onlineTopUpByMerchant.playerId.toString() && p.loginDevice == onlineTopUpByMerchant.loginDevice);
 
                                         if (onlineTopUpByMerchant && merchantList && merchantList.length > 0) {
                                             let onlineTopUpDetail = onlineTopUpByMerchant;
@@ -642,7 +743,8 @@ var dbPlayerTopUpRecord = {
                                                 playerId: reward._id.playerId,
                                                 platformId: reward._id.platformId,
                                                 totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
-                                                onlineTopUpFeeDetail: [onlineTopUpByMerchant]
+                                                onlineTopUpFeeDetail: [onlineTopUpByMerchant],
+                                                loginDevice: onlineTopUpByMerchant.loginDevice || null
                                             })
                                         }else{
                                             if(typeof playerReportDaySummary[indexNo].totalOnlineTopUpFee != "undefined"){
@@ -678,8 +780,8 @@ var dbPlayerTopUpRecord = {
                         console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
                         let platformFeeProm = [];
-                        if(playerReportDaySummary && playerReportDaySummary.length > 0){
-                            playerReportDaySummary.forEach(
+                        if(consumptionDetailArr  && consumptionDetailArr.length > 0){
+                            consumptionDetailArr .forEach(
                                 summary => {
                                     if(summary){
                                         platformFeeProm.push(dbPlayerTopUpRecord.countPlatformFeeByPlayer(platformId, summary.playerId, summary.providerDetail));
@@ -707,6 +809,7 @@ var dbPlayerTopUpRecord = {
                             playerPlatformFeeDetail.forEach(
                                 platformFee => {
                                     if(platformFee){
+                                        // just append the platformFee onto one of the record with the same playerId, without considering loginDevice
                                         let indexNo = playerReportSummary.findIndex(p => p.playerId.toString() == platformFee.playerId.toString());
 
                                         if(indexNo > -1){
@@ -880,6 +983,9 @@ var dbPlayerTopUpRecord = {
             queryObj = {
                 proposalId: query.proposalId
             };
+            if (query.platformList && query.platformList.length > 0) {
+                queryObj['data.platformId'] = {$in: query.platformList.map(item=>{return ObjectId(item)})};
+            }
         } else {
             queryObj = await getProposalQ(query);
         }
@@ -1783,7 +1889,7 @@ var dbPlayerTopUpRecord = {
             {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
         ).populate(
             {path: "playerLevel", model: dbconfig.collection_playerLevel}
-            ).then(
+            ).lean().then(
             playerData => {
                 player = playerData;
                 topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
@@ -1979,6 +2085,7 @@ var dbPlayerTopUpRecord = {
                 if( player.playerLevel ){
                     proposalData.playerLevel = player.playerLevel._id;
                 }
+                proposalData.loginDevice = player.loginDevice || null;
                 proposalData.playerRealName = player.realName;
                 proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
                 proposalData.platform = player.platform.platformId;
@@ -1993,6 +2100,10 @@ var dbPlayerTopUpRecord = {
                 // if (rewardEvent && rewardEvent._id) {
                 //     proposalData.topUpReturnCode = rewardEvent.code;
                 // }
+
+                if (player && player.hasOwnProperty('loginDevice')){
+                    proposalData.loginDevice = player.loginDevice
+                }
 
                 console.log("checking proposalData.userAgent for ANALYSIS_REPORT_ISSUE",  proposalData.userAgent)
                 if (player.platform.topUpSystemType && topUpSystemConfig) {
@@ -2326,7 +2437,7 @@ var dbPlayerTopUpRecord = {
                     return dbconfig.collection_players.findOne({playerId: playerId})
                         .populate({path: "platform", model: dbconfig.collection_platform})
                         .populate({path: "bankCardGroup", model: dbconfig.collection_platformBankCardGroup})
-                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                        .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
                 }
             }
         ).then(
@@ -2437,6 +2548,7 @@ var dbPlayerTopUpRecord = {
                 let proposalData = Object.assign({}, inputData);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
+                proposalData.loginDevice = player.loginDevice || null;
                 proposalData.platformId = player.platform._id;
                 proposalData.playerLevel = player.playerLevel._id;
                 proposalData.playerRealName = player.realName;
@@ -2576,8 +2688,12 @@ var dbPlayerTopUpRecord = {
                             break;
                         case 6:
                         case "6":
+                            //云闪付
                             depositMethod = "云闪付转账";
                             break;
+                        case 7:
+                        case "7":
+                            depositMethod = "CloudFlashPayTransfer";
                         default:
                             break;
                     }
@@ -3510,7 +3626,7 @@ var dbPlayerTopUpRecord = {
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-            .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
+            .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).lean().then(
                 playerData => {
                     player = playerData;
                     topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
@@ -3626,6 +3742,7 @@ var dbPlayerTopUpRecord = {
                     let proposalData = {};
                     proposalData.playerId = playerId;
                     proposalData.playerObjId = player._id;
+                    proposalData.loginDevice = player.loginDevice || null;
                     proposalData.platformId = player.platform._id;
                     proposalData.playerLevel = player.playerLevel._id;
                     proposalData.playerRealName = player.realName;
@@ -4405,6 +4522,7 @@ var dbPlayerTopUpRecord = {
                         let proposalData = {};
                         proposalData.playerId = playerId;
                         proposalData.playerObjId = player._id;
+                        proposalData.loginDevice = player.loginDevice || null;
                         proposalData.platformId = player.platform._id;
                         proposalData.playerLevel = player.playerLevel._id;
                         proposalData.playerRealName = player.realName;

@@ -41,6 +41,7 @@ var simplifiedChinese = {
     "Please bind phone number first": "请先绑定手机号码",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
+    "DAILY_CONSUMPTION": "1天-投注額",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
@@ -73,6 +74,8 @@ var simplifiedChinese = {
     "The verification limit has been reached (5/hour), please try again later": "已达到验证上限（5次/小时）,请稍后再试",
     "The verification limit has been reached (1/minute), please try again later": "已达到验证上限（1次/分钟）,请稍后再试",
     "The verification limit has been reached today, please try again tomorrow": "已达到今日验证上限，请明日再试",
+    "Fail to get bank card info": "银行卡获取失败",
+
 
     "Birthday only can be set once": "生日绑定之后不可更改",
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
@@ -504,6 +507,11 @@ var simplifiedChinese = {
     "First Top Up Amount and Top Up Count setting cannot be zero": "首次单笔存款额和存款笔数不允许输入数据为0",
     "Does not meet top up amount and top up count": "被推荐人未达到周期内存款总额和存款笔数",
     "Does not meet first top up amount and top up count": "被推荐人未达到首次单笔存款额或存款笔数",
+    "Player not exist, Please contact cs.": "您的帐号信息不存在，请联系客服确认。",
+    "This phone number has been registered": "该手机号码已注册",
+    "Phone number and password don't match": "手机号码和密码不匹配",
+    "Password is mandatory": "密码必填",
+    "Please fill in correct amount": "请填写正确金额",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

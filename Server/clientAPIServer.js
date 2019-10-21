@@ -19,6 +19,7 @@ var PartnerServiceImplement = require("./serviceImplements/client/PartnerService
 var DxMissionServiceImplement = require("./serviceImplements/client/DXServiceImplement");
 var WCGroupControlServiceImplement = require("./serviceImplements/client/WCGroupControlServiceImplement");
 var AuctionServiceImplement = require("./serviceImplements/client/AuctionServiceImplement");
+var QQGroupControlServiceImplement = require("./serviceImplements/client/QQGroupControlServiceImplement");
 var SmsServiceImplement = require("./serviceImplements/client/SmsServiceImplement");
 var OtherServiceImplement = require("./serviceImplements/others/otherServicesImplement");
 var dbPlatform = require("./db_modules/dbPlatform");
@@ -40,7 +41,8 @@ var ClientAPIServer = serviceUtils.buildWSServer(
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
         RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement,
         ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement,
-        DxMissionServiceImplement, WCGroupControlServiceImplement, AuctionServiceImplement, SmsServiceImplement, OtherServiceImplement
+        DxMissionServiceImplement, WCGroupControlServiceImplement, AuctionServiceImplement,
+        QQGroupControlServiceImplement, SmsServiceImplement, OtherServiceImplement
     ],
     process.env.USE_SSL
 );

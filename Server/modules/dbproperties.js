@@ -98,6 +98,8 @@ let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary
 let scheduledCsRankingRecordSchema = require('./../schema/logs2/scheduledCsRankingRecord');
 let scheduledLive800DailyRecordSchema = require('./../schema/logs2/scheduledLive800DailyRecords');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
+let qqDeviceSchema = require('./../schema/admindb/qqDevice');
+let platformTopUpAmountConfigSchema = require('./../schema/admindb/platformTopUpAmountConfig');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
 let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 let frontEndPopularRecommendationSettingSchema = require('./../schema/frontEndPopularRecommendationSetting');
@@ -303,6 +305,8 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
+let qqDeviceModel = db_admin.model('qqDevice', qqDeviceSchema, 'qqDevice');
+let platformTopUpAmountConfigModel = db_admin.model('platformTopUpAmountConfig', platformTopUpAmountConfigSchema, 'platformTopUpAmountConfig');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
 let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 let frontEndPopularRecommendationSettingModel = db_admin.model('frontEndPopularRecommendationSetting', frontEndPopularRecommendationSettingSchema, 'frontEndPopularRecommendationSetting');
@@ -478,6 +482,15 @@ let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymen
 let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
 let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
 
+let commissionBBSchema = require('./../schema/commissionBB');
+let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commissionBB');
+
+let commissionBBRecordSchema = require('./../schema/commissionBBRecord');
+let commissionBBRecordModel = dbLogs2.model('commissionBBRecord', commissionBBRecordSchema, 'commissionBBRecord');
+
+let fakeCommissionBillBoardRecordSchema = require('./../schema/fakeCommissionBillBoardRecord');
+let fakeCommissionBillBoardRecordModel = dbLogs2.model('fakeCommissionBillBoardRecord', fakeCommissionBillBoardRecordSchema, 'fakeCommissionBillBoardRecord');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -534,6 +547,12 @@ let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
 let wcConversationLogModel = dbLogs2.model('wcConversationLog', wcConversationLogSchema, 'wcConversationLog');
 let wcGroupControlPlayerWechatSchema = require('./../schema/logs2/wcGroupControlPlayerWechat');
 let wcGroupControlPlayerWechatModel = dbLogs2.model('wcGroupControlPlayerWechat', wcGroupControlPlayerWechatSchema, 'wcGroupControlPlayerWechat');
+let qqGroupControlSessionSchema = require('./../schema/logs2/qqGroupControlSession');
+let qqGroupControlSessionModel = dbLogs2.model('qqGroupControlSession', qqGroupControlSessionSchema, 'qqGroupControlSession');
+let qqConversationLogSchema = require('./../schema/logs2/qqConversationLog');
+let qqConversationLogModel = dbLogs2.model('qqConversationLog', qqConversationLogSchema, 'qqConversationLog');
+let qqGroupControlPlayerQQSchema = require('./../schema/logs2/qqGroupControlPlayerQQ');
+let qqGroupControlPlayerQQModel = dbLogs2.model('qqGroupControlPlayerQQ', qqGroupControlPlayerQQSchema, 'qqGroupControlPlayerQQ');
 let baccaratConsumptionSchema = require('./../schema/logs2/baccaratConsumption');
 let baccaratConsumptionModel = dbLogs2.model('baccaratConsumption', baccaratConsumptionSchema, 'baccaratConsumption');
 
@@ -827,6 +846,8 @@ var dbProperties = {
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
+    collection_qqDevice: qqDeviceModel,
+    collection_platformTopUpAmountConfig: platformTopUpAmountConfigModel,
     collection_paymentSystemConfig: paymentSystemConfigModel,
     collection_platformNotificationRecipient: platformNotificationRecipientModel,
     collection_frontEndPopularRecommendationSetting: frontEndPopularRecommendationSettingModel,
@@ -869,6 +890,11 @@ var dbProperties = {
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
     collection_playerGameTypeConsumptionWeekSummary: playerGameTypeConsumptionWeekSummaryModel,
+
+
+    collection_commissionBB: commissionBBModel,
+    collection_commissionBBRecord: commissionBBRecordModel,
+    collection_fakeCommissionBillBoardRecord: fakeCommissionBillBoardRecordModel,
 
     collection_partnerWeekSummary: partnerWeekSummaryModel,
     collection_partnerChildWeekSummary: partnerChildWeekSummaryModel,
@@ -938,6 +964,9 @@ var dbProperties = {
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,
     collection_wcGroupControlPlayerWechat: wcGroupControlPlayerWechatModel,
+    collection_qqGroupControlSession: qqGroupControlSessionModel,
+    collection_qqConversationLog: qqConversationLogModel,
+    collection_qqGroupControlPlayerQQ: qqGroupControlPlayerQQModel,
     collection_baccaratConsumption: baccaratConsumptionModel,
 
     collection_manualProcessDailySummaryRecord: manualProcessDailySummaryRecordModel,

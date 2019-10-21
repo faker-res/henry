@@ -115,10 +115,12 @@ input:focus+label ,select:focus+label  {
 .nav-bar{
   background-color: #495057;
   padding: .5em 1em;
-  position: fixed;
+  /*position: fixed;*/
   z-index: 100;
   width: 100%;
   color:#f1f1f1;
+  margin-bottom: 1em;
+
 }
 .nav-bar svg {
   cursor: pointer;
@@ -177,6 +179,7 @@ input:focus+label ,select:focus+label  {
   padding: 0 1em;
 }
 
+.overlay span,
 .overlay a {
   padding: 8px;
   text-decoration: none;
@@ -205,7 +208,8 @@ input:focus+label ,select:focus+label  {
   font-weight: 100;
 }
 
-.dropdown a {
+.dropdown a,
+.dropdown span {
   padding: 9px;
   text-decoration: none;
   font-size: 15px;
@@ -214,9 +218,26 @@ input:focus+label ,select:focus+label  {
   transition: 0.3s;
 }
 
+.filterBodyClose{
+    height: 0;
+    width: 100%;
+    position: absolute;
+    z-index: 100;
+    top: 3em;
+    background-color: white;
+    overflow-y: hidden;
+    transition: 0.5s;
+    border-bottom-left-radius:0.25rem;
+    border-bottom-right-radius:0.25rem;
+}
+
+.filterBodyOpen{
+    height: 250px!important;
+    position: initial!important;
+}
+
 
 @media screen and (min-width: 576px) {
-
   .infoText, .infoNum{
     font-size: 12px;
   }

@@ -93,8 +93,8 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
 
                     .pull-right(ng-if='vm.sendSMSResult.sent===true')
                         .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
-                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}l
-                        .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                            text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                    .pull-right(ng-if='vm.sendSMSResult.sent === false')
                             text {{'SEND' | translate}} {{'FAIL' | translate}}
                     .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
                         text.text-danger.blink {{"Sending" | translate}}
