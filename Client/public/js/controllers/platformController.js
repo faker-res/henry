@@ -2997,6 +2997,9 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.credibilityRemarksFilter) {
                     playerQuery.credibilityRemarksFilter = vm.sendMultiMessage.credibilityRemarksFilter;
                 }
+                if (vm.sendMultiMessage.partnerName) {
+                    playerQuery.partnerName = vm.sendMultiMessage.partnerName;
+                }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
                 }

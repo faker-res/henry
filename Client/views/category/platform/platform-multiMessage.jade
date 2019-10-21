@@ -18,6 +18,10 @@
                                 option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                                 option(value='Test Player') {{'TEST_PLAYER' | translate}}
                                 option(value='Partner') {{'partner' | translate}}
+                                option(value='underPartner') {{'Under Partner' | translate}}
+                        .search-filters-item(ng-if="vm.sendMultiMessage.playerType === 'underPartner'", required)
+                            label {{"Partner_Name" | translate}}
+                            input.form-control(ng-model='vm.sendMultiMessage.partnerName')
                         .search-filters-item
                             label {{"PlayerLevel" | translate}}
                             select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
