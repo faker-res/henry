@@ -7545,8 +7545,6 @@ let dbPlayerInfo = {
                                                                     }
                                                                     isRegister = true;
 
-                                                                    console.log('here===');
-
                                                                     return playerData;
                                                                 }
                                                             );
@@ -7568,8 +7566,6 @@ let dbPlayerInfo = {
                                                     if (isRegister) {
                                                         data.isRegister = true;
                                                     }
-                                                    console.log('login-data===', data);
-                                                    console.log('login-data.isRegister===', data.isRegister);
 
                                                     return data;
                                                 }
