@@ -7542,6 +7542,7 @@ let dbPlayerInfo = {
                                                                     if (playerData && playerData.isHitReferralLimit) {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
+                                                                    playerData.isRegister = true;
 
                                                                     return playerData;
                                                                 }
