@@ -156,6 +156,11 @@ let dbPartner = {
                         delete partnerData.commissionType;
                     }
 
+                    let deviceCode = partnerData && partnerData.deviceType && partnerData.subPlatformId ? partnerData.deviceType.toString() + partnerData.subPlatformId.toString() : partnerData.deviceType;
+                    if (deviceCode) {
+                        partnerData.registrationDevice = deviceCode;
+                    }
+
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                             parentData => {
@@ -446,6 +451,14 @@ let dbPartner = {
 
                         if (partnerdata.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                             partnerdata.loginTimes = 1;
+                        }
+
+                        if (partnerdata.registrationDevice && partnerdata.registrationDevice != 0) {
+                            partnerdata.loginTimes = 1;
+                            let deviceCode = partnerdata && partnerdata.deviceType && partnerdata.subPlatformId ? partnerdata.deviceType.toString() + partnerdata.subPlatformId.toString() : partnerdata.deviceType;
+                            if (deviceCode) {
+                                partnerdata.loginDevice = deviceCode;
+                            }
                         }
 
                         if(playerId){
@@ -1633,6 +1646,12 @@ let dbPartner = {
                             geoInfo.province = "";
                         }
                     }
+
+                    let deviceCode = partnerData && partnerData.deviceType && partnerData.subPlatformId ? partnerData.deviceType.toString() + partnerData.subPlatformId.toString() : partnerData.deviceType;
+                    if (deviceCode) {
+                        updateData.loginDevice = deviceCode;
+                    }
+
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
@@ -11274,7 +11293,7 @@ let dbPartner = {
         })
     },
 
-    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber) {
+    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber, inputData) {
         let parent = await dbconfig.collection_partner.findOne({partnerId: parentId}).lean();
         if (!parent) {
             return Promise.reject({message: "Partner not found"});
@@ -11410,7 +11429,7 @@ let dbPartner = {
             validGroupRate.push(rateObj)
         }
 
-        let newPartner = await dbPartner.createPartner({
+        let newPartnerData = {
             partnerName: account,
             password: password,
             platform: parent.platform,
@@ -11418,7 +11437,16 @@ let dbPartner = {
             parent: parent._id,
             phoneNumber: phoneNumber,
             depthInTree: parent.depthInTree++,
-        });
+        };
+
+        let deviceCode = inputData && inputData.deviceType && inputData.subPlatformId ? inputData.deviceType.toString() + inputData.subPlatformId.toString() : inputData.deviceType;
+        if (deviceCode) {
+            newPartnerData.registrationDevice = deviceCode;
+            newPartnerData.deviceType = inputData.deviceType;
+            newPartnerData.subPlatformId = inputData.subPlatformId;
+        }
+
+        let newPartner = await dbPartner.createPartner(newPartnerData);
 
         if (!newPartner || !newPartner._id) {
             // usually it wont come here
