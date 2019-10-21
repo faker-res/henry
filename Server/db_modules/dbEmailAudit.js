@@ -124,8 +124,11 @@ let dbEmailAudit = {
         if (!proposal || !proposal.data) {
             return;
         }
+
         let proposalData = proposal.data;
 
+        //for saving message ID
+        let ObjId = proposal._id;
         let playerName = proposalData.playerName || "";
         let realName = proposalData.realNameBeforeEdit || "";
         let playerLevel = proposalData.playerLevelName || "";
@@ -150,6 +153,7 @@ let dbEmailAudit = {
             proposalId,
             platformName,
             createTime,
+            ObjId,
         };
 
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
@@ -161,13 +165,18 @@ let dbEmailAudit = {
         if (!setting.minimumAuditAmount || Math.abs(updateAmount) < Number(setting.minimumAuditAmount)) {
             return;
         }
+        // let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
+        // let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
 
-        let recipientsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
-        let auditorsProm = dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
+        let recipientsProm = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeRecipient");
+        // console.log('recipientsProm', recipientsProm);
+        let auditorsProm = await dbAdminInfo.getAdminsByPermission(platform._id, "Platform.EmailAudit.auditCreditChangeAuditor");
+        // console.log('auditorsProm', auditorsProm);
 
         let [recipients, auditors] = await Promise.all([recipientsProm, auditorsProm]);
 
         if (!recipients || !recipients.length) {
+            // console.log('prom return');
             return;
         }
 
@@ -214,6 +223,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
+        let hasMsgID;
 
         let emailContents = {
             playerName,
@@ -229,7 +239,6 @@ let dbEmailAudit = {
         };
 
         let setting = await dbEmailAudit.getAuditCreditChangeSetting(platform._id);
-
         if (!setting) {
             return;
         }
@@ -277,6 +286,18 @@ let dbEmailAudit = {
             body: html, // html content
             isHTML: true
         };
+
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
+            hasMsgID = true;
+        }
 
         return emailer.sendEmail(emailConfig);
     },
@@ -339,6 +360,7 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
+        let ObjId = proposal._id;
 
         let emailContents = {
             playerName,
@@ -352,6 +374,7 @@ let dbEmailAudit = {
             comment,
             platformName,
             createTime,
+            ObjId
         };
 
         let setting = await dbEmailAudit.getAuditManualRewardSetting(platformObjId);
@@ -422,7 +445,7 @@ let dbEmailAudit = {
         let providerGroupName = providerGroup && providerGroup.name || "-";
         let platformName = platform && platform.name || "";
         let createTime = proposal.createTime;
-
+        let hasMsgID;
         let emailContents = {
             playerName,
             realName,
@@ -486,6 +509,18 @@ let dbEmailAudit = {
             body: html, // html content
             isHTML: true
         };
+        //In order to group same subject&sender into conversation, need to get messageID as reference.
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
+            hasMsgID = true;
+        }
 
         return emailer.sendEmail(emailConfig);
     },
@@ -543,7 +578,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
-
+        let ObjId = proposal._id;
         let emailContents = {
             playerName,
             realName,
@@ -556,6 +591,7 @@ let dbEmailAudit = {
             proposalId,
             platformName,
             createTime,
+            ObjId
         };
 
         let setting = await dbEmailAudit.getAuditRepairTransferSetting(platform._id);
@@ -621,7 +657,7 @@ let dbEmailAudit = {
         let platform = proposalData.platformId ? await dbconfig.collection_platform.findOne({_id: proposalData.platformId}, {name: 1}).lean() : {name: ""};
         let platformName = platform.name || "";
         let createTime = proposal.createTime;
-
+        let hasMsgID;
         let emailContents = {
             playerName,
             realName,
@@ -685,6 +721,18 @@ let dbEmailAudit = {
             body: html, // html content
             isHTML: true
         };
+
+        let proposalProm = await dbconfig.collection_proposal.find({_id: proposal._id}).lean();
+        if (!proposalProm) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Error in getting proposal data",
+            });
+        }
+        if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+            emailConfig.messageId = proposalProm[0].data.messageId;
+            hasMsgID = true;
+        }
 
         return emailer.sendEmail(emailConfig);
     },
@@ -811,11 +859,9 @@ function generateProposalStepTable (proposalData, proposalStep, auditor) {
 async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditCreditChangeEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditCreditChangeEmail(emailContents, allRecipientEmail, subject);
-
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
-
+    let hasMsgID = false;
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
-
     if (!admin) {
         console.log("admin not found on sendAuditCreditChangeEmail", adminObjId);
         return Promise.reject({message: "Admin not found."});
@@ -837,10 +883,24 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
         subject: subject, // title
         body: html, // html content
         isHTML: true
+        // proposalObjID: emailContents.ObjId
     };
 
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
+    }
+
+    //In order to group same subject&sender into conversation, need to get messageID as reference.
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
+        hasMsgID = true;
     }
 
     console.log(`sending audit email, AuditCreditChange, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
@@ -848,12 +908,25 @@ async function sendAuditCreditChangeEmail (emailContents, emailName, domain, adm
     let emailResult = await emailer.sendEmail(emailConfig);
 
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+    if(!hasMsgID){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+
+
+    }
     return emailResult;
 }
 
 function getAuditCreditChangeEmailSubject (emailTitle, date, updateAmount, playerName) {
     let formattedDate = dbutility.getLocalTimeString(date , "YYYY/MM/DD");
     let formattedAmount = dbutility.noRoundTwoDecimalPlaces(updateAmount);
+    console.log('email subject', emailTitle);
+    console.log('email subject 2', playerName);
     return `${emailTitle} -- 额度加减（${formattedAmount}）： ${playerName} -- ${formattedDate}`;
 }
 
@@ -944,7 +1017,7 @@ function generateAuditCreditChangeEmail (contents, allEmailArr, emailTitle, step
 async function sendAuditManualRewardEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditManualRewardEmailSubject(emailName, emailContents.createTime, emailContents.rewardAmount, emailContents.playerName);
     let html = generateAuditManualRewardEmail(emailContents, allRecipientEmail, subject);
-
+    let hasMsgID = false;
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -976,11 +1049,34 @@ async function sendAuditManualRewardEmail (emailContents, emailName, domain, adm
         emailConfig.replyTo = allEmailStr;
     }
 
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    //In order to group same subject&sender into conversation, need to get messageID as reference.
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
+        hasMsgID = true;
+    }
+
     console.log(`sending audit email, AuditManualReward, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-
     let emailResult = await emailer.sendEmail(emailConfig);
-
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+    //the first proposal will be no message ID, save it, so that following email could group together.
+    if(!hasMsgID){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+
+
+    }
     return emailResult;
 }
 
@@ -1087,7 +1183,7 @@ function generateAuditManualRewardEmail (contents, allEmailArr, emailTitle, step
 async function sendAuditRepairTransferEmail (emailContents, emailName, domain, adminObjId, isReviewer, host, allRecipientEmail) {
     let subject = getAuditRepairTransferEmailSubject(emailName, emailContents.createTime, emailContents.updateAmount, emailContents.playerName);
     let html = generateAuditRepairTransferEmail(emailContents, allRecipientEmail, subject);
-
+    let hasMsgID = false;
     let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
 
     let admin = await dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -1118,12 +1214,32 @@ async function sendAuditRepairTransferEmail (emailContents, emailName, domain, a
     if (allEmailStr) {
         emailConfig.replyTo = allEmailStr;
     }
+//In order to group same subject&sender into conversation, need to get messageID as reference.
+    let proposalProm = await dbconfig.collection_proposal.find({_id: emailContents.ObjId}).lean();
+    if (!proposalProm) {
+        return Promise.reject({
+            name: "DataError",
+            message: "Error in getting proposal data",
+        });
+    }
+    if(proposalProm.length > 0 && proposalProm[0].data.messageId){
+        emailConfig.messageId = proposalProm[0].data.messageId;
+        hasMsgID = true;
+    }
 
     console.log(`sending audit email, AuditRepairTransfer, ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()}`);
-
     let emailResult = await emailer.sendEmail(emailConfig);
-
     console.log(`email result of ${subject}, ${admin.adminName}, ${admin.email}, ${new Date()} -- ${emailResult}`);
+
+    if(!hasMsgID){
+        dbconfig.collection_proposal.update({_id: proposalProm[0]._id}, {$set: {'data.messageId': emailResult.messageId}}, function(err, doc){
+            if(err){
+                console.log('update failed...', err);
+            }else{
+                console.log('success...', doc);
+            }
+        });
+    }
     return emailResult;
 }
 
