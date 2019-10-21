@@ -510,6 +510,13 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
+                        let device = 0;
+                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
+                            device = data[2].registrationDevice;
+                        } else if (data[2].hasOwnProperty('loginDevice')) {
+                            device = data[2].loginDevice;
+                        }
+                        proposalData.device = device;
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
                             if (data[2].level) {
