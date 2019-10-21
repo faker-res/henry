@@ -377,6 +377,10 @@ style.
                                         a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
                                             | http://baowang.webcontent.cloud/ume/
                                     textarea.form-control.inline-block(style="resize: none;", ng-model="vm.rewardSetting.pc.script", placeholder='{{"Please write down the script" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.pc.onClickAction == 7")
+                                label(style="width: 30%;") {{"Reward Banner Picture" | translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="text", ng-model="vm.rewardSetting.pc.rewardBannerPicture", placeholder='{{"Please fill in address of reward banner picture" | translate}}')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -427,6 +431,10 @@ style.
                                         a(href='http://baowang.webcontent.cloud/ume/' target='_blank')
                                             | http://baowang.webcontent.cloud/ume/
                                     textarea.form-control.inline-block(style="resize: none;", ng-model="vm.rewardSetting.h5.script", placeholder='{{"Please write down the script" | translate}}')
+                            .full-width-input-block(ng-show="vm.rewardSetting.h5.onClickAction == 7")
+                                label(style="width: 30%;") {{"Reward Banner Picture" | translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="text", ng-model="vm.rewardSetting.h5.rewardBannerPicture", placeholder='{{"Please fill in address of reward banner picture" | translate}}')
                             .full-width-input-block
                                 label(style="width: 30%;") {{"REQUIRED TO LOG IN"|translate}}
                                 div.inline-block(style="width: 70%;")
@@ -435,7 +443,6 @@ style.
                                 label(style="width: 30%;") {{"DISPLAY FRONT-END APPLICATION BUTTON"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.h5.showApplyButton")
-
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") APP {{"BACKGROUND IMAGE"|translate}}
