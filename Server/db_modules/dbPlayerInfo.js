@@ -1868,12 +1868,12 @@ let dbPlayerInfo = {
     //permission return and migration
     migratePermission: async function (data){
         // let playerData = await dbconfig.collection_players.find({}).lean();
-        let playerData = await dbconfig.collection_players.find({_id: data}, {permission: 1, _id: 1}).lean()
+        let playerData = await dbconfig.collection_players.find({}, {permission: 1, _id: 1}).lean()
         if(!playerData){
             return Promise.reject("Get player data failed");
         }
         // dbconfig.collection_players.find({_id: data}, {permission: 1, _id: 1}).lean().then(
-        console.log('player schema data..', playerData);
+        // console.log('player schema data..', playerData);
         for(var i = 0; i < playerData.length; i++){
             if (playerData && playerData[i].permission) {
                 let saveObj = {
@@ -1887,7 +1887,7 @@ let dbPlayerInfo = {
                 if(!saveLog){
                     return Promise.reject("Save verification log failed");
                 }else{
-                    let deleteLog = await dbconfig.collection_players.update({_id: playerData[i]._id}, {$unset:{permission: ""}}).exec();
+                    let deleteLog = await dbconfig.collection_players.update({_id: playerData[i]._id}, {$set:{permission: playerData[i]._id}}).exec();
                     console.log('delete data..', deleteLog);
                     console.log('delete data id..', playerData[i]._id);
                     if(!deleteLog) {
@@ -6647,7 +6647,7 @@ let dbPlayerInfo = {
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
-                    .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
+                    // .populate({path: "permission", model: dbconfig.collection_playerPermission, select: 'permission'})
                     .read("secondaryPreferred")
                     .lean().then(
                         async playerData => {
@@ -6655,11 +6655,11 @@ let dbPlayerInfo = {
                             for (var ind in playerData) {
                                 if(playerData[ind] && !playerData[ind].permission){
                                     // let permission = dbPlayerInfo.getPermissionbyPlayerid(playerData[ind]._id);
-                                    let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
-                                    if(!getData){
-                                        return Promise.reject("Get permission failed");
-                                    }
-                                    playerData[ind].permission = getData[0].permission
+                                    // let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
+                                    // if(!getData){
+                                    //     return Promise.reject("Get permission failed");
+                                    // }
+                                    // playerData[ind].permission = getData[0].permission
                                     // playerData[ind].permission = permission
                                 }
                                 if (playerData[ind]) {

@@ -742,94 +742,82 @@ var dbPlayerFeedback = {
         let playerResult;
         let players;
         let count;
-        let consumptionDetail;
         if(isMany.searchType === "one"){
-            players = await dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
+            players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
                 .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                .sort(isMany.sortCol).lean();
-
-            console.log('one players..', players);
-
-            if(players && players.length >0){
-                playerResult = players[0];
-                console.log('player result...', playerResult);
-                if(!playerResult.permission){
-                    let getData = await dbconfig.collection_playerPermission.find({_id: playerResult._id}).lean();
-                    if(!getData){
-                        return Promise.reject("Get permission failed");
+                .populate({path: "permission", model: dbconfig.collection_playerPermission})
+                .sort(isMany.sortCol).lean().then(
+                    player => {
+                        if(player && player.length >0){
+                            playerResult = player[0];
+                            return dbPlayerInfo.getConsumptionDetailOfPlayers(player[0].platform, player[0].registrationTime, new Date().toISOString(), {}, [player[0]._id]);
+                        }else{
+                            return null;
+                        }
                     }
-                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(playerResult._id);
-                    console.log('permission..', permission);
-                    playerResult.permission = getData[0].permission;
-                }
-
-                consumptionDetail = await dbPlayerInfo.getConsumptionDetailOfPlayers(players[0].platform, players[0].registrationTime, new Date().toISOString(), {}, [players[0]._id]);
-            }else{
-                return null;
-            }
-
-            if(consumptionDetail && playerResult) {
-                return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
-            } else {
-                return playerResult;
-            }
+                ).then(
+                    consumptionDetail => {
+                        if(consumptionDetail && playerResult) {
+                            return Object.assign(playerResult, {consumptionDetail:consumptionDetail[0]});
+                        } else {
+                            return playerResult;
+                        }
+                    }
+                );
 
             count = dbconfig.collection_players.count(searchQuery);
         }else{
-
-            players = await dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
+            players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
                 .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                .populate({path: "permission", model: dbconfig.collection_playerPermission, select: 'permission'})
                 .sort(isMany.sortCol).lean();
             count = dbconfig.collection_players.find(searchQuery, { _id: 1}).lean();
-
-            console.log('players...', players);
-            for(var i = 0; i < players.length; i++){
-                if(!players[i].permission){
-                    console.log('no permission players...', players[i]);
-                    let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
-                    if(!getData){
-                        return Promise.reject("Get permission failed");
-                    }
-                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(players[i]._id);
-                    players[i].permission = getData[0].permission;
-                }
-                if(playerPermission && playerPermission.length > 0){
-                    for(var p = 0; p < playerPermission.length; p++){
-                        console.log('players permission...', players[i].permission);
-                        console.log('check permission...', players[i].permission[playerPermission[p]]);
-                        if(players[i].permission.hasOwnProperty(playerPermission[p]) && players[i].permission[playerPermission[p]] === true){
-                            players.splice(i, 1);
-                        }
-                    }
-                }
-
-            }
         }
 
         let total;
-        // return Q.all([players, count]).then(data => {
-        if(isMany.searchType === "one"){
-            // total = data[1];
-            total = count;
-        }else{
-            // total = data[1].length ? data[1].length : 0;
-            total = count ? count : 0;
-            if(players && players.length){
-                console.log('=CallOutMission= callout query result', players.length);
+        return Q.all([players, count]).then(data => {
+            let playerResult = data[0];
+            if(isMany.searchType === "one"){
+                total = data[1];
+            }else{
+                total = data[1].length ? data[1].length : 0;
+                if(data[0] && data[0].length){
+                    console.log('=CallOutMission= callout query result', data[0].length);
+                }
             }
-        }
+            console.log('data[0]...', data[0]);
+            if(playerPermission && playerPermission.length > 0){
+                let minus = 0;
+                // for(var i = 0; i < data[0].length; i++){
+                for(var i = data[0].length - 1; i >=0; i--){
+                    console.log('index...', i);
+                    console.log('current player...', data[0][i]);
+                    for(var k = 0; k < playerPermission.length; k++){
+                        // console.log('permission check 1...', data[0][i].permission);
+                        // console.log('permission check 2...', data[0][i].permission.permission);
+                        // console.log('has property...', data[0][i].permission.permission.hasOwnProperty(playerPermission[k]));
+                        // console.log('is true...', data[0][i].permission.permission[playerPermission[k]]);
+                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === true){
+                            console.log('do something..');
+                            data[0].splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
 
-        console.log('return data', players);
-        return {
-            backEndQuery: JSON.stringify(searchQuery),
-            // data: data[0] ? data[0] : {},
-            data: players ? players : {},
-            index: index,
-            total: total
-        }
-        // });
+            console.log('return data', data[0]);
+
+            return {
+                backEndQuery: JSON.stringify(searchQuery),
+                data: data[0] ? data[0] : {},
+                // data: players ? players : {},
+                index: index,
+                total: total
+            }
+        });
     },
 
 

@@ -85,9 +85,7 @@
         .search-filters-item
             label {{'PERMISSION' | translate}}
             //select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
-            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerPermission', ng-options='v as i | translate for (i,v) in vm.playerPermission', ng-change='vm.playerAdvanceSearchQuery.playerPermission = vm.getPermissionName(vm.playerAdvanceSearchQuery.playerPermission)'  bsp, data-actions-box='true')
-
-
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerPermission', ng-options='v as i | translate for (i,v) in vm.playerPermission', ng-change='vm.playerAdvanceSearchQuery.playerPermission = vm.getPermissionName(vm.playerAdvanceSearchQuery.playerPermission)')
         //table.paddingTbl
         //    tbody
         //        tr(ng-repeat='(key,v) in vm.playerPermissionTypes')

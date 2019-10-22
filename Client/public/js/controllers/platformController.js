@@ -7347,7 +7347,7 @@ define(['js/app'], function (myApp) {
                                     'data-container': 'body',
                                 });
 
-                                let perm = (row && row.permission) ? row.permission : {};
+                                let perm = (row && row.permission.permission) ? row.permission.permission : {};
 
                                 if (row.isRealPlayer) {
                                     link.append($('<img>', {

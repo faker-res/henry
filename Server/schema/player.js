@@ -8,7 +8,7 @@ var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUni
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
-// const dbPlayerInfo = require("../db_modules/dbPlayerInfo");
+var dbconfig = require('./../modules/dbproperties');
 
 var playerSchema = new Schema({
     //player id
@@ -136,6 +136,8 @@ var playerSchema = new Schema({
         os: {type: String},
         device: {type: String},
     }],
+    //player level (vip, regular etc)
+    // permission: {type: Schema.ObjectId, ref: 'permission'},
     // //User permission
     // permission: {
     //     _id: false,
@@ -489,20 +491,20 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
 };
 
 var playerPostFindUpdate = function(result, bOne) {
-    // console.log('result...', result);
-    // if (result && !result.permission) {
-    //     console.log('result data..', result);
-    //     result = dbPlayerInfo.returnPermissiontoPlayer(result);
-    //     // dbconfig.collection_playerPermission.findOne({_id: result._id}).lean().then(
-    //     //     permissionData => {
-    //     //         console.log('permission data')
-    //     //    if (permissionData && permissionData.length) {
-    //     //        for ( var i = 0; i < permissionData.length; i++) {
-    //     //            result.permission = permissionData[i].permission;
-    //     //        }
-    //     //    }
-    //     // });
-    // }
+    console.log('result...', result);
+    if(result && !result.permission){
+        console.log('result data..', result);
+        dbconfig.collection_playerPermission.findOne({_id: result._id}).lean().then(
+            permissionData => {
+                console.log('permission', permissionData);
+                if (permissionData && permissionData.permission) {
+                    console.log('permission data', permissionData. permission);
+                    result.permission = permissionData.permission
+                }
+            });
+    }
+
+
 
     if (result && result.phoneNumber) {
         if (result.phoneNumber.length > 20) {
