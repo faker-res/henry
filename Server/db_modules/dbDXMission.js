@@ -599,7 +599,7 @@ let dbDXMission = {
                 }
 
                 if (dxPhone.bUsed) {
-                    return loginDefaultPasswordPlayer(dxPhone);
+                    return loginDefaultPasswordPlayer(dxPhone, deviceData.registrationDevice);
                 }
                 else {
                     console.log('The domain', domain);
@@ -1785,12 +1785,15 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     );
 }
 
-function loginDefaultPasswordPlayer (dxPhone) {
+async function loginDefaultPasswordPlayer (dxPhone, loginDevice) {
     let playerProm = Promise.resolve();
     let dxMission = dxPhone.dxMission;
 
     if (dxPhone.playerObjId) {
         playerProm = dbconfig.collection_players.findOne({_id: dxPhone.playerObjId}).lean();
+        if (loginDevice) {
+            await dbconfig.collection_players.update({_id: dxPhone.playerObjId}, {loginDevice: loginDevice}).catch(errorUtils.reportError);
+        }
     }
 
     return playerProm.then(
