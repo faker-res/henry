@@ -29270,7 +29270,10 @@ let dbPlayerInfo = {
         })
     },
 
-    unbindPhoneDeviceId: function (playerObjId) {
+    unbindPhoneDeviceId: async function (playerObjId) {
+        // remove binded phone number backlog
+        dbconfig.collection_phoneNumberBindingRecord.remove({playerObjId: playerObjId});
+
         return dbconfig.collection_players.findOneAndUpdate(
             {_id: playerObjId},
             {
@@ -29285,7 +29288,6 @@ let dbPlayerInfo = {
     creditTransferedFromPartner: function (proposalId, platformId) {
         let partnerProposal;
         let proposalTypeObj;
-        1
         let proposalProm = [];
         let createPlayerProposalsProm = [];
         return dbconfig.collection_proposalType.findOne({
