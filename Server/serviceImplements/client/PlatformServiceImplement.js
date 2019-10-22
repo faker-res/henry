@@ -113,19 +113,21 @@ var PlatformServiceImplement = function () {
     this.createPlayerFromTel.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.playerAccount && data.password && data.platformId && data.phoneNumber
             && data.playerType && data.telSalesName && data.promoMethod && data.fame && data.chatRecordResult
-            && data.chatRecordTitle && data.deviceType);
+            && data.chatRecordTitle);
         data.name = data.playerAccount;
 
-        data.registrationDevice = String(data.deviceType);
-        if (data.subPlatformId) {
-            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
-        }
-        let playerLoginDeviceArr = [];
-        for (let key in constDevice) {
-            playerLoginDeviceArr.push(constDevice[key]);
-        }
-        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
-            isValidData = false;
+        if (data.deviceType) {
+            data.registrationDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            //     isValidData = false;
+            // }
         }
 
         // Promise create player and partner
