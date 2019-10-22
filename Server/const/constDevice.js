@@ -1,5 +1,4 @@
 const constDevice = {
-    // new const
     WEB_PLAYER: "1",
     WEB_PLAYER_EU: "1403",
     WEB_PLAYER_V68: "1402",
