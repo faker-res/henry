@@ -13313,21 +13313,24 @@ let dbPlayerInfo = {
         )
     },
 
-    getNewAccountReportData: function (platform, startTime, endTime) {
-        var retData = {};
-        var timeQuery = {
+    getNewAccountReportData: function (platform, startTime, endTime, devices) {
+        let timeQuery = {
             $gte: startTime,
             $lt: endTime
         };
-        var query = {
+        let query = {
             platform: platform,
             registrationTime: timeQuery,
             isRealPlayer: true //only count real player
         };
 
+        if (devices && devices.length > 0) {
+            query['registrationDevice'] = {$in: devices.map(item => String(item))};
+        }
+
         let fields = 'name realName registrationTime phoneProvince phoneCity province city lastAccessTime loginTimes'
             + ' accAdmin promoteWay sourceUrl registrationInterface userAgent domain csOfficer promoteWay valueScore'
-            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform';
+            + ' consumptionTimes consumptionSum topUpSum topUpTimes partner lastPlayedProvider platform registrationDevice';
 
         let f = dbconfig.collection_players.find(query, fields)
             .populate({path: "partner", model: dbconfig.collection_partner})

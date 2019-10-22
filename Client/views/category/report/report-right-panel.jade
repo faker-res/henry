@@ -721,6 +721,9 @@
                 .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
+                .search-filters-item
+                    label {{"REGISTRATION_DEVICE" | translate}}
+                    select.form-control.spicker(ng-model='vm.newPlayerQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDevices', multiple, bsp, data-actions-box='true')
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
@@ -758,6 +761,43 @@
                                 span {{v.platform$}}
                             td
                                 span {{v.promoteWayName}}
+                            td
+                                span {{v.totalNewAccount}}
+                            td
+                                span {{v.playerWithTopup}}
+                            td
+                                span {{v.playerWithMultiTopup}}
+                            td
+                                span {{v.validPlayer}}
+                        tr
+                            td
+                                span
+                            td
+                                span {{ "total" | translate}}
+                            td
+                                span {{ vm.newPlayerQuery.newPlayers.length}}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithMultiTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewValidPlayer }}
+                br
+                table.playerLvlTable#newAccountDeviceTable.widthto100(ng-show="vm.isShowNewPlayerDeviceRecord")
+                    thead
+                        tr
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "registrationDevice" ? "-registrationDevice":"registrationDevice"') {{"REGISTRATION_DEVICE" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "playerWithMultiTopup" ? "-playerWithMultiTopup":"playerWithMultiTopup"') {{"Player with Top-ups Multiple Times" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.newPlayerQuery.deviceData | orderBy: vm.newPlayerQuery.deviceSort | filter: vm.filterNoNewAccountDevice')
+                            td
+                                span {{v.platform$}}
+                            td
+                                span {{v.registrationDevice | translate}}
                             td
                                 span {{v.totalNewAccount}}
                             td

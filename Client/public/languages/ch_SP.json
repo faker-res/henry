@@ -6133,7 +6133,12 @@
   "QQ_GROUP_CONTROL_MONITOR": "QQ群控监控",
   "Total Player In Conversation(By QQ ID)": "对话的会员数量（根据QQ号）",
   "QQ_GROUP_REPORT":"QQ群控监控报表",
-  "LOGIN_DEVICE": "登录设备",
   "APP_IOS": "APP - iOS",
-  "APP_ANDROID": "APP - 安卓"
+  "APP_ANDROID": "APP - 安卓",
+  "APP_PLAYER_ANDROID_EU": "APP-安卓-易游",
+  "APP_PLAYER_IOS_EU": "APP-iOS-易游",
+  "APP_PLAYER_ANDROID_EU_CHESS": "APP-安卓-易游棋牌",
+  "APP_PLAYER_IOS_EU_CHESS": "APP-iOS-易游棋牌",
+  "APP_PLAYER_ANDROID_V68": "APP-安卓-V68",
+  "APP_PLAYER_IOS_V68": "APP-iOS-V68"
 }
