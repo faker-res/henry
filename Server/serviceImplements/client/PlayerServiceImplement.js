@@ -18,6 +18,7 @@ const queryPhoneLocation = require('cellocate');
 const constProposalEntryType = require('./../../const/constProposalEntryType');
 const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
+const constDevice = require('./../../const/constDevice');
 const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerOnlineTime = require('../../db_modules/dbPlayerOnlineTime');
@@ -35,7 +36,7 @@ let PlayerServiceImplement = function () {
     //added case
     this.create.expectsData = 'platformId: String, password: String';
     this.create.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
+        var isValidData = Boolean(data.deviceType && data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/ && (!data.realName || data.realName.match(/\d+/g) === null));
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -100,6 +101,18 @@ let PlayerServiceImplement = function () {
         // console.log("yH checking---conn", conn)
         if (conn.partnerId){
             connPartnerId = conn.partnerId;
+        }
+
+        data.registrationDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            isValidData = false;
         }
 
         let inputData = Object.assign({}, data);
@@ -231,7 +244,19 @@ let PlayerServiceImplement = function () {
         }
         let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
-        let isValidData = Boolean(data && data.platformId && data.guestDeviceId);
+        let isValidData = Boolean(data && data.deviceType && data.platformId && data.guestDeviceId);
+
+        data.registrationDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            isValidData = false;
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
             (playerData) => {
@@ -504,7 +529,7 @@ let PlayerServiceImplement = function () {
     //added case
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.name && data.password && data.platformId);
+        let isValidData = Boolean(data.deviceType && data && data.name && data.password && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
@@ -514,6 +539,18 @@ let PlayerServiceImplement = function () {
         }
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
+
+        data.loginDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            isValidData = false;
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
@@ -1168,16 +1205,31 @@ let PlayerServiceImplement = function () {
 
     this.authenticate.expectsData = 'playerId: String, token: String';
     this.authenticate.onRequest = function(wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.playerId && data.token);
+        let isValidData = Boolean(data && data.playerId && data.token && ((data.isLogin && data.deviceType) || !data.isLogin));
         let playerIp = dbUtility.getIpAddress(conn);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
+        let loginDevice;
+        if(data.isLogin && data.deviceType) {
+            loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                loginDevice = String(loginDevice) + String(data.subPlatformId);
+            }
+            let playerLoginDeviceArr = [];
+            for (let key in constDevice) {
+                playerLoginDeviceArr.push(constDevice[key]);
+            }
+            if (!playerLoginDeviceArr.includes(loginDevice)) {
+                isValidData = false;
+            }
+        }
+
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.authenticate,
-            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain, loginDevice], true, false, false, true
         );
     };
 
@@ -1416,7 +1468,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
+        let isValidData = Boolean(data && data.deviceType && data.phoneNumber && data.smsCode && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
 
@@ -1450,6 +1502,20 @@ let PlayerServiceImplement = function () {
             }
         }
 
+        data.loginDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            isValidData = false;
+        }
+
+        data.registrationDevice = data.loginDevice;
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;
@@ -1466,9 +1532,6 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = player.csOfficer ? player.csOfficer : "";
 
-                console.log('player===', player);
-                console.log('player.isRegister===', player.isRegister);
-
                 // 1.手机号登录不产生注册意向
                 // 2.手机号注册产生注册意向，并由【免验】归类到【尝试】
                 if (player && player.isRegister) {
@@ -1477,7 +1540,7 @@ let PlayerServiceImplement = function () {
                             console.log("checking isUpdateData", isUpdateData)
                             if (!(isUpdateData[0] && isUpdateData[0]._id)) {
                                 console.log("checking data.platformId", data.platformId)
-                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.ATTEMPT, inputDevice).catch(errorUtils.reportError);
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).catch(errorUtils.reportError);
                             }
                         }
                     );
@@ -1561,13 +1624,25 @@ let PlayerServiceImplement = function () {
     };
 
     this.phoneNumberLoginWithPassword.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.phoneNumber && data.password && data.platformId);
+        let isValidData = Boolean(data && data.deviceType && data.phoneNumber && data.password && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
+
+        data.loginDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            isValidData = false;
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.phoneNumberLoginWithPassword, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
@@ -1690,7 +1765,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.registerByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.smsCode);
+        var isValidData = Boolean(data && data.deviceType && data.platformId && data.phoneNumber && data.smsCode);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -1728,6 +1803,18 @@ let PlayerServiceImplement = function () {
                 data.city = "";
                 data.province = "";
             }
+        }
+
+        data.registrationDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            isValidData = false;
         }
 
         let inputData = Object.assign({}, data);
@@ -1801,7 +1888,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.phoneNumber);
+        var isValidData = Boolean(data && data.deviceType && data.platformId && data.phoneNumber);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
@@ -1839,6 +1926,18 @@ let PlayerServiceImplement = function () {
                 data.city = "";
                 data.province = "";
             }
+        }
+
+        data.loginDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            isValidData = false;
         }
 
         let inputData = Object.assign({}, data);

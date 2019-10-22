@@ -4625,6 +4625,8 @@ API说明：
 				realName:String,// 非必填
 				phoneNumber:Number,
 				captcha:String,
+				deviceType: Number,
+				subPlatformId: Number
 			}
 	* name: // 代理账号
 	* platformId: // 平台id
@@ -4638,6 +4640,8 @@ API说明：
 	* DOB: // 代理生日
 	* qq: // 代理qq号码
 	* commissionType: // 非必填，当代理基础数据的『佣金设置』＝前端自选时，可请求（1天输赢:1,7天输赢:2,半月输赢:3,1月输赢:4,7天投注额:5）(5/29 尚无）
+	* deviceType: // 装置,  1-浏览器(browser)，2-h5，3-安卓APP, 4-IOS APP
+	* subPlatformId: //子平台ID, 401(易游棋牌), 402（v68）, 403（易游）
 	* 响应内容：`{status:200/4xx}`
 	* 操作成功： status--200
 	* 操作失败： status--4xx
@@ -4719,7 +4723,9 @@ API说明：
 				"name": "testpartner4",  //登录用户名
 				"password": "123456",  //登录密码
 				"clientDomain": "xxxx",  //登录域名
-				"captcha": "2425"  //验证码
+				"captcha": "2425"  //验证码,
+				"deviceType": 1,
+                "subPlatformId": 401
 			}
 	* 响应内容：
 		* ```
@@ -4811,6 +4817,8 @@ API说明：
 	* data: 代理详细信息
 	* token: 用于重新建立连接
 	* errorMsg: 错误消息, 失败时该字段才有效。
+	* deviceType: // 装置,  1-浏览器(browser)，2-h5，3-安卓APP, 4-IOS APP
+    * subPlatformId: //子平台ID, 401(易游棋牌), 402（v68）, 403（易游）
 
 <div id='代理会员登出'></div>
 
