@@ -13471,7 +13471,9 @@ define(['js/app'], function (myApp) {
             switch (choice) {
                 case 'bank1':
                     sendData = $.extend({}, vm.playerPayment);
-                    sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    if(vm.playerPayment && vm.playerPayment.bankAddress) {
+                        sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    }
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
                     sendData.bankAccountDistrict = vm.currentDistrict.district;
@@ -13485,7 +13487,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank2':
                     sendData = $.extend({}, vm.playerPayment2);
-                    sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    if(vm.playerPayment2 && vm.playerPayment2.bankAddress2){
+                        sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    }
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
                     sendData.bankAccountDistrict2 = vm.currentDistrict2.district;
@@ -13501,7 +13505,9 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'bank3':
                     sendData = $.extend({}, vm.playerPayment3);
-                    sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    if(vm.playerPayment3 && vm.playerPayment3.bankAddress3){
+                        sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                    }
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;
                     sendData.bankAccountDistrict3 = vm.currentDistrict3.district;
@@ -20214,7 +20220,78 @@ define(['js/app'], function (myApp) {
                     delete vm.selectedProposal.data.betTime;
                     delete vm.selectedProposal.data.winAmount;
                     delete vm.selectedProposal.data.winTimes;
+
+                    if (vm.selectedProposal.data['bankAccountProvince']) {
+                        socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposal.data['bankAccountProvince']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountProvince'];
+                            vm.selectedProposal.data['bankAccountProvince'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountProvince2']) {
+                        socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposal.data['bankAccountProvince2']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountProvince2'];
+                            vm.selectedProposal.data['bankAccountProvince2'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountProvince3']) {
+                        socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposal.data['bankAccountProvince3']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountProvince3'];
+                            vm.selectedProposal.data['bankAccountProvince3'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountCity']) {
+                        socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposal.data['bankAccountCity']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountCity'];
+                            vm.selectedProposal.data['bankAccountCity'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountCity2']) {
+                        socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposal.data['bankAccountCity2']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountCity2'];
+                            vm.selectedProposal.data['bankAccountCity2'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountCity3']) {
+                        socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposal.data['bankAccountCity3']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountCity3'];
+                            vm.selectedProposal.data['bankAccountCity3'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountDistrict']) {
+                        socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['bankAccountDistrict']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountDistrict'];
+                            vm.selectedProposal.data['bankAccountDistrict'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountDistrict2']) {
+                        socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['bankAccountDistrict2']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountDistrict2'];
+                            vm.selectedProposal.data['bankAccountDistrict2'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
+                    if (vm.selectedProposal.data['bankAccountDistrict3']) {
+                        socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['bankAccountDistrict3']}, function (data) {
+                            var text = data.data.data ? data.data.data.name : vm.selectedProposal.data['bankAccountDistrict3'];
+                            vm.selectedProposal.data['bankAccountDistrict3'] = text;
+                            $scope.$evalAsync();
+                        });
+                    }
                 }
+
+
+
+
+
+
+
 
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
