@@ -6204,7 +6204,8 @@ define(['js/app'], function (myApp) {
                     admins: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0 ? vm.dxTrackingQuery.admins : admins,
                     adminIds: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0
                         ? vm.dxTrackingQuery.admins.map(adm => vm.queryAdmins.find(e => e.adminName === adm)._id)
-                        : adminIds
+                        : adminIds,
+                    registrationDevice: vm.dxTrackingQuery.registrationDevice
                 }
             };
 
@@ -6243,6 +6244,13 @@ define(['js/app'], function (myApp) {
                         item.playerLevel$ = "";
                     }
 
+                    item.registrationDevice$ = "";
+                    if (item && item.playerInfo && item.playerInfo.registrationDevice) {
+                        item.registrationDevice$ = $translate(vm.registrationDevices[item.playerInfo.registrationDevice]);
+                    } else {
+                        item.registrationDevice$ = "";
+                    }
+
                     item.provider$ = "";
                     if (item.providerInfo) {
                         item.provider$ = item.providerInfo;
@@ -6269,20 +6277,22 @@ define(['js/app'], function (myApp) {
                     "order": vm.dxTrackingQuery.aaSorting || [[2, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                        {'sortCol': 'credibility$', 'aTargets': [1], bSortable: true},
-                        {'sortCol': 'playerLevel$', 'aTargets': [2], bSortable: true},
-                        {'sortCol': 'valueScore', 'aTargets': [3], bSortable: true},
-                        {'sortCol': 'date', 'aTargets': [4], bSortable: true},
-                        {'sortCol': 'topUpAmount$', 'aTargets': [5], bSortable: true},
-                        {'sortCol': 'topUpTimes', 'aTargets': [6], bSortable: true},
-                        {'sortCol': 'bonusAmount$', 'aTargets': [7], bSortable: true},
-                        {'sortCol': 'provider$', 'aTargets': [8], bSortable: true},
-                        {'sortCol': 'consumptionTimes', 'aTargets': [9], bSortable: true},
-                        {'sortCol': 'validConsumptionAmount$', 'aTargets': [10], bSortable: true},
-                        {'sortCol': 'adminName', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'registrationDevice$', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'credibility$', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'playerLevel$', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'date', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'topUpAmount$', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'bonusAmount$', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'provider$', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'consumptionTimes', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'validConsumptionAmount$', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'adminName', 'aTargets': [12], bSortable: true},
                     ],
                     columns: [
                         {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                        {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                         {title: $translate('CREDIBILITY'), data: "credibility$"},
                         {title: $translate('playerLevelName'), data: "playerLevel$"},
                         {title: $translate('PlayerValue'), data: "valueScore"},
