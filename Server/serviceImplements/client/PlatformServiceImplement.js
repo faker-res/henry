@@ -7,6 +7,7 @@ const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement"
 const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
 const constSystemParam = require('../../const/constSystemParam');
+const constDevice = require('../../const/constDevice');
 const constPlayerRegistrationInterface = require('../../const/constPlayerRegistrationInterface');
 const dbSmsGroup = require('./../../db_modules/dbSmsGroup');
 const dbWCGroupControl = require('./../../db_modules/dbWCGroupControl');
@@ -112,8 +113,21 @@ var PlatformServiceImplement = function () {
     this.createPlayerFromTel.onRequest = (wsFunc, conn, data) => {
         let isValidData = Boolean(data && data.playerAccount && data.password && data.platformId && data.phoneNumber
             && data.playerType && data.telSalesName && data.promoMethod && data.fame && data.chatRecordResult
-            && data.chatRecordTitle);
+            && data.chatRecordTitle && data.deviceType);
         data.name = data.playerAccount;
+
+        data.registrationDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            isValidData = false;
+        }
+
         // Promise create player and partner
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerFromTel, [data], isValidData, null, null, true);
     };
