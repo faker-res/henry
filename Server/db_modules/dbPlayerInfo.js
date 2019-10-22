@@ -19882,6 +19882,10 @@ let dbPlayerInfo = {
                     relevantPlayerQuery.provider = ObjectId(query.providerId);
                 }
 
+                if (query && query.loginDevice && query.loginDevice.length) {
+                    relevantPlayerQuery.loginDevice = {$in: query.loginDevice};
+                }
+
                 return dbconfig.collection_playerConsumptionHourSummary.distinct('player', relevantPlayerQuery).then(
                     consumptionData => {
                         console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
@@ -19904,6 +19908,10 @@ let dbPlayerInfo = {
                             proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
                         }
 
+                        if (query && query.loginDevice && query.loginDevice.length) {
+                            proposalQuery.device = {$in: query.loginDevice};
+                        }
+
                         return dbconfig.collection_proposal.aggregate([
                             {$match: proposalQuery},
                             {$group: {_id: "$data.playerObjId"}}
@@ -19911,7 +19919,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     proposalData => {
-                        console.log('RT - getPlayerReport 3');
+                        console.log('RT - getPlayerReport 3', proposalData);
                         if (proposalData && proposalData.length) {
                             for (let i = 0; i < proposalData.length; i++) {
                                 if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
@@ -19975,7 +19983,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
-                console.log('RT - getPlayerReport 5');
+                console.log('RT - getPlayerReport 5', result);
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -20545,6 +20553,10 @@ let dbPlayerInfo = {
                         summaryDataQuery.playerId = playerData._id;
                     } else if (query.adminIds && query.adminIds.length && playerData.length) {
                         summaryDataQuery.playerId = {$in: playerData.map(p => p._id)}
+                    }
+
+                    if (query.loginDevice && query.loginDevice.length) {
+                        summaryDataQuery.loginDevice = {$in: query.loginDevice};
                     }
 
                     return dbconfig.collection_playerReportDataDaySummary.aggregate(
@@ -23293,6 +23305,10 @@ let dbPlayerInfo = {
 
             query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
 
+            if (query.loginDevice && query.loginDevice.length) {
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
+            }
+
             for (let i = 0, len = proposalType.length; i < len; i++) {
                 let proposalTypeObj = proposalType[i];
                 if (proposalTypeObj.name === constProposalType.PLAYER_TOP_UP) {
@@ -23337,17 +23353,23 @@ let dbPlayerInfo = {
                 }
             );
 
+            let topupAndBonusPromMatchObj = {
+                "data.playerObjId": {$in: playerObjIds},
+                "createTime": {
+                    "$gte": new Date(startTime),
+                    "$lte": new Date(endTime)
+                },
+                "mainType": {$in: ["TopUp", "PlayerBonus"]},
+                "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+            }
+
+            if (query.loginDevice && query.loginDevice.length) {
+                topupAndBonusPromMatchObj.device = {$in: query.loginDevice};
+            }
+
             let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
                 {
-                    "$match": {
-                        "data.playerObjId": {$in: playerObjIds},
-                        "createTime": {
-                            "$gte": new Date(startTime),
-                            "$lte": new Date(endTime)
-                        },
-                        "mainType": {$in: ["TopUp", "PlayerBonus"]},
-                        "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                    }
+                    "$match": topupAndBonusPromMatchObj
                 },
                 {
                     $group: {
@@ -23364,17 +23386,23 @@ let dbPlayerInfo = {
                 }
             ]).allowDiskUse(true).read("secondaryPreferred");
 
+            let rewardPromMatchObj = {
+                "data.playerObjId": {$in: playerObjIds},
+                "createTime": {
+                    "$gte": new Date(startTime),
+                    "$lte": new Date(endTime)
+                },
+                "mainType": "Reward",
+                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+            }
+
+            if (query.loginDevice && query.loginDevice.length) {
+                rewardPromMatchObj.device = {$in: query.loginDevice};
+            }
+
             let rewardProm = dbconfig.collection_proposal.aggregate([
                 {
-                    "$match": {
-                        "data.playerObjId": {$in: playerObjIds},
-                        "createTime": {
-                            "$gte": new Date(startTime),
-                            "$lte": new Date(endTime)
-                        },
-                        "mainType": "Reward",
-                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                    }
+                    "$match": rewardPromMatchObj
                 },
                 {
                     "$group": {

@@ -381,7 +381,7 @@ var playerSchema = new Schema({
     // constPlayerLoginDevice
     loginDevice: {type: Number, index: true},
     // constPlayerLoginDevice
-    registrationDevice: {type: Number, index: true},
+    registrationDevice: {type: Number, index: true, default: "0"},
 });
 
 //record is unique by name and platform
