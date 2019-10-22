@@ -18,6 +18,7 @@ const queryPhoneLocation = require('cellocate');
 const constProposalEntryType = require('./../../const/constProposalEntryType');
 const constProposalUserType = require('./../../const/constProposalUserType');
 const constProposalStatus = require('./../../const/constProposalStatus');
+const constDevice = require('./../../const/constDevice');
 const constMessageType = require('./../../const/constMessageType');
 const dbLogger = require('./../../modules/dbLogger');
 const dbPlayerOnlineTime = require('../../db_modules/dbPlayerOnlineTime');
@@ -100,6 +101,22 @@ let PlayerServiceImplement = function () {
         // console.log("yH checking---conn", conn)
         if (conn.partnerId){
             connPartnerId = conn.partnerId;
+        }
+
+        if (data.deviceType) {
+            data.registrationDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     if (constDevice[key].indexOf("P") == -1) {
+            //         playerLoginDeviceArr.push(constDevice[key]);
+            //     }
+            // }
+            // if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            //     isValidData = false;
+            // }
         }
 
         let inputData = Object.assign({}, data);
@@ -232,6 +249,20 @@ let PlayerServiceImplement = function () {
         let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
 
         let isValidData = Boolean(data && data.platformId && data.guestDeviceId);
+
+        if (data.deviceType) {
+            data.registrationDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            //     isValidData = false;
+            // }
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
             (playerData) => {
@@ -514,6 +545,20 @@ let PlayerServiceImplement = function () {
         }
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
+
+        if (data.deviceType) {
+            data.loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            //     isValidData = false;
+            // }
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
@@ -1175,9 +1220,24 @@ let PlayerServiceImplement = function () {
         let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
+        let loginDevice;
+        if(data.isLogin && data.deviceType) {
+            loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                loginDevice = String(loginDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(loginDevice)) {
+            //     isValidData = false;
+            // }
+        }
+
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.authenticate,
-            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain], true, false, false, true
+            [data.playerId, data.token, playerIp, conn, data.isLogin, ua, md, inputDevice, data.clientDomain, loginDevice], true, false, false, true
         );
     };
 
@@ -1450,6 +1510,22 @@ let PlayerServiceImplement = function () {
             }
         }
 
+        if (data.deviceType) {
+            data.loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            //     isValidData = false;
+            // }
+        }
+
+        data.registrationDevice = data.loginDevice;
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
                 let playerData = player[0] || player;
@@ -1466,9 +1542,6 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = player.csOfficer ? player.csOfficer : "";
 
-                console.log('player===', player);
-                console.log('player.isRegister===', player.isRegister);
-
                 // 1.手机号登录不产生注册意向
                 // 2.手机号注册产生注册意向，并由【免验】归类到【尝试】
                 if (player && player.isRegister) {
@@ -1477,7 +1550,7 @@ let PlayerServiceImplement = function () {
                             console.log("checking isUpdateData", isUpdateData)
                             if (!(isUpdateData[0] && isUpdateData[0]._id)) {
                                 console.log("checking data.platformId", data.platformId)
-                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.ATTEMPT, inputDevice).catch(errorUtils.reportError);
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).catch(errorUtils.reportError);
                             }
                         }
                     );
@@ -1568,6 +1641,20 @@ let PlayerServiceImplement = function () {
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
 
         data.lastLoginIp = dbUtility.getIpAddress(conn);
+
+        if (data.deviceType) {
+            data.loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            //     isValidData = false;
+            // }
+        }
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.phoneNumberLoginWithPassword, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
@@ -1730,6 +1817,20 @@ let PlayerServiceImplement = function () {
             }
         }
 
+        if (data.deviceType) {
+            data.registrationDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            //     isValidData = false;
+            // }
+        }
+
         let inputData = Object.assign({}, data);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.registerByPhoneNumberAndPassword, [inputData], isValidData, true, true, true).then(
             player => {
@@ -1839,6 +1940,20 @@ let PlayerServiceImplement = function () {
                 data.city = "";
                 data.province = "";
             }
+        }
+
+        if (data.deviceType) {
+            data.loginDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.loginDevice = String(data.loginDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.loginDevice)) {
+            //     isValidData = false;
+            // }
         }
 
         let inputData = Object.assign({}, data);

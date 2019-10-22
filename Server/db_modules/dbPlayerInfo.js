@@ -465,6 +465,7 @@ let dbPlayerInfo = {
                             guestPlayer.platformId = inputData.platformId ? inputData.platformId : (guestPlayer.platformId || "");
                             guestPlayer.ua = inputData.ua ? inputData.ua : (guestPlayer.userAgent || "");
                             guestPlayer.mobileDetect = inputData.md ? inputData.md : (guestPlayer.mobileDetect || "");
+                            guestPlayer.loginDevice = inputData.registrationDevice;
 
                             if (inputData && inputData.guestDeviceId){
                                 guestPlayer.guestDeviceId = inputData.guestDeviceId;
@@ -506,7 +507,8 @@ let dbPlayerInfo = {
                                         password: inputData.guestDeviceId,
                                         isTestPlayer: false,
                                         isRealPlayer: true,
-                                        guestDeviceId: inputData.guestDeviceId
+                                        guestDeviceId: inputData.guestDeviceId,
+                                        registrationDevice: inputData.registrationDevice
                                     };
 
                                     if (inputData.guestDeviceId){
@@ -1338,6 +1340,7 @@ let dbPlayerInfo = {
                         newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
                         newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
                         newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+                        newPlayerData.loginDevice = inputData.registrationDevice;
 
                         //after created new player, need to create login record and apply login reward
                         if (!adminName) { // except the case where player is created on backstage (by admin)
@@ -6962,6 +6965,10 @@ let dbPlayerInfo = {
                     updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
                 }
 
+                if (playerData.loginDevice) {
+                    updateData.loginDevice = playerData.loginDevice;
+                }
+
                 if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     let ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
                     if (ipData) {
@@ -7037,46 +7044,48 @@ let dbPlayerInfo = {
 
                 return record.save();
             }
-        ).then(record => {
-            if (userAgent) {
-                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
-                let loginDevice;
-
-                console.log('tempInputDevice ==>', tempInputDevice);
-                console.log('playerData.osType ==>', playerData.osType);
-                console.log('userAgent.browser', userAgent.browser);
-                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
-                    loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
-                    loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
-                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
-                    if (playerData && playerData.osType) {
-                        let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
-                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    }
-                    else if (userAgent && userAgent.os && userAgent.os.name) {
-                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
-                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    }
-                }
-
-                console.log('loginDevice ==>', loginDevice);
-                if (loginDevice) {
-                    return dbconfig.collection_players.findOneAndUpdate({
-                        _id: record.player,
-                        platform: record.platform
-                    }, {
-                        loginDevice: loginDevice
-                    }).then(
-                        data => {
-                            return record;
-                        }
-                    ).catch(errorUtils.reportError);
-                }
-            }
-            return record;
-        }).then(
+        )
+        //     .then(record => {
+        //     if (userAgent) {
+        //         let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
+        //         // let loginDevice;
+        //
+        //         console.log('tempInputDevice ==>', tempInputDevice);
+        //         console.log('playerData.osType ==>', playerData.osType);
+        //         console.log('userAgent.browser', userAgent.browser);
+        //         if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
+        //             loginDevice = constPlayerLoginDevice.WEB;
+        //         } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
+        //             loginDevice = constPlayerLoginDevice.H5;
+        //         } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
+        //             tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
+        //             if (playerData && playerData.osType) {
+        //                 let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
+        //                 loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+        //             }
+        //             else if (userAgent && userAgent.os && userAgent.os.name) {
+        //                 let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
+        //                 loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
+        //             }
+        //         }
+        //
+        //         console.log('loginDevice ==>', loginDevice);
+        //         if (loginDevice) {
+        //             return dbconfig.collection_players.findOneAndUpdate({
+        //                 _id: record.player,
+        //                 platform: record.platform
+        //             }, {
+        //                 loginDevice: loginDevice
+        //             }).then(
+        //                 data => {
+        //                     return record;
+        //                 }
+        //             ).catch(errorUtils.reportError);
+        //         }
+        //     }
+        //     return record;
+        // })
+            .then(
             record => {
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
@@ -7377,7 +7386,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.find(
+                                    return dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -7388,19 +7397,16 @@ let dbPlayerInfo = {
                                             platform: platformData._id,
                                             // 'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
-                                    ).sort({lastAccessTime: -1}).limit(1).lean();
+                                    ).sort({lastAccessTime: -1}).lean();
                                 }
                             }
                         ).then(
                             async player => {
-                                if (player && player.length) {
+                                if (player) {
                                     let thisPlayer;
 
-                                    for (let i = 0; i < player.length; i++) {
-                                        if (!player[i].permission.forbidPlayerFromLogin) {
-                                            thisPlayer = player[i];
-                                            break;
-                                        }
+                                    if (!player.permission.forbidPlayerFromLogin) {
+                                        thisPlayer = player;
                                     }
 
                                     if (!thisPlayer) {
@@ -7476,6 +7482,9 @@ let dbPlayerInfo = {
                                     if (loginData && loginData.domain) {
                                         newPlayerData.domain = loginData.domain;
                                     }
+                                    if (loginData && loginData.registrationDevice) {
+                                        newPlayerData.registrationDevice = loginData.registrationDevice;
+                                    }
                                     let checkDeviceIdProm = Promise.resolve();
 
                                     console.log("checking loginData.lastLoginIp", loginData.deviceId || "Undefined")
@@ -7545,8 +7554,6 @@ let dbPlayerInfo = {
                                                                     }
                                                                     isRegister = true;
 
-                                                                    console.log('here===');
-
                                                                     return playerData;
                                                                 }
                                                             );
@@ -7568,8 +7575,6 @@ let dbPlayerInfo = {
                                                     if (isRegister) {
                                                         data.isRegister = true;
                                                     }
-                                                    console.log('login-data===', data);
-                                                    console.log('login-data.isRegister===', data.isRegister);
 
                                                     return data;
                                                 }
@@ -7783,6 +7788,10 @@ let dbPlayerInfo = {
                     updateData.deviceId = rsaCrypto.encrypt(playerData.deviceId);
                 }
 
+                if (playerData.loginDevice) {
+                    updateData.loginDevice = playerData.loginDevice;
+                }
+
                 if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
                     let ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
                     if (ipData) {
@@ -7854,46 +7863,7 @@ let dbPlayerInfo = {
                     error: error
                 });
             }
-        ).then(record => {
-            if (userAgent) {
-                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
-                let loginDevice;
-
-                console.log('tempInputDevice 1==>', tempInputDevice);
-                console.log('playerData.osType 1==>', playerData.osType);
-                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
-                    loginDevice = constPlayerLoginDevice.WEB;
-                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
-                    loginDevice = constPlayerLoginDevice.H5;
-                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
-                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
-                    if (playerData && playerData.osType) {
-                        let lowerCaseOsTypeValue = playerData.osType.toLowerCase();
-                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    }
-                    else if (userAgent && userAgent.os && userAgent.os.name) {
-                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
-                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                    }
-                }
-
-                console.log('loginDevice 1==>', loginDevice);
-                if (loginDevice) {
-                    console.log('updatePlayerLoginDevice time log start', record.platform, record.player);
-                    return dbconfig.collection_players.findOneAndUpdate({
-                        _id: record.player,
-                        platform: record.platform
-                    }, {
-                        loginDevice: loginDevice
-                    }).then(
-                        data => {
-                            return record;
-                        }
-                    ).catch(errorUtils.reportError);
-                }
-            }
-            return record;
-        }).then(
+        ).then(
             record => {
                 updateAutoFeedbackLoginCount(record).catch(errorUtils.reportError);
                 dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
@@ -8238,6 +8208,10 @@ let dbPlayerInfo = {
                         updateData.$push = {loginIps: inputData.lastLoginIp};
                     }
 
+                    if (inputData.loginDevice) {
+                        updateData.loginDevice = inputData.loginDevice;
+                    }
+
                     let data = await dbconfig.collection_players.findOneAndUpdate({
                         _id: playerObj._id,
                         platform: playerObj.platform
@@ -8279,39 +8253,6 @@ let dbPlayerInfo = {
                         let loginRecord = await record.save();
 
                         if (loginRecord) {
-                            if (userAgent) {
-                                let tempInputDevice = dbUtil.getInputDevice(userAgent, false);
-                                let loginDevice;
-
-                                console.log('tempInputDevice 2==>', tempInputDevice);
-                                console.log('inputData.osType 2==>', inputData.osType);
-                                if (tempInputDevice == constPlayerRegistrationInterface.WEB_PLAYER || tempInputDevice == constPlayerRegistrationInterface.WEB_AGENT) {
-                                    loginDevice = constPlayerLoginDevice.WEB;
-                                } else if (tempInputDevice == constPlayerRegistrationInterface.H5_PLAYER || tempInputDevice == constPlayerRegistrationInterface.H5_AGENT) {
-                                    loginDevice = constPlayerLoginDevice.H5;
-                                } else if (tempInputDevice == constPlayerRegistrationInterface.APP_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_AGENT ||
-                                    tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PLAYER || tempInputDevice == constPlayerRegistrationInterface.APP_NATIVE_PARTNER) {
-                                    if (inputData && inputData.osType) {
-                                        let lowerCaseOsTypeValue = inputData.osType.toLowerCase();
-                                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                                    }
-                                    else if (userAgent && userAgent.os && userAgent.os.name) {
-                                        let lowerCaseOsTypeValue = userAgent.os.name.toLowerCase();
-                                        loginDevice = (lowerCaseOsTypeValue === 'ios') ? constPlayerLoginDevice.APP_IOS : constPlayerLoginDevice.APP_ANDROID;
-                                    }
-                                }
-
-                                console.log('loginDevice 2==>', loginDevice);
-                                if (loginDevice) {
-                                    console.log('updatePlayerLoginDevice time log start', loginRecord.platform,  loginRecord.player);
-                                    await dbconfig.collection_players.findOneAndUpdate({
-                                        _id: loginRecord.player,
-                                        platform: loginRecord.platform
-                                    }, {
-                                        loginDevice: loginDevice
-                                    }).catch(errorUtils.reportError);
-                                }
-                            }
 
                             updateAutoFeedbackLoginCount(loginRecord).catch(errorUtils.reportError);
                             dbPlayerInfo.getRetentionRewardAfterLogin(loginRecord.platform, loginRecord.player, userAgent).catch(
@@ -8990,6 +8931,11 @@ let dbPlayerInfo = {
                     if (loginData && loginData.osType) {
                         playerObj.osType = loginData.osType;
                     }
+
+                    if (loginData && loginData.loginDevice) {
+                        playerObj.loginDevice = loginData.loginDevice;
+                    }
+
 
                     return dbPlayerInfo.playerLogin (playerObj, userAgent, playerObj.inputDevice, playerObj.mobileDetect, checkLastDeviceId, true);
                     // if (playerObj.permission.forbidPlayerFromLogin) {
@@ -16069,7 +16015,7 @@ let dbPlayerInfo = {
         );
     },
 
-    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain) {
+    authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain, loginDevice) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
             if (err || !decoded) {
@@ -16107,6 +16053,9 @@ let dbPlayerInfo = {
 
                             // Login if required - For long validity of token period
                             if (isLogin) {
+                                if (loginDevice) {
+                                    playerData.loginDevice = loginDevice;
+                                }
                                 playerData.platformId = playerData.platform.platformId;
                                 playerData.clientDomain = clientDomain;
                                 dbPlayerInfo.playerLogin(playerData, ua, inputDevice, md, false, true).catch(errorUtils.reportError);
@@ -19872,7 +19821,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let playerObjArr = [];
+                let playerObjArr = query.playerObjIds || [];
                 let relevantPlayerQuery = {
                     platform: platform,
                     startTime: {$gte: startDate, $lt: endDate}
@@ -19893,8 +19842,10 @@ let dbPlayerInfo = {
                     consumptionData => {
                         console.log('RT - getPlayerReport 2', consumptionData && consumptionData.length);
                         if (consumptionData && consumptionData.length) {
-                            playerObjArr = consumptionData.map(function (playerIdObj) {
-                                return String(playerIdObj);
+                            consumptionData.forEach(playerIdObj => {
+                                if (playerIdObj && playerObjArr.indexOf(String(playerIdObj)) === -1) {
+                                    playerObjArr.push(String(playerIdObj));
+                                }
                             });
                         }
 
@@ -20196,6 +20147,9 @@ let dbPlayerInfo = {
                     query.start = postSummaryStartTime;
                     query.end = postSummaryEndTime;
 
+                    // force existing records player into search
+                    query.playerObjIds = returnedObj.data.map(e => String(e._id));
+
                     return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
                 }
             }
@@ -20287,6 +20241,9 @@ let dbPlayerInfo = {
                 if (preSummaryStartTime && preSummaryEndTime) {
                     query.start = preSummaryStartTime;
                     query.end = preSummaryEndTime;
+
+                    // force existing records player into search
+                    query.playerObjIds = returnedObj.data.map(e => String(e._id));
 
                     let preSummaryPlayerReportData = await dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
 
@@ -29271,7 +29228,10 @@ let dbPlayerInfo = {
         })
     },
 
-    unbindPhoneDeviceId: function (playerObjId) {
+    unbindPhoneDeviceId: async function (playerObjId) {
+        // remove binded phone number backlog
+        dbconfig.collection_phoneNumberBindingRecord.remove({playerObjId: playerObjId});
+
         return dbconfig.collection_players.findOneAndUpdate(
             {_id: playerObjId},
             {
@@ -29286,7 +29246,6 @@ let dbPlayerInfo = {
     creditTransferedFromPartner: function (proposalId, platformId) {
         let partnerProposal;
         let proposalTypeObj;
-        1
         let proposalProm = [];
         let createPlayerProposalsProm = [];
         return dbconfig.collection_proposalType.findOne({

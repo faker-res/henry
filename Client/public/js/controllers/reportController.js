@@ -104,6 +104,13 @@ define(['js/app'], function (myApp) {
 
         vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
+        vm.topUpReportInputDevice = {
+            0: 'BACKSTAGE',
+            1: 'WEB_PLAYER',
+            3: 'H5_PLAYER',
+            5: 'APP_PLAYER',
+        };
+
         vm.registrationDeviceList = {
             "0": "BACKSTAGE",
             "1": "WEB_PLAYER",
@@ -1849,6 +1856,10 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.platformList = [];
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
+
+            if (vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length){
+                return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
 
             $('#topupTableSpin').show();
@@ -1916,6 +1927,10 @@ define(['js/app'], function (myApp) {
 
             if (vm.queryTopup && vm.queryTopup.merchantName && vm.queryTopup.merchantName.length > 0) {
                 sendObj.merchantName = vm.queryTopup.merchantName;
+            }
+
+            if (sendObj && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length && vm.loginDeviceList && vm.queryTopup.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+                sendObj.loginDevice = vm.queryTopup.loginDevice;
             }
 
             console.log('searchTopupRecord sendObj', sendObj);

@@ -1494,7 +1494,7 @@ var dbUtility = {
             return true;
         }
 
-        if (userAgentInput && userAgentInput[0]) {
+        if (userAgentInput && userAgentInput[0] && isEmpty(adminInfo)) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
@@ -2116,6 +2116,17 @@ var dbUtility = {
         }
 
         return intervalTime;
+    },
+
+    getDeviceValue: (data, isPartner) => {
+        let deviceString;
+        let deviceCode = data && data.deviceType && data.subPlatformId ? data.deviceType.toString() + data.subPlatformId.toString() : data.deviceType;
+
+        if (deviceCode && isPartner) {
+            deviceString = "P" + String(deviceCode);
+        }
+
+        return deviceString;
     },
 
     queryPhoneLocation: (phoneNumber) => {
