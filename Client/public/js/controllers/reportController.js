@@ -104,6 +104,23 @@ define(['js/app'], function (myApp) {
 
         vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
+        vm.registrationDeviceList = {
+            "0": "BACKSTAGE",
+            "1": "WEB_PLAYER",
+            "1403": "WEB_PLAYER_EU",
+            "1402": "WEB_PLAYER_V68",
+            "1401": "WEB_PLAYER_EU_CHESS",
+            "2": "H5_PLAYER",
+            "2403": "H5_PLAYER_EU",
+            "2402": "H5_PLAYER_V68",
+            "2401": "H5_PLAYER_EU_CHESS",
+            "3403": "APP_PLAYER_ANDROID_EU",
+            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+            "3402": "APP_PLAYER_ANDROID_V68",
+            "4403": "APP_PLAYER_IOS_EU",
+            "4401": "APP_PLAYER_IOS_EU_CHESS",
+            "4402": "APP_PLAYER_IOS_V68",
+        };
         vm.claimStatus = {
             valid: "STILL VALID",
             accepted: "ACCEPTED",
@@ -4049,6 +4066,11 @@ define(['js/app'], function (myApp) {
             } else if (admins && admins.length > 0) {
                 query.admins = admins;
             }
+            if(vm.feedbackQuery.registrationDevice && vm.feedbackQuery.registrationDevice.length == Object.keys(vm.registrationDeviceList).length) {
+                query.registrationDevice = [];
+            } else {
+                query.registrationDevice = vm.feedbackQuery.registrationDevice;
+            }
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
@@ -4121,6 +4143,7 @@ define(['js/app'], function (myApp) {
                         item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                         item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
                         item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
+                        item.registrationDevice$ = (item && item.registrationDevice) ? $translate(vm.registrationDeviceList[item.registrationDevice]) : '-';
                         item.credibility$ = "";
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
@@ -4242,35 +4265,37 @@ define(['js/app'], function (myApp) {
                 "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'credibility$', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'createTime$', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'endTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'provider$', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'registrationDevice$', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'credibility$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'createTime$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'endTime$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'provider$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'profit', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'feedbackAdminName$', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'feedbackTopic$', 'aTargets': [23], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('ORDER')},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('FEEDBACK_TIME'), data: "createTime$"},
@@ -11976,7 +12001,8 @@ define(['js/app'], function (myApp) {
                             valueScoreOperator: ">=",
                             topUpTimesOperator: ">=",
                             bonusTimesOperator: ">=",
-                            topUpAmountOperator: ">="
+                            topUpAmountOperator: ">=",
+                            registrationDevice: []
                         };
                         vm.feedbackQuery.totalCount = 0;
                         vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
@@ -11994,7 +12020,7 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
-
+                    endLoadMultipleSelect('.spicker');
                 });
 
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {

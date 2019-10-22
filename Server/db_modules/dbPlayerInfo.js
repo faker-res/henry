@@ -23270,7 +23270,8 @@ let dbPlayerInfo = {
                     csOfficer: 1,
                     lastAccessTime: 1,
                     realName: 1,
-                    domain: 1
+                    domain: 1,
+                    registrationDevice: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -23735,6 +23736,7 @@ let dbPlayerInfo = {
                     result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
                     result.province = playerDetail.province ? playerDetail.province : null;
                     result.city = playerDetail.city ? playerDetail.city : null;
+                    result.registrationDevice = playerDetail.registrationDevice ? playerDetail.registrationDevice : null;
 
                     if (showPlatformFeeEstimate) {
                         result.platformFeeEstimate = {};
