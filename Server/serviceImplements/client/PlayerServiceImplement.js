@@ -1466,15 +1466,19 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = player.csOfficer ? player.csOfficer : "";
 
-                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                    isUpdateData => {
-                        console.log("checking isUpdateData", isUpdateData)
-                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                            console.log("checking data.platformId", data.platformId)
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                // 1.手机号登录不产生注册意向
+                // 2.手机号注册产生注册意向，并由【免验】归类到【尝试】
+                if (player && player.isRegister) {
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData => {
+                            console.log("checking isUpdateData", isUpdateData)
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                console.log("checking data.platformId", data.platformId)
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS, inputDevice).catch(errorUtils.reportError);
+                            }
                         }
-                    }
-                );
+                    );
+                }
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {

@@ -7338,6 +7338,7 @@ let dbPlayerInfo = {
     playerLoginOrRegisterWithSMS: (loginData, ua, checkLastDeviceId) => {
         let isHitReferralLimit = false;
         let isSMSVerified = false;
+        let isRegister = false;
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
@@ -7376,7 +7377,7 @@ let dbPlayerInfo = {
                                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
                                     let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
-                                    return dbconfig.collection_players.find(
+                                    return dbconfig.collection_players.findOne(
                                         {
                                             $or: [
                                                 {phoneNumber: encryptedPhoneNumber},
@@ -7387,19 +7388,16 @@ let dbPlayerInfo = {
                                             platform: platformData._id,
                                             // 'permission.forbidPlayerFromLogin': {$ne: true}
                                         }
-                                    ).sort({lastAccessTime: -1}).limit(1).lean();
+                                    ).sort({lastAccessTime: -1}).lean();
                                 }
                             }
                         ).then(
                             async player => {
-                                if (player && player.length) {
+                                if (player) {
                                     let thisPlayer;
 
-                                    for (let i = 0; i < player.length; i++) {
-                                        if (!player[i].permission.forbidPlayerFromLogin) {
-                                            thisPlayer = player[i];
-                                            break;
-                                        }
+                                    if (!player.permission.forbidPlayerFromLogin) {
+                                        thisPlayer = player;
                                     }
 
                                     if (!thisPlayer) {
@@ -7542,6 +7540,7 @@ let dbPlayerInfo = {
                                                                     if (playerData && playerData.isHitReferralLimit) {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
+                                                                    isRegister = true;
 
                                                                     return playerData;
                                                                 }
@@ -7560,6 +7559,9 @@ let dbPlayerInfo = {
                                                     if (loginPlayerData && isHitReferralLimit) {
                                                         loginPlayerData.isHitReferralLimit = isHitReferralLimit;
                                                         return loginPlayerData;
+                                                    }
+                                                    if (isRegister) {
+                                                        data.isRegister = true;
                                                     }
 
                                                     return data;
@@ -9522,7 +9524,7 @@ let dbPlayerInfo = {
 
                 if (playerData.platform.useProviderGroup) {
                     // Platform supporting provider group
-                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
+                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS" || providerData.name.toUpperCase() === "EBETBOARD")) {
                         // if use eBet Wallet
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
@@ -10136,7 +10138,7 @@ let dbPlayerInfo = {
                                 gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                             // Platform supporting provider group
-                            if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS")) {
+                            if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
                                 // if use eBet Wallet
                                 console.log("using eBetWallet");
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -10158,7 +10160,7 @@ let dbPlayerInfo = {
                     gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                 // Platform supporting provider group
-                if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS")) {
+                if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
                     // if use eBet Wallet
                     console.log("using eBetWallet");
                     return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(

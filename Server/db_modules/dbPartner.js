@@ -8683,7 +8683,8 @@ let dbPartner = {
             }
             else {
                 // value
-                fluctuatedAmount = Number(dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 2));
+                let valueFluctuated = Number(dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 2));
+                fluctuatedAmount = math.chain(Number(record.commissionAmount) || 0).add(Number(valueFluctuated) || 0).round(2).done();
             }
             record.commissionAmount = fluctuatedAmount;
             await dbconfig.collection_fakeCommissionBillBoardRecord.update({_id: record._id}, {commissionAmount: fluctuatedAmount, lastAmountUpdate: calTime});
