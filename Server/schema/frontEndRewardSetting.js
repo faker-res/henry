@@ -20,7 +20,7 @@ var frontEndRewardSettingSchema = new Schema({
     // promo code
     promoCode: {type: String},
     pc: {
-        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干, 7: 自定义文本
         onClickAction: {type: Number},
         //  ftp url for uploaded pc image
         imageUrl: {type: String},
@@ -36,6 +36,8 @@ var frontEndRewardSettingSchema = new Schema({
         gameCode: {type: String},
         // html script
         script: {type: String},
+        // rewardBannerPicture
+        rewardBannerPicture: {type: String},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not
@@ -60,7 +62,7 @@ var frontEndRewardSettingSchema = new Schema({
         bottomButtonRoute: {type: String},
     },
     h5: {
-        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干
+        // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干, 7: 自定义文本
         onClickAction: {type: Number},
         //  ftp url for uploaded pc image
         imageUrl: {type: String},
@@ -76,6 +78,8 @@ var frontEndRewardSettingSchema = new Schema({
         gameCode: {type: String},
         // html script
         script: {type: String},
+        // rewardBannerPicture
+        rewardBannerPicture: {type: String},
         // is required to log in or not
         requiredToLogIn: {type: Boolean},
         // showing application button or not

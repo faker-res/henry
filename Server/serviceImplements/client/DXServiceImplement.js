@@ -2,6 +2,7 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var DXMissionService = require("./../../services/client/ClientServices").DXMissionService;
 var dbDxMission = require('./../../db_modules/dbDXMission');
 var constServerCode = require('./../../const/constServerCode');
+var constDevice = require('./../../const/constDevice');
 const uaParser = require('ua-parser-js');
 const geoip = require('geoip-lite');
 const dbutility = require('./../../modules/dbutility');
@@ -73,7 +74,20 @@ var DXMissionServiceImplement = function () {
             data.domain = data.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
         }
 
-        var isValidData = Boolean(data && data.code);
+        var isValidData = Boolean(data && data.code && data.deviceType);
+        data.registrationDevice = String(data.deviceType);
+        if (data.subPlatformId) {
+            data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+        }
+        let playerLoginDeviceArr = [];
+        for (let key in constDevice) {
+            playerLoginDeviceArr.push(constDevice[key]);
+        }
+        if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            isValidData = false;
+        }
+        deviceData.registrationDevice = data.registrationDevice;
+
         WebSocketUtil.performAction(conn, wsFunc, data, dbDxMission.createPlayerFromCode, [data.code, deviceData, data.domain, loginDetails, conn, wsFunc], isValidData, false, false, true);
     };
 

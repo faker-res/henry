@@ -156,6 +156,8 @@ let dbPartner = {
                         delete partnerData.commissionType;
                     }
 
+                    partnerData.registrationDevice = dbUtil.getDeviceValue(partnerData, true);
+
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                             parentData => {
@@ -446,6 +448,11 @@ let dbPartner = {
 
                         if (partnerdata.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                             partnerdata.loginTimes = 1;
+                        }
+
+                        if (partnerdata.registrationDevice && partnerdata.registrationDevice !== "0") {
+                            partnerdata.loginTimes = 1;
+                            partnerdata.loginDevice = dbUtil.getDeviceValue(partnerdata, true);
                         }
 
                         if(playerId){
@@ -1633,6 +1640,9 @@ let dbPartner = {
                             geoInfo.province = "";
                         }
                     }
+
+                    updateData.loginDevice = dbUtil.getDeviceValue(partnerData, true);
+
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
@@ -11274,7 +11284,7 @@ let dbPartner = {
         })
     },
 
-    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber) {
+    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber, inputData) {
         let parent = await dbconfig.collection_partner.findOne({partnerId: parentId}).lean();
         if (!parent) {
             return Promise.reject({message: "Partner not found"});
@@ -11410,15 +11420,24 @@ let dbPartner = {
             validGroupRate.push(rateObj)
         }
 
-        let newPartner = await dbPartner.createPartner({
+        let newPartnerData = {
             partnerName: account,
             password: password,
             platform: parent.platform,
             commissionType: parent.commissionType,
             parent: parent._id,
             phoneNumber: phoneNumber,
-            depthInTree: parent.depthInTree++,
-        });
+            depthInTree: parent.depthInTree++
+        };
+
+        let deviceCode = dbUtil.getDeviceValue(inputData, true);
+        if (deviceCode) {
+            newPartnerData.registrationDevice = deviceCode;
+            newPartnerData.deviceType = inputData.deviceType;
+            newPartnerData.subPlatformId = inputData.subPlatformId;
+        }
+
+        let newPartner = await dbPartner.createPartner(newPartnerData);
 
         if (!newPartner || !newPartner._id) {
             // usually it wont come here
