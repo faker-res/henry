@@ -35548,10 +35548,15 @@ define(['js/app'], function (myApp) {
                                     deletedProviders = cloneGameProvider.providers;
                                 }
 
+                                if (cloneGameProvider.ebetWallet !== editedGameProvider.ebetWallet) {
+                                    isProviderChanged = true;
+                                }
+
                                 if (isProviderChanged) {
                                     socketActionLog[key] = {
                                         name: providerGroupName,
                                         providerGroupId: providerGroupId,
+                                        ebetWallet: editedGameProvider.ebetWallet
                                     };
                                 }
                                 if (addedProviders && addedProviders.length) {
