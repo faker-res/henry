@@ -178,7 +178,11 @@ var partnerSchema = new Schema({
     // short url for promote
     shortUrl: {type: JSON},
     // commission type
-    commissionType: {type: Number, default: 0}
+    commissionType: {type: Number, default: 0},
+    // constDevice
+    loginDevice: {type: String, index: true},
+    // constDevice
+    registrationDevice: {type: String, index: true, default: "0"}
 });
 
 partnerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('partnerId'));

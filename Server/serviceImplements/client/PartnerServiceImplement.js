@@ -530,7 +530,7 @@ var PartnerServiceImplement = function () {
 
     this.createDownLinePartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.account && data.password && data.commissionRate && data.phoneNumber);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate, data.phoneNumber], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate, data.phoneNumber, data], isValidData);
     };
 
     this.getPartnerCommissionInfo.onRequest = function (wsFunc, conn, data) {

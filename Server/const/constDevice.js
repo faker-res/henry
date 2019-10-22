@@ -1,5 +1,5 @@
 const constDevice = {
-    // new const
+    BACKSTAGE: "0",
     WEB_PLAYER: "1",
     WEB_PLAYER_EU: "1403",
     WEB_PLAYER_V68: "1402",
