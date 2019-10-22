@@ -6440,6 +6440,10 @@ define(['js/app'], function (myApp) {
                 limit: isExport ? 5000 : (vm.dxNewPlayerQuery.limit || null),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
             };
+
+            if (vm.registrationDeviceList && vm.dxNewPlayerQuery && vm.dxNewPlayerQuery.registrationDevice && vm.dxNewPlayerQuery.registrationDevice.length != Object.keys(vm.registrationDeviceList).length ) {
+                sendquery.query.registrationDevice = vm.dxNewPlayerQuery.registrationDevice;
+            }
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getDXNewPlayerReport', sendquery, function (data) {
                 findReportSearchTime();
@@ -6464,6 +6468,7 @@ define(['js/app'], function (myApp) {
                     item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                    item.registrationDevice$ = item && item.registrationDevice ? $translate(vm.registrationDeviceList[item.registrationDevice]) : "";
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
@@ -6563,31 +6568,32 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [27], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
