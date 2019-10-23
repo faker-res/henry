@@ -111,6 +111,8 @@ define(['js/app'], function (myApp) {
             5: 'APP_PLAYER',
         };
 
+        vm.propsosalDeviceList = $scope.constDevice;
+
         vm.registrationDeviceList = {
             "0": "BACKSTAGE",
             "1": "WEB_PLAYER",
@@ -128,6 +130,7 @@ define(['js/app'], function (myApp) {
             "4401": "APP_PLAYER_IOS_EU_CHESS",
             "4402": "APP_PLAYER_IOS_V68",
         };
+
         vm.claimStatus = {
             valid: "STILL VALID",
             accepted: "ACCEPTED",
@@ -7469,6 +7472,14 @@ define(['js/app'], function (myApp) {
                 newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
             }
 
+            if (vm.proposalQuery && (vm.proposalQuery.inputDevice != -1 || typeof vm.proposalQuery.inputDevice == 'undefined') && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length){
+                return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
+            }
+            // reset back the inputDevice to null if both filter are not selected
+            else if (vm.proposalQuery && vm.proposalQuery.inputDevice == -1 && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length == 0){
+                vm.proposalQuery.inputDevice = "";
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
@@ -7494,6 +7505,10 @@ define(['js/app'], function (myApp) {
                 sortCol: newproposalQuery.sortCol,
                 isExport: isExport
             };
+
+            if (sendData && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length && vm.propsosalDeviceList && vm.proposalQuery.loginDevice.length != Object.keys(vm.propsosalDeviceList).length){
+                sendData.loginDevice = vm.proposalQuery.loginDevice;
+            }
 
             console.log('sendData', sendData);
 

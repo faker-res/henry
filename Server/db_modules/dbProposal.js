@@ -3697,6 +3697,10 @@ var proposal = {
             }
         }
 
+        if (reqData.device && reqData.device.length){
+            queryData.device = {$in: reqData.device};
+        }
+
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
                 isSuccess = true;
