@@ -1555,8 +1555,10 @@ var dbUtility = {
             os: ua.os || ''
         }];
         let inputDevice="";
+        console.log('JY check input device 5=====:', inputUserAgent, data);
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
+            console.log('JY check input device 6=====:', userAgent);
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // android-apps / ios apps
                 // if (userAgent.os.indexOf("iOS") !== -1){
