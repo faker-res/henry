@@ -378,10 +378,10 @@ var playerSchema = new Schema({
     avatar: {type: String},
     // avatar frame
     avatarFrame: {type: String},
-    // constPlayerLoginDevice
+    // constDevice
     loginDevice: {type: String, index: true},
-    // constPlayerLoginDevice
-    registrationDevice: {type: String, index: true},
+    // constDevice
+    registrationDevice: {type: String, index: true, default: "0"},
 });
 
 //record is unique by name and platform

@@ -302,6 +302,9 @@
                     select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.playerQuery.platformId)')
                         option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
+                    label {{"LOGIN_DEVICE"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.loginDevice', bsp, multiple, data-actions-box='true', ng-options='v as i | translate for (i,v) in vm.constPlayerDevice')
+                .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
 
