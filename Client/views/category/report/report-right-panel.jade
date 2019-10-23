@@ -1916,6 +1916,9 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountFormal")
                         div.symbol(ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
                         input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
+                .search-filters-item
+                    label {{"REGISTRATION_DEVICE"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.registrationDeviceList', bsp)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}

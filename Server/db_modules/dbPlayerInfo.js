@@ -23710,6 +23710,7 @@ let dbPlayerInfo = {
                     result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
                     result.province = playerDetail.province ? playerDetail.province : null;
                     result.city = playerDetail.city ? playerDetail.city : null;
+                    result.registrationDevice = playerDetail.registrationDevice ? playerDetail.registrationDevice : null;
 
                     if (showPlatformFeeEstimate) {
                         result.platformFeeEstimate = {};
