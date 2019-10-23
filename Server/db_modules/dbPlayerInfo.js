@@ -3478,7 +3478,7 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData && platformData._id) {
                     topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-
+                    console.log('the name..', topUpSystemConfig);
                     if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name !== 'FPMS') {
                         pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemConfig.name, platformData.topUpSystemType);
 
@@ -6791,7 +6791,8 @@ let dbPlayerInfo = {
                 // console.log('return data 2...', Object.keys(playerData[ind].permission));
                 // console.log('return data 3...', Object.keys(playerData[ind].permission).length);
                 if(playerPermission){
-                    for (var index in playerData){
+                    for(var index = playerData.length - 1; index >=0; index--){
+                    // for (var index in playerData){
                         console.log('return data 4...', playerData[index].permission);
                         if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
                             console.log('the value..', playerData[index].permission[playerPermission]);
@@ -30272,6 +30273,7 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
 function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark) {
     return pmsUpdateProm.then(
         updatePMSSuccess => {
+            console.log('updatePMSSuccess..', updatePMSSuccess);
             if (updatePMSSuccess) {
                 let updateQuery = {_id: query._id};
                 console.log('updateQuery obj..', updateQuery);

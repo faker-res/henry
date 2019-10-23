@@ -746,7 +746,6 @@ var dbPlayerFeedback = {
             players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
                 .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                .populate({path: "permission", model: dbconfig.collection_playerPermission})
                 .sort(isMany.sortCol).lean().then(
                     player => {
                         if(player && player.length >0){
@@ -771,13 +770,12 @@ var dbPlayerFeedback = {
             players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
                 .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
-                .populate({path: "permission", model: dbconfig.collection_playerPermission, select: 'permission'})
                 .sort(isMany.sortCol).lean();
             count = dbconfig.collection_players.find(searchQuery, { _id: 1}).lean();
         }
 
         let total;
-        return Q.all([players, count]).then(data => {
+        return Q.all([players, count]).then(async data => {
             let playerResult = data[0];
             if(isMany.searchType === "one"){
                 total = data[1];
@@ -788,17 +786,21 @@ var dbPlayerFeedback = {
                 }
             }
             console.log('data[0]...', data[0]);
+            //In case the permission didn't pass through in player.js,
+            for(var index in data[0]){
+                if(data[0][index] && !data[0][index].permission){
+                    let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
+                    if (permissionData && permissionData.permission) {
+                        data[0][index].permission = permissionData.permission;
+                    }
+                }
+            }
             if(playerPermission && playerPermission.length > 0){
                 let minus = 0;
                 // for(var i = 0; i < data[0].length; i++){
                 for(var i = data[0].length - 1; i >=0; i--){
-                    console.log('index...', i);
                     console.log('current player...', data[0][i]);
                     for(var k = 0; k < playerPermission.length; k++){
-                        // console.log('permission check 1...', data[0][i].permission);
-                        // console.log('permission check 2...', data[0][i].permission.permission);
-                        // console.log('has property...', data[0][i].permission.permission.hasOwnProperty(playerPermission[k]));
-                        // console.log('is true...', data[0][i].permission.permission[playerPermission[k]]);
                         if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === true){
                             console.log('do something..');
                             data[0].splice(i, 1);

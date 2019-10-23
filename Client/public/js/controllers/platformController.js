@@ -7339,7 +7339,7 @@ define(['js/app'], function (myApp) {
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive;"
                                     + "; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;"
-                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;",
+                                    + "; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permissiongetPlayerFeedbackQuery.forbidPlayerFromEnteringGame;",
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
@@ -7347,7 +7347,7 @@ define(['js/app'], function (myApp) {
                                     'data-container': 'body',
                                 });
 
-                                let perm = (row && row.permission.permission) ? row.permission.permission : {};
+                                let perm = (row && row.permission) ? row.permission : {};
 
                                 if (row.isRealPlayer) {
                                     link.append($('<img>', {

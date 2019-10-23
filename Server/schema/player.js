@@ -490,18 +490,13 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-var playerPostFindUpdate = function(result, bOne) {
-    console.log('result...', result);
-    if(result && !result.permission){
-        console.log('result data..', result);
-        dbconfig.collection_playerPermission.findOne({_id: result._id}).lean().then(
-            permissionData => {
-                console.log('permission', permissionData);
-                if (permissionData && permissionData.permission) {
-                    console.log('permission data', permissionData. permission);
-                    result.permission = permissionData.permission
-                }
-            });
+var playerPostFindUpdate = async function(result, bOne) {
+    if (result && !result.permission) {
+        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: result._id}).lean();
+            if (permissionData && permissionData.permission) {
+                console.log('schema permission', permissionData.permission);
+                result.permission = permissionData.permission;
+            }
     }
 
 
