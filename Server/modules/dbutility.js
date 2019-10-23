@@ -20,6 +20,7 @@ const env = require('./../config/env').config();
 const rp = require('request-promise');
 const sha1 = require('sha1')
 const QcloudSms = require('qcloudsms_js');
+const constDevice = require('./../const/constDevice');
 
 var dbUtility = {
 
@@ -1494,7 +1495,7 @@ var dbUtility = {
             return true;
         }
 
-        if (userAgentInput && userAgentInput[0]) {
+        if (userAgentInput && userAgentInput[0] && isEmpty(adminInfo)) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
@@ -1555,8 +1556,10 @@ var dbUtility = {
             os: ua.os || ''
         }];
         let inputDevice="";
+        console.log('JY check input device 5=====:', inputUserAgent, data);
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
+            console.log('JY check input device 6=====:', userAgent);
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // android-apps / ios apps
                 // if (userAgent.os.indexOf("iOS") !== -1){
@@ -2116,6 +2119,29 @@ var dbUtility = {
         }
 
         return intervalTime;
+    },
+
+    getDeviceValue: (data, isPartner) => {
+        let deviceString;
+        let deviceCode = data && data.deviceType && data.subPlatformId ? data.deviceType.toString() + data.subPlatformId.toString() : data.deviceType;
+        let isValidDeviceCode = false;
+
+        if (deviceCode && isPartner) {
+            let value = "P" + String(deviceCode);
+
+            for (let key in constDevice) {
+                if (value && constDevice[key] && (constDevice[key] === value)) {
+                    isValidDeviceCode = true;
+                    break;
+                }
+            }
+
+            if (isValidDeviceCode) {
+                deviceString = value;
+            }
+        }
+
+        return deviceString;
     },
 
     queryPhoneLocation: (phoneNumber) => {

@@ -4011,6 +4011,8 @@
   "startGame": "启动游戏",
   "doNothing": "啥都不干",
   "customScript": "自定义文本",
+  "Reward Banner Picture":"优惠banner图",
+  "Please fill in address of reward banner picture":"请填写优惠banner图地址",
   "Android App": "安卓 APP",
   "redirectToParticularPage": "前往指定页面",
   "return": "返回",
@@ -6159,7 +6161,6 @@
   "QQ_GROUP_CONTROL_MONITOR": "QQ群控监控",
   "Total Player In Conversation(By QQ ID)": "对话的会员数量（根据QQ号）",
   "QQ_GROUP_REPORT":"QQ群控监控报表",
-  "LOGIN_DEVICE": "登录设备",
   "APP_IOS": "APP - iOS",
   "APP_ANDROID": "APP - 安卓"
 }
