@@ -3427,7 +3427,6 @@ let dbPlayerInfo = {
 
                     }
 
-                    console.log('updated param..', pmsUpdateProm + " / " + query + " / " + updateObj + " / " + permission);
                     return startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark);
 
                 } else {
@@ -6579,7 +6578,6 @@ let dbPlayerInfo = {
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
-                    // .populate({path: "permission", model: dbconfig.collection_playerPermission, select: 'permission'})
                     .read("secondaryPreferred")
                     .lean().then(
                         async playerData => {
@@ -6717,14 +6715,6 @@ let dbPlayerInfo = {
                 return {error: err};
             }
         );
-    },
-
-    getPermissionbyPlayerid: async function(playerId){
-        let getData = await dbconfig.collection_playerPermission.find({_id: playerId}).lean();
-        if(!getData){
-            return Promise.reject("Get permission failed");
-        }
-        return getData[0].permission;
     },
 
     getPagePlayerByAdvanceQueryWithTopupTimes: function (platformId, data, index, limit, sortObj) {
@@ -30171,19 +30161,15 @@ async function getPlayerTopupChannelPermissionRequestData (player, platformId, u
 
     if (updateObj) {
 
-        console.log('permission object check 2..', updateObj.hasOwnProperty('topupManual'));
         if (updateObj.hasOwnProperty('topupManual')) {
             retObj.topupManual = updateObj.topupManual ? 1 : 0;
         }
-        console.log('permission object check 3..', updateObj.hasOwnProperty('topupOnline'));
         if (updateObj.hasOwnProperty('topupOnline')) {
             retObj.topupOnline = updateObj.topupOnline ? 1 : 0;
         }
-        console.log('permission object check 4..', updateObj.hasOwnProperty('alipayTransaction'));
         if (updateObj.hasOwnProperty('alipayTransaction')) {
             retObj.alipay = updateObj.alipayTransaction ? 1 : 0;
         }
-        console.log('permission object check 5..', updateObj.hasOwnProperty('disableWechatPay'));
         if (updateObj.hasOwnProperty('disableWechatPay')) {
             retObj.wechatpay = updateObj.disableWechatPay ? 0 : 1;
         }

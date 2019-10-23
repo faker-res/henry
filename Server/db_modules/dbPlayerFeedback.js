@@ -776,7 +776,6 @@ var dbPlayerFeedback = {
 
         let total;
         return Q.all([players, count]).then(async data => {
-            let playerResult = data[0];
             if(isMany.searchType === "one"){
                 total = data[1];
             }else{
@@ -812,7 +811,6 @@ var dbPlayerFeedback = {
             return {
                 backEndQuery: JSON.stringify(searchQuery),
                 data: data[0] ? data[0] : {},
-                // data: players ? players : {},
                 index: index,
                 total: total
             }

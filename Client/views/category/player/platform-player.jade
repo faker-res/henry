@@ -86,21 +86,6 @@
             label {{'PERMISSION' | translate}}
             //select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
             select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerPermission', ng-options='v as i | translate for (i,v) in vm.playerPermission', ng-change='vm.playerAdvanceSearchQuery.playerPermission = vm.getPermissionName(vm.playerAdvanceSearchQuery.playerPermission)')
-        //table.paddingTbl
-        //    tbody
-        //        tr(ng-repeat='(key,v) in vm.playerPermissionTypes')
-        //            td
-        //                i.text-primary(ng-show='v.imgType=="i"', ng-class='v.iconClass+" fa-2x"')
-        //                img(async=on ng-show='v.imgType=="img"', ng-src='{{v.src}}', width='{{v.width}}', height='{{v.height}}')
-        //            td {{key | translate}}
-        //            td.permitOn(ng-class='vm.permissionPlayer.permission[key] === false  ? "hide":""', class='{{key}}')
-        //                i.fa.fa-toggle-on.text-primary.margin-right-5.togglePlayer(data-which='{{key}}', data-on=true)
-        //                a.text-primary.togglePlayer(data-which='{{key}}', data-on=true) {{"ON" | translate}}
-        //            td.permitOff(ng-class='vm.permissionPlayer.permission[key] === false ? "":"hide"', class='{{key}}')
-        //                i.fa.fa-toggle-off.text-danger.margin-right-5.togglePlayer(data-which='{{key}}', data-on=false)
-        //                a.text-danger.togglePlayer(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
-        //            td
-        //                div(id="{{key}}")
 
         .col-xs-12.text-right
             button#searchPlayer.btn.btn-success.margin-right-5(ng-click='vm.advancedPlayerQuery()') {{'SEARCH' | translate}}
