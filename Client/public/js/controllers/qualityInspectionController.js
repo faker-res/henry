@@ -4407,6 +4407,7 @@ define(['js/app'], function (myApp) {
                     $('#manualProcessRecordStartDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
 
                     $("#manualProcessRecordStartDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
@@ -4414,6 +4415,7 @@ define(['js/app'], function (myApp) {
                     $('#manualProcessRecordEndDatetimePicker').datetimepicker({
                         language: 'en',
                         format: 'dd/MM/yyyy hh:mm:ss',
+                        pick12HourFormat: true
                     });
 
                     $("#manualProcessRecordEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
