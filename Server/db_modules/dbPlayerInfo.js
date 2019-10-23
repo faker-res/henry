@@ -22803,6 +22803,10 @@ let dbPlayerInfo = {
             registrationTime: {$gte: startDate, $lt: endDate},
             isTestPlayer: false
         };
+
+        if (query.registrationDevice && query.registrationDevice.length){
+            matchObj.registrationDevice = {$in: query.registrationDevice};
+        }
         let playerData = null;
 
         if (query.userType) {
@@ -23236,7 +23240,8 @@ let dbPlayerInfo = {
                     csOfficer: 1,
                     lastAccessTime: 1,
                     realName: 1,
-                    domain: 1
+                    domain: 1,
+                    registrationDevice: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -23695,6 +23700,10 @@ let dbPlayerInfo = {
 
                     if (playerDetail && playerDetail.promoteWay) {
                         result.csPromoteWay = playerDetail.promoteWay;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationDevice')){
+                        result.registrationDevice = playerDetail.registrationDevice;
                     }
 
                     result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;

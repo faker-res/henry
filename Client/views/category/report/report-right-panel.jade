@@ -1412,6 +1412,9 @@
                         option(value='2') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='3') {{'TEST_PLAYER' | translate}}
                 .search-filters-item
+                    label {{"REGISTRATION_DEVICE"|translate}}
+                    select.spiker.form-control(ng-model='vm.dxNewPlayerQuery.registrationDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList')
+                .search-filters-item
                     label {{'REGISTRATION_TIME_START' | translate}}
                     .startTime
                 .search-filters-item
