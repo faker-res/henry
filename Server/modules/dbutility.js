@@ -1555,26 +1555,20 @@ var dbUtility = {
             os: ua.os || ''
         }];
         let inputDevice="";
-        console.log('JY check input device 5=====:', inputUserAgent, data);
+        console.log('JY check input device 5=====:', inputUserAgent, data.osType, data.deviceId, data.guestDeviceId);
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
-            console.log('JY check input device 6=====:', userAgent);
-            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
-                // android-apps / ios apps
-                // if (userAgent.os.indexOf("iOS") !== -1){
-                //     inputDevice = 4;
-                // }else if(userAgent.os.indexOf("ndroid") !== -1){
-                //     inputDevice = 3;
-                // }
 
+            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
                 inputDevice = 2; // H5
             }
             else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
-                    // H5
-                    inputDevice = 2;
+                // H5
+                inputDevice = 2;
             }
-            else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
+            else if ((userAgent.os === "" && userAgent.browser === "" && userAgent.device === "") ||
+                (userAgent.os === "" && userAgent.browser === "" && userAgent.device === "PC") || data.deviceId || data.guestDeviceId) {
                 // android-apps / ios apps
                 let osType = data && data.osType && data.osType.toLowerCase();
                 if (osType && (osType === 'ios')){
