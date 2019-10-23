@@ -130,7 +130,9 @@ const SMSSender = {
         ).then().catch(errorUtils.reportError);
     },
 
-    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel) {
+    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel, platformObjId) {
+        console.log("playerObjId......", playerObjId);
+        console.log("platformObjId......", platformObjId);
         // var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;
@@ -158,6 +160,7 @@ const SMSSender = {
                                     tel: playerData.phoneNumber,
                                     platformId: platformId,
                                     message: messageContent,
+                                    platform: platformObjId,
                                     delay: 0
                                 };
 
@@ -166,7 +169,8 @@ const SMSSender = {
                                     channel: channel,
                                     platformId: platformId,
                                     tel: playerData.phoneNumber,
-                                    message: messageContent
+                                    message: messageContent,
+                                    platform: platformObjId,
                                 };
 
                                 let adminObjId$ = adminObjId ? adminObjId : null;
