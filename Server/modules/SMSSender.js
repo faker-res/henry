@@ -160,7 +160,6 @@ const SMSSender = {
                                     tel: playerData.phoneNumber,
                                     platformId: platformId,
                                     message: messageContent,
-                                    platform: platformObjId,
                                     delay: 0
                                 };
 
@@ -170,7 +169,6 @@ const SMSSender = {
                                     platformId: platformId,
                                     tel: playerData.phoneNumber,
                                     message: messageContent,
-                                    platform: platformObjId,
                                 };
 
                                 let adminObjId$ = adminObjId ? adminObjId : null;
@@ -178,10 +176,10 @@ const SMSSender = {
 
                                 return smsAPI.sending_sendMessage(messageData).then(
                                     () => {
-                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, platformObjId, 'success');
                                     },
                                     error => {
-                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, platformObjId, 'failure');
                                     }
                                 );
                             }
