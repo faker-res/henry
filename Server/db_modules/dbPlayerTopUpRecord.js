@@ -1157,7 +1157,7 @@ var dbPlayerTopUpRecord = {
             }
 
             if (query.loginDevice && query.loginDevice.length){
-                queryObj['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                queryObj['device'] = {$in: query.loginDevice};
             }
             return queryObj;
         }
