@@ -896,14 +896,14 @@ var dbPlayerConsumptionWeekSummary = {
                                         if (res[type].hasOwnProperty("returnAmount")) {
                                             console.log('amount return', amounts[type].returnAmount);
                                             res[type].returnAmount += amounts[type].returnAmount;
-                                            res[type].returnAmount = res[type].returnAmount.toFixed(2);
+                                            res[type].returnAmount = Number(res[type].returnAmount).toFixed(2);
                                         } else {
                                             res[type] += amounts[type];
                                         }
                                     } else {
                                         res[type] = amounts[type];
                                         if (res[type].hasOwnProperty("returnAmount")) {
-                                            res[type].returnAmount = res[type].returnAmount.toFixed(2);
+                                            res[type].returnAmount = Number(res[type].returnAmount).toFixed(2);
                                         }
                                     }
 
