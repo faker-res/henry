@@ -591,10 +591,8 @@ define(['js/app'], function (myApp) {
                 0: 'Common Wallet',
                 1: 'Live Wallet',
                 2: 'Slots Wallet',
-                3: 'Battle Wallet',
-                4: 'Casino Wallet',
-                5: 'Sports Wallet',
-                6: 'Keno Wallet',
+                3: 'Sports Wallet',
+                4: 'Keno Wallet'
             };
 
             vm.betType = [
