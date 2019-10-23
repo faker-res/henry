@@ -157,6 +157,18 @@ define(['js/app'], function (myApp) {
             4: 'APP_ANDROID'
         };
 
+        vm.registrationDevices = {
+            "0": "Backstage",
+            "1": "WEB_PLAYER",
+            "2": "H5_PLAYER",
+            "3403": "APP_PLAYER_ANDROID_EU",
+            "4403": "APP_PLAYER_IOS_EU",
+            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+            "4401": "APP_PLAYER_IOS_EU_CHESS",
+            "3402": "APP_PLAYER_ANDROID_V68",
+            "4402": "APP_PLAYER_IOS_V68"
+        };
+
         vm.allActions = ['createDepartmentWithParent',
         'updateDepartmentParent',
         'updateDepartment',
@@ -8111,12 +8123,18 @@ define(['js/app'], function (myApp) {
             if (!vm.newPlayerQuery || !vm.newPlayerQuery.platformId) {
                 return socketService.showErrorMessage($translate('Product Name is Mandatory'));
             }
+            if (vm.newPlayerQuery && vm.newPlayerQuery.registrationDevice && vm.newPlayerQuery.registrationDevice.length > 0) {
+                vm.isShowNewPlayerDeviceRecord = true;
+            } else {
+                vm.isShowNewPlayerDeviceRecord = false;
+            }
             let platformObjId = vm.newPlayerQuery.platformId;
             vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
                 platform: platformObjId,
                 startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
+                registrationDevice: vm.newPlayerQuery.registrationDevice
             };
             socketService.$socket($scope.AppSocket, 'getNewAccountReportData', sendData, function (data) {
                 console.log('data', data.data);
@@ -8139,6 +8157,17 @@ define(['js/app'], function (myApp) {
                             vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
                             vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
                             let backEndCreateWayExisted = false;
+                            // ============ device new player ============
+                            vm.newPlayerQuery.deviceData = Object.keys(vm.registrationDevices).map(
+                                device => {
+                                    let devicePlayers = vm.newPlayerQuery.newPlayers.filter(player => player && player.registrationDevice && (player.registrationDevice === device));
+                                    let deviceResult = vm.calculateNewPlayerData(devicePlayers, vm.registrationDevices[device]);
+                                    deviceResult.registrationDevice = vm.registrationDevices[device];
+                                    delete deviceResult.promoteWayName;
+
+                                    return deviceResult;
+                                }
+                            );
                             // ============ promote way new player ============
                             vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
                                 promoteWay => {
@@ -8257,6 +8286,7 @@ define(['js/app'], function (myApp) {
             $temp.remove();
             socketService.showConfirmMessage($translate('Link has copy to clipboard'),3000);
         }
+        vm.filterNoNewAccountDevice = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoValidPlayer = promoteWay => promoteWay.validPlayer != 0;
         vm.filterNoNewPlayer = promoteWay => promoteWay.totalNewAccount != 0;
@@ -10372,6 +10402,11 @@ define(['js/app'], function (myApp) {
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
 
+                    if(vm.newPlayerQuery && vm.newPlayerQuery.registrationDevice && vm.newPlayerQuery.registrationDevice.length > 0 && document.getElementById("newAccountDeviceTable")) {
+                        tab = document.getElementById("newAccountDeviceTable");
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+                    }
+
                     if(document.getElementById("validPlayerPromoteWay")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (promote way analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerPromoteWay");
@@ -11905,6 +11940,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
                 vm.reportSearchTime = 0;
+                vm.isShowNewPlayerDeviceRecord = false;
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
