@@ -1865,58 +1865,6 @@ let dbPlayerInfo = {
         }
     },
 
-    //permission return and migration
-    migratePermission: async function (data){
-        // let playerData = await dbconfig.collection_players.find({}).lean();
-        let playerData = await dbconfig.collection_players.find({}, {permission: 1, _id: 1}).lean()
-        if(!playerData){
-            return Promise.reject("Get player data failed");
-        }
-        // dbconfig.collection_players.find({_id: data}, {permission: 1, _id: 1}).lean().then(
-        // console.log('player schema data..', playerData);
-        for(var i = 0; i < playerData.length; i++){
-            if (playerData && playerData[i].permission) {
-                let saveObj = {
-                    _id: playerData[i]._id,
-                    permission: playerData[i].permission
-                    // createTime: curDate
-                    // _id: "5d785c1242f529084162b4cb"
-                };
-                console.log('save obj data..', saveObj);
-                let saveLog = await dbconfig.collection_playerPermission(saveObj).save();
-                if(!saveLog){
-                    return Promise.reject("Save verification log failed");
-                }else{
-                    let deleteLog = await dbconfig.collection_players.update({_id: playerData[i]._id}, {$set:{permission: playerData[i]._id}}).exec();
-                    console.log('delete data..', deleteLog);
-                    console.log('delete data id..', playerData[i]._id);
-                    if(!deleteLog) {
-                        return Promise.reject("delete failed");
-                    }
-                }
-
-            }
-        }
-
-    },
-
-    returnPermissiontoPlayer: async function(result){
-        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: result._id}).lean()
-        if(!permissionData){
-            return Promise.reject("Get permission data failed");
-        }
-        console.log('permission data')
-        if (permissionData && permissionData.length) {
-            for ( var i = 0; i < permissionData.length; i++) {
-                result.permission = permissionData[i].permission;
-            }
-        }
-        console.log('final result')
-        return result;
-    },
-
-    //permission return and migration
-
     createPlayerLoginRecord: function (data) {
         //add player login record
         var recordData = {
@@ -3455,9 +3403,6 @@ let dbPlayerInfo = {
         let isUpdatePMSPermission = false;
         let updateObj = {};
         let pmsUpdateProm = Promise.resolve(true);
-        console.log('update query..', query);
-        console.log('update permission..', permission);
-        console.log('update selected..', selected);
         if (selected && selected.mainPermission) {
             permission = {};
             permission[selected.mainPermission] = selected.status;
@@ -3467,7 +3412,6 @@ let dbPlayerInfo = {
             if (permission.hasOwnProperty(key)) {
                 updateObj["permission." + key] = permission[key];
 
-                console.log('updated obj..', updateObj);
                 if (paymentChannelPermission.includes(key)) {
                     isUpdatePMSPermission = true;
                 }
@@ -3478,7 +3422,6 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData && platformData._id) {
                     topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
-                    console.log('the name..', topUpSystemConfig);
                     if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name !== 'FPMS') {
                         pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemConfig.name, platformData.topUpSystemType);
 
@@ -6444,7 +6387,6 @@ let dbPlayerInfo = {
         sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
 
-        console.log('Data...', playerPermission);
         let advancedQuery = {};
         let isProviderGroup = false;
         let dataSize = 0;
@@ -6580,16 +6522,6 @@ let dbPlayerInfo = {
                                     let calculatePlayerValueProms = [];
                                     let updatePlayerCredibilityRemarksProm = [];
                                     for (let i = 0; i < players.length; i++) {
-                                        // if(!players[i].permission){
-                                        //     console.log('this one...', players[i])
-                                        //     let getData = await dbconfig.collection_playerPermission.find({_id: players[i]._id}).lean();
-                                        //     if(!getData){
-                                        //         return Promise.reject("Get permission failed");
-                                        //     }
-                                        //     console.log('permission...', getData);
-                                        //     players[i].permission = getData[0].permission
-                                        // }
-                                        // console.log('player Data...',players[i]);
                                         let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
                                         calculatePlayerValueProms.push(calculateProm);
 
@@ -6653,15 +6585,6 @@ let dbPlayerInfo = {
                         async playerData => {
                             var players = [];
                             for (var ind in playerData) {
-                                if(playerData[ind] && !playerData[ind].permission){
-                                    // let permission = dbPlayerInfo.getPermissionbyPlayerid(playerData[ind]._id);
-                                    // let getData = await dbconfig.collection_playerPermission.find({_id: playerData[ind]._id}).lean();
-                                    // if(!getData){
-                                    //     return Promise.reject("Get permission failed");
-                                    // }
-                                    // playerData[ind].permission = getData[0].permission
-                                    // playerData[ind].permission = permission
-                                }
                                 if (playerData[ind]) {
                                     let newInfo;
 
@@ -6737,17 +6660,7 @@ let dbPlayerInfo = {
                     ).then(
                         playerData => {
                             let players = [];
-                            console.log('return data...', playerPermission);
                             for (let ind in playerData) {
-                                // for( var key in playerData[ind].permission){
-                                //
-                                //     console.log('return data 3...', Object.keys(playerData[ind].permission));
-                                //
-                                //     if (Object.keys(playerData[ind].permission) === data.playerPermission) {
-                                //
-                                //         console.log('do something');
-                                //     }
-                                // }
                                 if (playerData[ind]) {
                                     let newInfo;
 
@@ -6788,29 +6701,15 @@ let dbPlayerInfo = {
                     });
                     playerData = data[0];
                 }
-                // console.log('return data 2...', Object.keys(playerData[ind].permission));
-                // console.log('return data 3...', Object.keys(playerData[ind].permission).length);
                 if(playerPermission){
                     for(var index = playerData.length - 1; index >=0; index--){
                     // for (var index in playerData){
-                        console.log('return data 4...', playerData[index].permission);
                         if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
-                            console.log('the value..', playerData[index].permission[playerPermission]);
                             playerData.splice(index, 1);
                         }
-
-
-                        // for(var i = 0; i < Object.keys(playerData[index].permission).length; i++){
-                        //     // console.log('return data 4...', Object.keys(playerData[index].permission)[i]);
-                        //     if(Object.keys(playerData[index].permission)[i] === playerPermission){
-                        //         console.log('do something..', playerData[index]);
-                        //         // returnData.push(playerData[index]);
-                        //         playerData.splice(index, 1);
-                        //     }
-                        // }
                     }
                 }
-                console.log('return data...', playerData);
+                // console.log('return data...', playerData);
                 return {data: playerData, size: dataSize}
             },
             err => {
@@ -30234,10 +30133,28 @@ let dbPlayerInfo = {
     }
 };
 
-function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
+async function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
     let retObj = {};
-
     if (player && player.permission) {
+        retObj = {
+            username: player.name,
+            platformId: platformId
+        }
+
+        retObj.topupManual = player.permission.topupManual ? 1 : 0;
+        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
+        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
+        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
+        if (updateRemark) {
+            retObj.remark = updateRemark;
+        }
+    }else if(player && !player.permission){
+        //In case, permission didn't pass through by player.js
+        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
+            if(permissionData && permissionData.length > 0){
+                player.permission = permissionData.permission;
+            }
+
         retObj = {
             username: player.name,
             platformId: platformId
@@ -30253,15 +30170,20 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
     }
 
     if (updateObj) {
+
+        console.log('permission object check 2..', updateObj.hasOwnProperty('topupManual'));
         if (updateObj.hasOwnProperty('topupManual')) {
             retObj.topupManual = updateObj.topupManual ? 1 : 0;
         }
+        console.log('permission object check 3..', updateObj.hasOwnProperty('topupOnline'));
         if (updateObj.hasOwnProperty('topupOnline')) {
             retObj.topupOnline = updateObj.topupOnline ? 1 : 0;
         }
+        console.log('permission object check 4..', updateObj.hasOwnProperty('alipayTransaction'));
         if (updateObj.hasOwnProperty('alipayTransaction')) {
             retObj.alipay = updateObj.alipayTransaction ? 1 : 0;
         }
+        console.log('permission object check 5..', updateObj.hasOwnProperty('disableWechatPay'));
         if (updateObj.hasOwnProperty('disableWechatPay')) {
             retObj.wechatpay = updateObj.disableWechatPay ? 0 : 1;
         }
@@ -30273,11 +30195,8 @@ function getPlayerTopupChannelPermissionRequestData (player, platformId, updateO
 function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission, admin, remark) {
     return pmsUpdateProm.then(
         updatePMSSuccess => {
-            console.log('updatePMSSuccess..', updatePMSSuccess);
             if (updatePMSSuccess) {
                 let updateQuery = {_id: query._id};
-                console.log('updateQuery obj..', updateQuery);
-                console.log('Query obj..', query);
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
                 // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {

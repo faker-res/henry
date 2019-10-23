@@ -136,8 +136,6 @@ var playerSchema = new Schema({
         os: {type: String},
         device: {type: String},
     }],
-    //player level (vip, regular etc)
-    // permission: {type: Schema.ObjectId, ref: 'permission'},
     // //User permission
     // permission: {
     //     _id: false,

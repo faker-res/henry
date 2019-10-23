@@ -785,7 +785,6 @@ var dbPlayerFeedback = {
                     console.log('=CallOutMission= callout query result', data[0].length);
                 }
             }
-            console.log('data[0]...', data[0]);
             //In case the permission didn't pass through in player.js,
             for(var index in data[0]){
                 if(data[0][index] && !data[0][index].permission){
@@ -799,10 +798,8 @@ var dbPlayerFeedback = {
                 let minus = 0;
                 // for(var i = 0; i < data[0].length; i++){
                 for(var i = data[0].length - 1; i >=0; i--){
-                    console.log('current player...', data[0][i]);
                     for(var k = 0; k < playerPermission.length; k++){
                         if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === true){
-                            console.log('do something..');
                             data[0].splice(i, 1);
                             break;
                         }

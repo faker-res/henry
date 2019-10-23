@@ -27,7 +27,6 @@ function createConnection(dbURL, callback) {
             }
         }
     };
-    console.log('decrypted url...', rsaCrypto.decrypt(dbURL));
     var db = mongoose.createConnection("mongodb://".concat(rsaCrypto.decrypt(dbURL)), options);
 
     db.on('error', function (err) {
