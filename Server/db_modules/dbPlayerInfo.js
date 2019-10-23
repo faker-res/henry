@@ -22430,6 +22430,10 @@ let dbPlayerInfo = {
             });
         }
 
+        if (query && query.registrationDevice && query.registrationDevice.length > 0) {
+            matchObj.registrationDevice = {$in: query.registrationDevice};
+        }
+
         if(query && query.adminIds && query.adminIds.length){
             matchObj.csOfficer = {$in: query.adminIds}
         }
@@ -22441,6 +22445,7 @@ let dbPlayerInfo = {
             credibilityRemarks: 1,
             csOfficer: 1,
             valueScore: 1,
+            registrationDevice: 1
         };
 
         let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
