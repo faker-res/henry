@@ -20,6 +20,7 @@ const env = require('./../config/env').config();
 const rp = require('request-promise');
 const sha1 = require('sha1')
 const QcloudSms = require('qcloudsms_js');
+const constDevice = require('./../const/constDevice');
 
 var dbUtility = {
 
@@ -2123,9 +2124,21 @@ var dbUtility = {
     getDeviceValue: (data, isPartner) => {
         let deviceString;
         let deviceCode = data && data.deviceType && data.subPlatformId ? data.deviceType.toString() + data.subPlatformId.toString() : data.deviceType;
+        let isValidDeviceCode = false;
 
         if (deviceCode && isPartner) {
-            deviceString = "P" + String(deviceCode);
+            let value = "P" + String(deviceCode);
+
+            for (let key in constDevice) {
+                if (value && constDevice[key] && (constDevice[key] === value)) {
+                    isValidDeviceCode = true;
+                    break;
+                }
+            }
+
+            if (isValidDeviceCode) {
+                deviceString = value;
+            }
         }
 
         return deviceString;
