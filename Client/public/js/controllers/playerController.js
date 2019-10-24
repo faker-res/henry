@@ -8323,6 +8323,7 @@ define(['js/app'], function (myApp) {
                         platformPageName: vm.platformPageName,
                         prepareEditCritical: vm.prepareEditCritical,
                         submitCriticalUpdate: vm.submitCriticalUpdate,
+                        isEditingBankAccountName: vm.isEditingBankAccountName,
                         isEditingPlayerPayment: vm.isEditingPlayerPayment,
                         isEditingPlayerPayment2: vm.isEditingPlayerPayment2,
                         isEditingPlayerPayment3: vm.isEditingPlayerPayment3,
@@ -8367,6 +8368,7 @@ define(['js/app'], function (myApp) {
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
                         playerId: selectedPlayer._id,
+                        playerRealName: selectedPlayer.realName,
                         playerBeforeEditing: _.clone(editPlayer),
                         playerBeingEdited: _.clone(editPlayer),
                         topUpGroupRemark: "",
@@ -8544,6 +8546,7 @@ define(['js/app'], function (myApp) {
                 option.childScope.prepareEditPlayerPayment = function () {
                     vm.prepareEditPlayerPayment();
                     this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
+                    this.isEditingBankAccountName = vm.isEditingBankAccountName;
                     this.playerPayment = vm.playerPayment;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
@@ -13004,6 +13007,7 @@ define(['js/app'], function (myApp) {
                 vm.correctVerifyBankAccount = undefined;
                 vm.isEditingPlayerPayment = false;
                 vm.isEditingPlayerPaymentShowVerify = false;
+                vm.isEditingBankAccountName = false;
                 vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
