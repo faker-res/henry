@@ -865,7 +865,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         "1402": "WEB_PLAYER_V68",
         "1401": "WEB_PLAYER_EU_CHESS",
         "2": "H5_PLAYER",
-        "2403": " H5_PLAYER_EU",
+        "2403": "H5_PLAYER_EU",
         "2402": "H5_PLAYER_V68",
         "2401": "H5_PLAYER_EU_CHESS",
         "3403": "APP_PLAYER_ANDROID_EU",

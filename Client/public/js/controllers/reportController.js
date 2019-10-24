@@ -111,7 +111,38 @@ define(['js/app'], function (myApp) {
             5: 'APP_PLAYER',
         };
 
-        vm.propsosalDeviceList = $scope.constDevice;
+        vm.propsosalDeviceList = {
+            // for player
+            "1": "WEB_PLAYER",
+            "1403": "WEB_PLAYER_EU",
+            "1402": "WEB_PLAYER_V68",
+            "1401": "WEB_PLAYER_EU_CHESS",
+            "2": "H5_PLAYER",
+            "2403": " H5_PLAYER_EU",
+            "2402": "H5_PLAYER_V68",
+            "2401": "H5_PLAYER_EU_CHESS",
+            "3403": "APP_PLAYER_ANDROID_EU",
+            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+            "3402": "APP_PLAYER_ANDROID_V68",
+            "4403": "APP_PLAYER_IOS_EU",
+            "4401": "APP_PLAYER_IOS_EU_CHESS",
+            "4402": "APP_PLAYER_IOS_V68",
+            // for partner
+            "P1": "WEB_PARTNER",
+            "P1403": "WEB_PARTNER_EU",
+            "P1402": "WEB_PARTNER_V68",
+            "P1401": "WEB_PARTNER_EU_CHESS",
+            "P2": "H5_PARTNER",
+            "P2403": "H5_PARTNER_EU",
+            "P2402": "H5_PARTNER_V68",
+            "P2401": "H5_PARTNER_EU_CHESS",
+            "P3403": "APP_PARTNER_ANDROID_EU",
+            "P3401": "APP_PARTNER_ANDROID_EU_CHESS",
+            "P3402": "APP_PARTNER_ANDROID_V68",
+            "P4403": "APP_PARTNER_IOS_EU",
+            "P4401": "APP_PARTNER_IOS_EU_CHESS",
+            "P4402": "APP_PARTNER_IOS_V6"
+        };
 
         vm.registrationDeviceList = {
             "0": "BACKSTAGE",
