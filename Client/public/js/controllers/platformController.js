@@ -25522,9 +25522,10 @@ define(['js/app'], function (myApp) {
                         vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'popularRecommendation':
+                        vm.frontEndFirstPageSelectedSubTab = 'pc';
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
-                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, 1);
                         break;
                     case 'carouselConfiguration':
                     case 'partnerCarouselConfiguration':
@@ -25583,6 +25584,7 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointClarification':
                         break;
                     case 'popularRecommendation':
+                        vm.frontEndFirstPageSelectedSubTab = 'pc';
                         break;
                     case 'carouselConfiguration':
                         vm.isPartnerForCarouselConfiguration = false;
@@ -25979,8 +25981,8 @@ define(['js/app'], function (myApp) {
                 $('#gameSettingModal').modal();
             };
 
-            vm.loadPopularRecommendationSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+            vm.loadPopularRecommendationSetting = function (platformObjId, deviceType) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId, deviceType}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
@@ -43444,8 +43446,27 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.getPopularRecommendationSettingDevice = function(device){
-                vm.popularDevice = device;
+            vm.getPopularRecommendationSettingDevice = function(type){
+                vm.frontEndFirstPageSelectedSubTab = type;
+                let deviceConst = null;
+                switch (type) {
+                    case 'pc':
+                        deviceConst = 1;
+                        break;
+                    case 'h5':
+                        deviceConst = 2;
+                        break;
+                    case 'app':
+                        deviceConst = 4;
+                        break;
+                    default:
+                        deviceConst = 1;
+                        break;
+                }
+                if (vm.filterFrontEndSettingPlatform && deviceConst){
+                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, deviceConst)
+                }
+
             };
 
             vm.initPopularRecommendationSetting = function() {
