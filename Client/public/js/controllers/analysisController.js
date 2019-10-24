@@ -7310,7 +7310,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     console.log('appPlayer data:', data);
                     vm.platformAppPlayerDataPeriodText = vm.queryPara.appPlayer.periodText;
-                    vm.platformAppPlayerAnalysisData = data.data;
+                    vm.platformAppPlayerAnalysisData = data.data.result;
 
                     if (vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === 'new_registration') {
                         let calculatedAppPlayerData = vm.calculateLineDataAndAverage(vm.platformAppPlayerAnalysisData, 'newRegistration', 'NEW_REGISTRATION');
@@ -7329,7 +7329,8 @@ define(['js/app'], function (myApp) {
                         let playerCountTotalSum = vm.platformAppPlayerAnalysisData.length !== 0 ?Math.floor(vm.platformAppPlayerAnalysisData.reduce((a, item) => a + (Number.isFinite(item["loginPlayerCount"]) ? item["loginPlayerCount"] : item["loginPlayerCount"].length), 0)) : 0;
                         vm.platformAppPlayerTotalSum = {
                             loginTimesTotalSum: loginTimesTotalSum,
-                            playerCountTotalSum: playerCountTotalSum
+                            playerCountTotalSum: playerCountTotalSum,
+                            totalConsecutiveLogin: data.data.totalConsecutiveLogin
                         };
 
                         let loginTimes = [];

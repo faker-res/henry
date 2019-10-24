@@ -30094,6 +30094,7 @@ let dbPlayerInfo = {
 
                 return Promise.all(proms).then(
                     data => {
+                        let totalConsecutiveLogin = new Set([]);
                         let res = data.map(item => {
                             let obj = {};
                             if (playerType && (playerType === 'new_registration')) {
@@ -30102,6 +30103,13 @@ let dbPlayerInfo = {
                                 obj = {date: item && item[0] && item[0].date, newRegistration: countNewRegistration};
 
                             } else if (playerType && (playerType === 'login')) {
+                                if (item && item.length) {
+                                    item.map(loginItem => {
+                                        if (loginItem && loginItem._id && loginItem._id.player) {
+                                            totalConsecutiveLogin.add(String(loginItem._id.player));
+                                        }
+                                    });
+                                }
                                 let countLoginTimes = item && item.length > 0 ? item.reduce( (a,b) => a + b.number, 0) : 0;
                                 let countLoginPlayer = item && item.length > 0 ? item.reduce( (a,b) => a + b.playerCount, 0) : 0;
 
@@ -30111,7 +30119,7 @@ let dbPlayerInfo = {
                             return obj;
                         });
 
-                        return res;
+                        return {result: res, totalConsecutiveLogin: totalConsecutiveLogin.size || 0};
                     }
                 );
             }
