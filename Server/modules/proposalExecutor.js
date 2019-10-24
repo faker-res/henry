@@ -837,7 +837,7 @@ var proposalExecutor = {
                     createPhoneNumberBindingRecord({
                         platform: proposalData.data.platformId,
                         _id: proposalData.data.playerObjId,
-                        phoneNumber: rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber)
+                        phoneNumber: rsaCrypto.legacyEncrypt(proposalData.data.updateData.phoneNumber)
                     });
                 }
                 else {
