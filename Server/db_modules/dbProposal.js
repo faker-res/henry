@@ -477,6 +477,14 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.isFromPMSTopUp && (proposalData.data.isFromPMSTopUp.toString() === 'true') &&
+                        (data[0].name == constProposalType.PLAYER_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP)) {
+                        proposalData.status = constProposalStatus.PENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
@@ -663,7 +671,8 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
-                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE) {
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data && proposalData.data.depositMethod == 1)) {
 
                     return Promise.reject({
                         name: "DBError",
