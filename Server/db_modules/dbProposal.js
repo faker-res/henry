@@ -90,14 +90,14 @@ var proposal = {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
             proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         //get proposal type id
@@ -403,11 +403,11 @@ var proposal = {
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId, propAmount);
         if (proposalData.isPartner) {
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         return proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData);
@@ -511,9 +511,9 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
+                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].registrationDevice) {
                             proposalData.device = data[2].registrationDevice;
-                        } else if (data[2].hasOwnProperty('loginDevice')) {
+                        } else if (data[2].loginDevice) {
                             proposalData.device = data[2].loginDevice;
                         }
 
