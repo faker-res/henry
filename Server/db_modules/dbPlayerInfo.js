@@ -1890,7 +1890,7 @@ let dbPlayerInfo = {
             partner: data.partner ? data.partner : null
         };
 
-        console.log('JY check input device 1=====:', recordData.userAgent, data);
+        console.log('JY check input device 1=====:', recordData.userAgent);
         if (data.userAgent) {
             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, data);
         }
@@ -7023,10 +7023,8 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 3=====:', recordData.userAgent, playerData);
-                if (playerData.deviceId || playerData.guestDeviceId) {
-                    recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
-                } else if (recordData.userAgent) {
+                console.log('JY check input device 3=====:', recordData.userAgent);
+                if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
@@ -7846,7 +7844,7 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 4=====:', recordData.userAgent, playerData);
+                console.log('JY check input device 4=====:', recordData.userAgent);
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 }
@@ -8242,7 +8240,7 @@ let dbPlayerInfo = {
                         if (platformObj.usePointSystem) {
                             dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                         }
-                        console.log('JY check input device 5=====:', recordData.userAgent, playerData);
+                        console.log('JY check input device 6=====:', recordData.userAgent);
                         if (recordData.userAgent) {
                             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, inputData);
                         }
