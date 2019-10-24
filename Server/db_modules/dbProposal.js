@@ -43,6 +43,7 @@ const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTrans
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
+const constDevice = require('./../const/constDevice');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
@@ -510,6 +511,12 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
+                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
+                            proposalData.device = data[2].registrationDevice;
+                        } else if (data[2].hasOwnProperty('loginDevice')) {
+                            proposalData.device = data[2].loginDevice;
+                        }
+
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
                             if (data[2].level) {
@@ -3685,6 +3692,10 @@ var proposal = {
                 reqData.inputDevice = Number(reqData.inputDevice);
                 queryData.inputDevice = Number(queryData.inputDevice);
             }
+        }
+
+        if (reqData.device && reqData.device.length){
+            queryData.device = {$in: reqData.device};
         }
 
         if (reqData.status) {

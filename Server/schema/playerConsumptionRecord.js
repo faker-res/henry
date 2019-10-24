@@ -67,7 +67,7 @@ var playerConsumptionRecordSchema = new Schema({
     // seperate bet type and bet amount for EA and EBET
     betDetails: {type: []},
     // constPlayerLoginDevice
-    loginDevice: {type: Number, index: true}
+    loginDevice: {type: String, index: true}
 });
 
 //record is unique by playerId platformId and date
