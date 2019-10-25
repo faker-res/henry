@@ -730,7 +730,7 @@
                     .endTime
                 .search-filters-item
                     label {{"REGISTRATION_DEVICE" | translate}}
-                    select.form-control.spicker(ng-model='vm.newPlayerQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDevices', multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.newPlayerQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList', multiple, bsp, data-actions-box='true')
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
@@ -1390,7 +1390,7 @@
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
                 .search-filters-item
                     label {{"REGISTRATION_DEVICE" | translate}}
-                    select.form-control.spicker(ng-model='vm.dxTrackingQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDevices', multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.dxTrackingQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList', multiple, bsp, data-actions-box='true')
 
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXTrackingReport(true)') {{'SEARCH' | translate}}
