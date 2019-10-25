@@ -704,6 +704,7 @@ var roleChecker = {
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
                 FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
+                GAME_TYPE_ANALYSIS_REPORT: [],
                 DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
             },
             Reward: {
