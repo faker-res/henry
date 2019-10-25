@@ -539,6 +539,16 @@ var proposal = {
                                 proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
                             }
                         }
+                    } else {
+                        if (proposalData.data && proposalData.data.partnerName) {
+                            let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
+                            let partner = await dbconfig.collection_partner.findOne({_id: partnerId}).lean();
+                            if(partner && partner.loginDevice) {
+                                proposalData.device = partner.loginDevice;
+                            } else {
+                                console.log("no partner or no partner loginDevice", partner);
+                            }
+                        }
                     }
 
                     // SCHEDULED AUTO APPROVAL
