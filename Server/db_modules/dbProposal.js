@@ -10576,7 +10576,7 @@ function isBankInfoMatched(proposalData, playerId){
                     'data.platformId': ObjectId(player.platform._id),
                     $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}],
                     'status': constProposalStatus.APPROVED,
-                    createTime: {$gte: new Date(player.registrationTime), $lte: new Date()},
+                    createTime: {$gte: new Date(player.registrationTime)},
                 };
 
                 if (proposalData.data.playerId) {
