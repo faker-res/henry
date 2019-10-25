@@ -40,7 +40,7 @@ var RegistrationIntentionServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     //update api handler

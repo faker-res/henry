@@ -2353,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -2395,7 +2396,8 @@ var dbPlatform = {
                             phoneStatus: 2
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode also
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -6779,6 +6781,10 @@ var dbPlatform = {
 
                 if (setting.voucherClarificationUrl && (setting.voucherClarificationUrl.indexOf('http') == -1 && setting.voucherClarificationUrl.indexOf('https') == -1)) {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
+                }
+
+                if (setting.rewardBannerPicture && (setting.rewardBannerPicture.indexOf('http') == -1 && setting.rewardBannerPicture.indexOf('https') == -1)) {
+                    setting.rewardBannerPicture = cdnText + setting.rewardBannerPicture;
                 }
 
                 return setting

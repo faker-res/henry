@@ -580,12 +580,12 @@ style.
                 textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
                 button.btn.btn-warning.common-button(data-dismiss='modal' ng-click="vm.recalculateLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Recalculate" | translate}}
-                div(ng-if="checkViewPermission('Platform', 'Config','CanAuditLargeWithdrawal')")
+                div(ng-if="checkViewPermission('Platform', 'EmailAudit','CanAuditLargeWithdrawal')")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
                     button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
-                div(ng-if="!checkViewPermission('Platform', 'Config','CanAuditLargeWithdrawal')")
+                div(ng-if="!checkViewPermission('Platform', 'EmailAudit','CanAuditLargeWithdrawal')")
                     // is not reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
                     button.btn.btn-success.common-button(ng-click="vm.sendLargeAmountDetailMail()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Send E-mail" | translate}} ({{vm.largeWithdrawLog.emailSentTimes}})
@@ -663,12 +663,12 @@ style.
                 textarea.form-control(style="margin-top: 12px;" ng-model="vm.partnerLargeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
                 button.btn.btn-warning.common-button(data-dismiss='modal' ng-click="vm.recalculatePartnerLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Recalculate" | translate}}
-                div(ng-if="checkViewPermission('Platform', 'Config','CanAuditPartnerLargeWithdrawal')")
+                div(ng-if="checkViewPermission('Platform', 'EmailAudit','CanAuditPartnerLargeWithdrawal')")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(false, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
                     button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(true, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
-                div(ng-if="!checkViewPermission('Platform', 'Config','CanAuditPartnerLargeWithdrawal')")
+                div(ng-if="!checkViewPermission('Platform', 'EmailAudit','CanAuditPartnerLargeWithdrawal')")
                     // is not reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
                     button.btn.btn-success.common-button(ng-click="vm.sendPartnerLargeAmountDetailMail()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Send E-mail" | translate}} ({{vm.partnerLargeWithdrawLog.emailSentTimes}})

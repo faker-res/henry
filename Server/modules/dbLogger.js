@@ -214,6 +214,8 @@ var dbLogger = {
                             return {adminName: adminName, attachedRoleList: attachedRoleList, detachedRoleList: detachedRoleList};
                         }
                     )
+                } else if (adminActionRecordData.action == 'resetGroupPartnerCommissionRate' && adminActionRecordData.data[2]) {
+                    return dbconfig.collection_gameProviderGroup.findOne({_id:adminActionRecordData.data[2]}, {name: 1}).lean()
                 }
             }
         ).then(
@@ -470,7 +472,7 @@ var dbLogger = {
                 }else if(logAction == 'updateAutoApprovalConfig') {
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0]._id ? adminActionRecordData.data[0]._id : adminActionRecordData.platforms;
                 }else if(logAction == 'updatePlayerLevelScores' || logAction == 'updateCredibilityRemarksInBulk'
-                || logAction == 'setFixedCredibilityRemarks' || logAction == 'updatePlatformProviderGroup' || logAction == 'updatePlatformSmsGroups') {
+                || logAction == 'setFixedCredibilityRemarks' || logAction == 'updatePlatformSmsGroups') {
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
                 }else if(logAction == 'setFilteredKeywords' || logAction == 'removeFilteredKeywords'){
                     adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
@@ -779,9 +781,62 @@ var dbLogger = {
                         }
                     }
                     let errorText = adminActionRecordData.data[2]? "客制化多级代理参数： ": "客制化代理参数： ";
-                    errorText += commissionMode
+                    errorText += commissionMode;
                     adminActionRecordData.error =  errorText;
                     adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                }else if(logAction == 'resetGroupPartnerCommissionRate' && adminActionRecordData.data[0] && adminActionRecordData.data[1]) {
+                    let commissionMode;
+                    for (let key in constPartnerCommissionType) {
+                        if (adminActionRecordData.data[1] && constPartnerCommissionType[key] == adminActionRecordData.data[1]) {
+                            commissionMode = localization.localization.translate(key);
+                            break;
+                        }
+                    }
+                    let errorText = data && data.name? data.name + "： ": "";
+                    errorText += commissionMode;
+                    adminActionRecordData.error =  errorText;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                }else if(logAction == 'updatePlatformProviderGroup') {
+                    adminActionRecordData.platforms = adminActionRecordData.data[0]? adminActionRecordData.data[0] : adminActionRecordData.platforms;
+                    if (adminActionRecordData.data[2] && Object.keys(adminActionRecordData.data[2]).length) {
+                        let errorText = "";
+                        let logData = adminActionRecordData.data[2];
+                        for (let key in logData) {
+                            errorText += "ID:" + logData[key].providerGroupId + ", ";
+                            errorText += logData[key].name;
+                            if (logData[key].newAdd) {
+                                errorText += ", 新增此组";
+                            }
+                            if (logData[key].deleted) {
+                                errorText += ", 移除此组";
+                            }
+                            if (logData[key].addedProviders && logData[key].addedProviders.length) {
+                                errorText += ", 加入";
+                                let providerText = "";
+                                logData[key].addedProviders.map(item => {
+                                    if (providerText) {
+                                        providerText += ",";
+                                    }
+                                    providerText += item;
+                                })
+                                errorText += providerText;
+                            }
+                            if (logData[key].deletedProviders && logData[key].deletedProviders.length) {
+                                errorText += ", 移除";
+                                let providerText = "";
+                                logData[key].deletedProviders.map(item => {
+                                    if (providerText) {
+                                        providerText += ",";
+                                    }
+                                    providerText += item;
+                                })
+                                errorText += providerText;
+                            }
+                            errorText += "; "
+                        }
+
+                        adminActionRecordData.error = errorText;
+                    }
                 }
 
 
@@ -1067,6 +1122,8 @@ var dbLogger = {
         errorLog.save().then().catch(err => errorSavingLog(err, logData));
     },
     createSMSLog: function (adminObjId, adminName, recipientName, data, sendObj, platform, status, error) {
+        console.log("data.....", data);
+        console.log("platform.....", platform);
         var type = data.playerId ? 'player'
             : data.partnerId ? 'partner'
             : 'other';
@@ -1089,6 +1146,7 @@ var dbLogger = {
             delete logData.playerId;
         }
         var smsLog = new dbconfig.collection_smsLog(logData);
+        console.log("smsLog.....", smsLog);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 

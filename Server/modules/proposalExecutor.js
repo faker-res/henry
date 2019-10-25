@@ -2250,7 +2250,8 @@ var proposalExecutor = {
                            loginName: player.name || "",
                            applyTime: cTimeString,
                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                           entryType: proposalData.entryType
+                           entryType: proposalData.entryType,
+                           remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                        console.log('check status before postWithdraw player:', proposalData.status);
@@ -2363,7 +2364,8 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString,
                             clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                            entryType: proposalData.entryType
+                            entryType: proposalData.entryType,
+                            remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                         console.log('withdrawAPIAddr partner req:', message);

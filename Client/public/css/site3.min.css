@@ -1305,12 +1305,16 @@ ul.roleList {
     padding-top: 5px !important;
 }
 
+.padding-top-5em {
+    padding-top: 5em !important;
+}
+
 .padding-all-5 {
     padding: 5px !important;
 }
 
 .padding-all-20 {
- padding: 20px !important;
+    padding: 20px !important;
 }
 
 .padding-left-right-1 {
@@ -3683,6 +3687,10 @@ tr.sn-selected, td.sn-selected {
 .widthto95 {
     width: calc(100% - 10px);
     transition: width, 1s, linear;
+}
+
+.width-5em {
+    width: 5em;
 }
 
 .subAll0 * {

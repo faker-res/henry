@@ -126,7 +126,7 @@ div(ng-if="vm.platformInSetting && checkViewPermission('Partner', 'Config', 'lar
                     text {{'email all proposal created between two withdrawal times' | translate}}
 
     br
-    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
         text {{'EDIT' | translate}}
         img.img-edit
     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalPartnerSetting")') {{"CANCEL" | translate}}

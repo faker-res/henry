@@ -23,7 +23,7 @@ define([], function () {
 
         this.encodePhoneNum = function (str) {
             str = str || '';
-            return str.substring(0, 3) + "******" + str.slice(-4);
+            return str.substring(0, 3) + "****" + str.slice(-4);
         }
 
         this.encodeQQ = function (str) {

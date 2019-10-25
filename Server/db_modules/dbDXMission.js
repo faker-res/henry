@@ -599,7 +599,7 @@ let dbDXMission = {
                 }
 
                 if (dxPhone.bUsed) {
-                    return loginDefaultPasswordPlayer(dxPhone);
+                    return loginDefaultPasswordPlayer(dxPhone, deviceData.registrationDevice);
                 }
                 else {
                     console.log('The domain', domain);
@@ -1678,7 +1678,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
                 //after created new player, need to create login record and apply login reward
                 dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
-                dbApiLog.createApiLog(conn, wsFunc, null, null, newPlayerData).catch(errorUtils.reportError);
+                dbApiLog.createApiLog(conn, wsFunc, null, {}, newPlayerData).catch(errorUtils.reportError);
             }
 
             if (!dxMission.loginUrl) {
@@ -1688,6 +1688,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             if (isNew) {
                 sendWelcomeMessage(dxMission, dxPhone, playerData).catch(errorUtils.reportError);
                 dbDXMission.applyDxMissionReward(dxMission, playerData).catch(errorUtils.reportError);
+                console.log('Updating DxPhone to used.');
                 updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
             }
 
@@ -1784,12 +1785,15 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     );
 }
 
-function loginDefaultPasswordPlayer (dxPhone) {
+async function loginDefaultPasswordPlayer (dxPhone, loginDevice) {
     let playerProm = Promise.resolve();
     let dxMission = dxPhone.dxMission;
 
     if (dxPhone.playerObjId) {
         playerProm = dbconfig.collection_players.findOne({_id: dxPhone.playerObjId}).lean();
+        if (loginDevice) {
+            await dbconfig.collection_players.update({_id: dxPhone.playerObjId}, {loginDevice: loginDevice}).catch(errorUtils.reportError);
+        }
     }
 
     return playerProm.then(
