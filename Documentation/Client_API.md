@@ -3167,7 +3167,7 @@ API说明：
     * 请求内容：
         ```
         platformId: 必填|String|平台ID
-        clientType: 选填|String|1：WEB，2：H5，4：APP
+        clientType: 选填|String|1：WEB，2：H5，4：APP，5: Android APP, 6: IOS APP
         ```
     * 操作成功:
         ```
