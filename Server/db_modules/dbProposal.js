@@ -90,14 +90,14 @@ var proposal = {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
             proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         //get proposal type id
@@ -403,11 +403,11 @@ var proposal = {
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId, propAmount);
         if (proposalData.isPartner) {
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         return proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData);
@@ -477,6 +477,14 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.isFromPMSTopUp && (proposalData.data.isFromPMSTopUp.toString() === 'true') &&
+                        (data[0].name == constProposalType.PLAYER_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP)) {
+                        proposalData.status = constProposalStatus.PENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
@@ -511,15 +519,12 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
-                        let device = constDevice.BACKSTAGE;
-                        if(proposalData.creator.type == "admin") {
-                            device = constDevice.BACKSTAGE;
-                        } else if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].hasOwnProperty('registrationDevice')) {
-                            device = data[2].registrationDevice;
-                        } else if (data[2].hasOwnProperty('loginDevice')) {
-                            device = data[2].loginDevice;
+                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].registrationDevice) {
+                            proposalData.device = data[2].registrationDevice;
+                        } else if (data[2].loginDevice) {
+                            proposalData.device = data[2].loginDevice;
                         }
-                        proposalData.device = device;
+
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
                             if (data[2].level) {
@@ -666,7 +671,8 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
-                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE) {
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data && proposalData.data.depositMethod == 1)) {
 
                     return Promise.reject({
                         name: "DBError",
@@ -3695,6 +3701,10 @@ var proposal = {
                 reqData.inputDevice = Number(reqData.inputDevice);
                 queryData.inputDevice = Number(queryData.inputDevice);
             }
+        }
+
+        if (reqData.device && reqData.device.length){
+            queryData.device = {$in: reqData.device};
         }
 
         if (reqData.status) {

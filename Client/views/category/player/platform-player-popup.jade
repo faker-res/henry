@@ -638,7 +638,7 @@
                 button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
 
-#modalPlayerAccountingDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+#modalPlayerAccountingDetail.modal.fade(style="overflow: auto !important;", tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
             .modal-header

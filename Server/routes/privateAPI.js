@@ -6,11 +6,14 @@ const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constProposalStatus = require('../const/constProposalStatus');
 const constServerCode = require("../const/constServerCode");
+const constSystemParam = require('../const/constSystemParam');
 
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
+const dbPlayerPayment = require('./../db_modules/dbPlayerPayment');
 
 const rsaCrypto = require('./../modules/rsaCrypto');
+const jwt = require('jsonwebtoken');
 
 router.get('/notifyPayment', (req, res, next) => {
     res.end('Success');
@@ -350,6 +353,112 @@ router.post('/getPlayerInfo', function(req, res, next) {
                 }
             )
 
+        } else {
+            let returnMsg = {
+                code: constServerCode.INVALID_DATA,
+                msg: "Invalid data"
+            };
+            res.send(returnMsg);
+            res.end();
+        }
+    });
+});
+
+router.get('/createTopUpProposal', (req, res, next) => {
+    res.end('Success');
+});
+
+router.post('/createTopUpProposal', function(req, res, next) {
+    // LOG
+    let inputData = [];
+    req.on('data', data => {
+        inputData.push(data);
+    }).on('end', () => {
+        let buffer = Buffer.concat(inputData);
+        let stringBuffer = buffer.toString();
+        let reqData;
+
+        try {
+            reqData = JSON.parse(stringBuffer);
+        } catch (e) {
+            reqData = stringBuffer;
+        }
+
+        if (reqData && reqData.content && reqData.content.length > 0) {
+            let proms = [];
+            let tempPlatformId;
+            let tempUsername;
+
+            reqData.content.forEach(encrypted => {
+                let token = encrypted.token;
+                let decoded = jwt.verify(token, constSystemParam.PMS2_AUTH_SECRET_KEY);
+                console.log('********************** decoded', decoded);
+
+                if (decoded) {
+                    tempPlatformId = decoded && decoded.platformId;
+                    tempUsername = decoded && decoded.username;
+
+                    let isValidData = decoded && decoded.platformId && decoded.username && decoded.clientType && decoded.amount
+                        && decoded.status && decoded.topUpType && decoded.depositMethod;
+
+                    if (isValidData) {
+                        let statusText;
+
+                        switch (decoded.status) {
+                            case "PENDING":
+                                statusText = constProposalStatus.PENDING;
+                                break;
+                            default:
+                                statusText = constProposalStatus.PREPENDING;
+                                break;
+                        }
+
+                        proms.push(dbPlayerPayment.createTopUpProposal(decoded.platformId, decoded.username, decoded.clientType, statusText, decoded.topUpType, decoded.amount, decoded));
+                    }
+                }
+            });
+
+            Promise.all(proms).then(
+                data => {
+                    console.log('createTopUpProposal data', data);
+                    let returnData = [];
+
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            if (item && item.proposalId) {
+                                let result = {proposalId: item.proposalId, amount: item.amount, status: item.status, rate: item.rate, actualAmountReceived: item.actualAmountReceived, bankCardNo: item.bankCardNo};
+                                let encryptData = jwt.sign(result, constSystemParam.PMS2_AUTH_SECRET_KEY);
+                                returnData.push({token: encryptData});
+                            }
+                        });
+                    }
+
+                    let returnMsg = {
+                        code: constServerCode.SUCCESS,
+                        msg: "succ",
+                        data: {
+                            platformId: tempPlatformId,
+                            username: tempUsername,
+                            proposals: returnData
+                        }
+                    };
+
+                    console.log('createTopUpProposal PMS success', tempPlatformId, tempUsername, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
+                },
+                err => {
+                    console.log('createTopUpProposal PMS error', tempPlatformId, tempUsername, err);
+                    let returnMsg = {
+                        code: constServerCode.INVALID_DATA,
+                        msg: err.message
+                    };
+
+                    res.send(returnMsg);
+                    res.end();
+                }
+            );
         } else {
             let returnMsg = {
                 code: constServerCode.INVALID_DATA,
