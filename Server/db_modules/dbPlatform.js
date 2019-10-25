@@ -6314,13 +6314,13 @@ var dbPlatform = {
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
-                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         case 'skin':
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerSkin':
-                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         default:
                             prom = Promise.reject({
@@ -6334,8 +6334,8 @@ var dbPlatform = {
         );
 
         // for those do not have "device" field
-        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1, code);
+        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code, subPlatformId) {
+            let query = querySetUp(platformObjId, clientType, 1, code, subPlatformId);
 
             if (!query){
                 return [];
