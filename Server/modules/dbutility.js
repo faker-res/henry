@@ -103,8 +103,6 @@ var dbUtility = {
             // var templateId = 7839;  // NOTE: 这里的模板 ID`7839`只是示例，真实的模板 ID 需要在语音消息控制台中申请
             // 实例化 QcloudSms
             var qcloudSms = QcloudSms(appid, appkey);
-
-            // return Promise.resolve({haha:"walao"})
             let cvsender = qcloudSms.CodeVoiceSender();
             // cvsender.send("86", phoneNumber, String(smsCode), 2, "", callback);
             let prom = new Promise((resolve, reject) => {

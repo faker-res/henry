@@ -111,7 +111,7 @@ div.margin-top-5(ng-if='vm.platformInSetting')
                             input(ng-if='vm.configTableEdit', type='number', min='0' , ng-model='vm.activeConfigEdit.validPlayerValue')
     div(style='overflow:hidden')
         .pull-right
-            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.activeConfigEdit=vm.activeConfig')
+            button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Partner', 'Config', 'ValidActiveUpdate')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.activeConfigEdit=vm.activeConfig')
                 text {{'EDIT' | translate}}
                 img.img-edit
             button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit; vm.getActiveConfig()') {{"CANCEL" | translate}}
