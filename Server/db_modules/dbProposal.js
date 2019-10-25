@@ -10574,8 +10574,9 @@ function isBankInfoMatched(proposalData, playerId){
 
                 let allProposalQuery = {
                     'data.platformId': ObjectId(player.platform._id),
-                    // createTime: {$lt: proposalData.createTime},
-                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
+                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}],
+                    'status': constProposalStatus.APPROVED,
+                    createTime: {$gte: new Date(player.registrationTime), $lte: new Date()},
                 };
 
                 if (proposalData.data.playerId) {
@@ -10585,10 +10586,20 @@ function isBankInfoMatched(proposalData, playerId){
                     allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
                 }
 
-                return dbconfig.collection_proposal.find(allProposalQuery)
-                    .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .sort({createTime: -1}).lean();
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: ObjectId(player.platform._id),
+                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
+                }).lean().then(
+                    proposalTypeData => {
+                        if (proposalTypeData && proposalTypeData._id) {
+                            allProposalQuery.type = proposalTypeData._id;
 
+                            return dbconfig.collection_proposal.find(allProposalQuery)
+                                .populate({path: "type", model: dbconfig.collection_proposalType})
+                                .sort({createTime: -1}).lean();
+                        }
+                    }
+                );
             },
             error => {
                 return;
