@@ -225,18 +225,6 @@ define(['js/app'], function (myApp) {
             4: 'APP_ANDROID'
         };
 
-        vm.registrationDevices = {
-            "0": "Backstage",
-            "1": "WEB_PLAYER",
-            "2": "H5_PLAYER",
-            "3403": "APP_PLAYER_ANDROID_EU",
-            "4403": "APP_PLAYER_IOS_EU",
-            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
-            "4401": "APP_PLAYER_IOS_EU_CHESS",
-            "3402": "APP_PLAYER_ANDROID_V68",
-            "4402": "APP_PLAYER_IOS_V68"
-        };
-
         vm.allActions = ['createDepartmentWithParent',
         'updateDepartmentParent',
         'updateDepartment',
@@ -6339,7 +6327,7 @@ define(['js/app'], function (myApp) {
 
                     item.registrationDevice$ = "";
                     if (item && item.playerInfo && item.playerInfo.registrationDevice) {
-                        item.registrationDevice$ = $translate(vm.registrationDevices[item.playerInfo.registrationDevice]);
+                        item.registrationDevice$ = $translate(vm.registrationDeviceList[item.playerInfo.registrationDevice]);
                     } else {
                         item.registrationDevice$ = "";
                     }
@@ -8267,11 +8255,11 @@ define(['js/app'], function (myApp) {
                             vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
                             let backEndCreateWayExisted = false;
                             // ============ device new player ============
-                            vm.newPlayerQuery.deviceData = Object.keys(vm.registrationDevices).map(
+                            vm.newPlayerQuery.deviceData = Object.keys(vm.registrationDeviceList).map(
                                 device => {
                                     let devicePlayers = vm.newPlayerQuery.newPlayers.filter(player => player && player.registrationDevice && (player.registrationDevice === device));
-                                    let deviceResult = vm.calculateNewPlayerData(devicePlayers, vm.registrationDevices[device]);
-                                    deviceResult.registrationDevice = vm.registrationDevices[device];
+                                    let deviceResult = vm.calculateNewPlayerData(devicePlayers, vm.registrationDeviceList[device]);
+                                    deviceResult.registrationDevice = vm.registrationDeviceList[device];
                                     delete deviceResult.promoteWayName;
 
                                     return deviceResult;
