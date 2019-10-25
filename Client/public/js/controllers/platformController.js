@@ -64,6 +64,12 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.subPlatformIdList = {
+                "401 - EU_CHESS": 401,
+                "402 - EU_V68": 402,
+                "403 - EU": 403,
+            };
+
             vm.frontEndSettingOnClickAction = {
                 "openNewPage": 1,
                 "activityDetail": 2,
@@ -25512,11 +25518,13 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.frontEndSettingPlatform = function () {
+            vm.frontEndSettingPlatform = function (subPlatformId = null) {
                 vm.frontEndDeletedList = [];
                 vm.rewardCategoryDeletedList = [];
                 vm.rewardDeletedList = [];
-
+                if (!vm.filterFrontEndSettingPlatform){
+                    return socketService.showErrorMessage($translate("NO_PLATFORM_MESSAGE"));
+                }
                 switch (vm.selectedFrontEndSettingTab) {
                     case 'rewardPointClarification':
                         vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
@@ -25533,7 +25541,7 @@ define(['js/app'], function (myApp) {
                     case 'partnerCarouselConfiguration':
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
-                        vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                        vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform, subPlatformId);
                         vm.carouselSettingDeletedList = [];
                         break;
                     case 'urlConfiguration':
@@ -25545,8 +25553,8 @@ define(['js/app'], function (myApp) {
                         };
                         vm.urlConfigShowMessage = '';
                         if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
-                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
-                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, true);
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, true);
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, subPlatformId, true);
                         }
                         else{
                             vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
@@ -25557,7 +25565,7 @@ define(['js/app'], function (myApp) {
                     case 'partnerSkinManagement':
                         vm.skinSettingShowMessage = '';
                         if (vm.selectedFrontEndSettingTab == 'partnerSkinManagement'){
-                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, true);
+                            vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId,true);
                         }
                         else{
                             vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
@@ -25582,6 +25590,10 @@ define(['js/app'], function (myApp) {
 
             vm.frontEndSettingTabClicked = function (choice) {
                 vm.selectedFrontEndSettingTab  = choice;
+
+                if (choice != "partnerSkinManagement" && choice != "partnerCarouselConfiguration" && choice != "partnerUrlConfiguration"){
+                    vm.filterFrontEndSettingSubPlatformId = null;
+                }
                 switch (choice) {
                     case 'rewardPointClarification':
                         break;
@@ -25631,7 +25643,7 @@ define(['js/app'], function (myApp) {
                         break;
                 }
                 if (vm.filterFrontEndSettingPlatform) {
-                    vm.frontEndSettingPlatform();
+                    vm.frontEndSettingPlatform(vm.filterFrontEndSettingSubPlatformId);
                 }
             };
 
@@ -26486,7 +26498,7 @@ define(['js/app'], function (myApp) {
             };
 
             //#region Frontend Configuration - Skin Management
-            vm.saveFrontEndSkinSetting = function (isPartner) {
+            vm.saveFrontEndSkinSetting = function (isPartner, subPlatformId = null) {
                 let sendData = {
                     platform: vm.filterFrontEndSettingPlatform,
                     device: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.device ? Number(vm.newFrontEndSkinSetting.device) : null,
@@ -26494,12 +26506,16 @@ define(['js/app'], function (myApp) {
                     url: vm.newFrontEndSkinSetting && vm.newFrontEndSkinSetting.url ? vm.newFrontEndSkinSetting.url : null,
                 };
 
+                if (subPlatformId && subPlatformId != ""){
+                    sendData.subPlatformId = subPlatformId;
+                }
+
                 if (isPartner){
                     return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
                         console.log("savePartnerSkinSetting success:", data);
                         vm.newFrontEndSkinSetting = {};
                         vm.skinSettingShowMessage = "SUCCESS";
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, isPartner);
                         $scope.$evalAsync();
                     }, err => {
                         console.error('savePartnerSkinSetting error: ', err);
@@ -26521,9 +26537,9 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getFrontEndSkinSetting = function (platformObjId, isPartner) {
+            vm.getFrontEndSkinSetting = function (platformObjId, subPlatformId, isPartner) {
                 if (isPartner){
-                    socketService.$socket($scope.AppSocket, 'getPartnerSkinSetting', {platformObjId: platformObjId}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getPartnerSkinSetting', {platformObjId: platformObjId, subPlatformId: subPlatformId}, function (data) {
                         console.log('getPartnerSkinSetting', data.data);
                         if (data && data.data) {
                             vm.frontEndSkinSetting = data.data.map(item => {
@@ -26554,11 +26570,11 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.removeFrontEndSkinSetting = function (objId, isPartner) {
+            vm.removeFrontEndSkinSetting = function (objId, subPlatformId = null, isPartner) {
                 if (isPartner){
                     return $scope.$socketPromise('removePartnerSkinSetting', {skinSettingObjId: objId}).then(data => {
                         console.log("removePartnerSkinSetting success:", data);
-                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, isPartner);
+                        vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, isPartner);
                         $scope.$evalAsync();
                     }, err => {
                         console.error('removePartnerSkinSetting error: ', err);
@@ -26595,16 +26611,19 @@ define(['js/app'], function (myApp) {
             };
 
             //#region Frontend Configuration - Url Configuration
-            vm.saveFrontEndUrlConfig = function (isPartner) {
+            vm.saveFrontEndUrlConfig = function (isPartner, subPlatformId = null) {
                 if (vm.filterFrontEndSettingPlatform && vm.frontEndUrlConfig){
                     vm.frontEndUrlConfig.platformObjId = vm.filterFrontEndSettingPlatform;
 
+                    if(subPlatformId && subPlatformId != ""){
+                        vm.frontEndUrlConfig.subPlatformId = subPlatformId;
+                    }
                     if (isPartner){
                         return $scope.$socketPromise('savePartnerUrlConfig', vm.frontEndUrlConfig).then(data => {
                             console.log("savePartnerUrlConfig success:", data);
                             vm.newFrontEndSkinSetting = {};
                             vm.urlConfigShowMessage = "SUCCESS";
-                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, isPartner);
+                            vm.getFrontEndUrlConfig(vm.filterFrontEndSettingPlatform, subPlatformId, isPartner);
                             $scope.$evalAsync();
                         }, err => {
                             console.error('savePartnerUrlConfig error: ', err);
@@ -26631,9 +26650,9 @@ define(['js/app'], function (myApp) {
 
             };
 
-            vm.getFrontEndUrlConfig = function (objId, isPartner) {
+            vm.getFrontEndUrlConfig = function (objId, subPlatformId, isPartner) {
                 if (isPartner){
-                    socketService.$socket($scope.AppSocket, 'getPartnerUrlConfig', {platformObjId: objId}, function (data) {
+                    socketService.$socket($scope.AppSocket, 'getPartnerUrlConfig', {platformObjId: objId, subPlatformId: subPlatformId}, function (data) {
                         console.log('getPartnerUrlConfig', data.data);
                         if (data && data.data) {
                             vm.frontEndUrlConfig = data.data;
@@ -26837,6 +26856,9 @@ define(['js/app'], function (myApp) {
 
                             if (vm.isFinishedUploadedToFTPServer) {
                                 vm.newFrontEndCarousel.isPartnerForCarouselConfiguration = vm.isPartnerForCarouselConfiguration;
+                                if (vm.filterFrontEndSettingSubPlatformId && vm.filterFrontEndSettingSubPlatformId != ""){
+                                    vm.newFrontEndCarousel.subPlatformId = vm.filterFrontEndSettingSubPlatformId;
+                                }
                                 socketService.$socket($scope.AppSocket, 'saveCarouselSetting', vm.newFrontEndCarousel, function (data) {
                                     console.log("saveCarouselSetting ret", data);
                                     // stop the uploading loader
@@ -26844,7 +26866,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#carouselSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                                    vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform, vm.filterFrontEndSettingSubPlatformId);
                                 }, function (err) {
                                     console.log("saveCarouselSetting err", err);
                                 });
@@ -26860,9 +26882,9 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.getFrontEndCarouselSetting = function (platformObjId) {
+            vm.getFrontEndCarouselSetting = function (platformObjId, subPlatformId) {
                 vm.clearAllDropArea();
-                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId, isPartner: vm.isPartnerForCarouselConfiguration}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getCarouselSetting', {platformObjId: platformObjId, isPartner: vm.isPartnerForCarouselConfiguration, subPlatformId: subPlatformId}, function (data) {
                     $scope.$evalAsync( () => {
                         console.log('getCarouselSetting', data.data);
                         if (data && data.data) {
@@ -26935,7 +26957,7 @@ define(['js/app'], function (myApp) {
                      (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updateCarouselSetting is done', data);
-                            vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform);
+                            vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform, vm.filterFrontEndSettingSubPlatformId);
                         })
                     }, function (err) {
                         console.log('err', err);
