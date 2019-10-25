@@ -90,7 +90,7 @@ define([], function () {
         //common function for socket action handler
         this.$socket = function ($skt, key, sendData, successFunc, failFunc, showConfirm) {
             //if socket is disconnect, try to reconnect and show error message
-            if (!$skt.connected) {
+            if (!$skt.connected && !this.curScope.isLoading) {
                 console.log('key!', key);
                 reconnectSocket();
                 // @consider: Rather than failing immediately, it may be preferable to queue the request until the reconnection succeeds, or until a timeout is reached.

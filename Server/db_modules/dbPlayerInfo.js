@@ -1890,7 +1890,7 @@ let dbPlayerInfo = {
             partner: data.partner ? data.partner : null
         };
 
-        console.log('JY check input device 1=====:', recordData.userAgent, data);
+        console.log('JY check input device 1=====:', recordData.userAgent);
         if (data.userAgent) {
             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, data);
         }
@@ -6399,6 +6399,10 @@ let dbPlayerInfo = {
         let advancedQuery = {};
         let isProviderGroup = false;
         let dataSize = 0;
+        let partnerNameId = data.partnerName || null;
+        if(data && data.partnerName){
+            delete data.partnerName;
+        }
 
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
@@ -6511,64 +6515,78 @@ let dbPlayerInfo = {
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
                 let playerProm = Promise.resolve(false);
+                let partnerProm = Promise.resolve(false);
+
+                if (partnerNameId) {
+                    partnerProm = dbconfig.collection_partner.find({partnerName: partnerNameId}, {_id:1}).lean();
+                }
 
                 if (data.name) {
                     playerProm = dbconfig.collection_players.findOne(advancedQuery, {similarPlayers: 0}).lean();
                 }
 
-                return playerProm.then(
-                    singlePlayerData => {
-                        if (data && data.name && singlePlayerData && singlePlayerData._id) {
-                            advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
+                return partnerProm.then(
+                    partnerObjId => {
+                        if (partnerNameId && partnerObjId) {
+                            let partnerObj = {partner: ObjectId(partnerObjId[0]._id)};
+                            advancedQuery.$and[0] = {$and : [data, partnerObj]};
                         }
 
-                        return dbconfig.collection_players
-                            .find(advancedQuery, {similarPlayers: 0})
-                            .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                                players => {
-                                    let calculatePlayerValueProms = [];
-                                    let updatePlayerCredibilityRemarksProm = [];
-                                    for (let i = 0; i < players.length; i++) {
-                                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                                        calculatePlayerValueProms.push(calculateProm);
-
-                                        if (players[i].isTestPlayer) {
-                                            isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
-                                        }
-
-                                        let uniqueCredibilityRemarks = [];
-                                        if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
-                                            // filter out duplicate credibility remarks
-                                            uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
-                                                arr = arr.map(remark => {
-                                                    remark = remark ? remark.toString() : "";
-                                                    return remark;
-                                                });
-                                                elem = elem ? elem.toString() : "";
-                                                return arr.indexOf(elem) === pos;
-                                            });
-
-                                            uniqueCredibilityRemarks.forEach(string => {
-                                                return ObjectId(string);
-                                            });
-
-                                            // if found duplicate credibility remarks, update with no duplicates
-                                            if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
-                                                updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
-                                                    {
-                                                        _id: players[i]._id,
-                                                        platform: players[i].platform
-                                                    },
-                                                    {
-                                                        credibilityRemarks: uniqueCredibilityRemarks
-                                                    }
-                                                ).exec().catch(errorUtils.reportError));
-                                            }
-                                        }
-                                    }
-                                    return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                        return playerProm.then(
+                            singlePlayerData => {
+                                if (data && data.name && singlePlayerData && singlePlayerData._id) {
+                                    advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                                 }
-                            )
+
+                                return dbconfig.collection_players
+                                    .find(advancedQuery, {similarPlayers: 0})
+                                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
+                                        players => {
+                                            let calculatePlayerValueProms = [];
+                                            let updatePlayerCredibilityRemarksProm = [];
+                                            for (let i = 0; i < players.length; i++) {
+                                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                                calculatePlayerValueProms.push(calculateProm);
+
+                                                if (players[i].isTestPlayer) {
+                                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                                }
+
+                                                let uniqueCredibilityRemarks = [];
+                                                if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
+                                                    // filter out duplicate credibility remarks
+                                                    uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
+                                                        arr = arr.map(remark => {
+                                                            remark = remark ? remark.toString() : "";
+                                                            return remark;
+                                                        });
+                                                        elem = elem ? elem.toString() : "";
+                                                        return arr.indexOf(elem) === pos;
+                                                    });
+
+                                                    uniqueCredibilityRemarks.forEach(string => {
+                                                        return ObjectId(string);
+                                                    });
+
+                                                    // if found duplicate credibility remarks, update with no duplicates
+                                                    if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
+                                                        updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
+                                                            {
+                                                                _id: players[i]._id,
+                                                                platform: players[i].platform
+                                                            },
+                                                            {
+                                                                credibilityRemarks: uniqueCredibilityRemarks
+                                                            }
+                                                        ).exec().catch(errorUtils.reportError));
+                                                    }
+                                                }
+                                            }
+                                            return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                                        }
+                                    )
+                            }
+                        )
                     }
                 )
             }
@@ -7023,10 +7041,8 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 3=====:', recordData.userAgent, playerData);
-                if (playerData.deviceId || playerData.guestDeviceId) {
-                    recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
-                } else if (recordData.userAgent) {
+                console.log('JY check input device 3=====:', recordData.userAgent);
+                if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
@@ -7846,7 +7862,7 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 4=====:', recordData.userAgent, playerData);
+                console.log('JY check input device 4=====:', recordData.userAgent);
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 }
@@ -8242,7 +8258,7 @@ let dbPlayerInfo = {
                         if (platformObj.usePointSystem) {
                             dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                         }
-                        console.log('JY check input device 5=====:', recordData.userAgent, playerData);
+                        console.log('JY check input device 6=====:', recordData.userAgent);
                         if (recordData.userAgent) {
                             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, inputData);
                         }
@@ -26189,7 +26205,6 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
 
-                            console.log("player bill board win all", sortedData)
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
