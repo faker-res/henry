@@ -42,8 +42,10 @@ var proposalSchema = new Schema({
     settleTime: {type: Date, default: Date.now, index: true},
     // times that the proposal had run
     processedTimes: {type: Number, default: 0},
-    // input device
+    // input device (using User Agent)
     inputDevice: {type: Number, default: 0, index: true},
+    // device type triggering this proposal creation
+    device: {type: String, index: true},
 
     //For send email issue: audi credit change proposal email won't group as conversation, need message id as email references for gmail to group.
     // messageId: {type: String}

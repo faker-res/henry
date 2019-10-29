@@ -878,6 +878,9 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.parentProposalId) {
+                    proposalDetail["Parent Proposal ID"] = vm.selectedProposal.data.parentProposalId;
+                }
             }
             // endregion
 

@@ -3005,6 +3005,9 @@ define(['js/app'], function (myApp) {
                 if (vm.sendMultiMessage.credibilityRemarksFilter) {
                     playerQuery.credibilityRemarksFilter = vm.sendMultiMessage.credibilityRemarksFilter;
                 }
+                if (vm.sendMultiMessage.partnerName) {
+                    playerQuery.partnerName = vm.sendMultiMessage.partnerName;
+                }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
                 }
@@ -41112,6 +41115,12 @@ define(['js/app'], function (myApp) {
                         vm.queryDepartments = result;
                     });
                 });
+            };
+
+            vm.resetPartnerName = function () {
+                if(vm.sendMultiMessage.playerType !== "underPartner"){
+                    vm.sendMultiMessage.partnerName = " ";
+                }
             };
 
             vm.createCallOutMission = function () {

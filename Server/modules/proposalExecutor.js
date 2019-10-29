@@ -760,6 +760,28 @@ var proposalExecutor = {
                         }
                     );
                 }
+                else if (proposalData && proposalData.data && proposalData.data.playerObjIds && proposalData.data.playerObjIds.length && proposalData.data.newLevelObjId) {
+                    let proms = [];
+                    for (let i = 0; i < proposalData.data.playerObjIds.length; i++) {
+                        let _id = proposalData.data.playerObjIds[i];
+                        let prom = dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_players,
+                            {_id: _id},
+                            {playerLevel: proposalData.data.newLevelObjId},
+                            constShardKeys.collection_players
+                        );
+                        proms.push(prom);
+                    }
+
+                    Promise.all(proms).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player level", error: err});
+                        }
+                    );
+                }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player level proposal data"});
                 }
@@ -2250,7 +2272,8 @@ var proposalExecutor = {
                            loginName: player.name || "",
                            applyTime: cTimeString,
                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                           entryType: proposalData.entryType
+                           entryType: proposalData.entryType,
+                           remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                        console.log('check status before postWithdraw player:', proposalData.status);
@@ -2363,7 +2386,8 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString,
                             clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                            entryType: proposalData.entryType
+                            entryType: proposalData.entryType,
+                            remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                         console.log('withdrawAPIAddr partner req:', message);

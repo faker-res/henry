@@ -76,6 +76,7 @@ var encrypt = {
         let loginTimes = data.hasOwnProperty('loginTimes') ? data.loginTimes : "";
         let phoneLocation = data.hasOwnProperty('phoneLocation') ? data.phoneLocation : "";
         let ipLocation = data.hasOwnProperty('ipLocation') ? data.ipLocation : "";
+        let partnerName = data.hasOwnProperty('partnerName') ? data.partnerName : "";
 
 
         var query = {};
@@ -97,6 +98,10 @@ var encrypt = {
                 case 'Real Player (Under Partner)':
                     query.isRealPlayer = true;
                     query.partner = {$ne: null};
+                    break;
+                case 'underPartner':
+                    query.isRealPlayer = true;
+                    break;
             }
         }
         if (trustLevel !== '') {
@@ -205,6 +210,9 @@ var encrypt = {
         }
         if (ipLocation !== '') {
             query["ipLocation"] = ipLocation;
+        }
+        if (partnerName !== '' && playerType == 'underPartner') {
+            query["partnerName"] = partnerName;
         }
 
         if (validCredit !== '') {
@@ -500,6 +508,10 @@ var encrypt = {
                 query["data.PROMO_CODE_TYPE"] = {$in: data.promoTypeName};
             }
 
+            if (data.inputDevice && data.inputDevice == -1){
+                data.inputDevice = null;
+            }
+
             if (data.inputDevice) {
                 query.inputDevice = data.inputDevice;
             }
@@ -525,6 +537,10 @@ var encrypt = {
 
             if (data.remark) {
                 query["data.remark"] = data.remark;
+            }
+
+            if (data.loginDevice && data.loginDevice.length){
+                query.device = data.loginDevice;
             }
         }
         return query;
