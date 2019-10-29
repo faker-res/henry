@@ -360,6 +360,7 @@ var dbPlayerTopUpRecord = {
                                 "$group": {
                                     "_id": {
                                         "playerId": "$data.playerObjId",
+                                        "platformId": "$data.platformId",
                                         "merchantName": "$data.merchantName",
                                         "merchantNo": "$data.merchantNo",
                                         "loginDevice": "$device"
@@ -371,6 +372,7 @@ var dbPlayerTopUpRecord = {
                                 "$project": {
                                     _id: 0,
                                     playerId: "$_id.playerId",
+                                    platformId: "$_id.platformId",
                                     merchantName: "$_id.merchantName",
                                     merchantNo: "$_id.merchantNo",
                                     loginDevice: "$_id.loginDevice",
@@ -740,8 +742,8 @@ var dbPlayerTopUpRecord = {
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
-                                                playerId: reward._id.playerId,
-                                                platformId: reward._id.platformId,
+                                                playerId: onlineTopUpByMerchant.playerId,
+                                                platformId: onlineTopUpByMerchant.platformId,
                                                 totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
                                                 onlineTopUpFeeDetail: [onlineTopUpByMerchant],
                                                 loginDevice: onlineTopUpByMerchant.loginDevice || null
