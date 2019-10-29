@@ -26205,7 +26205,6 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
 
-                            console.log("player bill board win all", sortedData)
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places
