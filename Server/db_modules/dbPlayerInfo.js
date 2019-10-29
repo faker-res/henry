@@ -778,7 +778,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId, isNotFromAPP) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId, isAPP=true) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
@@ -958,7 +958,7 @@ let dbPlayerInfo = {
                     //player flag for new system
                     inputData.isNewSystem = true;
 
-                    if (isNotFromAPP && playerAccountPrefix && inputData && inputData.name && (inputData.name.indexOf(playerAccountPrefix) !== 0)) {
+                    if (!isAPP && playerAccountPrefix && inputData && inputData.name && (inputData.name.indexOf(playerAccountPrefix) !== 0)) {
                         return Q.reject({
                             status: constServerCode.PLAYER_NAME_INVALID,
                             name: "DBError",
