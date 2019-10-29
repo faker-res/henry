@@ -2843,16 +2843,24 @@ var dbPlatform = {
         );
     },
 
-    getPartnerPosterAdsList: function (platformObjId, targetDevice) {
-        return dbconfig.collection_partnerPosterAdsConfig.find(
-            {
-                platform: platformObjId,
-                targetDevice: targetDevice
-            }
-        ).sort({orderNo: 1}).lean();
+    getPartnerPosterAdsList: function (platformObjId, targetDevice, subPlatformId) {
+
+        let query = {
+            platform: platformObjId,
+            targetDevice: targetDevice
+        };
+
+        if (subPlatformId){
+            query.subPlatformId = subPlatformId;
+        }
+        else{
+            query.subPlatformId = {$exists: false};
+        }
+
+        return dbconfig.collection_partnerPosterAdsConfig.find(query).sort({orderNo: 1}).lean();
     },
 
-    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice) {
+    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice, subPlatformId) {
         let saveObj = {
             platform: platformObjId,
             orderNo: orderNo,
@@ -2860,6 +2868,10 @@ var dbPlatform = {
             title: title,
             posterImage: posterImage,
             showInRealServer: showInRealServer
+        }
+
+        if (subPlatformId){
+            saveObj.subPlatformId = subPlatformId;
         }
 
         return dbconfig.collection_partnerPosterAdsConfig(saveObj).save();

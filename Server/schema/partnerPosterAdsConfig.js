@@ -4,6 +4,8 @@ let Schema = mongoose.Schema;
 let partnerPosterAdsConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
+    // subPlatformId - 子平台ID: 401(易游棋牌); 402（v68; 403（易游）
+    subPlatformId: {type: Number, index: true},
     // order number to decide the display sequence
     orderNo: {type: Number, min: 0, default: 0, required: true},
     // target input device

@@ -16367,6 +16367,10 @@ define(['js/app'], function (myApp) {
                 targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
             };
 
+            if (vm.subPlatformId && vm.subPlatformId != ""){
+                sendData.subPlatformId = vm.subPlatformId;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPartnerPosterAdsList', sendData, function (data) {
                 console.log("partner poster ads list", data);
                 if (data && data.data) {
@@ -16452,6 +16456,9 @@ define(['js/app'], function (myApp) {
                     targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
                 }
 
+                if (vm.subPlatformId && vm.subPlatformId != ''){
+                    sendData.subPlatformId = vm.subPlatformId;
+                }
                 socketService.$socket($scope.AppSocket, 'addNewPartnerPosterAdsRecord', sendData, function (data) {
                     if (data) {
                         vm.resetPartnerAddPosterAdsTable();
@@ -17396,6 +17403,9 @@ define(['js/app'], function (myApp) {
                 });
                 vm.platformInSetting = selectedPlatform.data;
 
+                if (vm.selectedConfigTab && vm.selectedConfigTab != 'partnerPosterAds'){
+                    vm.subPlatformId = null;
+                }
                 vm.getConfigData();
             }
         };
