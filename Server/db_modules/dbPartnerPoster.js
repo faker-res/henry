@@ -56,7 +56,7 @@ let dbPartnerPoster = {
         });
     },
 
-    async getPartnerPoster (platformId, url, device, production = true) {
+    async getPartnerPoster (platformId, url, device, production = true, subPlatformId) {
         console.log('getPartnerPoster 1', new Date())
         let platform = await dbconfig.collection_platform.findOne({platformId}, {_id: 1}).lean();
         if (!platform) {
@@ -75,6 +75,13 @@ let dbPartnerPoster = {
 
         if ([0, 1].includes(device)) {
             query.targetDevice = device;
+        }
+
+        if (subPlatformId){
+            query.subPlatformId = subPlatformId;
+        }
+        else{
+            query.subPlatformId = {$exists: false};
         }
 
         let posterUsed = await dbconfig.collection_partnerPosterAdsConfig.find(query, {posterImage: 1}).sort({orderNo: 1}).limit(1).lean();
