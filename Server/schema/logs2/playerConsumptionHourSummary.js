@@ -15,7 +15,8 @@ const playerConsumptionHourSummary = new Schema({
     consumptionValidAmount: {type: Number, default: 0},
     consumptionBonusAmount: {type: Number, default: 0},
     consumptionTimes: {type: Number, default: 0},
-
+    // constDevice
+    loginDevice: {type: String, index: true},
 
 });
 

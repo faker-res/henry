@@ -261,7 +261,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "count": {"$sum": 1},
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -293,7 +293,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
                             }
@@ -325,7 +325,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
 
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
@@ -362,7 +362,7 @@ var dbPlayerTopUpRecord = {
                                         "playerId": "$data.playerObjId",
                                         "merchantName": "$data.merchantName",
                                         "merchantNo": "$data.merchantNo",
-                                        "loginDevice": "$data.loginDevice"
+                                        "loginDevice": "$device"
                                     },
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -1157,7 +1157,7 @@ var dbPlayerTopUpRecord = {
             }
 
             if (query.loginDevice && query.loginDevice.length){
-                queryObj['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                queryObj['device'] = {$in: query.loginDevice};
             }
             return queryObj;
         }

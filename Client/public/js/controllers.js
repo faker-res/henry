@@ -3,28 +3,14 @@
 /* Controllers */
 
 angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter, $timeout, commonService) {
-    //todo::disable console log for production
-    // if(CONFIG.NODE_ENV != "local"){
-    //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
-    // }
     let $trans = $filter('translate');
-    let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
     let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
     let noDecimalPlacesString = $filter('noDecimalPlacesString');
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
 
-    // Simulate latency by delaying all calls to socketService.$socket
-    // Useful for testing purposes
-    // Todo: It would be more realistic to delay the callback functions than delay the outgoing messages, as we do now.
-    //var real$socket = socketService.$socket;
-    //socketService.$socket = function () {
-    //    var args = arguments;
-    //    setTimeout(function () {
-    //        real$socket.apply(socketService, args);
-    //    }, 500 + 1500 * Math.random());
-    //};
+    $scope.isLoading = false;
 
     // Dev log switch
     let consoleLog, consoleInfo;
@@ -63,7 +49,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     let wsProtocol = "ws://";
 
-    $scope.connectSocket = function () {
+    function connectSocket() {
         if (!authService.isValid($cookies, localStorageService)) {
             forceRelogin();
             return;
@@ -92,7 +78,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             url = wsProtocol + WSCONFIG[serverCookie].socketURL
         }
 
-        console.log('before connect');
         $scope.AppSocket = io.connect(url, {
             query: 'token=' + token,
             //todo::add secure flag for https
@@ -128,17 +113,22 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             //$state.reload();
 
             $scope.checkForExpiredPassword();
+            $scope.isLoading = false;
         }).on('disconnect', function () {
             console.warn('Management server disconnected');
+            $scope.isLoading = false;
         }).on('connect_failed', function (err) {
             console.warn('connection failed', err);
+            $scope.isLoading = false;
         }).on('connect_error', function (err) {
             console.warn('connection err', err);
+            $scope.isLoading = false;
             // $scope.AppSocket.disconnect();
             //socketService.showErrorMessage("Cannot connect to server!");
         });
 
         $scope.AppSocket.on('error', function (data) {
+            $scope.isLoading = false;
             // The server sends this message if cookie authentication fails
             if (data.message === 'jwt expired' || data.code === 'invalid_token' || data.type === 'UnauthorizedError') {
                 forceRelogin();
@@ -188,7 +178,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         }
     };
-    $scope.connectSocket();
+
+    if (!$scope.isLoading) {
+        $scope.isLoading = true;
+        connectSocket();
+    }
+
+    $scope.connectSocket = connectSocket;
 
     //init messages
     $scope.errorMessages = [];
@@ -855,6 +851,40 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "Monthly",
         5: "Yearly",
         6: "Custom"
+    };
+
+    $scope.constDevice = {
+        "0": "BACKSTAGE",
+        // for player
+        "1": "WEB_PLAYER",
+        "1403": "WEB_PLAYER_EU",
+        "1402": "WEB_PLAYER_V68",
+        "1401": "WEB_PLAYER_EU_CHESS",
+        "2": "H5_PLAYER",
+        "2403": "H5_PLAYER_EU",
+        "2402": "H5_PLAYER_V68",
+        "2401": "H5_PLAYER_EU_CHESS",
+        "3403": "APP_PLAYER_ANDROID_EU",
+        "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+        "3402": "APP_PLAYER_ANDROID_V68",
+        "4403": "APP_PLAYER_IOS_EU",
+        "4401": "APP_PLAYER_IOS_EU_CHESS",
+        "4402": "APP_PLAYER_IOS_V68",
+        // for partner
+        "P1": "WEB_PARTNER",
+        "P1403": "WEB_PARTNER_EU",
+        "P1402": "WEB_PARTNER_V68",
+        "P1401": "WEB_PARTNER_EU_CHESS",
+        "P2": "H5_PARTNER",
+        "P2403": "H5_PARTNER_EU",
+        "P2402": "H5_PARTNER_V68",
+        "P2401": "H5_PARTNER_EU_CHESS",
+        "P3403": "APP_PARTNER_ANDROID_EU",
+        "P3401": "APP_PARTNER_ANDROID_EU_CHESS",
+        "P3402": "APP_PARTNER_ANDROID_V68",
+        "P4403": "APP_PARTNER_IOS_EU",
+        "P4401": "APP_PARTNER_IOS_EU_CHESS",
+        "P4402": "APP_PARTNER_IOS_V6"
     };
 
     $scope.constRewardPointsApplyMethod = {
@@ -1703,10 +1733,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $location.path();
-    // $scope.$on('childControllerLoaded', function () {
-    //     console.log('Start connecting Management server');
-    //     $scope.connectSocket();
-    // });
 
     function initPage() {
         if (!$scope.AppSocket.connected) {
@@ -1924,7 +1950,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.changeServer = (server) => {
         $cookies.put('curFPMSServer', server);
-        $scope.connectSocket();
+        connectSocket();
     };
     $scope.changeLogoImg = (url) => {
         $scope.companyLogo = url;
