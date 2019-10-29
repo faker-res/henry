@@ -17803,6 +17803,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.consecutiveTransferInOut = vm.platformInSetting.consecutiveTransferInOut;
 
             vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.platformInSetting.partnerEnableAutoApplyBonus;
+            vm.autoApprovalBasic.partnerForbidApplyBonusNeedCsApproval = vm.platformInSetting.partnerForbidApplyBonusNeedCsApproval;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleBonusApplyLessThan;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan;
             vm.autoApprovalBasic.partnerWithdrawalCommissionDifference = vm.platformInSetting.partnerWithdrawalCommissionDifference;
@@ -18194,6 +18195,7 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.platformInSetting._id},
                 updateData: {
                     partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                    partnerForbidApplyBonusNeedCsApproval: srcData.partnerForbidApplyBonusNeedCsApproval,
                     partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                     partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                     partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference
