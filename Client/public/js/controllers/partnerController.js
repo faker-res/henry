@@ -46,6 +46,12 @@ define(['js/app'], function (myApp) {
             WEEKLY_CONSUMPTION: 5,
             DAILY_CONSUMPTION: 7
         };
+
+        vm.subPlatformType = [
+            "CHESS",
+            "V68"
+        ];
+
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -17402,6 +17408,30 @@ define(['js/app'], function (myApp) {
                     return platformData && platformData.data && platformData.data.platformId && (vm.platformIdInSetting == platformData.data.platformId);
                 });
                 vm.platformInSetting = selectedPlatform.data;
+
+                if (vm.selectedConfigTab && vm.selectedConfigTab === 'partnerPosterAds') {
+                    vm.platformName =  vm.platformInSetting.name;
+                    vm.platformId =  vm.platformInSetting.platformId;
+
+                    if (vm.platformName && vm.subPlatformType && vm.subPlatformType.length) {
+                        vm.subPlatformIdList = {};
+
+                        for (let i = 1; i <= vm.subPlatformType.length; i++) {
+                            let counter = i.toString();
+                            if (i < 10) {
+                                counter = "0" + i;
+                            }
+                            let text = vm.platformName + '_' + vm.subPlatformType[i - 1] + " (" + vm.platformId + counter + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + counter;
+                        }
+
+                        // hardcode 03 as the product itself
+                        if (vm.subPlatformIdList) {
+                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                        }
+                    }
+                }
 
                 if (vm.selectedConfigTab && vm.selectedConfigTab != 'partnerPosterAds'){
                     vm.subPlatformId = null;
