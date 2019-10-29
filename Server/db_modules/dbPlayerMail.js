@@ -329,7 +329,8 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode, voiceCodeProvider) {
+    sendVerificationSMS: async function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner, isUseVoiceCode, voiceCodeProvider) {
+        data.tel = data.tel && data.tel.trim && data.tel.trim() || data.tel;
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -337,26 +338,33 @@ const dbPlayerMail = {
             message: data.message,
             delay: data.delay || 0,
         };
-        let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode, voiceCodeProvider): smsAPI.sending_sendMessage(sendObj);
-        return sendSMSProm.then(
-            retData => {
-                console.log(retData);
-                console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner, isUseVoiceCode);
-                return retData;
-            },
-            retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
-                errorUtils.reportError(retErr);
-                if (isUseVoiceCode) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Voice code failed to send, please contact customer service"
-                    });
-                }
-                return dbPlayerMail.failSMSErrorOutHandler(data.tel);
+        let phoneBStateLocked = false;
+        try {
+            await lockPhoneBState(platformObjId, data.tel);
+            phoneBStateLocked = true;
+
+            let sendSMSProm = isUseVoiceCode? dbUtility.sendVoiceCode(data.tel, verifyCode, voiceCodeProvider): smsAPI.sending_sendMessage(sendObj);
+            let retData = await sendSMSProm;
+            console.log('[smsAPI] retData', retData);
+            console.log('[smsAPI] Sent verification code to: ', data.tel);
+            dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner, isUseVoiceCode);
+            unlockPhoneBState(platformObjId, data.tel);
+            return retData;
+        } catch (retErr) {
+            if (phoneBStateLocked) {
+                unlockPhoneBState(platformObjId, data.tel);
             }
-        );
+
+            dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner, isUseVoiceCode);
+            errorUtils.reportError(retErr);
+            if (isUseVoiceCode) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Voice code failed to send, please contact customer service"
+                });
+            }
+            return dbPlayerMail.failSMSErrorOutHandler(data.tel);
+        }
     },
 
     failSMSErrorOutHandler: function (tel) {
@@ -1469,6 +1477,43 @@ const notifyPartnerOfNewMessage = (data) => {
     }
     return data;
 };
+
+function lockPhoneBState (platformObjId, tel) {
+    let fiveMinAgo = new Date();
+    fiveMinAgo.setMinutes(fiveMinAgo.getMinutes() -5);
+    return dbconfig.collection_phoneBState.findOneAndUpdate({
+        platform: ObjectId(platformObjId),
+        phoneNumber: tel,
+        $or: [
+            {sendSMS: false},
+            {
+                sendSMSUpdatedTime: {
+                    $lt: new Date(fiveMinAgo) // only lock for five mintues max, this is prevent concurrency issue, not for keeping time gap between sms
+                },
+            }
+        ],
+    }, {
+        platform: ObjectId(platformObjId),
+        phoneNumber: tel,
+        sendSMS: true,
+        sendSMSUpdatedTime: new Date(),
+    }, {
+        upsert: true,
+        new: true
+    }).lean().catch(err => {
+        console.log("potential sms concurrent issue", err);
+        return Promise.reject({message: "Concurrent issue detected"});
+    });
+}
+
+function unlockPhoneBState (platformObjId, tel) {
+    dbconfig.collection_phoneBState.update({
+        platform: ObjectId(platformObjId),
+        phoneNumber: tel,
+    }, {
+        sendSMS: false
+    }).catch(errorUtils.reportError);
+}
 
 var proto = dbPlayerMailFunc.prototype;
 proto = Object.assign(proto, dbPlayerMail);
