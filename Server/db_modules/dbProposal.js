@@ -94,7 +94,7 @@ var proposal = {
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
+            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
@@ -682,7 +682,10 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
-                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data && proposalData.data.depositMethod == 1)) {
+                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data
+                        && (proposalData.data.depositMethod == 1) && proposalData.data.parentTopUpAmount
+                        && (proposalData.data.parentTopUpAmount > 50000)) //allow creating multiple proposals when parent proposal is manual top up , deposit method is 网银 and 50k amount which is fixed from pms
+                ) {
 
                     return Promise.reject({
                         name: "DBError",
@@ -2399,7 +2402,8 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
                             ];
                         }
 
