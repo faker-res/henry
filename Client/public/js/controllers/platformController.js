@@ -591,8 +591,10 @@ define(['js/app'], function (myApp) {
                 0: 'Common Wallet',
                 1: 'Live Wallet',
                 2: 'Slots Wallet',
-                3: 'Sports Wallet',
-                4: 'Keno Wallet'
+                3: 'Battle Wallet',
+                4: 'Casino Wallet',
+                5: 'Sports Wallet',
+                6: 'Keno Wallet',
             };
 
             vm.betType = [
@@ -3002,6 +3004,9 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.sendMultiMessage.credibilityRemarksFilter) {
                     playerQuery.credibilityRemarksFilter = vm.sendMultiMessage.credibilityRemarksFilter;
+                }
+                if (vm.sendMultiMessage.partnerName) {
+                    playerQuery.partnerName = vm.sendMultiMessage.partnerName;
                 }
                 if (vm.sendMultiMessage.playerLevel) {
                     playerQuery.playerLevel = vm.sendMultiMessage.playerLevel;
@@ -41110,6 +41115,12 @@ define(['js/app'], function (myApp) {
                         vm.queryDepartments = result;
                     });
                 });
+            };
+
+            vm.resetPartnerName = function () {
+                if(vm.sendMultiMessage.playerType !== "underPartner"){
+                    vm.sendMultiMessage.partnerName = " ";
+                }
             };
 
             vm.createCallOutMission = function () {
