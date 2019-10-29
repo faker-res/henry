@@ -120,7 +120,7 @@ let PlayerServiceImplement = function () {
         }
 
         let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId, true], isValidData, true, true, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
                 data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
