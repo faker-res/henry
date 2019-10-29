@@ -662,7 +662,7 @@ var dbFrontEndSetting = {
             };
 
             if (subPlatformId && subPlatformId != ""){
-                query.subPlatformId = subPlatformId
+                query.subPlatformId = Number(subPlatformId);
             }
             else{
                 query.subPlatformId = {$exists: false}

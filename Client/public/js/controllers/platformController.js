@@ -64,11 +64,10 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.subPlatformIdList = {
-                "401 - EU_CHESS": 401,
-                "402 - EU_V68": 402,
-                "403 - EU": 403,
-            };
+            vm.subPlatformType = [
+                "CHESS",
+                "V68"
+            ];
 
             vm.frontEndSettingOnClickAction = {
                 "openNewPage": 1,
@@ -25525,6 +25524,34 @@ define(['js/app'], function (myApp) {
                 if (!vm.filterFrontEndSettingPlatform){
                     return socketService.showErrorMessage($translate("NO_PLATFORM_MESSAGE"));
                 }
+
+                if (vm.selectedFrontEndSettingTab && vm.selectedFrontEndSettingTab === 'partnerCarouselConfiguration' || vm.selectedFrontEndSettingTab === 'partnerUrlConfiguration' || vm.selectedFrontEndSettingTab === 'partnerSkinManagement' ) {
+                    let platformData = vm.allPlatformData.filter(p => p._id && vm.filterFrontEndSettingPlatform && p._id.toString() == vm.filterFrontEndSettingPlatform.toString());
+                    if (platformData && platformData.length) {
+                        vm.platformName = platformData[0].name;
+                        vm.platformId = platformData[0].platformId;
+                    }
+
+                    if (vm.platformName && vm.subPlatformType && vm.subPlatformType.length) {
+                        vm.subPlatformIdList = {};
+
+                        for (let i = 1; i <= vm.subPlatformType.length; i++) {
+                            let counter = i.toString();
+                            if (i < 10) {
+                                counter = "0" + i;
+                            }
+                            let text = vm.platformName + '_' + vm.subPlatformType[i - 1] + " (" + vm.platformId + counter + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + counter;
+                        }
+
+                        // hardcode 03 as the product itself
+                        if (vm.subPlatformIdList) {
+                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                        }
+                    }
+                }
+
                 switch (vm.selectedFrontEndSettingTab) {
                     case 'rewardPointClarification':
                         vm.loadRewardPointClarificationData(vm.filterFrontEndSettingPlatform);
