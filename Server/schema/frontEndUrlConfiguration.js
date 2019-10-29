@@ -18,9 +18,9 @@ var frontEndUrlConfigurationSchema = new Schema({
     metaDescription: {type: String},
     // favicon
     faviconUrl: {type: String},
-    baiduStat_PC: {type: String},
-    baiduStat_H5_IOS: {type: String},
-    baiduStat_H5_ANDROID: {type: String},
+    baiduStats_PC: {type: String},
+    baiduStats_H5_IOS: {type: String},
+    baiduStats_H5_ANDROID: {type: String},
     pc: {
         skin: {type: Schema.Types.ObjectId, ref: 'frontEndSkinSetting', index: true},
         // htmlTextColor
