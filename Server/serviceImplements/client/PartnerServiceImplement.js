@@ -569,8 +569,8 @@ var PartnerServiceImplement = function () {
     };
 
     this.getPartnerPoster.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.url);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production], isValidData);
+        let isValidData = Boolean(data && data.hasOwnProperty('platformId') && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production, data.subPlatformId], isValidData);
     };
 
     this.getPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {
