@@ -6528,7 +6528,7 @@ let dbPlayerInfo = {
                 return partnerProm.then(
                     partnerObjId => {
                         if (partnerNameId && partnerObjId) {
-                            let partnerObj = {partner: ObjectId(partnerObjId[0]._id)};
+                            let partnerObj = {partner: {$in: partnerObjId}};
                             advancedQuery.$and[0] = {$and : [data, partnerObj]};
                         }
 
