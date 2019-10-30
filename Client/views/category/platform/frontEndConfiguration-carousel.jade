@@ -43,5 +43,5 @@ div.col-md-4.fronendConfigDiv.carousel
                         span.fa.fa-trash-o
 
 div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform, vm.filterFrontEndSettingSubPlatformId)") {{'CANCEL' | translate}}
     button#carouselSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndCarouselSetting()") {{'SAVE' | translate}}

@@ -13472,7 +13472,7 @@ define(['js/app'], function (myApp) {
                 case 'bank1':
                     sendData = $.extend({}, vm.playerPayment);
                     if(vm.playerPayment && vm.playerPayment.bankAddress) {
-                        sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
@@ -13488,7 +13488,7 @@ define(['js/app'], function (myApp) {
                 case 'bank2':
                     sendData = $.extend({}, vm.playerPayment2);
                     if(vm.playerPayment2 && vm.playerPayment2.bankAddress2){
-                        sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
@@ -13506,7 +13506,7 @@ define(['js/app'], function (myApp) {
                 case 'bank3':
                     sendData = $.extend({}, vm.playerPayment3);
                     if(vm.playerPayment3 && vm.playerPayment3.bankAddress3){
-                        sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;

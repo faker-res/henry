@@ -493,7 +493,7 @@ var proposal = {
                         "data.platformId": data[0].platformId,
                         status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
-                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerObjIds", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {
@@ -504,6 +504,12 @@ var proposal = {
 
                     if (queryObj['data.playerObjId']) {
                         queryObj['data.playerObjId'] = ObjectId(queryObj['data.playerObjId']);
+                    }
+
+                    if (queryObj['data.playerObjIds']) {
+                        queryObj['data.playerObjIds'] = queryObj['data.playerObjIds'].map(objId => ObjectId(objId))
+                        queryObj['data.playerObjIds'] = {$in: queryObj['data.playerObjIds']};
+                        queryObj['data.playerObjId'] = queryObj['data.playerObjIds']
                     }
 
                     // Player modify payment info
