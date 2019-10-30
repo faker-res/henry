@@ -316,8 +316,8 @@ var dbQualityInspection = {
             let startTime = dbUtility.getLocalTimeString(startDate);
             let endTime = dbUtility.getLocalTimeString(endDate);
 
-            let queryObj = "SELECT * FROM cti_record AS A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
-            let queryCount = "SELECT COUNT(*) AS total FROM cti_record as A JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
+            let queryObj = "SELECT * FROM cti_record AS A LEFT JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime + "' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
+            let queryCount = "SELECT COUNT(*) AS total FROM cti_record as A LEFT JOIN cti_cdr_call AS B ON A.record_uuid = B.callleg_uuid WHERE A.begintime BETWEEN CAST('"+ startTime +"' as DATETIME) AND CAST('"+ endTime +"' AS DATETIME) AND A.record_status = '2'";
             callerIdStringList = callerIdStringList && callerIdStringList.length > 0 ? callerIdStringList.substring(0,callerIdStringList.length - 1) : callerIdStringList;
 
             if (callerIdStringList && callerIdStringList.length > 0){

@@ -488,6 +488,9 @@ let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commi
 let commissionBBRecordSchema = require('./../schema/commissionBBRecord');
 let commissionBBRecordModel = dbLogs2.model('commissionBBRecord', commissionBBRecordSchema, 'commissionBBRecord');
 
+let phoneBStateSchema = require('./../schema/phoneBState');
+let phoneBStateModel = dbLogs2.model('phoneBState', phoneBStateSchema, 'phoneBState');
+
 let fakeCommissionBillBoardRecordSchema = require('./../schema/fakeCommissionBillBoardRecord');
 let fakeCommissionBillBoardRecordModel = dbLogs2.model('fakeCommissionBillBoardRecord', fakeCommissionBillBoardRecordSchema, 'fakeCommissionBillBoardRecord');
 
@@ -895,6 +898,7 @@ var dbProperties = {
     collection_commissionBB: commissionBBModel,
     collection_commissionBBRecord: commissionBBRecordModel,
     collection_fakeCommissionBillBoardRecord: fakeCommissionBillBoardRecordModel,
+    collection_phoneBState: phoneBStateModel,
 
     collection_partnerWeekSummary: partnerWeekSummaryModel,
     collection_partnerChildWeekSummary: partnerChildWeekSummaryModel,
