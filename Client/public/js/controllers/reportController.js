@@ -4994,7 +4994,7 @@ define(['js/app'], function (myApp) {
                 isExport: isExport
             };
 
-            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.loginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.deviceReportLoginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.deviceReportLoginDeviceList).length){
                 sendQuery.query.loginDevice = vm.deviceQuery.loginDevice;
             }
             console.log('sendQuery', sendQuery);
@@ -5069,7 +5069,7 @@ define(['js/app'], function (myApp) {
                         item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
                         if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                            item.totalPlatformFeeEstimate$ = parseFloat(item.totalPlatformFeeEstimate).toFixed(2);
                         }
 
                         return item;
@@ -11883,6 +11883,9 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "DEVICE_REPORT") {
                 vm.reportSearchTime = 0;
+                let cloneLoginDevices = JSON.parse(JSON.stringify(vm.registrationDeviceList));
+                delete cloneLoginDevices["0"];
+                vm.deviceReportLoginDeviceList = cloneLoginDevices;
                 utilService.actionAfterLoaded('#deviceReportTablePage', function () {
                     // Get Promote CS and way lists
                     vm.allPromoteWay = {};

@@ -456,7 +456,7 @@
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 .search-filters-item
                     label {{"Login Device"|translate}}
-                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.deviceReportLoginDeviceList')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                         div
