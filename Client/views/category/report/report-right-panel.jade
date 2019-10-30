@@ -2398,7 +2398,7 @@
                     .endTime
                 .search-filters-item
                     label {{'Login Device'| translate}}
-                    select.spicker.form-control(ng-model='vm.winRateQuery.loginDevice', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform()", ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                    select.spicker.form-control(ng-model='vm.winRateQuery.loginDevice', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform();vm.changeWinRateLoginDevice()", ng-options='i as v | translate for (i,v) in vm.winRateLoginDeviceList')
                 .search-filters-item
                     input.symbol(type="checkbox", ng-model='vm.winRateQuery.searchBySummaryData')
                     label {{'测试数据'}}
