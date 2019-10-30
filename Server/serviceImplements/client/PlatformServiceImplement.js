@@ -7,6 +7,7 @@ const dbPlatformAnnouncement = require("../../db_modules/dbPlatformAnnouncement"
 const dbUtility = require('./../../modules/dbutility');
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
 const constSystemParam = require('../../const/constSystemParam');
+const constDevice = require('../../const/constDevice');
 const constPlayerRegistrationInterface = require('../../const/constPlayerRegistrationInterface');
 const dbSmsGroup = require('./../../db_modules/dbSmsGroup');
 const dbWCGroupControl = require('./../../db_modules/dbWCGroupControl');
@@ -114,6 +115,21 @@ var PlatformServiceImplement = function () {
             && data.playerType && data.telSalesName && data.promoMethod && data.fame && data.chatRecordResult
             && data.chatRecordTitle);
         data.name = data.playerAccount;
+
+        if (data.deviceType) {
+            data.registrationDevice = String(data.deviceType);
+            if (data.subPlatformId) {
+                data.registrationDevice = String(data.registrationDevice) + String(data.subPlatformId);
+            }
+            // let playerLoginDeviceArr = [];
+            // for (let key in constDevice) {
+            //     playerLoginDeviceArr.push(constDevice[key]);
+            // }
+            // if (!playerLoginDeviceArr.includes(data.registrationDevice)) {
+            //     isValidData = false;
+            // }
+        }
+
         // Promise create player and partner
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerFromTel, [data], isValidData, null, null, true);
     };
@@ -176,7 +192,7 @@ var PlatformServiceImplement = function () {
 
     this.getFrontEndConfig.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.hasOwnProperty('platformId') && data.code);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndConfig, [data.platformId, data.code, data.clientType], isValidData, null, null, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndConfig, [data.platformId, data.code, data.clientType, data.subPlatformId], isValidData, null, null, true);
     };
 
     this.sendFileFTP.onRequest = function(wsFunc, conn, data) {

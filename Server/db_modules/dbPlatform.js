@@ -1816,7 +1816,7 @@ var dbPlatform = {
         );
     },
 
-    checkPlayerLevelDownForPlatform: async function (platformObjId) {
+    checkPlayerLevelDownForPlatform: function (platformObjId) {
         // const todayIsWeeklySettlementDay = dbUtility.getYesterdaySGTime().endTime.getTime() === dbUtility.getLastWeekSGTime().endTime.getTime();
         // const canCheckWeeklyConditions = todayIsWeeklySettlementDay;
         const checkPeriod = constPlayerLevelPeriod.DAY;
@@ -1827,52 +1827,47 @@ var dbPlatform = {
         //     value: 0
         // }).lean();
 
-        let platform = await dbconfig.collection_platform.findById(platformObjId).lean();
+        const levelsProm = dbconfig.collection_playerLevel.find({
+            platform: platformObjId
+        }).sort({value: 1}).lean();
 
-        // Check if platform is open for level down
-        if (platform.autoCheckPlayerLevelDown !== false) {
-            const levelsProm = dbconfig.collection_playerLevel.find({
-                platform: platformObjId
-            }).sort({value: 1}).lean();
-
-            return levelsProm.then(
-                playerLevel => {
-                    if (!(playerLevel && playerLevel.length)) {
-                        return Promise.reject({name: "DataError", message: "Cannot find player level"});
-                    }
-
-                    var stream = dbconfig.collection_players.find(
-                        {
-                            platform: platformObjId,
-                            playerLevel: {$ne: playerLevel[0]._id}
-                        },
-                        {_id: 1}
-                    ).cursor({batchSize: 1000});
-
-                    var balancer = new SettlementBalancer();
-                    return balancer.initConns().then(function () {
-                        return Q(
-                            balancer.processStream(
-                                {
-                                    stream: stream,
-                                    batchSize: 30, //100
-                                    makeRequest: function (playerIdObjs, request) {
-                                        request("player", "checkPlayerLevelDownForPlayers", {
-                                            playerObjIds: playerIdObjs.map(function (playerIdObj) {
-                                                return playerIdObj._id;
-                                            }),
-                                            checkPeriod: checkPeriod,
-                                            platformId: platformObjId,
-                                            playerLevelsObj: playerLevel
-                                        });
-                                    }
-                                }
-                            )
-                        );
-                    });
+        return levelsProm.then(
+            playerLevel => {
+                if (!(playerLevel && playerLevel.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player level"});
                 }
-            );
-        }
+
+                var stream = dbconfig.collection_players.find(
+                    {
+                        platform: platformObjId,
+                        playerLevel: {$ne: playerLevel[0]._id}
+                    },
+                    {_id: 1}
+                ).cursor({batchSize: 1000});
+
+                var balancer = new SettlementBalancer();
+                return balancer.initConns().then(function () {
+                    return Q(
+                        balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: 30, //100
+                                makeRequest: function (playerIdObjs, request) {
+                                    request("player", "checkPlayerLevelDownForPlayers", {
+                                        playerObjIds: playerIdObjs.map(function (playerIdObj) {
+                                            return playerIdObj._id;
+                                        }),
+                                        checkPeriod: checkPeriod,
+                                        platformId: platformObjId,
+                                        playerLevelsObj: playerLevel
+                                    });
+                                }
+                            }
+                        )
+                    );
+                });
+            }
+        );
     },
 
     checkPlayerLevelDownForPlayers: function (playerObjIds, checkPeriod, platformObjId, playerLevelsObj) {
@@ -2358,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -2847,16 +2843,24 @@ var dbPlatform = {
         );
     },
 
-    getPartnerPosterAdsList: function (platformObjId, targetDevice) {
-        return dbconfig.collection_partnerPosterAdsConfig.find(
-            {
-                platform: platformObjId,
-                targetDevice: targetDevice
-            }
-        ).sort({orderNo: 1}).lean();
+    getPartnerPosterAdsList: function (platformObjId, targetDevice, subPlatformId) {
+
+        let query = {
+            platform: platformObjId,
+            targetDevice: targetDevice
+        };
+
+        if (subPlatformId){
+            query.subPlatformId = Number(subPlatformId);
+        }
+        else{
+            query.subPlatformId = {$exists: false};
+        }
+
+        return dbconfig.collection_partnerPosterAdsConfig.find(query).sort({orderNo: 1}).lean();
     },
 
-    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice) {
+    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice, subPlatformId) {
         let saveObj = {
             platform: platformObjId,
             orderNo: orderNo,
@@ -2864,6 +2868,10 @@ var dbPlatform = {
             title: title,
             posterImage: posterImage,
             showInRealServer: showInRealServer
+        }
+
+        if (subPlatformId){
+            saveObj.subPlatformId = subPlatformId;
         }
 
         return dbconfig.collection_partnerPosterAdsConfig(saveObj).save();
@@ -4898,7 +4906,6 @@ var dbPlatform = {
                 "samePhoneNumberRegisterCount",
                 "canMultiReward",
                 "autoCheckPlayerLevelUp",
-                "autoCheckPlayerLevelDown",
                 "manualPlayerLevelUp",
                 "platformBatchLevelUp",
                 "playerLevelUpPeriod",
@@ -6268,7 +6275,7 @@ var dbPlatform = {
 
     },
 
-    getFrontEndConfig: function (platformId, code, clientType) {
+    getFrontEndConfig: function (platformId, code, clientType, subPlatformId) {
         if (code != 'description' && (!clientType || (clientType && clientType != 1 && clientType != 2 && clientType != 4))){
             return Promise.reject({
                 name: "DataError",
@@ -6307,7 +6314,7 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerCarousel':
-                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
@@ -6319,13 +6326,13 @@ var dbPlatform = {
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
-                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         case 'skin':
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerSkin':
-                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         default:
                             prom = Promise.reject({
@@ -6339,8 +6346,8 @@ var dbPlatform = {
         );
 
         // for those do not have "device" field
-        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1, code);
+        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code, subPlatformId) {
+            let query = querySetUp(platformObjId, clientType, 1, code, subPlatformId);
 
             if (!query){
                 return [];
@@ -6476,8 +6483,8 @@ var dbPlatform = {
         }
 
         // for those have "device" field
-        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 2, code);
+        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code, subPlatformId) {
+            let query = querySetUp(platformObjId, clientType, 2, code, subPlatformId);
             if (!query) {
                 return [];
             }
@@ -6601,11 +6608,18 @@ var dbPlatform = {
             return checkUrlForCDNPrepend (cdnText, setting)
         }
 
-        function querySetUp (platformObjId, clientType, setUpType, code) {
+        function querySetUp (platformObjId, clientType, setUpType, code, subPlatformId) {
             let query = {
                 platformObjId: ObjectId(platformObjId),
                 status: 1,
             };
+
+            if (subPlatformId){
+                query.subPlatformId = Number(subPlatformId);
+            }
+            else{
+                query.subPlatformId = {$exists: false};
+            }
 
             if (code && (code == 'recommendation' || code == 'carousel' || code == 'advertisement' || code == 'reward')){
                 query.isVisible = true;
@@ -6788,20 +6802,8 @@ var dbPlatform = {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
                 }
 
-                if (setting.topButtonRoute && (setting.topButtonRoute.indexOf('http') == -1 && setting.topButtonRoute.indexOf('https') == -1)) {
-                    setting.topButtonRoute = cdnText + setting.topButtonRoute;
-                }
-
-                if (setting.rightButtonRoute && (setting.rightButtonRoute.indexOf('http') == -1 && setting.rightButtonRoute.indexOf('https') == -1)) {
-                    setting.rightButtonRoute = cdnText + setting.rightButtonRoute;
-                }
-
-                if (setting.bottomButtonRoute && (setting.bottomButtonRoute.indexOf('http') == -1 && setting.bottomButtonRoute.indexOf('https') == -1)) {
-                    setting.bottomButtonRoute = cdnText + setting.bottomButtonRoute;
-                }
-
-                if (setting.rewardButtonRoute && (setting.rewardButtonRoute.indexOf('http') == -1 && setting.rewardButtonRoute.indexOf('https') == -1)) {
-                    setting.rewardButtonRoute = cdnText + setting.rewardButtonRoute;
+                if (setting.rewardBannerPicture && (setting.rewardBannerPicture.indexOf('http') == -1 && setting.rewardBannerPicture.indexOf('https') == -1)) {
+                    setting.rewardBannerPicture = cdnText + setting.rewardBannerPicture;
                 }
 
                 return setting

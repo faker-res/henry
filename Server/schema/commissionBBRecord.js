@@ -17,6 +17,8 @@ let commissionBBRecordSchema = new Schema({
     amount: {type: Number},
     // fake record source (if not exist, is real record)
     fakeSource: {type: Schema.ObjectId, ref: 'fakeCommissionBillBoardRecord'},
+    // remarks
+    remarks: {type: String},
 });
 
 commissionBBRecordSchema.index({platform: 1, period: 1, lastCalculate: -1, amount: -1, name: 1});

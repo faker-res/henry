@@ -12,12 +12,16 @@
                             select.form-control(ng-model='vm.sendMultiMessage.platformList', ng-options='v._id as v.name$ for v in vm.allPlatformData', multiple, bsp, data-actions-box='true', ng-change='vm.getAllDepartment(vm.sendMultiMessage.platformList);vm.getPlatformCredibilityRemarks(vm.sendMultiMessage.platformList);' )
                         .search-filters-item
                             label {{"USER TYPE" | translate}}
-                            select.form-control(ng-model="vm.sendMultiMessage.playerType", required)
+                            select.form-control(ng-model="vm.sendMultiMessage.playerType", required, ng-change="vm.resetPartnerName()")
                                 option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                                 option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                                 option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                                 option(value='Test Player') {{'TEST_PLAYER' | translate}}
                                 option(value='Partner') {{'partner' | translate}}
+                                option(value='underPartner') {{'Under Partner' | translate}}
+                        .search-filters-item(ng-if="vm.sendMultiMessage.playerType === 'underPartner'", required)
+                            label {{"Partner_Name" | translate}}
+                            input.form-control(ng-model='vm.sendMultiMessage.partnerName')
                         .search-filters-item
                             label {{"PlayerLevel" | translate}}
                             select.form-control(ng-model='vm.sendMultiMessage.playerLevel', required)
@@ -81,7 +85,7 @@
                             select.spicker.form-control(ng-model='vm.sendMultiMessage.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.sendMultiMessage)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                         .search-filters-item
                             label {{"REGISTRATION_ADMIN"|translate}}
-                            select.spicker.form-control(ng-model='vm.sendMultiMessage.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+                            select.spicker.form-control(ng-model='vm.sendMultiMessage.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
                         //.inlineBlk
                             label {{"Length Per Page" | translate}}
                             input.form-control(type='number',ng-model='vm.sendMultiMessage.pageNumber', style='width:70px')

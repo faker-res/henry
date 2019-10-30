@@ -48,11 +48,11 @@ var localConfig = {
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/8H_tfnbk5J3_j8rjthtPGdyo70QPBqoqeDti1YaCwj4",
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service,
-    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
-    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107", //yunpian
-    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action", //netease
-    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9", //netease
-    // voiceCodeSecret: "bfb2bab2d9ec", // netease
+    voiceCodeUrl_YP: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
+    voiceCodeKEY_YP: "374b4bd0043a359cdd91489762db4107", //yunpian
+    voiceCodeUrl_NE: "https://api.netease.im/sms/sendcode.action", //netease
+    voiceCodeKEY_NE: "40a07dbb1976981d394429ddbb2819a9", //netease
+    voiceCodeSecret_NE: "bfb2bab2d9ec", // netease
     voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
     voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
@@ -88,11 +88,11 @@ var devConfig = {
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
-    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
-    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeUrl_YP: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
+    voiceCodeKEY_YP: "374b4bd0043a359cdd91489762db4107", //yunpian
+    voiceCodeUrl_NE: "https://api.netease.im/sms/sendcode.action", //netease
+    voiceCodeKEY_NE: "40a07dbb1976981d394429ddbb2819a9", //netease
+    voiceCodeSecret_NE: "bfb2bab2d9ec", // netease
     voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
     voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
@@ -158,11 +158,11 @@ var qaConfig = {
     gmailOAuthClientId: "1038978421433-9huu4iii0becis24bob05kc7flv83d04.apps.googleusercontent.com",
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
-    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
-    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeUrl_YP: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
+    voiceCodeKEY_YP: "374b4bd0043a359cdd91489762db4107", //yunpian
+    voiceCodeUrl_NE: "https://api.netease.im/sms/sendcode.action", //netease
+    voiceCodeKEY_NE: "40a07dbb1976981d394429ddbb2819a9", //netease
+    voiceCodeSecret_NE: "bfb2bab2d9ec", // netease
     voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
     voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",
@@ -301,11 +301,11 @@ var prodConfig = {
     gmailOAuthClientSecret: "UZg27F7_tJcTdf3O6covSw5p",
     gmailOAuthRefreshToken: "1/C8AZHg3OOI6hjVfT6S5rm192b4i2KbdJ8KZWOEY_dN0",
     keyMode: 0, // Mode 0: Legacy Key, Mode 1: Key Service
-    // voiceCodeUrl: "https://voice.yunpian.com/v2/voice/send.json",
-    // voiceCodeKEY: "374b4bd0043a359cdd91489762db4107",
-    // voiceCodeUrl: "https://api.netease.im/sms/sendcode.action",
-    // voiceCodeKEY: "40a07dbb1976981d394429ddbb2819a9",
-    // voiceCodeSecret: "bfb2bab2d9ec",
+    voiceCodeUrl_YP: "https://voice.yunpian.com/v2/voice/send.json", // yunpian
+    voiceCodeKEY_YP: "374b4bd0043a359cdd91489762db4107", //yunpian
+    voiceCodeUrl_NE: "https://api.netease.im/sms/sendcode.action", //netease
+    voiceCodeKEY_NE: "40a07dbb1976981d394429ddbb2819a9", //netease
+    voiceCodeSecret_NE: "bfb2bab2d9ec", // netease
     voiceCodeKEY: "0793164d7d7320f72ae19a66bb2bf971",
     voiceCodeSecret: "1400268547",
     bankCardInfoAppCode: "cc889034bd5c4f2e94d2428c455bf6f3",

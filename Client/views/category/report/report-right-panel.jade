@@ -23,9 +23,11 @@
                         option(value='') {{"any" | translate}}
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{i | translate}}
                 .search-filters-item
-                    label {{'DEVICE' | translate}}
-                    select.form-control.merchantNoList(ng-options='i as v|translate for (i,v) in vm.playerInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
-
+                    label {{'DEVICE' | translate}} ({{"Old" | translate}})
+                    select.form-control.merchantNoList(ng-options='i as v|translate for (i,v) in vm.topUpReportInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
+                .search-filters-item
+                    label {{"Login Device"|translate}}
+                    select.spiker.form-control(ng-model='vm.queryTopup.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
                 .search-filters-item
                     label {{'Online Topup Type' | translate}}
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.topupType', multiple, static-bsp, data-actions-box='true')
@@ -86,8 +88,9 @@
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
                     select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
                 .search-filters-item
-                    label {{"REGISTRATION_AGENT"|translate}}
+                    label {{"REGISTRATION_AGENT"|translate}} {{"Old" | translate}}
                     select.form-control(ng-model="vm.proposalQuery.inputDevice")
+                        option(value=-1)
                         option(value='') {{'all'|translate}}
                         option(value=0) {{'Backstage'|translate}}
                         option(value=1) {{'Web Player'|translate}}
@@ -96,6 +99,9 @@
                         option(value=4) {{'HTML5 Agent'|translate}}
                         option(value=5) {{'APP Player'|translate}}
                         option(value=6) {{'APP Agent'|translate}}
+                .search-filters-item
+                    label {{"Login Device"|translate}}
+                    select.spiker.form-control(ng-model='vm.proposalQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
                 .search-filters-item
                     label {{"Proposal Type"|translate}}
                     select.form-control#selectProposalType(multiple="multiple", ng-options='i._id as i.name | translate group by vm.getProposalTypeOptionValue(i) | translate for (k,i) in ( vm.allProposalType | unique: "name" ) track by i.name', ng-model='abc')
@@ -296,6 +302,9 @@
                     select.form-control(ng-model='vm.playerQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.playerQuery.platformId)')
                         option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
                 .search-filters-item
+                    label {{"LOGIN_DEVICE"|translate}}
+                    select.spicker.form-control(ng-model='vm.playerQuery.loginDevice', bsp, multiple, data-actions-box='true', ng-options='v as i | translate for (i,v) in vm.constPlayerDevice')
+                .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.form-control#selectCredibilityRemarks(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.playerQuery.credibilityRemarks")
 
@@ -345,7 +354,7 @@
                     select.spicker.form-control(ng-model='vm.playerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.playerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.playerQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                      div
@@ -719,6 +728,9 @@
                 .search-filters-item
                     label {{"End date"|translate}}
                     .endTime
+                .search-filters-item
+                    label {{"REGISTRATION_DEVICE" | translate}}
+                    select.form-control.spicker(ng-model='vm.newPlayerQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList', multiple, bsp, data-actions-box='true')
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchNewPlayerRecord(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.exportToExcel('newAccountTable', 'NEWACCOUNT_REPORT')") {{'EXPORT_EXCEL' | translate}}
@@ -756,6 +768,43 @@
                                 span {{v.platform$}}
                             td
                                 span {{v.promoteWayName}}
+                            td
+                                span {{v.totalNewAccount}}
+                            td
+                                span {{v.playerWithTopup}}
+                            td
+                                span {{v.playerWithMultiTopup}}
+                            td
+                                span {{v.validPlayer}}
+                        tr
+                            td
+                                span
+                            td
+                                span {{ "total" | translate}}
+                            td
+                                span {{ vm.newPlayerQuery.newPlayers.length}}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewPlayerWithMultiTopup }}
+                            td
+                                span {{ vm.newPlayerQuery.totalNewValidPlayer }}
+                br
+                table.playerLvlTable#newAccountDeviceTable.widthto100(ng-show="vm.isShowNewPlayerDeviceRecord")
+                    thead
+                        tr
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "platform$" ? "-platform$":"platform$"') {{"PRODUCT_NAME" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "registrationDevice" ? "-registrationDevice":"registrationDevice"') {{"REGISTRATION_DEVICE" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "totalNewAccount" ? "-totalNewAccount":"totalNewAccount"') {{"Total New Account" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "playerWithTopup" ? "-playerWithTopup":"playerWithTopup"') {{"Player with Top-ups" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "playerWithMultiTopup" ? "-playerWithMultiTopup":"playerWithMultiTopup"') {{"Player with Top-ups Multiple Times" | translate}}
+                            th(ng-click='vm.newPlayerQuery.deviceSort = vm.newPlayerQuery.deviceSort == "validPlayer" ? "-validPlayer":"validPlayer"') {{"Valid Player" | translate}}
+                    tbody
+                        tr(ng-repeat='(i, v) in vm.newPlayerQuery.deviceData | orderBy: vm.newPlayerQuery.deviceSort | filter: vm.filterNoNewAccountDevice')
+                            td
+                                span {{v.platform$}}
+                            td
+                                span {{v.registrationDevice | translate}}
                             td
                                 span {{v.totalNewAccount}}
                             td
@@ -1286,7 +1335,7 @@
                     select.spicker.form-control(ng-model='vm.dxTrackingQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxTrackingQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.dxTrackingQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
 
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxTrackingQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
@@ -1339,6 +1388,9 @@
                     select.form-control(ng-model='vm.dxTrackingQuery.providerId', required)
                         option(value='') {{'all' | translate}}
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name | translate}}
+                .search-filters-item
+                    label {{"REGISTRATION_DEVICE" | translate}}
+                    select.form-control.spicker(ng-model='vm.dxTrackingQuery.registrationDevice', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList', multiple, bsp, data-actions-box='true')
 
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXTrackingReport(true)') {{'SEARCH' | translate}}
@@ -1367,6 +1419,9 @@
                         option(value='2') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
                         option(value='3') {{'TEST_PLAYER' | translate}}
                 .search-filters-item
+                    label {{"REGISTRATION_DEVICE"|translate}}
+                    select.spiker.form-control(ng-model='vm.dxNewPlayerQuery.registrationDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.registrationDeviceList')
+                .search-filters-item
                     label {{'REGISTRATION_TIME_START' | translate}}
                     .startTime
                 .search-filters-item
@@ -1394,7 +1449,7 @@
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.dxNewPlayerQuery)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins')
+                    select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.admins', bsp, multiple, data-actions-box='true', ng-options='dp.adminName === "N/A" ? dp._id : dp.adminName as dp.adminName | translate for dp in vm.queryAdmins | unique: "_id"')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.dxNewPlayerQuery.valueScoreOperator === "range")}')
                     label {{"PlayerValue"|translate}}
                     div
@@ -1539,7 +1594,7 @@
                     select.spicker.form-control(ng-model='vm.playerDomain.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setPDQueryAdmins()", ng-options='dp._id as dp.roleName | translate for dp in vm.pdQueryRoles')
                 .search-filters-item
                     label {{"REGISTRATION_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins')
+                    select.spicker.form-control(ng-model='vm.playerDomain.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.pdQueryAdmins | unique: "_id"')
                 .search-filters-item
                     label {{"Registration Domain"|translate}}
                     input.form-control(type="text", ng-model="vm.playerDomain.domain")
@@ -1820,7 +1875,7 @@
                     select.spicker.form-control(ng-model='vm.feedbackQuery.roles', multiple, data-actions-box='true' data-width="200px", ng-change="vm.setQueryAdmins(vm.feedbackQuery)", ng-options='a._id as a.roleName | translate for (i,a) in vm.queryRoles', bsp)
                 .search-filters-item
                     label {{"FEEDBACK_ADMIN"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins', bsp)
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.admins', multiple, data-actions-box='true', data-width="200px", ng-options='a._id as a.adminName | translate for (i,a) in vm.queryAdmins | unique: "_id"', bsp)
                 .search-filters-item
                     label {{"CREDIBILITY"|translate}}
                     select.spicker.form-control(ng-model='vm.feedbackQuery.credibility', multiple, data-actions-box='true', ng-options='a._id as a.name for (i,a) in vm.filterCredibilityRemarks', bsp)
@@ -1868,6 +1923,9 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountFormal")
                         div.symbol(ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'") ~
                         input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
+                .search-filters-item
+                    label {{"REGISTRATION_DEVICE"|translate}}
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.registrationDeviceList', bsp)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}

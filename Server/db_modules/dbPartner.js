@@ -156,6 +156,8 @@ let dbPartner = {
                         delete partnerData.commissionType;
                     }
 
+                    partnerData.registrationDevice = dbUtil.getDeviceValue(partnerData, true);
+
                     if (partnerData.parent) {
                         return dbconfig.collection_partner.findOne({partnerName: partnerData.parent}).lean().then(
                             parentData => {
@@ -446,6 +448,11 @@ let dbPartner = {
 
                         if (partnerdata.registrationInterface !== constPlayerRegistrationInterface.BACKSTAGE) {
                             partnerdata.loginTimes = 1;
+                        }
+
+                        if (partnerdata.registrationDevice && partnerdata.registrationDevice !== "0") {
+                            partnerdata.loginTimes = 1;
+                            partnerdata.loginDevice = dbUtil.getDeviceValue(partnerdata, true);
                         }
 
                         if(playerId){
@@ -1633,6 +1640,9 @@ let dbPartner = {
                             geoInfo.province = "";
                         }
                     }
+
+                    updateData.loginDevice = dbUtil.getDeviceValue(partnerData, true);
+
                     //Object.assign(updateData, geoInfo);
                     return dbconfig.collection_partner.findOneAndUpdate({
                         _id: partnerObj._id,
@@ -8441,6 +8451,7 @@ let dbPartner = {
             name: 1,
             amount: 1,
             fakeSource: 1,
+            remarks: 1,
         }).sort({
             amount: -1,
             name: 1,
@@ -8667,12 +8678,13 @@ let dbPartner = {
             if (record.fluctuationType) {
                 // percentile
                 let initAmount = record.commissionAmount;
-                let percentileFluctuated = dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 10);
+                let percentileFluctuated = dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 10);
                 fluctuatedAmount = math.chain(initAmount).multiply(100 + Number(percentileFluctuated) || 100).divide(100).round(2).done();
             }
             else {
                 // value
-                fluctuatedAmount = Number(dbutility.generateRandomNumberBetweenRange(fluctuationLow, fluctuationHigh, 2));
+                let valueFluctuated = Number(dbutility.generateRandomNumberBetweenRange(record.fluctuationLow, record.fluctuationHigh, 2));
+                fluctuatedAmount = math.chain(Number(record.commissionAmount) || 0).add(Number(valueFluctuated) || 0).round(2).done();
             }
             record.commissionAmount = fluctuatedAmount;
             await dbconfig.collection_fakeCommissionBillBoardRecord.update({_id: record._id}, {commissionAmount: fluctuatedAmount, lastAmountUpdate: calTime});
@@ -8680,6 +8692,35 @@ let dbPartner = {
 
         for (let i = 0; i < fakeCommissionBillBoardRecords.length; i++) {
             let record = fakeCommissionBillBoardRecords[i];
+            let remarks = " - ";
+
+            if (record.useFluctuation) {
+                let fluctuationType = record.fluctuationType ? "比例" : "数值";
+                remarks = `佣金起伏，${fluctuationType}，${record.fluctuationLow}${record.fluctuationType ? "%" : ""}≤${record.fluctuationHigh}${record.fluctuationType ? "%" : ""}，每周`;
+                if (record.flucOnSunday) {
+                    remarks += "日";
+                }
+                if (record.flucOnMonday) {
+                    remarks += "一";
+                }
+                if (record.flucOnTuesday) {
+                    remarks += "二";
+                }
+                if (record.flucOnWednesday) {
+                    remarks += "三";
+                }
+                if (record.flucOnThursday) {
+                    remarks += "四";
+                }
+                if (record.flucOnFriday) {
+                    remarks += "五";
+                }
+                if (record.flucOnSaturday) {
+                    remarks += "六";
+                }
+
+            }
+
             await dbconfig.collection_commissionBBRecord.update({
                 platform: platformObj._id,
                 period: periodCheck,
@@ -8692,6 +8733,7 @@ let dbPartner = {
                 name: record.name,
                 amount: record.commissionAmount,
                 fakeSource: record._id,
+                remarks: remarks,
             }, {
                 upsert: true
             }).catch(err => {
@@ -11242,7 +11284,7 @@ let dbPartner = {
         })
     },
 
-    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber) {
+    createDownLinePartner: async function (parentId, account, password, commissionRate, phoneNumber, inputData) {
         let parent = await dbconfig.collection_partner.findOne({partnerId: parentId}).lean();
         if (!parent) {
             return Promise.reject({message: "Partner not found"});
@@ -11378,15 +11420,24 @@ let dbPartner = {
             validGroupRate.push(rateObj)
         }
 
-        let newPartner = await dbPartner.createPartner({
+        let newPartnerData = {
             partnerName: account,
             password: password,
             platform: parent.platform,
             commissionType: parent.commissionType,
             parent: parent._id,
             phoneNumber: phoneNumber,
-            depthInTree: parent.depthInTree++,
-        });
+            depthInTree: parent.depthInTree++
+        };
+
+        let deviceCode = dbUtil.getDeviceValue(inputData, true);
+        if (deviceCode) {
+            newPartnerData.registrationDevice = deviceCode;
+            newPartnerData.deviceType = inputData.deviceType;
+            newPartnerData.subPlatformId = inputData.subPlatformId;
+        }
+
+        let newPartner = await dbPartner.createPartner(newPartnerData);
 
         if (!newPartner || !newPartner._id) {
             // usually it wont come here

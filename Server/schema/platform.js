@@ -278,8 +278,6 @@ var platformSchema = new Schema({
     canMultiReward: {type: Boolean, default: false},
     // Auto check player level up
     autoCheckPlayerLevelUp: {type: Boolean, default: false},
-    // Auto check player level up
-    autoCheckPlayerLevelDown: {type: Boolean, default: false},
     // manual check player level up (perform by player)
     manualPlayerLevelUp: {type: Boolean, default: false},
     // enable or disable platform manual batch level up
@@ -584,6 +582,8 @@ var platformSchema = new Schema({
     appDataVer: {type: String},
     // is use voice code verification
     useVoiceCode: {type: Boolean, default: false},
+    // select which voice code provider to use - constVoiceCodeProvider
+    voiceCodeProvider: {type: Number, default: 1},
     // display front end reward points ranking data
     displayFrontEndRewardPointsRankingData: {type: Boolean, default: true},
 });

@@ -423,7 +423,7 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record) {
                     //update player consumption sum
-                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
                         console.error('update hour summary failed', err);
                     });
                     var playerProm = dbconfig.collection_players.findOneAndUpdate(
@@ -440,7 +440,7 @@ var dbPlayerConsumptionRecord = {
                                 weeklyBonusAmountSum: record.bonusAmount,
                                 pastMonthBonusAmountSum: record.bonusAmount,
                                 creditBalance: -record.validAmount
-                            }
+                            },
                         }
                     ).exec();
                     return playerProm;
@@ -623,7 +623,7 @@ var dbPlayerConsumptionRecord = {
 
                 if (record) {
                     // Update player consumption sum
-                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
                         console.error('update hour summary failed', err);
                     });
                     return dbconfig.collection_players.findOneAndUpdate(
@@ -987,7 +987,7 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
-                                dbPlayerConsumptionHourSummary.updateSummary(newRecord.platformId, newRecord.playerId, newRecord.providerId, newRecord.createTime, amount, validAmount, bonusAmount, 0).catch(err => {
+                                dbPlayerConsumptionHourSummary.updateSummary(newRecord.platformId, newRecord.playerId, newRecord.providerId, newRecord.createTime, amount, validAmount, bonusAmount, 0, newRecord.loginDevice).catch(err => {
                                     console.error('update hour summary failed', err);
                                 });
                             }else{
