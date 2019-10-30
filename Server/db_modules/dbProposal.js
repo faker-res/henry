@@ -94,7 +94,7 @@ var proposal = {
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
+            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
@@ -2402,8 +2402,7 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
                             ];
                         }
 
