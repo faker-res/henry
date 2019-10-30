@@ -1890,7 +1890,7 @@ let dbPlayerInfo = {
             partner: data.partner ? data.partner : null
         };
 
-        console.log('JY check input device 1=====:', recordData.userAgent, data);
+        console.log('JY check input device 1=====:', recordData.userAgent);
         if (data.userAgent) {
             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, data);
         }
@@ -6399,6 +6399,10 @@ let dbPlayerInfo = {
         let advancedQuery = {};
         let isProviderGroup = false;
         let dataSize = 0;
+        let partnerNameId = data.partnerName || null;
+        if(data && data.partnerName){
+            delete data.partnerName;
+        }
 
         if (data && data.playerType && data.playerType == 'Partner') {
             return dbPartner.getPartnerDomainReport(platformId, data, index, limit, sortObj);
@@ -6511,64 +6515,78 @@ let dbPlayerInfo = {
                 // isProviderGroup = Boolean(platform.useProviderGroup);
                 isProviderGroup = true;
                 let playerProm = Promise.resolve(false);
+                let partnerProm = Promise.resolve(false);
+
+                if (partnerNameId) {
+                    partnerProm = dbconfig.collection_partner.find({partnerName: partnerNameId}, {_id:1}).lean();
+                }
 
                 if (data.name) {
                     playerProm = dbconfig.collection_players.findOne(advancedQuery, {similarPlayers: 0}).lean();
                 }
 
-                return playerProm.then(
-                    singlePlayerData => {
-                        if (data && data.name && singlePlayerData && singlePlayerData._id) {
-                            advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
+                return partnerProm.then(
+                    partnerObjId => {
+                        if (partnerNameId && partnerObjId) {
+                            let partnerObj = {partner: {$in: partnerObjId}};
+                            advancedQuery.$and[0] = {$and : [data, partnerObj]};
                         }
 
-                        return dbconfig.collection_players
-                            .find(advancedQuery, {similarPlayers: 0})
-                            .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
-                                players => {
-                                    let calculatePlayerValueProms = [];
-                                    let updatePlayerCredibilityRemarksProm = [];
-                                    for (let i = 0; i < players.length; i++) {
-                                        let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
-                                        calculatePlayerValueProms.push(calculateProm);
-
-                                        if (players[i].isTestPlayer) {
-                                            isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
-                                        }
-
-                                        let uniqueCredibilityRemarks = [];
-                                        if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
-                                            // filter out duplicate credibility remarks
-                                            uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
-                                                arr = arr.map(remark => {
-                                                    remark = remark ? remark.toString() : "";
-                                                    return remark;
-                                                });
-                                                elem = elem ? elem.toString() : "";
-                                                return arr.indexOf(elem) === pos;
-                                            });
-
-                                            uniqueCredibilityRemarks.forEach(string => {
-                                                return ObjectId(string);
-                                            });
-
-                                            // if found duplicate credibility remarks, update with no duplicates
-                                            if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
-                                                updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
-                                                    {
-                                                        _id: players[i]._id,
-                                                        platform: players[i].platform
-                                                    },
-                                                    {
-                                                        credibilityRemarks: uniqueCredibilityRemarks
-                                                    }
-                                                ).exec().catch(errorUtils.reportError));
-                                            }
-                                        }
-                                    }
-                                    return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                        return playerProm.then(
+                            singlePlayerData => {
+                                if (data && data.name && singlePlayerData && singlePlayerData._id) {
+                                    advancedQuery.$and[0] = {$or: [data, {referral: singlePlayerData._id}]};
                                 }
-                            )
+
+                                return dbconfig.collection_players
+                                    .find(advancedQuery, {similarPlayers: 0})
+                                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
+                                        players => {
+                                            let calculatePlayerValueProms = [];
+                                            let updatePlayerCredibilityRemarksProm = [];
+                                            for (let i = 0; i < players.length; i++) {
+                                                let calculateProm = dbPlayerCredibility.calculatePlayerValue(players[i]._id);
+                                                calculatePlayerValueProms.push(calculateProm);
+
+                                                if (players[i].isTestPlayer) {
+                                                    isDemoPlayerExpire(players[i], platform.demoPlayerValidDays);
+                                                }
+
+                                                let uniqueCredibilityRemarks = [];
+                                                if (players[i].credibilityRemarks && players[i].credibilityRemarks.length > 0) {
+                                                    // filter out duplicate credibility remarks
+                                                    uniqueCredibilityRemarks = players[i].credibilityRemarks.filter((elem, pos, arr) => {
+                                                        arr = arr.map(remark => {
+                                                            remark = remark ? remark.toString() : "";
+                                                            return remark;
+                                                        });
+                                                        elem = elem ? elem.toString() : "";
+                                                        return arr.indexOf(elem) === pos;
+                                                    });
+
+                                                    uniqueCredibilityRemarks.forEach(string => {
+                                                        return ObjectId(string);
+                                                    });
+
+                                                    // if found duplicate credibility remarks, update with no duplicates
+                                                    if (players[i]._id && players[i].platform && uniqueCredibilityRemarks && players[i].credibilityRemarks.length > uniqueCredibilityRemarks.length) {
+                                                        updatePlayerCredibilityRemarksProm.push(dbconfig.collection_players.findOneAndUpdate(
+                                                            {
+                                                                _id: players[i]._id,
+                                                                platform: players[i].platform
+                                                            },
+                                                            {
+                                                                credibilityRemarks: uniqueCredibilityRemarks
+                                                            }
+                                                        ).exec().catch(errorUtils.reportError));
+                                                    }
+                                                }
+                                            }
+                                            return Promise.all([calculatePlayerValueProms, updatePlayerCredibilityRemarksProm]);
+                                        }
+                                    )
+                            }
+                        )
                     }
                 )
             }
@@ -7023,10 +7041,8 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 3=====:', recordData.userAgent, playerData);
-                if (playerData.deviceId || playerData.guestDeviceId) {
-                    recordData.inputDeviceType = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
-                } else if (recordData.userAgent) {
+                console.log('JY check input device 3=====:', recordData.userAgent);
+                if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 } else {
                     console.log('MT --checking userAgent', recordData.userAgent, playerData);
@@ -7846,7 +7862,7 @@ let dbPlayerInfo = {
                 if (platformObj.usePointSystem) {
                     dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                 }
-                console.log('JY check input device 4=====:', recordData.userAgent, playerData);
+                console.log('JY check input device 4=====:', recordData.userAgent);
                 if (recordData.userAgent) {
                     recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, playerData);
                 }
@@ -8242,7 +8258,7 @@ let dbPlayerInfo = {
                         if (platformObj.usePointSystem) {
                             dbRewardPoints.updateLoginRewardPointProgress(playerObj, null, inputDevice).catch(errorUtils.reportError);
                         }
-                        console.log('JY check input device 5=====:', recordData.userAgent, playerData);
+                        console.log('JY check input device 6=====:', recordData.userAgent);
                         if (recordData.userAgent) {
                             recordData.inputDeviceType = dbUtil.getInputDeviceType(recordData.userAgent, inputData);
                         }
@@ -19659,53 +19675,51 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updateBatchPlayerLevel: (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
-        let proms = [];
+    updateBatchPlayerLevel: async (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
         let proposalTypeName = constProposalType.UPDATE_PLAYER_INFO_LEVEL;
-        let levelName;
-        remarks = remarks || "";
+        let levelNameProm = dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId}, {name: 1}).lean();
+        let proposalTypeProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName}).lean();
+        playerNames = playerNames || [];
+        let playerObjIdsProm = [];
+        let playerObjIds = [];
+        for (let i = 0; i < playerNames.length; i++) {
+            let playerName = playerNames[i] && playerNames[i].trim() || "";
+            if (!playerName) {
+                continue;
+            }
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId}, {_id: 1}).lean().then(
+                pid => {
+                    playerObjIds.push(pid._id);
+                }
+            );
+            playerObjIdsProm.push(prom);
+        }
 
-        playerNames.forEach(playerName => {
-            let trimPlayerName = playerName.trim();
-            let updateData = {playerLevel: playerLevelObjId};
-            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
-                .then(data => {
-                    if (data) {
-                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                            name: trimPlayerName,
-                            platform: platformObjId
-                        }, updateData, constShardKeys.collection_players);
-                    }
-                });
-            proms.push(prom);
-        });
 
-        return Promise.all(proms).then(() => {
-            return dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId});
-        }).then(levelData => {
-            levelName = levelData.name;
-            return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName});
-        }).then(proposalType => {
-            let proposalData = {
-                mainType: constProposalMainType[proposalTypeName],
-                type: proposalType._id,
-                creator: {
-                    "id" : adminObjId,
-                    "name" : adminName,
-                    "type" : "admin"
-                },
-                data: {
-                    platformId: ObjectId(platformObjId),
-                    newLevelName: levelName,
-                    playerName: playerNames.join(", "),
-                    playerNameList: playerNames,
-                    remark: "批量编辑玩家等级;" + remarks
-                },
-                noSteps: constSystemParam.PROPOSAL_NO_STEP,
-                status: constProposalStatus.APPROVED,
-            };
-            dbProposal.createProposal(proposalData);
-        });
+        let [playerLevel, proposalType] = await Promise.all([levelNameProm, proposalTypeProm, Promise.all(playerObjIdsProm)]);
+
+        let proposalData = {
+            mainType: constProposalMainType[proposalTypeName],
+            type: proposalType._id,
+            creator: {
+                "id" : adminObjId,
+                "name" : adminName,
+                "type" : "admin"
+            },
+            data: {
+                platformId: ObjectId(platformObjId),
+                newLevelName: playerLevel.name,
+                newLevelObjId: playerLevel._id,
+                playerName: playerNames, // keep this as array so that it can be found in reports by name search
+                playerNameList: playerNames,
+                playerObjIds: playerObjIds,
+                remark: "批量编辑玩家等级;" + remarks,
+                rawRemarks: remarks || ""
+            },
+            status: constProposalStatus.APPROVED,
+        };
+
+        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, proposalTypeName, proposalData);
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
@@ -26189,7 +26203,6 @@ let dbPlayerInfo = {
                             let playerRanking;
                             let sortedData = consumptionRecord.sort(sortRankingRecord);
 
-                            console.log("player bill board win all", sortedData)
                             for (let i = 0; i < sortedData.length; i++) {
                                 if (sortedData[i].amount) {
                                     //round to 2 decimal places

@@ -302,6 +302,7 @@ var roleChecker = {
                 ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
             },
             "Config": {
+                ValidActiveUpdate: [],
                 PartnerBasic: [],
                 AutoApproval: [],
                 largeWithdrawalSetting: [],
