@@ -19675,51 +19675,53 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updateBatchPlayerLevel: async (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+    updateBatchPlayerLevel: (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
+        let proms = [];
         let proposalTypeName = constProposalType.UPDATE_PLAYER_INFO_LEVEL;
-        let levelNameProm = dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId}, {name: 1}).lean();
-        let proposalTypeProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName}).lean();
-        playerNames = playerNames || [];
-        let playerObjIdsProm = [];
-        let playerObjIds = [];
-        for (let i = 0; i < playerNames.length; i++) {
-            let playerName = playerNames[i] && playerNames[i].trim() || "";
-            if (!playerName) {
-                continue;
-            }
-            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId}, {_id: 1}).lean().then(
-                pid => {
-                    playerObjIds.push(pid._id);
-                }
-            );
-            playerObjIdsProm.push(prom);
-        }
+        let levelName;
+        remarks = remarks || "";
 
+        playerNames.forEach(playerName => {
+            let trimPlayerName = playerName.trim();
+            let updateData = {playerLevel: playerLevelObjId};
+            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
+                .then(data => {
+                    if (data) {
+                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                            name: trimPlayerName,
+                            platform: platformObjId
+                        }, updateData, constShardKeys.collection_players);
+                    }
+                });
+            proms.push(prom);
+        });
 
-        let [playerLevel, proposalType] = await Promise.all([levelNameProm, proposalTypeProm, Promise.all(playerObjIdsProm)]);
-
-        let proposalData = {
-            mainType: constProposalMainType[proposalTypeName],
-            type: proposalType._id,
-            creator: {
-                "id" : adminObjId,
-                "name" : adminName,
-                "type" : "admin"
-            },
-            data: {
-                platformId: ObjectId(platformObjId),
-                newLevelName: playerLevel.name,
-                newLevelObjId: playerLevel._id,
-                playerName: playerNames, // keep this as array so that it can be found in reports by name search
-                playerNameList: playerNames,
-                playerObjIds: playerObjIds,
-                remark: "批量编辑玩家等级;" + remarks,
-                rawRemarks: remarks || ""
-            },
-            status: constProposalStatus.APPROVED,
-        };
-
-        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, proposalTypeName, proposalData);
+        return Promise.all(proms).then(() => {
+            return dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId});
+        }).then(levelData => {
+            levelName = levelData.name;
+            return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName});
+        }).then(proposalType => {
+            let proposalData = {
+                mainType: constProposalMainType[proposalTypeName],
+                type: proposalType._id,
+                creator: {
+                    "id" : adminObjId,
+                    "name" : adminName,
+                    "type" : "admin"
+                },
+                data: {
+                    platformId: ObjectId(platformObjId),
+                    newLevelName: levelName,
+                    playerName: playerNames.join(", "),
+                    playerNameList: playerNames,
+                    remark: "批量编辑玩家等级;" + remarks
+                },
+                noSteps: constSystemParam.PROPOSAL_NO_STEP,
+                status: constProposalStatus.APPROVED,
+            };
+            dbProposal.createProposal(proposalData);
+        });
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
