@@ -1578,8 +1578,6 @@ const dbRewardTask = {
                         nonDirtyAmount = res.XIMAAmt;
                     }
 
-                    console.log("checking Outer res.XIMAAmt", res.XIMAAmt)
-                    console.log("checking Outer nonDirtyAmount", nonDirtyAmount)
                     return res;
                 }
             },
