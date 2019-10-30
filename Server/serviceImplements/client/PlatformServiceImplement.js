@@ -192,7 +192,7 @@ var PlatformServiceImplement = function () {
 
     this.getFrontEndConfig.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.hasOwnProperty('platformId') && data.code);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndConfig, [data.platformId, data.code, data.clientType], isValidData, null, null, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndConfig, [data.platformId, data.code, data.clientType, data.subPlatformId], isValidData, null, null, true);
     };
 
     this.sendFileFTP.onRequest = function(wsFunc, conn, data) {

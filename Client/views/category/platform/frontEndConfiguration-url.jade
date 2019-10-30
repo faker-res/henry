@@ -299,7 +299,7 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 
 .full-width-input-block
     button.btn.btn-success(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
-    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration)') {{"SAVE_SETTING" | translate}}
+    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration, vm.filterFrontEndSettingSubPlatformId)') {{"SAVE_SETTING" | translate}}
     span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
 
 

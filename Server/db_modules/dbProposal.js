@@ -80,6 +80,7 @@ var proposal = {
      * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
+        console.log('proposalData===11', proposalData);
         let plyProm = null;
         let propAmount =
             proposalData.data.amount || proposalData.data.rewardAmount || proposalData.data.updateAmount
@@ -94,7 +95,7 @@ var proposal = {
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
+            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
@@ -425,6 +426,7 @@ var proposal = {
         let proposalTypeData = null;
         let pendingProposalData = null;
         let duplicateBankAccountName = false;
+        console.log('proposalData===22', proposalData);
 
         return Promise.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -491,7 +493,7 @@ var proposal = {
                         "data.platformId": data[0].platformId,
                         status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
-                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerObjIds", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {
@@ -504,10 +506,17 @@ var proposal = {
                         queryObj['data.playerObjId'] = ObjectId(queryObj['data.playerObjId']);
                     }
 
+                    if (queryObj['data.playerObjIds']) {
+                        queryObj['data.playerObjIds'] = queryObj['data.playerObjIds'].map(objId => ObjectId(objId))
+                        queryObj['data.playerObjIds'] = {$in: queryObj['data.playerObjIds']};
+                        queryObj['data.playerObjId'] = queryObj['data.playerObjIds']
+                    }
+
                     // Player modify payment info
                     if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;
                     }
+                    console.log('proposalData===33', proposalData);
 
                     // Player modify phone number
                     let phoneUpdateProposalType = [constProposalType.UPDATE_PLAYER_PHONE, constProposalType.UPDATE_PARTNER_PHONE];
@@ -2402,7 +2411,8 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
                             ];
                         }
 
