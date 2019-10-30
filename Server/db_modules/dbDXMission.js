@@ -1721,6 +1721,10 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.phoneType = phoneLocation.type;
             }
 
+            if (playerData && playerData._id){
+                newData.playerObjId = playerData._id;
+            }
+
             let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();
             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
                 domain: filteredDomain,
