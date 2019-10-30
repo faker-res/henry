@@ -425,6 +425,7 @@ let dbPlayerInfo = {
         let referralLog = {};
         let referralInterval;
         let isHitReferralLimit = false;
+        let isRegister = false;
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -602,6 +603,7 @@ let dbPlayerInfo = {
                                     if (!playerData) {
                                         return Promise.reject({name: "DataError", message: "Can't create new player."});
                                     }
+                                    isRegister = true;
 
                                     if (isEnableUseReferralPlayerId) {
                                         let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
@@ -693,6 +695,9 @@ let dbPlayerInfo = {
                                             data => {
                                                 if (data && isHitReferralLimit) {
                                                     data.isHitReferralLimit = isHitReferralLimit;
+                                                }
+                                                if (isRegister) {
+                                                    data.isRegister = true;
                                                 }
 
                                                 return data;
