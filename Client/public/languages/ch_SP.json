@@ -3082,6 +3082,9 @@
   "REGISTRATION_ROLE": "开户组别",
   "REGISTRATION_ADMIN": "开户客服",
   "EBET_LUZHU": "EBET路珠",
+  "PC_BAIDU_STATISTICS": "PC百度统计",
+  "H5-IOS_BAIDU_STATISTICS": "H5-IOS百度统计",
+  "H5-ANDROID_BAIDU_STATISTICS": "H5-安卓百度统计",
 
   "Currently available financial (settlement) system":"目前可选财务（结算）系统",
   "Currently points":"目前点数馀额",
