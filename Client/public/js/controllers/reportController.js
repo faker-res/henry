@@ -1568,9 +1568,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupMultiInputDXTracking = function () {
             let dxTrackingGroupSelect = $('select#selectDXTracking');
-            if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             dxTrackingGroupSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1659,6 +1659,9 @@ define(['js/app'], function (myApp) {
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
                 case "DX_TRACKING_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupMultiInputDXTracking();
+                    });
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
             }
