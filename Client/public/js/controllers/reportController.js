@@ -1645,6 +1645,7 @@ define(['js/app'], function (myApp) {
                     break;
 
                 case "DX_NEWACCOUNT_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId)
                     vm.getAllPromoteWay(platformObjId).then(() => {
                         endLoadMultipleSelect('.spicker');
                     });
