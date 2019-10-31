@@ -1041,15 +1041,7 @@ const dbPlayerPayment = {
             // Check top up return reward condition
             if (parentProposalData && parentProposalData.data && parentProposalData.data.topUpReturnCode) {
                 console.log('JY check parentProposalData.data.userAgent ==>', parentProposalData.data.userAgent);
-                let tempUserAgent;
-
-                try {
-                    tempUserAgent = JSON.parse(parentProposalData.data.userAgent);
-                } catch (e) {
-                    tempUserAgent = parentProposalData.data.userAgent;
-                }
-
-                rewardEvent = await dbRewardUtil.checkApplyTopUpReturn(playerData, parentProposalData.data.topUpReturnCode, tempUserAgent, data, constTopUpType);
+                rewardEvent = await dbRewardUtil.checkApplyTopUpReturn(playerData, parentProposalData.data.topUpReturnCode, parentProposalData.data.userAgent, data, constTopUpType);
             }
 
             // Check limited offer condition
