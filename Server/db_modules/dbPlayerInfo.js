@@ -851,11 +851,11 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
+                    if (playerIPRegisterLimit && (playerIPRegisterCount >= playerIPRegisterLimit) && (playerIPRegisterLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
+                    if (playerIPRegionLimit && (playerIPRegionLimitCount >= playerIPRegionLimit) && (playerIPRegionLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
