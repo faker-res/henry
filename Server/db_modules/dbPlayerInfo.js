@@ -22849,6 +22849,23 @@ let dbPlayerInfo = {
             }
         }
 
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
+        }
+
         let consumptionStartTime;
         let consumptionEndTime;
         if (query.queryStart && query.queryEnd) {
