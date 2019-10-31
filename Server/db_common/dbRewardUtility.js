@@ -339,7 +339,7 @@ const dbRewardUtility = {
                                     });
                                 }
                             }
-
+console.log('JY userAgentStr==>', userAgentStr)
                             let topUpDevice = dbUtil.getInputDevice(userAgentStr, false);
 
                             // check device
