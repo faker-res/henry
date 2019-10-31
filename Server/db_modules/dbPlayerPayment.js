@@ -1040,6 +1040,7 @@ const dbPlayerPayment = {
 
             // Check top up return reward condition
             if (parentProposalData && parentProposalData.data && parentProposalData.data.topUpReturnCode) {
+                console.log('JY check parentProposalData.data.userAgent ==>', parentProposalData.data.userAgent);
                 rewardEvent = await dbRewardUtil.checkApplyTopUpReturn(playerData, parentProposalData.data.topUpReturnCode, parentProposalData.data.userAgent, data, constTopUpType);
             }
 
