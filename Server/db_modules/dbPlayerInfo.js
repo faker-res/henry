@@ -12381,6 +12381,30 @@ let dbPlayerInfo = {
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
 
+                                            if (!userAgent && playerObj && playerObj.loginDevice) {
+                                                let device = playerObj.loginDevice.substring(0,1);
+
+                                                if (device) {
+                                                    switch (Number(device)) {
+                                                        case 1:
+                                                            inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                                                            break;
+                                                        case 2:
+                                                            inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                                                            break;
+                                                        case 3:
+                                                        case 4:
+                                                            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+                                                            break;
+                                                        default:
+                                                            inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+                                                            break;
+                                                    }
+                                                } else {
+                                                    inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+                                                }
+                                            }
+
                                             // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
                                             //     stateRec => {
                                             //         if (!stateRec) {
