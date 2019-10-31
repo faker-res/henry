@@ -8642,6 +8642,17 @@ let dbPlayerInfo = {
                     });
                 }
             }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else if (playerObj) {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
+            }
         );
     },
 
