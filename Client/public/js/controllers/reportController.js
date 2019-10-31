@@ -8794,6 +8794,7 @@ define(['js/app'], function (myApp) {
                     data => {
                         vm.allPromoteWay = data.data;
                         resolve(vm.allPromoteWay);
+                        $scope.$evalAsync();
                     }
                 )
             });
