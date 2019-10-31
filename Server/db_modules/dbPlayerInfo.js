@@ -76,7 +76,7 @@ const constPlayerLoginDevice = require("../const/constPlayerLoginDevice");
 
 // db_common
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
-let dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbReportUtil = require("../db_common/dbReportUtility");
 const dbUtil = require('./../modules/dbutility');
@@ -12404,7 +12404,7 @@ let dbPlayerInfo = {
                                             //     }
                                             // )
 
-                                            dbPlayerUtil = require("../db_common/dbPlayerUtility");
+                                            // dbPlayerUtil = require("../db_common/dbPlayerUtility");
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
                                                     console.log("ZM player level up checkpoint 6", playerObj.name);
@@ -22848,6 +22848,23 @@ let dbPlayerInfo = {
                     matchObj.isTestPlayer = true;
                     break;
             }
+        }
+
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
 
         let consumptionStartTime;
