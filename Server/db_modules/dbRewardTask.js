@@ -356,7 +356,7 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
-                    console.log('LK checking RTG detail--', freeProviderGroup);
+                    console.log('LK checking RTG detail--', freeProviderGroup.targetConsumption + "/" + freeProviderGroup.curConsumption);
                     // if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
                     if(freeProviderGroup.targetConsumption && freeProviderGroup.curConsumption >= (freeProviderGroup.targetConsumption + freeProviderGroup.forbidXIMAAmt - rewardData.applyAmount)){
                         updObj.status = constRewardTaskStatus.ACHIEVED;
@@ -2393,7 +2393,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     async updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
-                            console.log('LK checking updatedRTG --', updatedRTG);
+                            console.log('LK checking updatedRTG --', updatedRTG.status);
                             // update the locked reward tasks
                             rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
                                 if (rewards){

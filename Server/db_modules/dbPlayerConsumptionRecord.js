@@ -3370,7 +3370,7 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
     }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
         updatedRTG => {
 
-            console.log('LK checking RTG before status update-- 2', updatedRTG);
+            console.log('LK checking RTG before status update-- 2', updatedRTG.curConsumption + "/" + updatedRTG.targetConsumption);
             let rewardTaskUnlockedProgress = Promise.resolve();
 
             // Debug negative RTG curConsumption
@@ -3507,7 +3507,7 @@ function findRTGToUpdate (oldData, newData) {
                     // Filter RTGs
                     RTGs.filter(RTG => {
                         if (RTG) {
-                            console.log('LK checking get RTG detail--', RTG);
+                            console.log('LK checking get RTG detail--', RTG.curConsumption);
                             if (RTG.providerGroup && RTG.providerGroup.providers && RTG.providerGroup.providers.length) {
                                 RTG.providerGroup.providers.forEach(provider => {
                                     if (String(provider) === String(oldData.providerId)) {
@@ -3552,7 +3552,6 @@ function findRTGToUpdate (oldData, newData) {
                                 }
                             }
 
-                            console.log('LK checking RTG detail before update--', RTG);
                             // Find available RTG to update
                             updateRTG(RTG, validBonusToAdd, validAmtToAdd, oldData);
                         }

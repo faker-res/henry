@@ -5262,7 +5262,6 @@ let dbPlayerInfo = {
                                 "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
                                 "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints + proposalData.data.amount)
                             };
-                            console.log('update Proposal...', dataToUpdate);
                             dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                         }
                     ).catch(errorUtils.reportError);

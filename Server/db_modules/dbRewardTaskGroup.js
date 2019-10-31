@@ -68,17 +68,19 @@ let dbRewardTaskGroup = {
             createTime: {$lt: createTime}
         }).sort({createTime: 1}).lean().then(
             RTGs => {
-                console.log('LK RemainingConsumption RTG list--', RTGs);
+                // check and see RTG is not null or undefined
+                console.log('LK RemainingConsumption RTG length--', RTGs.length);
                 if (RTGs && RTGs.length) {
                     let promArr = [];
 
                     RTGs.forEach(RTG => {
-                        console.log('LK RemainingConsumption RTG detail--', RTG);
+                        console.log('LK check RemainingConsumption amount--', remainingAmount);
                         if (remainingAmount > 0) {
                             let requiredConsumption = RTG.targetConsumption + RTG.forbidXIMAAmt - RTG.curConsumption;
                             let status, unlockTime;
-
-                            if (RTG.currentAmt + remainBonusAmt < 1){
+                            // check remain and required consumption to see will it update status
+                            console.log('LK check requiredConsumption amount--', requiredConsumption);
+                            if (RTG.currentAmt + remainBonusAmt < 1) {
                                 status = constRewardTaskStatus.NO_CREDIT;
                                 unlockTime = createTime;
                             }
