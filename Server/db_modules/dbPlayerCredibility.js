@@ -493,13 +493,24 @@ let dbPlayerCredibility = {
                     comment = credibilityRemarkNames.join(',');
                 }
 
+                let checkingObj = {
+                    admin: adminName,
+                    platform: platform,
+                    player: player,
+                    credibilityRemarkNames: credibilityRemarkNames,
+                    comment: comment
+                };
+
+                console.log("checkingObj......", checkingObj);
                 return dbconfig.collection_playerCredibilityUpdateLog({
                     admin: adminName,
                     platform: platform,
                     player: player,
                     credibilityRemarkNames: credibilityRemarkNames,
                     comment: comment
-                }).save().then().catch(errorUtils.reportError);
+                }).save().then(
+                    data => { console.log("createUpdateCredibilityLog......", data);}
+                ).catch(errorUtils.reportError);
             }
         )
     },

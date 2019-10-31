@@ -2390,7 +2390,8 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerData = data;
-
+                    console.log("credibilityRemarkObjIdArr.......", credibilityRemarkObjIdArr);
+                    console.log("credibilityRemarkObjIdArr.length.......", credibilityRemarkObjIdArr.length);
                     if (credibilityRemarkObjIdArr && credibilityRemarkObjIdArr.length > 0) {
                         dbPlayerCredibility.createUpdateCredibilityLog('System', playerData.platform, playerData._id, credibilityRemarkObjIdArr);
                     }
