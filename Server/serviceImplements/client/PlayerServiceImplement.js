@@ -307,6 +307,14 @@ let PlayerServiceImplement = function () {
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
+                if (playerData.phoneNumber) {
+                    playerData.phoneNumber = dbUtility.encodePhoneNum(playerData.phoneNumber);
+                }
+                playerData.email = dbUtility.encodeEmail(playerData.email);
+                if (playerData.bankAccount) {
+                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                }
+
                 if (playerData.guestDeviceId) {
                     delete playerData.guestDeviceId;
                 }
