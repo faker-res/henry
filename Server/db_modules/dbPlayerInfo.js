@@ -22471,7 +22471,8 @@ let dbPlayerInfo = {
             credibilityRemarks: 1,
             csOfficer: 1,
             valueScore: 1,
-            registrationDevice: 1
+            registrationDevice: 1,
+            registrationInterface: 1
         };
 
         let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
@@ -23267,7 +23268,8 @@ let dbPlayerInfo = {
                     lastAccessTime: 1,
                     realName: 1,
                     domain: 1,
-                    registrationDevice: 1
+                    registrationDevice: 1,
+                    registrationInterface: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -23746,6 +23748,10 @@ let dbPlayerInfo = {
 
                     if (playerDetail && playerDetail.hasOwnProperty('registrationDevice')){
                         result.registrationDevice = playerDetail.registrationDevice;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationInterface')){
+                        result.registrationInterface = playerDetail.registrationInterface;
                     }
 
                     result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
