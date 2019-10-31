@@ -1040,16 +1040,20 @@ var dbPlayerConsumptionWeekSummary = {
 
                 let pastProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, proposalQ);
                 let gameTypesProm = dbGameType.getAllGameTypes();
+                let gameTypesNameProm;
                 if (isShowProviderId) {
                     gameTypesProm = dbGameType.getAllGameTypesName();
+                    gameTypesNameProm = Promise.resolve();
+                } else {
+                    gameTypesNameProm = dbGameType.getAllGameTypesName();
                 }
 
-                return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, gameTypesProm]);
+                return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, gameTypesProm, gameTypesNameProm]);
             }
         ).then(
             promArrRes => {
                 if (promArrRes) {
-                    let [playerData, recSumm, consumptionSumm, pastProps, allGameTypes] = promArrRes;
+                    let [playerData, recSumm, consumptionSumm, pastProps, allGameTypes, gameTypesName] = promArrRes;
 
                     let returnAmount = 0;
                     let returnDetail = {};
@@ -1186,6 +1190,8 @@ var dbPlayerConsumptionWeekSummary = {
                                     selectedGameTypeObj[gameType].providerList = [];
                                 }
                                 selectedGameTypeObj[gameType].gameType =  allGameTypes[gameType] || String(gameType);
+                            } else {
+                                selectedGameTypeObj[gameType].gameType = gameTypesName[gameType] || String(gameType);
                             }
                         });
                     }
@@ -1217,6 +1223,8 @@ var dbPlayerConsumptionWeekSummary = {
                             if (isShowProviderId) {
                                 selectedGameTypeObj[gameType].providerList = [];
                                 selectedGameTypeObj[gameType].gameType = allGameTypes[gameType] || String(gameType);
+                            } else {
+                                selectedGameTypeObj[gameType].gameType = gameTypesName[gameType] || String(gameType);
                             }
                         }
                     });
