@@ -59,6 +59,7 @@ let dbRewardTaskGroup = {
     addRemainingConsumptionToFreeAmountRewardTaskGroup: (platformId, playerId, createTime, remainCurConsumption, remainBonusAmt = 0) => {
         let remainingAmount = remainCurConsumption;
 
+        console.log('LK RemainingConsumption RTG update checking--', playerId);
         return dbconfig.collection_rewardTaskGroup.find({
             platformId: platformId,
             playerId: playerId,
@@ -67,10 +68,12 @@ let dbRewardTaskGroup = {
             createTime: {$lt: createTime}
         }).sort({createTime: 1}).lean().then(
             RTGs => {
+                console.log('LK RemainingConsumption RTG list--', RTGs);
                 if (RTGs && RTGs.length) {
                     let promArr = [];
 
                     RTGs.forEach(RTG => {
+                        console.log('LK RemainingConsumption RTG detail--', RTG);
                         if (remainingAmount > 0) {
                             let requiredConsumption = RTG.targetConsumption + RTG.forbidXIMAAmt - RTG.curConsumption;
                             let status, unlockTime;
@@ -98,6 +101,7 @@ let dbRewardTaskGroup = {
                                 updObj.unlockTime = unlockTime;
                             }
 
+                            console.log('LK RemainingConsumption RTG update obj--', updObj);
                             promArr.push(
                                 dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {_id: RTG._id},

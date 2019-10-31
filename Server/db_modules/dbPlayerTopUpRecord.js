@@ -2404,6 +2404,7 @@ var dbPlayerTopUpRecord = {
      * @param inputData
      */
     addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, lastLoginIp, isPlayerAssign) {
+        console.log('manual topup...');
         var player = null;
         var proposal = null;
         var request = null;
@@ -2892,6 +2893,7 @@ var dbPlayerTopUpRecord = {
         ).then(
             data => {
                 if (isFPMS) {
+                    console.log('is FPMS...', data);
                     if (data.noSteps) {
                         dbconfig.collection_proposalType.findOne({
                             platformId: player.platform._id,
@@ -2901,6 +2903,7 @@ var dbPlayerTopUpRecord = {
                                 if (!proposalTypeData) {
                                     return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
                                 }
+                                console.log('exec type...', proposalTypeData.executionType);
                                 proposalExecutor.approveOrRejectProposal(proposalTypeData.executionType, proposalTypeData.rejectionType, true, data)
                             }
                         ).catch(errorUtils.reportError);
