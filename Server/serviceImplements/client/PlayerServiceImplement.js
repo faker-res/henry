@@ -278,15 +278,17 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = playerData.csOfficer ? playerData.csOfficer : "";
 
-                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                    isUpdateData => {
-                        console.log("checking isUpdateData", isUpdateData)
-                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                            console.log("checking data.platformId", data.platformId)
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                if (playerData && playerData.isRegister) {
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData => {
+                            console.log("checking isUpdateData", isUpdateData)
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                console.log("checking data.platformId", data.platformId)
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                            }
                         }
-                    }
-                );
+                    );
+                }
 
                 conn.isAuth = true;
                 conn.playerId = playerData.playerId;
