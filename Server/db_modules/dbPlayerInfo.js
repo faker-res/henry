@@ -7998,7 +7998,7 @@ let dbPlayerInfo = {
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
-            message: "Invalid SMS Validation Code"
+            message: "Verification code invalid"
         };
 
         if (inputData && !inputData.password) {
@@ -8093,6 +8093,7 @@ let dbPlayerInfo = {
                         {_id: verificationSMS._id},
                         {$inc: {loginAttempts: 1}}
                     ).then(() => {
+                        rejectMsg.message = "Invalid SMS Validation Code";
                         return Promise.reject(rejectMsg);
                     });
                 }
