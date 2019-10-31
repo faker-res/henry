@@ -2707,7 +2707,16 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.phoneNumber) {
-                        createPhoneNumberBindingRecord(playerData);
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let legacyEncPhoneNumber = rsaCrypto.legacyEncrypt(decPhoneNumber);
+
+                        let phoneNumberBindingRecordData = {
+                            platform: playerData.platform,
+                            _id: playerData._id,
+                            phoneNumber: legacyEncPhoneNumber
+                        };
+
+                        createPhoneNumberBindingRecord(phoneNumberBindingRecordData);
                     }
 
                     return Promise.all(proms, ipSave);
@@ -30640,14 +30649,14 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
 
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, platformObj.samePhoneNumberRegisterCount, bindedCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, bindedCount);
@@ -30667,7 +30676,7 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
             ]}
         }).count().then(
             cnt => {
-                console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                console.log('checkPhoneNumberBindedBefore cnt', cnt, inputData.phoneNumber);
                 return cnt;
             }
         );
