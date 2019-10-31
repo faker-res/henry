@@ -33,7 +33,7 @@ const dbPlayerConsumptionHourSummary = {
             () => {
                 return dbconfig.collection_playerConsumptionHourSummary.findOneAndUpdate(
                     {platform: platformObjId, player: playerObjId, provider: providerObjId, startTime: startTime, loginDevice: loginDevice},
-                    {$inc: {consumptionAmount: amount, consumptionValidAmount: validAmount, consumptionBonusAmount: bonusAmount, consumptionTimes: times, loginDevice: loginDevice}},
+                    {$inc: {consumptionAmount: amount, consumptionValidAmount: validAmount, consumptionBonusAmount: bonusAmount, consumptionTimes: times}},
                     {upsert: true, new: true}
                 ).lean();
             }

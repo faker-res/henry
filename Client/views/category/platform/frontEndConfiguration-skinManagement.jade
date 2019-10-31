@@ -19,7 +19,7 @@
     label
     div.inline-block
         button.btn.btn-success(ng-if="!vm.isPartnerForSkinManagement" ng-click='vm.saveFrontEndSkinSetting()') {{"ADD_SKIN" | translate}}
-        button.btn.btn-success(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.saveFrontEndSkinSetting(vm.isPartnerForSkinManagement)') {{"ADD_SKIN" | translate}}
+        button.btn.btn-success(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.saveFrontEndSkinSetting(vm.isPartnerForSkinManagement, vm.filterFrontEndSettingSubPlatformId)') {{"ADD_SKIN" | translate}}
         span(style='display:inline-block;padding-left: 5px;') {{vm.skinSettingShowMessage | translate}}
 div
     br
@@ -31,4 +31,4 @@ div
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', value='{{v._id}}') {{v.name$}}
         div(style="padding-left: 22px;display:inline-block")
             button.btn.btn-warning(ng-if="!vm.isPartnerForSkinManagement" ng-click='vm.removeFrontEndSkinSetting(vm.selectedFrontEndSkin)') {{"DELETE_SELECTED_SKIN_BUTTON" | translate}}
-            button.btn.btn-warning(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.removeFrontEndSkinSetting(vm.selectedFrontEndSkin, vm.isPartnerForSkinManagement)') {{"DELETE_SELECTED_PARTNER_SKIN_BUTTON" | translate}}
+            button.btn.btn-warning(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.removeFrontEndSkinSetting(vm.selectedFrontEndSkin, vm.filterFrontEndSettingSubPlatformId, vm.isPartnerForSkinManagement)') {{"DELETE_SELECTED_PARTNER_SKIN_BUTTON" | translate}}

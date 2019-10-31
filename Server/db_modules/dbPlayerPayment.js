@@ -1026,7 +1026,7 @@ const dbPlayerPayment = {
 
         // Check minimum top up amount
         minTopUpAmount = await getMinTopUpAmount(platformData, playerData);
-        if (amount < minTopUpAmount) {
+        if (!data.proposalId && (amount < minTopUpAmount)) {
             return Promise.reject({
                 status: constServerCode.PLAYER_TOP_UP_FAIL,
                 name: "DataError",
@@ -1084,6 +1084,7 @@ const dbPlayerPayment = {
         addDetailToProp(proposalData, 'aliPayGroupName', playerData.alipayGroup && playerData.alipayGroup.name ? playerData.alipayGroup.name : '');
         addDetailToProp(proposalData, 'playerLevel', playerData.playerLevel && playerData.playerLevel._id);
         addDetailToProp(proposalData, 'parentProposalId', parentProposalData && parentProposalData.proposalId);
+        addDetailToProp(proposalData, 'parentTopUpAmount', parentProposalData && parentProposalData.data && parentProposalData.data.amount);
         addDetailToProp(proposalData, 'platformId', platformData._id);
         addDetailToProp(proposalData, 'platform', platformData.platformId);
 

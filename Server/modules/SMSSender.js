@@ -131,8 +131,6 @@ const SMSSender = {
     },
 
     sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel, platformObjId) {
-        console.log("playerObjId......", playerObjId);
-        console.log("platformObjId......", platformObjId);
         // var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;

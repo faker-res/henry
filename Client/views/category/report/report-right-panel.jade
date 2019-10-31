@@ -1494,6 +1494,9 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValue")
                         div.symbol(ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'") ~
                         input.threeBoxes.form-control(type="number" ng-model="vm.dxNewPlayerQuery.topUpAmountValueTwo" ng-if="vm.dxNewPlayerQuery.topUpAmountOperator === 'range'")
+                .search-filters-item
+                    label {{"CREDIBILITY"|translate}}
+                    select.form-control#selectDXTracking(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model="vm.dxNewPlayerQuery.credibilityRemarks")
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
