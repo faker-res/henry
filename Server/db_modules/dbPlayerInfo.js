@@ -26832,7 +26832,7 @@ let dbPlayerInfo = {
                         }
 
                         if (query && query.loginDevice && query.loginDevice.length) {
-                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice};
                         }
 
                         return dbconfig.collection_proposal.aggregate([
@@ -27473,7 +27473,7 @@ let dbPlayerInfo = {
 
                     // add in new filter condition: loginDevice
                     if (query.loginDevice && query.loginDevice.length) {
-                        summaryDataQuery.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                        summaryDataQuery.loginDevice = {$in: query.loginDevice};
                     }
 
                     console.log("checking playerReportDataDaySummary query", summaryDataQuery)
@@ -28064,7 +28064,7 @@ let dbPlayerInfo = {
 
 
             if(query.loginDevice && query.loginDevice.length){
-                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
             }
 
             console.log("checking consumptionPromMatchObj", consumptionPromMatchObj)
@@ -28125,7 +28125,7 @@ let dbPlayerInfo = {
                 "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             };
             if(query.loginDevice && query.loginDevice.length){
-                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice};
             }
 
             console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
