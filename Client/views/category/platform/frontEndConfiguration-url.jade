@@ -237,6 +237,11 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
         select.form-control(ng-model='vm.frontEndUrlConfig.app.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==4", value='{{v._id}}') {{v.name}}
 
+.full-width-input-block(ng-if="vm.isPartnerForUrlConfiguration")
+    label {{"BAIDU_STATS_CODE"| translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStatsCode" ng-change="vm.urlConfigShowMessage=''")
+
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label {{ "htmlTextColor" | translate}}
     div.inline-block
