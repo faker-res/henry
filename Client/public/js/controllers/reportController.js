@@ -6506,6 +6506,7 @@ define(['js/app'], function (myApp) {
             let sendquery = {
                 platformId: vm.dxNewPlayerQuery.platformId,
                 query: {
+                    credibilityRemarks: vm.dxNewPlayerQuery.credibilityRemarks,
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
@@ -6686,6 +6687,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
                     {
@@ -6824,7 +6826,7 @@ define(['js/app'], function (myApp) {
                 });
                 $('#dxNewPlayerReportTable').off('order.dt');
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXNewPlayerReport);
+                    vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
             }
 
