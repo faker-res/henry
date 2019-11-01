@@ -413,7 +413,7 @@
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
-                    button.btn.btn-info.btn-space(ng-click='vm.reCalculatePlayerReportSummary()') {{'RECALCULATE' | translate}}
+                    button.btn.btn-info.btn-space(ng-if="checkViewPermission('Report', 'General', 'ReCalculateReport')" ng-click='vm.reCalculatePlayerReportSummary()') {{'RECALCULATE' | translate}}
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
@@ -456,7 +456,7 @@
                         option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
                 .search-filters-item
                     label {{"Login Device"|translate}}
-                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                    select.spiker.form-control(ng-model='vm.deviceQuery.loginDevice' ng-init='$last && vm.endLoadMultipleSelect()', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.deviceReportLoginDeviceList')
                 .search-filters-twoBoxes(ng-class='{"search-filters-threeBoxes": (vm.deviceQuery.consumptionTimesOperator === "range")}')
                     label {{"Consumption Times"|translate}}
                         div
@@ -1928,7 +1928,7 @@
                         input.threeBoxes.form-control(type="number" ng-model="vm.feedbackQuery.topUpAmountLatter" ng-if="vm.feedbackQuery.topUpAmountOperator === 'range'")
                 .search-filters-item
                     label {{"REGISTRATION_DEVICE"|translate}}
-                    select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.registrationDeviceList', bsp)
+                    select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.inputDeviceMapped', bsp)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
@@ -2401,7 +2401,7 @@
                     .endTime
                 .search-filters-item
                     label {{'Login Device'| translate}}
-                    select.spicker.form-control(ng-model='vm.winRateQuery.loginDevice', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform()", ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                    select.spicker.form-control(ng-model='vm.winRateQuery.loginDevice', bsp, multiple, data-actions-box='true' ng-change="vm.changeWinRatePlatform();vm.changeWinRateLoginDevice()", ng-options='i as v | translate for (i,v) in vm.winRateLoginDeviceList')
                 .search-filters-item
                     input.symbol(type="checkbox", ng-model='vm.winRateQuery.searchBySummaryData')
                     label {{'测试数据'}}

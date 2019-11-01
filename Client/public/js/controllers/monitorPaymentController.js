@@ -1090,7 +1090,7 @@ define(['js/app'], function (myApp) {
 
                             if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
-                                action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ');vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)';
+                                action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ');vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player);vm.checkIsPhoneNumberExist(true)';
                                 link.append($('<div>', {
                                     'class': 'fa fa-user-plus',
                                     'style': 'padding-left:15px',
@@ -2938,7 +2938,7 @@ define(['js/app'], function (myApp) {
             }
 
             let phoneNumber = vm.newPlayer.phoneNumber;
-            let platform = vm.selectedPlatform ._id;
+            let platform = vm.newPlayer.platform;
 
             if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
                 phoneNumber = vm.newPlayer.encodedPhoneNumber;
@@ -2951,8 +2951,6 @@ define(['js/app'], function (myApp) {
                 }, function (data) {
                     $scope.$evalAsync(()=>{
                         if (data.data.length) {
-                            console.log("data.data.......", data.data);
-
                             if(!vm.newPlayer.encodedPhoneNumber){
                                 return
                             }else{
