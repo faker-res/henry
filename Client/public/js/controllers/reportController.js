@@ -4213,6 +4213,7 @@ define(['js/app'], function (myApp) {
                     };
                     vm.feedbackQuery.totalCount = data.data.size;
                     vm.feedbackData = data.data.data.map(item => {
+                        item = utilService.determineRegistrationDevice(item);
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
                         item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -4229,7 +4230,8 @@ define(['js/app'], function (myApp) {
                         item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                         item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
                         item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
-                        item.registrationDevice$ = (item && item.registrationDevice) ? $translate(vm.registrationDeviceList[item.registrationDevice]) : '-';
+                        // item.registrationDevice$ = (item && item.registrationDevice) ? $translate(vm.registrationDeviceList[item.registrationDevice]) : '-';
+                        item.registrationInterface$ = $translate(item.registrationInterface$);
                         item.credibility$ = "";
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
@@ -4381,7 +4383,7 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate('ORDER')},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
-                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
+                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationInterface$"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('FEEDBACK_TIME'), data: "createTime$"},
