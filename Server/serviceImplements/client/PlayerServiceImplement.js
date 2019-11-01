@@ -120,7 +120,7 @@ let PlayerServiceImplement = function () {
         }
 
         let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId, false], isValidData, true, true, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
                 data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
@@ -308,6 +308,10 @@ let PlayerServiceImplement = function () {
                 };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                if (playerData.bankAccount) {
+                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                }
 
                 if (playerData.guestDeviceId) {
                     delete playerData.guestDeviceId;

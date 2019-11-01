@@ -16,6 +16,8 @@ var frontEndPartnerUrlConfigurationSchema = new Schema({
     metaDescription: {type: String},
     // 主站APP下载地址
     appDownloadAddress: {type: String},
+    // 百度统计代码
+    baiduStatsCode: {type: String},
     pc: {
         skin: {type: Schema.Types.ObjectId, ref: 'frontEndPartnerSkinSetting', index: true},
     },

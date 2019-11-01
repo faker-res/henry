@@ -1478,9 +1478,9 @@ var dbUtility = {
         }
 
         let userAgentInput = [{
-            browser: ua.browser.name || '',
-            device: ua.device.name || '',
-            os: ua.os.name || ''
+            browser: (ua && ua.browser && ua.browser.name) || '',
+            device: (ua && ua.device && ua.device.name) || '',
+            os: (ua && ua.os && ua.os.name) || ''
         }];
 
         let inputDevice="";

@@ -783,7 +783,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId, isAPP=true) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
@@ -797,6 +797,7 @@ let dbPlayerInfo = {
         let isHitReferralLimit = false;
         let isEnableUseReferralPlayerId = false;
         let referralInterval;
+        let playerAccountPrefix = "";
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -807,6 +808,7 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
                     platformData = platformInfo;
+                    playerAccountPrefix = platformData.prefix;
                     if (!platformInfo.ipCheckPeriod) {
                         // if ipCheckPeriod not set, default 1 mins
                         platformInfo.ipCheckPeriod = 1;
@@ -856,11 +858,11 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
+                    if (playerIPRegisterLimit && (playerIPRegisterCount >= playerIPRegisterLimit) && (playerIPRegisterLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
+                    if (playerIPRegionLimit && (playerIPRegionLimitCount >= playerIPRegionLimit) && (playerIPRegionLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
@@ -960,6 +962,14 @@ let dbPlayerInfo = {
                 isVerified => {
                     //player flag for new system
                     inputData.isNewSystem = true;
+
+                    if (!isAPP && playerAccountPrefix && inputData && inputData.name && (inputData.name.indexOf(playerAccountPrefix) !== 0)) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DBError",
+                            message: localization.localization.translate("Player name should use ") + playerAccountPrefix + localization.localization.translate(" as prefix.")
+                        });
+                    }
 
                     if (inputData.name && !adminId && !/^[a-z0-9]+$/i.test(inputData.name)) {
                         return Promise.reject({
@@ -2712,7 +2722,16 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.phoneNumber) {
-                        createPhoneNumberBindingRecord(playerData);
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let legacyEncPhoneNumber = rsaCrypto.legacyEncrypt(decPhoneNumber);
+
+                        let phoneNumberBindingRecordData = {
+                            platform: playerData.platform,
+                            _id: playerData._id,
+                            phoneNumber: legacyEncPhoneNumber
+                        };
+
+                        createPhoneNumberBindingRecord(phoneNumberBindingRecordData);
                     }
 
                     return Promise.all(proms, ipSave);
@@ -7994,7 +8013,7 @@ let dbPlayerInfo = {
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
-            message: "Invalid SMS Validation Code"
+            message: "Verification code invalid"
         };
 
         if (inputData && !inputData.password) {
@@ -8089,6 +8108,7 @@ let dbPlayerInfo = {
                         {_id: verificationSMS._id},
                         {$inc: {loginAttempts: 1}}
                     ).then(() => {
+                        rejectMsg.message = "Invalid SMS Validation Code";
                         return Promise.reject(rejectMsg);
                     });
                 }
@@ -8636,6 +8656,17 @@ let dbPlayerInfo = {
                         error: "Password do not match"
                     });
                 }
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else if (playerObj) {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
@@ -22476,7 +22507,8 @@ let dbPlayerInfo = {
             credibilityRemarks: 1,
             csOfficer: 1,
             valueScore: 1,
-            registrationDevice: 1
+            registrationDevice: 1,
+            registrationInterface: 1
         };
 
         let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
@@ -22561,7 +22593,9 @@ let dbPlayerInfo = {
                         });
                     });
                 }
-                else if (consumptionRecord && !consumptionRecord.length && providerInfo && !providerInfo.length){
+
+                // if there is no consumption record with the selected game provider from filter, not showing the record
+                if (query.providerId && query.providerId.length && consumptionRecord && consumptionRecord.length == 0){
                     topUpRecord = [];
                     bonusRecord = [];
                 }
@@ -22852,6 +22886,23 @@ let dbPlayerInfo = {
                     matchObj.isTestPlayer = true;
                     break;
             }
+        }
+
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
 
         let consumptionStartTime;
@@ -23272,7 +23323,8 @@ let dbPlayerInfo = {
                     lastAccessTime: 1,
                     realName: 1,
                     domain: 1,
-                    registrationDevice: 1
+                    registrationDevice: 1,
+                    registrationInterface: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -23751,6 +23803,10 @@ let dbPlayerInfo = {
 
                     if (playerDetail && playerDetail.hasOwnProperty('registrationDevice')){
                         result.registrationDevice = playerDetail.registrationDevice;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationInterface')){
+                        result.registrationInterface = playerDetail.registrationInterface;
                     }
 
                     result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
@@ -26789,7 +26845,7 @@ let dbPlayerInfo = {
                         }
 
                         if (query && query.loginDevice && query.loginDevice.length) {
-                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice};
                         }
 
                         return dbconfig.collection_proposal.aggregate([
@@ -27430,7 +27486,7 @@ let dbPlayerInfo = {
 
                     // add in new filter condition: loginDevice
                     if (query.loginDevice && query.loginDevice.length) {
-                        summaryDataQuery.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                        summaryDataQuery.loginDevice = {$in: query.loginDevice};
                     }
 
                     console.log("checking playerReportDataDaySummary query", summaryDataQuery)
@@ -28021,7 +28077,7 @@ let dbPlayerInfo = {
 
 
             if(query.loginDevice && query.loginDevice.length){
-                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
             }
 
             console.log("checking consumptionPromMatchObj", consumptionPromMatchObj)
@@ -28082,7 +28138,7 @@ let dbPlayerInfo = {
                 "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             };
             if(query.loginDevice && query.loginDevice.length){
-                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice};
             }
 
             console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
@@ -30628,14 +30684,14 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
 
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, platformObj.samePhoneNumberRegisterCount, bindedCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, bindedCount);
@@ -30655,7 +30711,7 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
             ]}
         }).count().then(
             cnt => {
-                console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                console.log('checkPhoneNumberBindedBefore cnt', cnt, inputData.phoneNumber);
                 return cnt;
             }
         );
