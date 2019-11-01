@@ -808,7 +808,7 @@ var dbPlayerFeedback = {
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
         let isBothFilter = false;
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length){
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length) {
             isBothFilter = true;
             let feedbackQuery = {
                 platform: query.selectedPlatform,
