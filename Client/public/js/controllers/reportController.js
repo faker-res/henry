@@ -6352,7 +6352,11 @@ define(['js/app'], function (myApp) {
                     //     item.registrationDevice$ = "";
                     // }
                     // change to registrationInterface to display
-                    item.registrationDevice$ = item && item.playerInfo && item.playerInfo.registrationInterface ? $translate($scope.constPlayerRegistrationInterface[item.playerInfo.registrationInterface]) : "";
+                    if (item && item.playerInfo && item.playerInfo.hasOwnProperty("registrationInterface")){
+                        utilService.determineRegistrationDevice(item.playerInfo);
+                        item.registrationDevice$ = item && item.playerInfo && item.playerInfo.registrationInterface$ ? item.playerInfo.registrationInterface$ : "";
+                    }
+
 
 
                     item.provider$ = "";
@@ -6585,7 +6589,10 @@ define(['js/app'], function (myApp) {
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                     // item.registrationDevice$ = item && item.registrationDevice ? $translate(vm.registrationDeviceList[item.registrationDevice]) : "";
                     // change to registrationInterface to display
-                    item.registrationDevice$ = item && item.registrationInterface ? $translate($scope.constPlayerRegistrationInterface[item.registrationInterface]) : "";
+                    if (item && item.hasOwnProperty("registrationInterface")) {
+                        utilService.determineRegistrationDevice(item);
+                        item.registrationDevice$ = item && item.registrationInterface$ ? $translate(item.registrationInterface$) : "";
+                    }
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
