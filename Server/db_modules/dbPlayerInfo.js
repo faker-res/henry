@@ -22566,7 +22566,9 @@ let dbPlayerInfo = {
                         });
                     });
                 }
-                else if (consumptionRecord && !consumptionRecord.length && providerInfo && !providerInfo.length){
+
+                // if there is no consumption record with the selected game provider from filter, not showing the record
+                if (query.providerId && query.providerId.length && consumptionRecord && consumptionRecord.length == 0){
                     topUpRecord = [];
                     bonusRecord = [];
                 }
