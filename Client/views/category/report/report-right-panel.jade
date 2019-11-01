@@ -413,7 +413,7 @@
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchPlayerReport(true)') {{'SEARCH' | translate}}
                     button.btn.btn-info.btn-space(ng-click='vm.searchPlayerReport(true, true)') {{'EXPORT_EXCEL' | translate}}
-                    button.btn.btn-info.btn-space(ng-click='vm.reCalculatePlayerReportSummary()') {{'RECALCULATE' | translate}}
+                    button.btn.btn-info.btn-space(ng-if="checkViewPermission('Report', 'General', 'ReCalculateReport')" ng-click='vm.reCalculatePlayerReportSummary()') {{'RECALCULATE' | translate}}
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
