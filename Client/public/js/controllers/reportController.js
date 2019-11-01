@@ -1568,9 +1568,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupMultiInputDXTracking = function () {
             let dxTrackingGroupSelect = $('select#selectDXTracking');
-            if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             dxTrackingGroupSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1645,6 +1645,7 @@ define(['js/app'], function (myApp) {
                     break;
 
                 case "DX_NEWACCOUNT_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId)
                     vm.getAllPromoteWay(platformObjId).then(() => {
                         endLoadMultipleSelect('.spicker');
                     });
@@ -1659,6 +1660,9 @@ define(['js/app'], function (myApp) {
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
                 case "DX_TRACKING_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupMultiInputDXTracking();
+                    });
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
             }
@@ -2864,6 +2868,18 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.changeWinRateLoginDevice = function () {
+            if (vm.winRateQuery && vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length > 0
+                && vm.winRateQuery.loginDevice.includes("1")) {
+                vm.winRateQuery.loginDevice.push(1);
+            }
+
+            if (vm.winRateQuery && vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length > 0
+                && vm.winRateQuery.loginDevice.includes("2")) {
+                vm.winRateQuery.loginDevice.push(2);
+            }
+        }
+
         vm.getWinRateReportData = function () {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
@@ -2876,7 +2892,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length >= Object.keys(vm.winRateLoginDeviceList).length ? [] : vm.winRateQuery.loginDevice;
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
             let socketName = 'winRateReport';
@@ -2943,7 +2959,7 @@ define(['js/app'], function (myApp) {
             if (listAll) {
                 vm.curWinRateQuery.listAll = true;
             }
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length >= Object.keys(vm.winRateLoginDeviceList).length ? [] : vm.winRateQuery.loginDevice;
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
@@ -2981,7 +2997,7 @@ define(['js/app'], function (myApp) {
 
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length == 14 ? []: vm.winRateQuery.loginDevice;
 
             let socketName = 'getWinRateByGameType';
             if (vm.curWinRateQuery.searchBySummaryData) {
@@ -3002,7 +3018,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId || vm.selectedPlatform._id;
-                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.winRateLoginDeviceList[String(item.loginDevice)]) : "";
                         item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
@@ -3035,8 +3051,12 @@ define(['js/app'], function (myApp) {
                 sendData.cpGameType = cpGameType;
             }
 
-            if (Object.keys(vm.loginDeviceList).includes(loginDevice)) {
-                sendData.loginDevice = Number(loginDevice);
+            if (Object.keys(vm.winRateLoginDeviceList).includes(loginDevice)) {
+                if ((loginDevice.indexOf("1") != -1) || (loginDevice.indexOf("2") != -1)) {
+                    sendData.loginDevice = {$in: [loginDevice, Number(loginDevice)]}
+                } else {
+                    sendData.loginDevice = loginDevice;
+                }
             } else {
                delete sendData.loginDevice;
             }
@@ -4978,7 +4998,7 @@ define(['js/app'], function (myApp) {
                 isExport: isExport
             };
 
-            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.loginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.deviceReportLoginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.deviceReportLoginDeviceList).length){
                 sendQuery.query.loginDevice = vm.deviceQuery.loginDevice;
             }
             console.log('sendQuery', sendQuery);
@@ -5053,7 +5073,7 @@ define(['js/app'], function (myApp) {
                         item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
                         if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                            item.totalPlatformFeeEstimate$ = parseFloat(item.totalPlatformFeeEstimate).toFixed(2);
                         }
 
                         return item;
@@ -6506,6 +6526,7 @@ define(['js/app'], function (myApp) {
             let sendquery = {
                 platformId: vm.dxNewPlayerQuery.platformId,
                 query: {
+                    credibilityRemarks: vm.dxNewPlayerQuery.credibilityRemarks,
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
@@ -6686,6 +6707,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
                     {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
                     {
@@ -6824,7 +6846,7 @@ define(['js/app'], function (myApp) {
                 });
                 $('#dxNewPlayerReportTable').off('order.dt');
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXNewPlayerReport);
+                    vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
             }
 
@@ -11867,6 +11889,9 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "DEVICE_REPORT") {
                 vm.reportSearchTime = 0;
+                let cloneLoginDevices = JSON.parse(JSON.stringify(vm.registrationDeviceList));
+                delete cloneLoginDevices["0"];
+                vm.deviceReportLoginDeviceList = cloneLoginDevices;
                 utilService.actionAfterLoaded('#deviceReportTablePage', function () {
                     // Get Promote CS and way lists
                     vm.allPromoteWay = {};
@@ -12050,7 +12075,10 @@ define(['js/app'], function (myApp) {
                     vm.winRateSummaryData = {};
                     vm.winRateQuery.providerId = 'all';
                     vm.winRateQuery.loginDevice = [];
-                    Object.keys(vm.loginDeviceList).forEach(key => {
+                    let cloneDevices = JSON.parse(JSON.stringify(vm.registrationDeviceList));
+                    delete cloneDevices["0"];
+                    vm.winRateLoginDeviceList = cloneDevices;
+                    Object.keys(vm.winRateLoginDeviceList).forEach(key => {
                         if (key) {
                             vm.winRateQuery.loginDevice.push(key);
                         }

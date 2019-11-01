@@ -8323,6 +8323,7 @@ define(['js/app'], function (myApp) {
                         platformPageName: vm.platformPageName,
                         prepareEditCritical: vm.prepareEditCritical,
                         submitCriticalUpdate: vm.submitCriticalUpdate,
+                        isEditingBankAccountName: vm.isEditingBankAccountName,
                         isEditingPlayerPayment: vm.isEditingPlayerPayment,
                         isEditingPlayerPayment2: vm.isEditingPlayerPayment2,
                         isEditingPlayerPayment3: vm.isEditingPlayerPayment3,
@@ -8367,6 +8368,7 @@ define(['js/app'], function (myApp) {
                         allPlayerLevel: allPlayerLevel,
                         allPartner: allPartner,
                         playerId: selectedPlayer._id,
+                        playerRealName: selectedPlayer.realName,
                         playerBeforeEditing: _.clone(editPlayer),
                         playerBeingEdited: _.clone(editPlayer),
                         topUpGroupRemark: "",
@@ -8544,6 +8546,7 @@ define(['js/app'], function (myApp) {
                 option.childScope.prepareEditPlayerPayment = function () {
                     vm.prepareEditPlayerPayment();
                     this.isEditingPlayerPayment = vm.isEditingPlayerPayment;
+                    this.isEditingBankAccountName = vm.isEditingBankAccountName;
                     this.playerPayment = vm.playerPayment;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
@@ -13004,6 +13007,7 @@ define(['js/app'], function (myApp) {
                 vm.correctVerifyBankAccount = undefined;
                 vm.isEditingPlayerPayment = false;
                 vm.isEditingPlayerPaymentShowVerify = false;
+                vm.isEditingBankAccountName = false;
                 vm.playerPayment = utilService.assignObjKeys(vm.isOneSelectedPlayer(), vm.playerPaymentKeys);
                 vm.playerPayment.bankAccountName = (vm.playerPayment.bankAccountName) ? vm.playerPayment.bankAccountName : vm.isOneSelectedPlayer().realName;
                 vm.playerPayment.newBankAccount = vm.playerPayment.encodedBankAccount;
@@ -13472,7 +13476,7 @@ define(['js/app'], function (myApp) {
                 case 'bank1':
                     sendData = $.extend({}, vm.playerPayment);
                     if(vm.playerPayment && vm.playerPayment.bankAddress) {
-                        sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress = vm.playerPayment.bankAddress.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince = vm.currentProvince.province;
                     sendData.bankAccountCity = vm.currentCity.city;
@@ -13488,7 +13492,7 @@ define(['js/app'], function (myApp) {
                 case 'bank2':
                     sendData = $.extend({}, vm.playerPayment2);
                     if(vm.playerPayment2 && vm.playerPayment2.bankAddress2){
-                        sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress2 = vm.playerPayment2.bankAddress2.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince2 = vm.currentProvince2.province;
                     sendData.bankAccountCity2 = vm.currentCity2.city;
@@ -13506,7 +13510,7 @@ define(['js/app'], function (myApp) {
                 case 'bank3':
                     sendData = $.extend({}, vm.playerPayment3);
                     if(vm.playerPayment3 && vm.playerPayment3.bankAddress3){
-                        sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
+                        sendData.bankAddress3 = vm.playerPayment3.bankAddress3.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove chinese special characters
                     }
                     sendData.bankAccountProvince3 = vm.currentProvince3.province;
                     sendData.bankAccountCity3 = vm.currentCity3.city;

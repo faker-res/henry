@@ -190,7 +190,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerSkinSetting, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerSkinSetting, [data.platformObjId, data.subPlatformId], actionName, isValidData);
         },
 
         removeSkinSetting: function removeSkinSetting (data) {
@@ -232,7 +232,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerUrlConfig, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getPartnerUrlConfig, [data.platformObjId, data.subPlatformId], actionName, isValidData);
         },
 
         saveCarouselSetting: function saveCarouselSetting (data){
@@ -246,7 +246,7 @@ function socketActionFrontEndSetting(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
 
-            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId, data.isPartner], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbFrontEndSetting.getCarouselSetting, [data.platformObjId, data.isPartner, data.subPlatformId], actionName, isValidData);
         },
 
         updateCarouselSetting: function updateCarouselSetting (data) {

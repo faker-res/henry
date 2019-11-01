@@ -526,6 +526,10 @@ var dbFrontEndSetting = {
             url: data.url
         };
 
+        if (data.subPlatformId){
+            newSetting.subPlatformId = data.subPlatformId;
+        }
+
         let record = new dbConfig.collection_frontEndPartnerSkinSetting(newSetting);
         return record.save();
     },
@@ -534,8 +538,18 @@ var dbFrontEndSetting = {
         return dbConfig.collection_frontEndSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
-    getPartnerSkinSetting: (platformObjId) => {
-        return dbConfig.collection_frontEndPartnerSkinSetting.find({platformObjId: ObjectId(platformObjId)}).lean();
+    getPartnerSkinSetting: (platformObjId, subPlatformId) => {
+        let query = {
+            platformObjId: ObjectId(platformObjId)
+        }
+
+        if (subPlatformId && subPlatformId != ""){
+            query.subPlatformId = Number(subPlatformId);
+        }
+        else{
+            query.subPlatformId = {$exists: false};
+        }
+        return dbConfig.collection_frontEndPartnerSkinSetting.find(query).lean();
     },
 
     removeSkinSetting: (skinSettingObjId) => {
@@ -565,6 +579,10 @@ var dbFrontEndSetting = {
         if (data && data._id){
             let dataObjId = data._id;
             delete data._id;
+
+            if (data.subPlatformId){
+                delete data.subPlatformId;
+            }
             return dbConfig.collection_frontEndPartnerUrlConfiguration.findOneAndUpdate(
                 {_id: dataObjId},
                 data,
@@ -580,8 +598,18 @@ var dbFrontEndSetting = {
         return dbConfig.collection_frontEndUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
     },
 
-    getPartnerUrlConfig: (platformObjId) => {
-        return dbConfig.collection_frontEndPartnerUrlConfiguration.findOne({platformObjId: ObjectId(platformObjId)}).lean();
+    getPartnerUrlConfig: (platformObjId, subPlatformId) => {
+        let query = {
+            platformObjId: ObjectId(platformObjId)
+        }
+
+        if (subPlatformId && subPlatformId != ""){
+            query.subPlatformId = Number(subPlatformId);
+        }
+        else{
+            query.subPlatformId = {$exists: false};
+        }
+        return dbConfig.collection_frontEndPartnerUrlConfiguration.findOne(query).lean();
     },
 
     saveCarouselSetting: (data) => {
@@ -603,6 +631,10 @@ var dbFrontEndSetting = {
                     delete data.__v;
                 }
 
+                if (data.subPlatformId){
+                    delete data.subPlatformId;
+                }
+
                 if (isPartner){
                     return dbConfig.collection_frontEndPartnerCarouselConfiguration.findOneAndUpdate({_id: ObjectId(carouselObjId)}, data).lean();
                 }
@@ -621,14 +653,25 @@ var dbFrontEndSetting = {
         }
     },
 
-    getCarouselSetting: (platformObjId, isPartner) => {
+    getCarouselSetting: (platformObjId, isPartner, subPlatformId) => {
         let prom =  Promise.resolve();
         if (platformObjId){
-            if (isPartner){
-                prom = dbConfig.collection_frontEndPartnerCarouselConfiguration.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+            let query = {
+                platformObjId: ObjectId(platformObjId),
+                status: 1
+            };
+
+            if (subPlatformId && subPlatformId != ""){
+                query.subPlatformId = Number(subPlatformId);
             }
             else{
-                prom = dbConfig.collection_frontEndCarouselConfiguration.find({platformObjId: ObjectId(platformObjId), status: 1}).sort({displayOrder: 1}).lean();
+                query.subPlatformId = {$exists: false}
+            }
+            if (isPartner){
+                prom = dbConfig.collection_frontEndPartnerCarouselConfiguration.find(query).sort({displayOrder: 1}).lean();
+            }
+            else{
+                prom = dbConfig.collection_frontEndCarouselConfiguration.find(query).sort({displayOrder: 1}).lean();
             }
         }
 

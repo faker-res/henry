@@ -76,7 +76,7 @@ const constPlayerLoginDevice = require("../const/constPlayerLoginDevice");
 
 // db_common
 const dbRewardUtil = require("./../db_common/dbRewardUtility");
-let dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbReportUtil = require("../db_common/dbReportUtility");
 const dbUtil = require('./../modules/dbutility');
@@ -425,6 +425,7 @@ let dbPlayerInfo = {
         let referralLog = {};
         let referralInterval;
         let isHitReferralLimit = false;
+        let isRegister = false;
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -602,6 +603,7 @@ let dbPlayerInfo = {
                                     if (!playerData) {
                                         return Promise.reject({name: "DataError", message: "Can't create new player."});
                                     }
+                                    isRegister = true;
 
                                     if (isEnableUseReferralPlayerId) {
                                         let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
@@ -694,6 +696,9 @@ let dbPlayerInfo = {
                                                 if (data && isHitReferralLimit) {
                                                     data.isHitReferralLimit = isHitReferralLimit;
                                                 }
+                                                if (isRegister) {
+                                                    data.isRegister = true;
+                                                }
 
                                                 return data;
                                             }
@@ -778,7 +783,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId, isAPP=true) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
@@ -792,6 +797,7 @@ let dbPlayerInfo = {
         let isHitReferralLimit = false;
         let isEnableUseReferralPlayerId = false;
         let referralInterval;
+        let playerAccountPrefix = "";
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -802,6 +808,7 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
                     platformData = platformInfo;
+                    playerAccountPrefix = platformData.prefix;
                     if (!platformInfo.ipCheckPeriod) {
                         // if ipCheckPeriod not set, default 1 mins
                         platformInfo.ipCheckPeriod = 1;
@@ -851,11 +858,11 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
+                    if (playerIPRegisterLimit && (playerIPRegisterCount >= playerIPRegisterLimit) && (playerIPRegisterLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
+                    if (playerIPRegionLimit && (playerIPRegionLimitCount >= playerIPRegionLimit) && (playerIPRegionLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
@@ -955,6 +962,14 @@ let dbPlayerInfo = {
                 isVerified => {
                     //player flag for new system
                     inputData.isNewSystem = true;
+
+                    if (!isAPP && playerAccountPrefix && inputData && inputData.name && (inputData.name.indexOf(playerAccountPrefix) !== 0)) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DBError",
+                            message: localization.localization.translate("Player name should use ") + playerAccountPrefix + localization.localization.translate(" as prefix.")
+                        });
+                    }
 
                     if (inputData.name && !adminId && !/^[a-z0-9]+$/i.test(inputData.name)) {
                         return Promise.reject({
@@ -2707,7 +2722,16 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.phoneNumber) {
-                        createPhoneNumberBindingRecord(playerData);
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let legacyEncPhoneNumber = rsaCrypto.legacyEncrypt(decPhoneNumber);
+
+                        let phoneNumberBindingRecordData = {
+                            platform: playerData.platform,
+                            _id: playerData._id,
+                            phoneNumber: legacyEncPhoneNumber
+                        };
+
+                        createPhoneNumberBindingRecord(phoneNumberBindingRecordData);
                     }
 
                     return Promise.all(proms, ipSave);
@@ -6528,7 +6552,7 @@ let dbPlayerInfo = {
                 return partnerProm.then(
                     partnerObjId => {
                         if (partnerNameId && partnerObjId) {
-                            let partnerObj = {partner: ObjectId(partnerObjId[0]._id)};
+                            let partnerObj = {partner: {$in: partnerObjId}};
                             advancedQuery.$and[0] = {$and : [data, partnerObj]};
                         }
 
@@ -7989,7 +8013,7 @@ let dbPlayerInfo = {
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
-            message: "Invalid SMS Validation Code"
+            message: "Verification code invalid"
         };
 
         if (inputData && !inputData.password) {
@@ -8084,6 +8108,7 @@ let dbPlayerInfo = {
                         {_id: verificationSMS._id},
                         {$inc: {loginAttempts: 1}}
                     ).then(() => {
+                        rejectMsg.message = "Invalid SMS Validation Code";
                         return Promise.reject(rejectMsg);
                     });
                 }
@@ -8631,6 +8656,17 @@ let dbPlayerInfo = {
                         error: "Password do not match"
                     });
                 }
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else if (playerObj) {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
@@ -12404,7 +12440,7 @@ let dbPlayerInfo = {
                                             //     }
                                             // )
 
-                                            dbPlayerUtil = require("../db_common/dbPlayerUtility");
+                                            // dbPlayerUtil = require("../db_common/dbPlayerUtility");
                                             return dbPlayerUtil.setPlayerBState(playerObj._id, "playerLevelMigration", true, "lastApplyLevelUp").then(
                                                 playerState => {
                                                     console.log("ZM player level up checkpoint 6", playerObj.name);
@@ -19675,53 +19711,51 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updateBatchPlayerLevel: (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
-        let proms = [];
+    updateBatchPlayerLevel: async (adminObjId, adminName, platformObjId, playerNames, playerLevelObjId, remarks) => {
         let proposalTypeName = constProposalType.UPDATE_PLAYER_INFO_LEVEL;
-        let levelName;
-        remarks = remarks || "";
+        let levelNameProm = dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId}, {name: 1}).lean();
+        let proposalTypeProm = dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName}).lean();
+        playerNames = playerNames || [];
+        let playerObjIdsProm = [];
+        let playerObjIds = [];
+        for (let i = 0; i < playerNames.length; i++) {
+            let playerName = playerNames[i] && playerNames[i].trim() || "";
+            if (!playerName) {
+                continue;
+            }
+            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId}, {_id: 1}).lean().then(
+                pid => {
+                    playerObjIds.push(pid._id);
+                }
+            );
+            playerObjIdsProm.push(prom);
+        }
 
-        playerNames.forEach(playerName => {
-            let trimPlayerName = playerName.trim();
-            let updateData = {playerLevel: playerLevelObjId};
-            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
-                .then(data => {
-                    if (data) {
-                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                            name: trimPlayerName,
-                            platform: platformObjId
-                        }, updateData, constShardKeys.collection_players);
-                    }
-                });
-            proms.push(prom);
-        });
 
-        return Promise.all(proms).then(() => {
-            return dbconfig.collection_playerLevel.findOne({_id: playerLevelObjId});
-        }).then(levelData => {
-            levelName = levelData.name;
-            return dbconfig.collection_proposalType.findOne({platformId: platformObjId, name: proposalTypeName});
-        }).then(proposalType => {
-            let proposalData = {
-                mainType: constProposalMainType[proposalTypeName],
-                type: proposalType._id,
-                creator: {
-                    "id" : adminObjId,
-                    "name" : adminName,
-                    "type" : "admin"
-                },
-                data: {
-                    platformId: ObjectId(platformObjId),
-                    newLevelName: levelName,
-                    playerName: playerNames.join(", "),
-                    playerNameList: playerNames,
-                    remark: "批量编辑玩家等级;" + remarks
-                },
-                noSteps: constSystemParam.PROPOSAL_NO_STEP,
-                status: constProposalStatus.APPROVED,
-            };
-            dbProposal.createProposal(proposalData);
-        });
+        let [playerLevel, proposalType] = await Promise.all([levelNameProm, proposalTypeProm, Promise.all(playerObjIdsProm)]);
+
+        let proposalData = {
+            mainType: constProposalMainType[proposalTypeName],
+            type: proposalType._id,
+            creator: {
+                "id" : adminObjId,
+                "name" : adminName,
+                "type" : "admin"
+            },
+            data: {
+                platformId: ObjectId(platformObjId),
+                newLevelName: playerLevel.name,
+                newLevelObjId: playerLevel._id,
+                playerName: playerNames, // keep this as array so that it can be found in reports by name search
+                playerNameList: playerNames,
+                playerObjIds: playerObjIds,
+                remark: "批量编辑玩家等级;" + remarks,
+                rawRemarks: remarks || ""
+            },
+            status: constProposalStatus.APPROVED,
+        };
+
+        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, proposalTypeName, proposalData);
     },
 
     updatePlayerPlayedProvider: (playerId, providerId) => {
@@ -22849,6 +22883,23 @@ let dbPlayerInfo = {
                     matchObj.isTestPlayer = true;
                     break;
             }
+        }
+
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
 
         let consumptionStartTime;
@@ -26786,7 +26837,7 @@ let dbPlayerInfo = {
                         }
 
                         if (query && query.loginDevice && query.loginDevice.length) {
-                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice};
                         }
 
                         return dbconfig.collection_proposal.aggregate([
@@ -27427,7 +27478,7 @@ let dbPlayerInfo = {
 
                     // add in new filter condition: loginDevice
                     if (query.loginDevice && query.loginDevice.length) {
-                        summaryDataQuery.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                        summaryDataQuery.loginDevice = {$in: query.loginDevice};
                     }
 
                     console.log("checking playerReportDataDaySummary query", summaryDataQuery)
@@ -28018,7 +28069,7 @@ let dbPlayerInfo = {
 
 
             if(query.loginDevice && query.loginDevice.length){
-                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
             }
 
             console.log("checking consumptionPromMatchObj", consumptionPromMatchObj)
@@ -28079,7 +28130,7 @@ let dbPlayerInfo = {
                 "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             };
             if(query.loginDevice && query.loginDevice.length){
-                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice};
             }
 
             console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
@@ -30625,14 +30676,14 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
 
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, platformObj.samePhoneNumberRegisterCount, bindedCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, bindedCount);
@@ -30652,7 +30703,7 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
             ]}
         }).count().then(
             cnt => {
-                console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                console.log('checkPhoneNumberBindedBefore cnt', cnt, inputData.phoneNumber);
                 return cnt;
             }
         );
