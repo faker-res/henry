@@ -22707,7 +22707,7 @@ let dbPlayerInfo = {
 
                             switch (query.consumptionTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].consumptionCount <= query.consumptionTimesValue) {
+                                    if (outputData[i].consumptionCount < query.consumptionTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22719,14 +22719,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].consumptionCount >= query.consumptionTimesValue) {
+                                    if (outputData[i].consumptionCount > query.consumptionTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
-                                    if (query.tconsumptionTimesValueTwo) {
-                                        if (outputData[i].consumptionCount <= query.consumptionTimesValue && outputData[i].consumptionCount >= query.consumptionTimesValueTwo) {
+                                    if (query.consumptionTimesValueTwo) {
+                                        if (outputData[i].consumptionCount >= query.consumptionTimesValue && outputData[i].consumptionCount <= query.consumptionTimesValueTwo) {
+                                           // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22741,7 +22744,7 @@ let dbPlayerInfo = {
 
                             switch (query.topUpTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].topUpCount <= query.topUpTimesValue) {
+                                    if (outputData[i].topUpCount < query.topUpTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22753,14 +22756,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].topUpCount >= query.topUpTimesValue) {
+                                    if (outputData[i].topUpCount > query.topUpTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.topUpTimesValueTwo) {
-                                        if (outputData[i].topUpCount <= query.topUpTimesValue && outputData[i].topUpCount >= query.topUpTimesValueTwo) {
+                                        if (outputData[i].topUpCount >= query.topUpTimesValue && outputData[i].topUpCount <= query.topUpTimesValueTwo) {
+                                           // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22775,7 +22781,7 @@ let dbPlayerInfo = {
                         if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
                             switch (query.topUpAmountOperator) {
                                 case '>=':
-                                    if (outputData[i].topUpAmount <= query.topUpAmountValue) {
+                                    if (outputData[i].topUpAmount < query.topUpAmountValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22787,14 +22793,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].topUpAmount >= query.topUpAmountValue) {
+                                    if (outputData[i].topUpAmount > query.topUpAmountValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.topUpAmountValueTwo) {
-                                        if (outputData[i].topUpAmount <= query.topUpAmountValue && outputData[i].topUpAmount >= query.topUpAmountValueTwo) {
+                                        if (outputData[i].topUpAmount >= query.topUpAmountValue && outputData[i].topUpAmount <= query.topUpAmountValueTwo) {
+                                            // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22809,7 +22818,7 @@ let dbPlayerInfo = {
                         if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
                             switch (query.bonusTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].bonusCount <= query.bonusTimesValue) {
+                                    if (outputData[i].bonusCount < query.bonusTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22821,14 +22830,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].bonusCount >= query.bonusTimesValue) {
+                                    if (outputData[i].bonusCount > query.bonusTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.bonusTimesValueTwo) {
-                                        if (outputData[i].bonusTimes <= query.bonusTimesValue && outputData[i].bonusTimes >= query.bonusTimesValueTwo) {
+                                        if (outputData[i].bonusCount >= query.bonusTimesValue && outputData[i].bonusCount <= query.bonusTimesValueTwo) {
+                                            // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
