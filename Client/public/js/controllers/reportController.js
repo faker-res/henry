@@ -6346,11 +6346,14 @@ define(['js/app'], function (myApp) {
                     }
 
                     item.registrationDevice$ = "";
-                    if (item && item.playerInfo && item.playerInfo.registrationDevice) {
-                        item.registrationDevice$ = $translate(vm.registrationDeviceList[item.playerInfo.registrationDevice]);
-                    } else {
-                        item.registrationDevice$ = "";
-                    }
+                    // if (item && item.playerInfo && item.playerInfo.registrationDevice) {
+                    //     item.registrationDevice$ = $translate(vm.registrationDeviceList[item.playerInfo.registrationDevice]);
+                    // } else {
+                    //     item.registrationDevice$ = "";
+                    // }
+                    // change to registrationInterface to display
+                    item.registrationDevice$ = item && item.playerInfo && item.playerInfo.registrationInterface ? $translate($scope.constPlayerRegistrationInterface[item.playerInfo.registrationInterface]) : "";
+
 
                     item.provider$ = "";
                     if (item.providerInfo) {
@@ -6580,7 +6583,9 @@ define(['js/app'], function (myApp) {
                     item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                    item.registrationDevice$ = item && item.registrationDevice ? $translate(vm.registrationDeviceList[item.registrationDevice]) : "";
+                    // item.registrationDevice$ = item && item.registrationDevice ? $translate(vm.registrationDeviceList[item.registrationDevice]) : "";
+                    // change to registrationInterface to display
+                    item.registrationDevice$ = item && item.registrationInterface ? $translate($scope.constPlayerRegistrationInterface[item.registrationInterface]) : "";
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
