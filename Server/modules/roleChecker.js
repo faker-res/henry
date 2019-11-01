@@ -706,7 +706,8 @@ var roleChecker = {
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
                 FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
                 GAME_TYPE_ANALYSIS_REPORT: [],
-                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
+                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup'],
+                ReCalculateReport: ['reCalculatePlayerReportSummary']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],

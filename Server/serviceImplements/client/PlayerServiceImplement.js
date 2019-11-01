@@ -120,7 +120,7 @@ let PlayerServiceImplement = function () {
         }
 
         let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId, false], isValidData, true, true, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
                 data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
@@ -278,15 +278,17 @@ let PlayerServiceImplement = function () {
                 data.ipArea = {'province': province|| '', 'city': city || '', 'country': country || ''};
                 data.csOfficer = playerData.csOfficer ? playerData.csOfficer : "";
 
-                dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
-                    isUpdateData => {
-                        console.log("checking isUpdateData", isUpdateData)
-                        if (!(isUpdateData[0] && isUpdateData[0]._id)) {
-                            console.log("checking data.platformId", data.platformId)
-                            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                if (playerData && playerData.isRegister) {
+                    dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
+                        isUpdateData => {
+                            console.log("checking isUpdateData", isUpdateData)
+                            if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                                console.log("checking data.platformId", data.platformId)
+                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
+                            }
                         }
-                    }
-                );
+                    );
+                }
 
                 conn.isAuth = true;
                 conn.playerId = playerData.playerId;
@@ -306,6 +308,10 @@ let PlayerServiceImplement = function () {
                 };
                 var profile = {name: playerData.name, password: playerData.password};
                 var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                if (playerData.bankAccount) {
+                    playerData.bankAccount = dbUtility.encodeBankAcc(playerData.bankAccount);
+                }
 
                 if (playerData.guestDeviceId) {
                     delete playerData.guestDeviceId;

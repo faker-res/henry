@@ -236,6 +236,8 @@ var platformSchema = new Schema({
     blackListingPhoneNumbers: [{type: String}],
     // Partner auto approve bonus proposal platform switch
     partnerEnableAutoApplyBonus: {type: Boolean, default: false},
+    // Partner forbid apply bonus, apply bonus proposal need cs approval
+    partnerForbidApplyBonusNeedCsApproval: {type: Boolean, default: false},
     // Partner auto approve single withdrawal limit
     partnerAutoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
     // Partner auto approve daily total withdrawal limit
