@@ -1117,7 +1117,18 @@ const dbPlayerPayment = {
         addDetailToProp(proposalData, 'weChatQRCode', data.weChatQRCode);
         addDetailToProp(proposalData, 'name', data.name);
         addDetailToProp(proposalData, 'nickname', data.nickname);
-        addDetailToProp(proposalData, 'remark', data.remark);
+
+        if (parentProposalData && parentProposalData.proposalId) {
+            addDetailToProp(proposalData, 'remark', parentProposalData.proposalId)
+        }
+
+        if (data.remark) {
+            if (proposalData && proposalData.remark) {
+                proposalData.remark += ';' + data.remark;
+            } else {
+                addDetailToProp(proposalData, 'remark', parentProposalData.proposalId)
+            }
+        }
 
 
         if (parentProposalData && parentProposalData.creator) {
