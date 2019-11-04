@@ -512,6 +512,7 @@ var simplifiedChinese = {
     "Phone number and password don't match": "手机号码和密码不匹配",
     "Password is mandatory": "密码必填",
     "Please fill in correct amount": "请填写正确金额",
+    "Unable to find player": "找不到玩家",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
