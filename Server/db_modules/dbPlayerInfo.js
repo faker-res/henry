@@ -2383,8 +2383,8 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
-                    console.log('Comes to save', playerdata);
                     console.log(`Saving player ${playerdata.name} to database.`);
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -7355,7 +7355,6 @@ let dbPlayerInfo = {
                                     hasReceived: hasReceived,
                                     isForbidden: isForbidden
                                 }
-                                console.log("checking playerRetentionRewardGroup", [playerData.playerId, record, checkList]);
 
                                 if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
@@ -9376,6 +9375,8 @@ let dbPlayerInfo = {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
 
+                    console.log(`Start transfer ${playerData.name} credit ${amount} to ${providerId}`);
+
                     if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
                         let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
                         // if adminName doesn't exist (likely request from frontend), AND
@@ -9466,8 +9467,13 @@ let dbPlayerInfo = {
                     let transferOutProm = Promise.resolve(true);
 
                     // Transfer out credit from other provider before transfer in
-                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
-                        && playerData.lastPlayedProvider.providerId != providerId) {
+                    if (
+                        playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
+                        && playerData.lastPlayedProvider.providerId != providerId
+                    ) {
+                        // Step log
+                        console.log(`${playerData.name} transferring out from ${playerData.lastPlayedProvider.providerId}`);
+
                         transferOutProm = dbPlayerInfo.transferPlayerCreditFromProvider(
                             playerId, platform, playerData.lastPlayedProvider.providerId, -1)
                             .then(() => playerProm)
@@ -9545,7 +9551,6 @@ let dbPlayerInfo = {
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
-                        console.log("MT --checking --transfer to provider", providerData, providerId);
                         return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }
@@ -32753,7 +32758,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
-                console.log('MT --checking S7-1-a', config)
+
                 return thisPlayer;
             }
         );
