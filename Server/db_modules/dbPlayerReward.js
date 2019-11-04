@@ -7158,7 +7158,7 @@ let dbPlayerReward = {
         }
 
         return Promise.all([Promise.all(promArr), lastConsumptionProm, forbidRewardProm]).then(
-            data => {
+            async data => {
                 eventInPeriodCount = eventInPeriodData.length;
                 let rewardSpecificData = data[0];
                 lastConsumptionRecord = data[1] && data[1][0] ? data[1][0] : {};
@@ -8559,9 +8559,21 @@ let dbPlayerReward = {
                 // Decide whether deduct player credit
                 if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
                     let deductAmount = actualAmount && actualAmount > 0 ? actualAmount : applyAmount;
+                    let lastProviderCredit = 0;
+
+                    // Check the amount in last played provider
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId) {
+                        lastProviderCredit = await dbPlayerUtil.getProviderCreditByObjId(playerData._id, playerData.lastPlayedProvider.providerId).credit;
+                    }
+
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= deductAmount) {
                         // Player has enough amount in validCredit
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                    } else if (lastProviderCredit && lastProviderCredit >= 1 && lastProviderCredit >= deductAmount) {
+                        // If the last played provider has credit inside, we transfer out the money
+                        await dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                     } else {
                         // Player doesn't have enough validCredit, proceed to check in game credit
