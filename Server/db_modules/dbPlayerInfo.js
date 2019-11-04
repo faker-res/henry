@@ -31995,7 +31995,7 @@ function manualPlayerLevelMaintainReward(playerObjId, adminInfo) {
             proposalType = proposalTypeData;
             let platformPeriod = platform.playerLevelDownPeriod;
             let rewardPeriodTime;
-            let checkLevelDownPeriod; // period for checking consumption and top up
+            let checkLevelDownPeriod; // period for checking level changes
             if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                 rewardPeriodTime = dbUtil.getTodaySGTime();
                 checkLevelDownPeriod = dbUtil.getYesterdaySGTime();
