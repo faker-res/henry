@@ -118,6 +118,7 @@ const RESTUtils = require('../modules/RESTUtils');
 
 // Others
 const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
+const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
 
 let dbPlayerInfo = {
 
@@ -9536,17 +9537,8 @@ let dbPlayerInfo = {
 
                 if (playerData.platform.useProviderGroup) {
                     // Platform supporting provider group
-                    if (
-                        playerData.platform.useEbetWallet &&
-                        (
-                            providerData.name.toUpperCase() === "EBET"
-                            || providerData.name.toUpperCase() === "EBETSLOTS"
-                            || providerData.name.toUpperCase() === "EBETBOARD"
-                            || providerData.name.toUpperCase() === "V68LIVE"
-                            || providerData.name.toUpperCase() === "V68SLOT"
-                            || providerData.name.toUpperCase() === "V68BOARD"
-                        )
-                    ) {
+                    let providerName = providerData.name ? providerData.name.toUpperCase() : '';
+                    if (playerData.platform.useEbetWallet && ebetWalletProviders.includes(providerName)) {
                         // if use eBet Wallet
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
@@ -10159,7 +10151,8 @@ let dbPlayerInfo = {
                                 gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                             // Platform supporting provider group
-                            if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
+                            let providerName = gameProviderData.name ? gameProviderData.name.toUpperCase() : '';
+                            if (playerObj.platform.useEbetWallet && ebetWalletProviders.includes(providerName)) {
                                 // if use eBet Wallet
                                 console.log("using eBetWallet");
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
@@ -10181,7 +10174,8 @@ let dbPlayerInfo = {
                     gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
 
                 // Platform supporting provider group
-                if (playerObj.platform.useEbetWallet && (gameProviderData.name.toUpperCase() === "EBET" || gameProviderData.name.toUpperCase() === "EBETSLOTS" || gameProviderData.name.toUpperCase() === "EBETBOARD")) {
+                let providerName = gameProviderData.name ? gameProviderData.name.toUpperCase() : '';
+                if (playerObj.platform.useEbetWallet && ebetWalletProviders.includes(providerName)) {
                     // if use eBet Wallet
                     console.log("using eBetWallet");
                     return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
