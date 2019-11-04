@@ -3458,7 +3458,7 @@ API说明：
 	* 请求内容：
 	    ```
 	    code: 必填|String|优惠唯一代码
-	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    topUpRecordId: 选填|String|存款唯一ID (存送金组, 提升留存组)
 	    festivalItemId: 选填|String|特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得
 	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
 	    ```

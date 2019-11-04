@@ -80,7 +80,6 @@ var proposal = {
      * @param {Object} proposalData - The data of the proposal
      */
     createProposalWithTypeName: function (platformId, typeName, proposalData) {
-        console.log('proposalData===11', proposalData);
         let plyProm = null;
         let propAmount =
             proposalData.data.amount || proposalData.data.rewardAmount || proposalData.data.updateAmount
@@ -426,7 +425,6 @@ var proposal = {
         let proposalTypeData = null;
         let pendingProposalData = null;
         let duplicateBankAccountName = false;
-        console.log('proposalData===22', proposalData);
 
         return Promise.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -516,7 +514,6 @@ var proposal = {
                     if (data[0].name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposalData.data.isPlayerInit) {
                         proposalData.status = constProposalStatus.SUCCESS;
                     }
-                    console.log('proposalData===33', proposalData);
 
                     // Player modify phone number
                     let phoneUpdateProposalType = [constProposalType.UPDATE_PLAYER_PHONE, constProposalType.UPDATE_PARTNER_PHONE];

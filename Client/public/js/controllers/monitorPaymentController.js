@@ -1090,7 +1090,7 @@ define(['js/app'], function (myApp) {
 
                             if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL && row.status != vm.constProposalStatus.NOVERIFY) {
                                 displayTXT = $translate('CREATE_NEW_PLAYER');
-                                action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
+                                action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ');vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player);vm.checkIsPhoneNumberExist(true)';
                                 link.append($('<div>', {
                                     'class': 'fa fa-user-plus',
                                     'style': 'padding-left:15px',
@@ -2394,6 +2394,55 @@ define(['js/app'], function (myApp) {
             vm.getAllPromoteWay();
         }
 
+        vm.checkPlayerNameValidity = function (name, form, type) {
+            if (!name) return;
+            // vm.euPrefixNotExist = false;
+            vm.wrongPrefix = false;
+            if (type == 'edit' && name == vm.selectedSinglePlayer.name) {
+                vm.duplicateNameFound = false;
+                return;
+            }
+
+            // if (type !== 'edit' && vm.selectedPlatform.data.name === "EU8" && name && name.charAt(0) !== "e") {
+            //     vm.euPrefixNotExist = true;
+            // }
+            // form.$setValidity('euPrefixNotExist', !vm.euPrefixNotExist);
+
+            let platformObjId = vm.selectedPlatform.id;
+            if(form && form.$name == "form_new_player" && vm.newPlayer && vm.newPlayer.platform){
+                platformObjId = vm.newPlayer.platform;
+
+                if (type !== 'edit') {
+                    let platformData = vm.platformByAdminId.find(platform => platform._id == platformObjId);
+                    if (platformData.prefix && !name.startsWith(platformData.prefix)) {
+                        vm.wrongPrefix = true;
+                    }
+                }
+            }
+            form.$setValidity('wrongPrefix', !vm.wrongPrefix);
+            $scope.safeApply();
+
+            if (vm.wrongPrefix) {
+                return;
+            }
+
+            socketService.$socket($scope.AppSocket, 'checkPlayerNameValidity', {
+                platform: platformObjId,
+                name: name
+            }, function (data) {
+                console.log("data.......", data);
+                if (data && data.data.isPlayerNameValid == false) {
+                    vm.duplicateNameFound = true;
+                } else if (data && data.data.isPlayerNameValid) {
+                    vm.duplicateNameFound = false;
+                }
+                form.$setValidity('usedPlayerName', !vm.duplicateNameFound);
+                $scope.safeApply();
+            }, function (err) {
+                console.log('err', err);
+            }, true);
+        }
+
         vm.updatePlayerFeedback = function () {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.playerFeedback.result;
@@ -2838,50 +2887,82 @@ define(['js/app'], function (myApp) {
         }
 
 
-        vm.existNumberDetector = function (newSearch) {
+        // vm.existNumberDetector = function (newSearch) {
+        //
+        //     if (!vm.newPlayer.phoneNumber) {
+        //         return
+        //     }
+        //     let phoneNumber = vm.newPlayer.phoneNumber;
+        //     if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+        //         // $scope.$evalAsync(() => {
+        //         //     vm.existPhone = false;
+        //         // });
+        //         vm.existPhone = false;
+        //         $scope.safeApply();
+        //         return;
+        //     }
+        //
+        //     if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
+        //         phoneNumber = vm.newPlayer.encodedPhoneNumber;
+        //     }
+        //
+        //     //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+        //     var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
+        //     var sendData = {
+        //         adminId: authService.adminId,
+        //         platformId: vm.selectedPlatform._id,
+        //         type: ["PlayerRegistrationIntention"],
+        //         phoneNumber: phoneNumber,
+        //         size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+        //         index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
+        //         // sortCol: vm.newPlayerRecords.sortCol || null,
+        //         displayPhoneNum: true
+        //     }
+        //     sendData.status = selectedStatus;
+        //     socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', sendData, function (data) {
+        //         let phoneDuplicateCount = data.data.size;
+        //         vm.phoneDuplicateCount = phoneDuplicateCount
+        //         if (data.data.size == 0) {
+        //             vm.existPhone = false;
+        //         } else {
+        //             vm.existPhone = true;
+        //         }
+        //         $scope.safeApply();
+        //
+        //     });
+        // }
 
-            if (!vm.newPlayer.phoneNumber) {
-                return
+        vm.checkIsPhoneNumberExist = function (isCreate) {
+            if (isCreate) {
+                vm.duplicatedPhoneErr = {};
             }
+
             let phoneNumber = vm.newPlayer.phoneNumber;
-            if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
-                // $scope.$evalAsync(() => {
-                //     vm.existPhone = false;
-                // });
-                vm.existPhone = false;
-                $scope.safeApply();
-                return;
-            }
+            let platform = vm.newPlayer.platform;
 
             if (vm.newPlayer && vm.newPlayer.encodedPhoneNumber && vm.newPlayer.encodedPhoneNumber.toString().indexOf('*') == -1){
                 phoneNumber = vm.newPlayer.encodedPhoneNumber;
             }
 
-            //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
-            var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
-            var sendData = {
-                adminId: authService.adminId,
-                platformId: vm.selectedPlatform._id,
-                type: ["PlayerRegistrationIntention"],
-                phoneNumber: phoneNumber,
-                size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
-                index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
-                // sortCol: vm.newPlayerRecords.sortCol || null,
-                displayPhoneNum: true
-            }
-            sendData.status = selectedStatus;
-            socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', sendData, function (data) {
-                let phoneDuplicateCount = data.data.size;
-                vm.phoneDuplicateCount = phoneDuplicateCount
-                if (data.data.size == 0) {
-                    vm.existPhone = false;
-                } else {
-                    vm.existPhone = true;
-                }
-                $scope.safeApply();
+            if (phoneNumber && platform) {
+                socketService.$socket($scope.AppSocket, 'isPhoneNumberExist', {
+                    phoneNumber: phoneNumber,
+                    platformObjId: platform
+                }, function (data) {
+                    $scope.$evalAsync(()=>{
+                        if (data.data.length) {
+                            if(!vm.newPlayer.encodedPhoneNumber){
+                                return
+                            }else{
+                                console.log("checkIsPhoneNumberExist:", data);
+                                vm.duplicatedPhoneErr.str = `此号码已绑定给玩家: ${data.data[0]}`
+                            }
 
-            });
-        }
+                        }
+                    })
+                });
+            }
+        };
 
         vm.duplicatePhoneNumberDetector = function (newSearch, isPlayer) {
             let phoneNum = '';

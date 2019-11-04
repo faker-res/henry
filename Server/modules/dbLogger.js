@@ -1122,8 +1122,6 @@ var dbLogger = {
         errorLog.save().then().catch(err => errorSavingLog(err, logData));
     },
     createSMSLog: function (adminObjId, adminName, recipientName, data, sendObj, platform, status, error) {
-        console.log("data.....", data);
-        console.log("platform.....", platform);
         var type = data.playerId ? 'player'
             : data.partnerId ? 'partner'
             : 'other';
@@ -1146,7 +1144,6 @@ var dbLogger = {
             delete logData.playerId;
         }
         var smsLog = new dbconfig.collection_smsLog(logData);
-        console.log("smsLog.....", smsLog);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
 

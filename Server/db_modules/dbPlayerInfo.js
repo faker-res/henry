@@ -425,6 +425,7 @@ let dbPlayerInfo = {
         let referralLog = {};
         let referralInterval;
         let isHitReferralLimit = false;
+        let isRegister = false;
 
         return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
             platformData => {
@@ -602,6 +603,7 @@ let dbPlayerInfo = {
                                     if (!playerData) {
                                         return Promise.reject({name: "DataError", message: "Can't create new player."});
                                     }
+                                    isRegister = true;
 
                                     if (isEnableUseReferralPlayerId) {
                                         let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
@@ -694,6 +696,9 @@ let dbPlayerInfo = {
                                                 if (data && isHitReferralLimit) {
                                                     data.isHitReferralLimit = isHitReferralLimit;
                                                 }
+                                                if (isRegister) {
+                                                    data.isRegister = true;
+                                                }
 
                                                 return data;
                                             }
@@ -778,7 +783,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId, isAPP=true) {
         console.log("checking raw inputData.domain when create new player", inputData ? [inputData.name, inputData.domain, inputData.lastLoginIp, inputData.partnerId] : 'undefined');
         console.log("checking raw inputData.inputDevice when create new player", inputData.inputDevice || 'undefined');
         console.log("checking raw inputData.userAgent when create new player", inputData.userAgent || 'undefined');
@@ -792,6 +797,7 @@ let dbPlayerInfo = {
         let isHitReferralLimit = false;
         let isEnableUseReferralPlayerId = false;
         let referralInterval;
+        let playerAccountPrefix = "";
         if (!inputData) {
             return Q.reject({name: "DataError", message: "No input data is found."});
         }
@@ -802,6 +808,7 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
                     platformData = platformInfo;
+                    playerAccountPrefix = platformData.prefix;
                     if (!platformInfo.ipCheckPeriod) {
                         // if ipCheckPeriod not set, default 1 mins
                         platformInfo.ipCheckPeriod = 1;
@@ -851,11 +858,11 @@ let dbPlayerInfo = {
                         }
 
                     })
-                    if (playerIPRegisterCount >= playerIPRegisterLimit && playerIPRegisterLimit !=0 && fromFontEnd) {
+                    if (playerIPRegisterLimit && (playerIPRegisterCount >= playerIPRegisterLimit) && (playerIPRegisterLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegisterCount > playerIPRegisterLimit', playerIPRegisterCount, playerIPRegisterLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
-                    if (playerIPRegionLimitCount >= playerIPRegionLimit && playerIPRegionLimit !=0 && fromFontEnd) {
+                    if (playerIPRegionLimit && (playerIPRegionLimitCount >= playerIPRegionLimit) && (playerIPRegionLimit !=0) && fromFontEnd) {
                         console.log('MT --checking playerIPRegionLimitCount > playerIPRegionLimit', playerIPRegionLimitCount, playerIPRegionLimit)
                         return Q.reject({name: "DataError", message: localization.localization.translate("Process too many times, please contact customer service for asistance")});
                     }
@@ -955,6 +962,14 @@ let dbPlayerInfo = {
                 isVerified => {
                     //player flag for new system
                     inputData.isNewSystem = true;
+
+                    if (!isAPP && playerAccountPrefix && inputData && inputData.name && (inputData.name.indexOf(playerAccountPrefix) !== 0)) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DBError",
+                            message: localization.localization.translate("Player name should use ") + playerAccountPrefix + localization.localization.translate(" as prefix.")
+                        });
+                    }
 
                     if (inputData.name && !adminId && !/^[a-z0-9]+$/i.test(inputData.name)) {
                         return Promise.reject({
@@ -2368,8 +2383,8 @@ let dbPlayerInfo = {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
 
-                    console.log('Comes to save', playerdata);
                     console.log(`Saving player ${playerdata.name} to database.`);
+
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -2707,7 +2722,16 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.phoneNumber) {
-                        createPhoneNumberBindingRecord(playerData);
+                        let decPhoneNumber = rsaCrypto.decrypt(playerData.phoneNumber);
+                        let legacyEncPhoneNumber = rsaCrypto.legacyEncrypt(decPhoneNumber);
+
+                        let phoneNumberBindingRecordData = {
+                            platform: playerData.platform,
+                            _id: playerData._id,
+                            phoneNumber: legacyEncPhoneNumber
+                        };
+
+                        createPhoneNumberBindingRecord(phoneNumberBindingRecordData);
                     }
 
                     return Promise.all(proms, ipSave);
@@ -7331,7 +7355,6 @@ let dbPlayerInfo = {
                                     hasReceived: hasReceived,
                                     isForbidden: isForbidden
                                 }
-                                console.log("checking playerRetentionRewardGroup", [playerData.playerId, record, checkList]);
 
                                 if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
@@ -7989,7 +8012,7 @@ let dbPlayerInfo = {
         let rejectMsg = {
             status: constServerCode.VALIDATION_CODE_INVALID,
             name: "ValidationError",
-            message: "Invalid SMS Validation Code"
+            message: "Verification code invalid"
         };
 
         if (inputData && !inputData.password) {
@@ -8084,6 +8107,7 @@ let dbPlayerInfo = {
                         {_id: verificationSMS._id},
                         {$inc: {loginAttempts: 1}}
                     ).then(() => {
+                        rejectMsg.message = "Invalid SMS Validation Code";
                         return Promise.reject(rejectMsg);
                     });
                 }
@@ -8631,6 +8655,17 @@ let dbPlayerInfo = {
                         error: "Password do not match"
                     });
                 }
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else if (playerObj) {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
@@ -9340,6 +9375,8 @@ let dbPlayerInfo = {
                     [playerData, providerData] = data;
                     let platformData = playerData.platform;
 
+                    console.log(`Start transfer ${playerData.name} credit ${amount} to ${providerId}`);
+
                     if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
                         let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
                         // if adminName doesn't exist (likely request from frontend), AND
@@ -9430,8 +9467,13 @@ let dbPlayerInfo = {
                     let transferOutProm = Promise.resolve(true);
 
                     // Transfer out credit from other provider before transfer in
-                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
-                        && playerData.lastPlayedProvider.providerId != providerId) {
+                    if (
+                        playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
+                        && playerData.lastPlayedProvider.providerId != providerId
+                    ) {
+                        // Step log
+                        console.log(`${playerData.name} transferring out from ${playerData.lastPlayedProvider.providerId}`);
+
                         transferOutProm = dbPlayerInfo.transferPlayerCreditFromProvider(
                             playerId, platform, playerData.lastPlayedProvider.providerId, -1)
                             .then(() => playerProm)
@@ -9494,12 +9536,21 @@ let dbPlayerInfo = {
 
                 if (playerData.platform.useProviderGroup) {
                     // Platform supporting provider group
-                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS" || providerData.name.toUpperCase() === "EBETBOARD")) {
+                    if (
+                        playerData.platform.useEbetWallet &&
+                        (
+                            providerData.name.toUpperCase() === "EBET"
+                            || providerData.name.toUpperCase() === "EBETSLOTS"
+                            || providerData.name.toUpperCase() === "EBETBOARD"
+                            || providerData.name.toUpperCase() === "V68LIVE"
+                            || providerData.name.toUpperCase() === "V68SLOT"
+                            || providerData.name.toUpperCase() === "V68BOARD"
+                        )
+                    ) {
                         // if use eBet Wallet
                         return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     } else {
-                        console.log("MT --checking --transfer to provider", providerData, providerId);
                         return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
                             playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync, isUpdateTransferId, currentDate);
                     }
@@ -22471,7 +22522,10 @@ let dbPlayerInfo = {
             credibilityRemarks: 1,
             csOfficer: 1,
             valueScore: 1,
-            registrationDevice: 1
+            registrationDevice: 1,
+            registrationInterface: 1,
+            guestDeviceId: 1,
+            deviceId: 1,
         };
 
         let stream = dbconfig.collection_players.find(matchObj, dataObj).populate(
@@ -22556,7 +22610,9 @@ let dbPlayerInfo = {
                         });
                     });
                 }
-                else if (consumptionRecord && !consumptionRecord.length && providerInfo && !providerInfo.length){
+
+                // if there is no consumption record with the selected game provider from filter, not showing the record
+                if (query.providerId && query.providerId.length && consumptionRecord && consumptionRecord.length == 0){
                     topUpRecord = [];
                     bonusRecord = [];
                 }
@@ -22669,7 +22725,7 @@ let dbPlayerInfo = {
 
                             switch (query.consumptionTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].consumptionCount <= query.consumptionTimesValue) {
+                                    if (outputData[i].consumptionCount < query.consumptionTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22681,14 +22737,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].consumptionCount >= query.consumptionTimesValue) {
+                                    if (outputData[i].consumptionCount > query.consumptionTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
-                                    if (query.tconsumptionTimesValueTwo) {
-                                        if (outputData[i].consumptionCount <= query.consumptionTimesValue && outputData[i].consumptionCount >= query.consumptionTimesValueTwo) {
+                                    if (query.consumptionTimesValueTwo) {
+                                        if (outputData[i].consumptionCount >= query.consumptionTimesValue && outputData[i].consumptionCount <= query.consumptionTimesValueTwo) {
+                                           // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22703,7 +22762,7 @@ let dbPlayerInfo = {
 
                             switch (query.topUpTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].topUpCount <= query.topUpTimesValue) {
+                                    if (outputData[i].topUpCount < query.topUpTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22715,14 +22774,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].topUpCount >= query.topUpTimesValue) {
+                                    if (outputData[i].topUpCount > query.topUpTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.topUpTimesValueTwo) {
-                                        if (outputData[i].topUpCount <= query.topUpTimesValue && outputData[i].topUpCount >= query.topUpTimesValueTwo) {
+                                        if (outputData[i].topUpCount >= query.topUpTimesValue && outputData[i].topUpCount <= query.topUpTimesValueTwo) {
+                                           // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22737,7 +22799,7 @@ let dbPlayerInfo = {
                         if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
                             switch (query.topUpAmountOperator) {
                                 case '>=':
-                                    if (outputData[i].topUpAmount <= query.topUpAmountValue) {
+                                    if (outputData[i].topUpAmount < query.topUpAmountValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22749,14 +22811,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].topUpAmount >= query.topUpAmountValue) {
+                                    if (outputData[i].topUpAmount > query.topUpAmountValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.topUpAmountValueTwo) {
-                                        if (outputData[i].topUpAmount <= query.topUpAmountValue && outputData[i].topUpAmount >= query.topUpAmountValueTwo) {
+                                        if (outputData[i].topUpAmount >= query.topUpAmountValue && outputData[i].topUpAmount <= query.topUpAmountValueTwo) {
+                                            // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22771,7 +22836,7 @@ let dbPlayerInfo = {
                         if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
                             switch (query.bonusTimesOperator) {
                                 case '>=':
-                                    if (outputData[i].bonusCount <= query.bonusTimesValue) {
+                                    if (outputData[i].bonusCount < query.bonusTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
@@ -22783,14 +22848,17 @@ let dbPlayerInfo = {
                                     }
                                     break;
                                 case '<=':
-                                    if (outputData[i].bonusCount >= query.bonusTimesValue) {
+                                    if (outputData[i].bonusCount > query.bonusTimesValue) {
                                         outputData.splice(i, 1);
                                         isSplice = true;
                                     }
                                     break;
                                 case 'range':
                                     if (query.bonusTimesValueTwo) {
-                                        if (outputData[i].bonusTimes <= query.bonusTimesValue && outputData[i].bonusTimes >= query.bonusTimesValueTwo) {
+                                        if (outputData[i].bonusCount >= query.bonusTimesValue && outputData[i].bonusCount <= query.bonusTimesValueTwo) {
+                                            // do nothing
+                                        }
+                                        else{
                                             outputData.splice(i, 1);
                                             isSplice = true;
                                         }
@@ -22847,6 +22915,23 @@ let dbPlayerInfo = {
                     matchObj.isTestPlayer = true;
                     break;
             }
+        }
+
+        if (query && query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+            let tempArr = [];
+
+            query.credibilityRemarks.forEach(remark => {
+                if (remark !== "") {
+                    tempArr.push(remark);
+                }
+                tempArr = tempArr.map(
+                    tempArrId => {
+                        tempArrId = ObjectId(tempArrId);
+                        return tempArrId;
+                    });
+                matchObj.credibilityRemarks = {$in: tempArr};
+
+            });
         }
 
         let consumptionStartTime;
@@ -23267,7 +23352,10 @@ let dbPlayerInfo = {
                     lastAccessTime: 1,
                     realName: 1,
                     domain: 1,
-                    registrationDevice: 1
+                    registrationDevice: 1,
+                    registrationInterface: 1,
+                    guestDeviceId: 1,
+                    deviceId: 1
                 }
             ).populate({
                 path: 'csOfficer',
@@ -23746,6 +23834,18 @@ let dbPlayerInfo = {
 
                     if (playerDetail && playerDetail.hasOwnProperty('registrationDevice')){
                         result.registrationDevice = playerDetail.registrationDevice;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationInterface')){
+                        result.registrationInterface = playerDetail.registrationInterface;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('guestDeviceId')){
+                        result.guestDeviceId = playerDetail.guestDeviceId;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('deviceId')){
+                        result.deviceId = playerDetail.deviceId;
                     }
 
                     result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
@@ -26784,7 +26884,7 @@ let dbPlayerInfo = {
                         }
 
                         if (query && query.loginDevice && query.loginDevice.length) {
-                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                            proposalQuery['data.loginDevice'] = {$in: query.loginDevice};
                         }
 
                         return dbconfig.collection_proposal.aggregate([
@@ -27425,7 +27525,7 @@ let dbPlayerInfo = {
 
                     // add in new filter condition: loginDevice
                     if (query.loginDevice && query.loginDevice.length) {
-                        summaryDataQuery.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                        summaryDataQuery.loginDevice = {$in: query.loginDevice};
                     }
 
                     console.log("checking playerReportDataDaySummary query", summaryDataQuery)
@@ -28016,7 +28116,7 @@ let dbPlayerInfo = {
 
 
             if(query.loginDevice && query.loginDevice.length){
-                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice.map(p => Number(p))};
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
             }
 
             console.log("checking consumptionPromMatchObj", consumptionPromMatchObj)
@@ -28077,7 +28177,7 @@ let dbPlayerInfo = {
                 "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
             };
             if(query.loginDevice && query.loginDevice.length){
-                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice.map(p => Number(p))};
+                topUpMatchQuery['data.loginDevice'] = {$in: query.loginDevice};
             }
 
             console.log("checking topUpMatchQuery", JSON.stringify(topUpMatchQuery))
@@ -30623,14 +30723,14 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
 
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, platformObj.samePhoneNumberRegisterCount, bindedCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
-                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber), rsaCrypto.legacyEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, bindedCount);
@@ -30650,7 +30750,7 @@ async function checkPhoneNumberWhiteList(inputData, platformObj) {
             ]}
         }).count().then(
             cnt => {
-                console.log('checkPhoneNumberBindedBefore cnt', cnt);
+                console.log('checkPhoneNumberBindedBefore cnt', cnt, inputData.phoneNumber);
                 return cnt;
             }
         );
@@ -32690,7 +32790,7 @@ function getReferralIdAndUrl(thisPlayer) {
                         thisPlayer.referralId = thisPlayer.playerId;
                     }
                 }
-                console.log('MT --checking S7-1-a', config)
+
                 return thisPlayer;
             }
         );
