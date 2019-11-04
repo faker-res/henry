@@ -871,6 +871,12 @@ const dbPlayerPayment = {
                 }
                 else if (Number(topupRequest.clientType) == 4) {
                     newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+
+                    if (topupRequest && topupRequest.userAgent && topupRequest.userAgent.browser && topupRequest.userAgent.browser.name
+                        && (topupRequest.userAgent.browser.name.indexOf("WebKit") !== -1 || topupRequest.userAgent.browser.name.indexOf("WebView") !== -1)) {
+                        // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                        newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                    }
                 } else {
                     newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 }
@@ -946,9 +952,452 @@ const dbPlayerPayment = {
 
             return toEncrypt;
         }
-    }
+    },
 
     // endregion
+
+    //#region Create Top Up Proposal - From PMS to FPMS
+    createTopUpProposal: async (platformId, playerName, clientType, statusText, topUpType, amount, data) => {
+        let topUpSystemConfig;
+        let parentProposalData;
+        let constTopUpType;
+        let proposalTypeName;
+        let minTopUpAmount;
+        let rewardEvent;
+        let limitedOfferIntention;
+        let bonusCodeValidity;
+        let merchantRate;
+        let topupRate;
+        let topupActualAmt;
+
+        console.log('platformId, playerName, clientType, statusText, topUpType, amount:', platformId, playerName, clientType, statusText, topUpType, amount)
+
+        switch (topUpType) {
+            case 1:
+            case "1":
+                constTopUpType = constPlayerTopUpType.MANUAL;
+                proposalTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
+                break;
+            case 2:
+            case "2":
+                constTopUpType = constPlayerTopUpType.ONLINE;
+                proposalTypeName = constProposalType.PLAYER_TOP_UP;
+                break;
+            case 3:
+            case "3":
+                constTopUpType = constPlayerTopUpType.ALIPAY;
+                proposalTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                break;
+            case 4:
+            case "4":
+                constTopUpType = constPlayerTopUpType.WECHAT;
+                proposalTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
+                break;
+        }
+
+        // get platform data
+        let platformData = await dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        if (!platformData) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Cannot find platform"
+            });
+        }
+        topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
+        // get player data
+        let playerData = await dbconfig.collection_players.findOne({name: playerName, platform: platformData._id})
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
+        if (!playerData) {
+            return Promise.reject({
+                name: "DataError",
+                message: "Cannot find player"
+            });
+        }
+
+        // Check player top up permission
+        if (playerData && playerData.permission && playerData.permission.allTopUp === false) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_NO_PERMISSION,
+                name: "DataError",
+                errorMessage: "Player does not have common topup permission"
+            });
+        }
+
+        // Check minimum top up amount
+        minTopUpAmount = await getMinTopUpAmount(platformData, playerData);
+        if (!data.proposalId && (amount < minTopUpAmount)) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_TOP_UP_FAIL,
+                name: "DataError",
+                errorMessage: "Top up amount is not enough"
+            });
+        }
+
+        // if have parent proposal, get back the reward event info
+        if (data && data.proposalId) {
+            parentProposalData = await dbconfig.collection_proposal.findOne({proposalId: data.proposalId}).lean();
+
+            // Check top up return reward condition
+            if (parentProposalData && parentProposalData.data && parentProposalData.data.topUpReturnCode) {
+                console.log('JY check parentProposalData.data.userAgent ==>', parentProposalData.data.userAgent);
+                rewardEvent = await dbRewardUtil.checkApplyTopUpReturn(playerData, parentProposalData.data.topUpReturnCode, parentProposalData.data.userAgent, data, constTopUpType, true);
+            }
+
+            // Check limited offer condition
+            if (parentProposalData && parentProposalData.data && parentProposalData.data.limitedOfferObjId) {
+                limitedOfferIntention = await dbRewardUtil.checkLimitedOfferIntention(platformData._id, playerData._id, amount, parentProposalData.data.limitedOfferObjId);
+            }
+
+            // Check promo code condition
+            if (parentProposalData && parentProposalData.data && parentProposalData.data.bonusCode) {
+                let isOpenPromoCode = parentProposalData.data.bonusCode.toString().trim().length === 3;
+                if (isOpenPromoCode) {
+                    bonusCodeValidity = await dbPromoCode.isOpenPromoCodeValid(playerData.playerId, parentProposalData.data.bonusCode, amount, parentProposalData.data.ipAddress);
+                }
+                else {
+                    bonusCodeValidity = await dbPromoCode.isPromoCodeValid(playerData.playerId, parentProposalData.data.bonusCode, amount);
+                }
+
+                // check bonus code validity if exist
+                if (parentProposalData.data.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
+                }
+            }
+        }
+
+        // create proposal data
+        let proposalData = {};
+
+        addDetailToProp(proposalData, 'isFromPMSTopUp', Boolean(true));
+        addDetailToProp(proposalData, 'playerId', playerData.playerId);
+        addDetailToProp(proposalData, 'playerObjId', playerData._id);
+        addDetailToProp(proposalData, 'loginDevice', playerData.loginDevice);
+        addDetailToProp(proposalData, 'playerName', playerData.name);
+        addDetailToProp(proposalData, 'playerRealName', playerData.realName);
+        addDetailToProp(proposalData, 'bankCardGroupName', playerData.bankCardGroup && playerData.bankCardGroup.name ? playerData.bankCardGroup.name : '');
+        addDetailToProp(proposalData, 'merchantGroupName', playerData.merchantGroup && playerData.merchantGroup.name ? playerData.merchantGroup.name : '');
+        addDetailToProp(proposalData, 'wechatPayGroupName', playerData.wechatPayGroup && playerData.wechatPayGroup.name ? playerData.wechatPayGroup.name : '');
+        addDetailToProp(proposalData, 'aliPayGroupName', playerData.alipayGroup && playerData.alipayGroup.name ? playerData.alipayGroup.name : '');
+        addDetailToProp(proposalData, 'playerLevel', playerData.playerLevel && playerData.playerLevel._id);
+        addDetailToProp(proposalData, 'parentProposalId', parentProposalData && parentProposalData.proposalId);
+        addDetailToProp(proposalData, 'parentTopUpAmount', parentProposalData && parentProposalData.data && parentProposalData.data.amount);
+        addDetailToProp(proposalData, 'platformId', platformData._id);
+        addDetailToProp(proposalData, 'platform', platformData.platformId);
+
+        addDetailToProp(proposalData, 'amount', Number(amount));
+
+        addDetailToProp(proposalData, 'merchantNo', data.merchantNo);
+        addDetailToProp(proposalData, 'merchantName', data.merchantName);
+        addDetailToProp(proposalData, 'merchantUseName', data.merchantTypeName);
+        addDetailToProp(proposalData, 'bankCardNo', data.bankCardNo);
+        addDetailToProp(proposalData, 'bankCardType', data.bankTypeId);
+        addDetailToProp(proposalData, 'bankTypeId', data.bankTypeId);
+        addDetailToProp(proposalData, 'cardOwner', data.cardOwner);
+        addDetailToProp(proposalData, 'depositTime', data.createTime ? new Date(data.createTime.replace('+', ' ')) : '');
+        addDetailToProp(proposalData, 'depositeTime', data.createTime ? new Date(data.createTime.replace('+', ' ')) : '');
+        addDetailToProp(proposalData, 'validTime', data.validTime ? new Date(data.validTime.replace('+', ' ')) : '');
+        addDetailToProp(proposalData, 'cityName', data.cityName);
+        addDetailToProp(proposalData, 'provinceName', data.provinceName);
+        addDetailToProp(proposalData, 'orderNo', data.billNo);
+        addDetailToProp(proposalData, 'requestId', data.requestId);
+        addDetailToProp(proposalData, 'realName', data.realName);
+
+        addDetailToProp(proposalData, 'userAlipayName', data.userAlipayName);
+        addDetailToProp(proposalData, 'alipayAccount', data.alipayAccount);
+        addDetailToProp(proposalData, 'alipayName', data.alipayName);
+        addDetailToProp(proposalData, 'alipayQRCode', data.alipayQRCode);
+        addDetailToProp(proposalData, 'qrcodeAddress', data.qrcodeAddress);
+
+        addDetailToProp(proposalData, 'weChatAccount', data.weChatAccount);
+        addDetailToProp(proposalData, 'weChatQRCode', data.weChatQRCode);
+        addDetailToProp(proposalData, 'name', data.name);
+        addDetailToProp(proposalData, 'nickname', data.nickname);
+
+        if (parentProposalData && parentProposalData.proposalId) {
+            addDetailToProp(proposalData, 'remark', parentProposalData.proposalId)
+        }
+
+        if (data.remark) {
+            if (proposalData && proposalData.remark) {
+                proposalData.remark += ';' + data.remark;
+            } else {
+                addDetailToProp(proposalData, 'remark', parentProposalData.proposalId)
+            }
+        }
+
+
+        if (parentProposalData && parentProposalData.creator) {
+            addDetailToProp(proposalData, 'creator', parentProposalData.creator);
+        } else {
+            let creatorData = {
+                type: 'player',
+                name: playerData.name,
+                id: playerData.playerId
+            };
+            addDetailToProp(proposalData, 'creator', creatorData);
+        }
+
+        if (parentProposalData && parentProposalData.data && parentProposalData.data.ipAddress) {
+            addDetailToProp(proposalData, 'lastLoginIp', parentProposalData.data.ipAddress);
+        } else {
+            addDetailToProp(proposalData, 'lastLoginIp', playerData.lastLoginIp);
+        }
+
+        if (platformData.topUpSystemType && topUpSystemConfig) {
+            addDetailToProp(proposalData, 'topUpSystemType', platformData.topUpSystemType);
+            addDetailToProp(proposalData, 'topUpSystemName', topUpSystemConfig.name);
+        } else if (!platformData.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+            Object.keys(extConfig).forEach(key => {
+                if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                    addDetailToProp(proposalData, 'topUpSystemType', Number(key));
+                    addDetailToProp(proposalData, 'topUpSystemName', extConfig[key].name);
+                }
+            });
+        }
+
+        // Check Player Top Up Return / Retention Reward
+        if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+            if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP){
+                addDetailToProp(proposalData, 'topUpReturnCode', rewardEvent.code);
+            }
+            else if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                addDetailToProp(proposalData, 'retentionRewardCode', rewardEvent.code);
+                // delete the unrelated rewardEvent.code
+                if (proposalData.topUpReturnCode){
+                    delete proposalData.topUpReturnCode;
+                }
+            }
+        }
+
+        // Check Limited Offer Intention
+        if (limitedOfferIntention) {
+            addDetailToProp(proposalData, 'limitedOfferObjId', limitedOfferIntention._id);
+            addDetailToProp(proposalData, 'limitedOfferName', limitedOfferIntention.data.limitedOfferName);
+            addDetailToProp(proposalData, 'expirationTime', limitedOfferIntention.data.expirationTime);
+            let limitedOfferIntentionRemark = '优惠名称: ' + limitedOfferIntention.data.limitedOfferName + ' (' + limitedOfferIntention.proposalId + ')';
+            addDetailToProp(proposalData, 'remark', limitedOfferIntentionRemark);
+        }
+
+        // Record sub top up method into proposal
+        if (data && data.depositMethod) {
+            if (proposalTypeName === constProposalType.PLAYER_TOP_UP) {
+                addDetailToProp(proposalData, 'topupType', data.depositMethod);
+            }
+            if (proposalTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
+                addDetailToProp(proposalData, 'depositMethod', data.depositMethod);
+            }
+        }
+
+        // deduct service charge - merchant rate
+        if (data.merchantNo && data.depositMethod && data.merchantName && platformData && platformData.platformId) {
+            let merchantQuery = {
+                platformId: platformData.platformId,
+                merchantNo: data.merchantNo,
+                topupType: data.depositMethod,
+                name: data.merchantName
+            };
+
+            if (topUpSystemConfig && topUpSystemConfig.name && (topUpSystemConfig.name === 'PMS2')) {
+                merchantQuery.isPMS2 = {$exists: true};
+            } else {
+                merchantQuery.isPMS2 = {$exists: false};
+            }
+
+            merchantRate = await dbconfig.collection_platformMerchantList.findOne(merchantQuery, {rate: 1, customizeRate: 1}).lean();
+
+            // Add merchant rate and actualReceivedAmount
+            topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+            topupActualAmt = merchantRate && merchantRate.customizeRate ?
+                (Number(amount) - (Number(amount) * Number(merchantRate.customizeRate))).toFixed(2)
+                : amount;
+
+            // use system custom rate when there is pms's rate greater than system setting and no customizeRate
+            if (merchantRate && !merchantRate.customizeRate && merchantRate.rate
+                && platformData && platformData.pmsServiceCharge && platformData.fpmsServiceCharge
+                && (merchantRate.rate > platformData.pmsServiceCharge)) {
+                topupRate = platformData.fpmsServiceCharge;
+                topupActualAmt = (Number(amount) - (Number(amount) * Number(platformData.fpmsServiceCharge))).toFixed(2);
+            }
+
+            if (proposalData && proposalData.amount) {
+                topupActualAmt = (Number(proposalData.amount) - (Number(proposalData.amount) * Number(topupRate))).toFixed(2);
+            }
+
+            addDetailToProp(proposalData, 'rate', topupRate);
+            addDetailToProp(proposalData, 'actualAmountReceived', Number(topupActualAmt));
+        }
+
+        // add alipay "line" fieldName , and remark for "line"
+        if (proposalTypeName === constProposalType.PLAYER_ALIPAY_TOP_UP && data.line) {
+            let remark = getRemark(data.line, data.remark);
+            addDetailToProp(proposalData, 'line', data.line);
+            addDetailToProp(proposalData, 'remark', remark);
+        }
+
+
+        let newProposal = {
+            creator: proposalData.creator,
+            data: proposalData,
+            entryType: constProposalEntryType.CLIENT,
+            userType: playerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+            status: statusText
+        };
+
+        if (Number(data.clientType) == 1) {
+            newProposal.inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+        }
+        else if (Number(data.clientType) == 2) {
+            newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+        }
+        else if (Number(data.clientType) == 4) {
+            newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+
+            if (parentProposalData && parentProposalData.userAgent && parentProposalData.userAgent.browser && parentProposalData.userAgent.browser.name
+                && (parentProposalData.userAgent.browser.name.indexOf("WebKit") !== -1 || parentProposalData.userAgent.browser.name.indexOf("WebView") !== -1)) {
+                // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
+                newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+            }
+        }
+        else if (Number(data.clientType) == 7) {
+            newProposal.inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+        } else {
+            if (parentProposalData && parentProposalData.data && parentProposalData.data.userAgent) {
+                newProposal.inputDevice = dbUtil.getInputDevice(parentProposalData.data.userAgent, false);
+            }
+        }
+
+        return dbProposal.createProposalWithTypeName(platformData._id, proposalTypeName, newProposal).then(
+            propData => {
+                if (propData) {
+                    return {
+                        proposalId: propData.proposalId,
+                        status: propData.status,
+                        amount: propData.data && propData.data.amount,
+                        rate: (Number(amount) * Number(topupRate)).toFixed(2),
+                        actualAmountReceived: topupActualAmt,
+                        realName: propData.data && propData.data.playerRealName,
+                        playerName: playerName,
+                        platformId: platformId,
+                        bankCardNo: propData.data && propData.data.bankCardNo
+                    };
+                } else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Error in creating proposal",
+                        data: {
+                            status: statusText,
+                            amount: amount,
+                            playerName: playerName,
+                            platformId: platformId,
+                            bankCardNo: data && data.bankCardNo
+                        }
+                    })
+                }
+            },
+            error => {
+                errorUtils.reportError(error);
+                return Promise.reject({
+                    status: constServerCode.COMMON_ERROR,
+                    name: "DataError",
+                    message: error.message || error,
+                    data: {
+                        status: statusText,
+                        amount: amount,
+                        playerName: playerName,
+                        platformId: platformId,
+                        bankCardNo: data && data.bankCardNo
+                    }
+                });
+            }
+        );
+
+
+        function getMinTopUpAmount(platformData, playerData){
+            let playerTopUpCount;
+            let platformTopUpAmountConfig;
+            let defaultMinTopUpAmount = 10;
+
+            let topUpCountProm = dbconfig.collection_playerTopUpRecord.aggregate(
+                [
+                    {
+                        $match: {
+                            platformId: platformData._id,
+                            createTime: {$gte: new Date(playerData.registrationTime), $lte: new Date()},
+                            playerId: playerData._id
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: null,
+                            count: {$sum: 1}
+                        }
+                    }
+                ]
+            ).allowDiskUse(true).exec();
+
+            let platformTopUpAmountConfigProm = dbconfig.collection_platformTopUpAmountConfig.findOne({platformObjId: platformData._id}).lean();
+
+            return Promise.all([topUpCountProm, platformTopUpAmountConfigProm]).then(
+                data => {
+                    playerTopUpCount = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                    platformTopUpAmountConfig = data[1];
+
+                    let newMinTopUpAmount;
+                    if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+                        && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                        newMinTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
+                    }
+
+                    if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
+                        let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+                        topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
+
+                        for (let i = 0; i < topUpCountAmountRanges.length; i++) {
+                            let range = topUpCountAmountRanges[i];
+                            if (range && range.topUpCount && (playerTopUpCount <= range.topUpCount)) {
+                                if(range && range.minAmount) {
+                                    newMinTopUpAmount = range.minAmount;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!newMinTopUpAmount) {
+                        newMinTopUpAmount = defaultMinTopUpAmount;
+                    }
+
+                    return newMinTopUpAmount;
+                }
+            )
+        }
+
+        function getRemark (lineNo, callbackRemark) {
+            let remark = callbackRemark;
+            let remarkMsg = {
+                '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
+                '3':[", 网赚", "网赚"]
+            }
+            if (callbackRemark) {
+                remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
+            } else {
+                remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
+            }
+            return remark;
+        }
+
+        function addDetailToProp (updObj, updField, data) {
+            if (typeof data !== "undefined" && data !== null) {
+                updObj[updField] = data
+            }
+        }
+    }
+    //#endregion
 
 };
 

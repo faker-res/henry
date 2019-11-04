@@ -2195,9 +2195,12 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getPlatformTsListName = function () {
-            let sendData = {
-                platform: vm.selectedPlatform.id
+        vm.getPlatformTsListName = function (platformId) {
+            let sendData = {};
+            if(platformId){
+                sendData.platform = platformId;
+            }else{
+                sendData.platform = vm.selectedPlatform.id;
             }
             socketService.$socket($scope.AppSocket, 'getTsNewListName', sendData, function (data) {
                 vm.platformTsListName = data.data || [];
@@ -6933,6 +6936,10 @@ define(['js/app'], function (myApp) {
                assignee: vm.selectedReclaimAssignee,
                isNeverUsed: Boolean(isNeverUsed),
            }
+
+           if(vm.phoneListSearch && vm.phoneListSearch.platformObjId){
+               sendData.platformObjId = vm.phoneListSearch.platformObjId;
+           }
             socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
                 vm.searchDistributionDetails();
             })
@@ -7258,7 +7265,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('NAME_LIST_TITLE'), data: "name",
                         render: function (data, type, row, index) {
                             var link = $('<a>', {
-                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
+                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + '); vm.getPlayerFeedbackTopic(' + JSON.stringify(row.platform) + ');' ,
                                 'data-toggle': 'modal',
                                 'data-target': '#modaltsAnalyticsPhoneList'
                             }).text(data);

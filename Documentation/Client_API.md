@@ -228,6 +228,9 @@
 		44. [代理推广域名防红和短链转换](#代理推广域名防红和短链转换)
 		45. [查询代理的下级会员信息](#查询代理的下级会员信息)
         46. [查询代理的下级代理信息](#查询代理的下级代理信息)
+        47. [查询代理佣金设置数据](#查询代理佣金设置数据)
+        48. [代理给下级代理开户](#代理给下级代理开户)
+        49. [代理获取推广二维码和推广海报](#代理获取推广二维码和推广海报)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -439,12 +442,27 @@ API说明：
 - 云闪付转账:6
 
 ### 充值提案状态：
--  充值成功(Success): 1
+- 充值成功(Success): 1
 - 充值失败(Failure): 2
 - 待处理(Pending): 3 note: 未处理，玩家还可以取消申请
 - 处理中(Processing): 4 note: 平台正在处理玩家的申请，不能取消申请了。
 - 已取消(Cancelled): 5 note: 玩家可以主动取消申请(只能Pending状态时才能取消)
 - 系统异常(PrePending) 支付系统不可用或支付信息出错
+
+<div id='设备类型列表'></div>
+
+### 设备类型列表：
+- 浏览器(browser): 1
+- H5: 2
+- 安卓 APP: 3
+- IOS APP: 4
+
+<div id='子平台列表'></div>
+
+### 子平台列表：
+- 易游棋牌: 401
+- v68: 402
+- 易游: 403
 
 # 服务列表：
 
@@ -483,7 +501,9 @@ API说明：
 			  "DOB": "2017-01-18",
 			  platformId:”xxxxxx”,
 			  referral: “player002”,
-			  domain: “domain.com”
+			  domain: “domain.com”,
+			  deviceType: 1,
+              subPlatformId: 401
             }
             
   - name: 玩家注册的用户名.(需验证用户是否被占用)
@@ -505,6 +525,8 @@ API说明：
   - deviceId: 设备号
   - referralId: 邀请码(推荐人的玩家ID)
   - referralUrl: 邀请码链接
+  - deviceType: [设备类型列表](#设备类型列表)
+  - subPlatformId: [子平台列表](#子平台列表)
   - 响应内容：{status: 200/4xx, data: playerObj, token: xxxxxxxx, isHitReferralLimit: true/false}
   - 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
   - 操作失败： status--4xx, data--null
@@ -532,6 +554,8 @@ API说明：
         clientDomain: 选填|String|登陆域名
         deviceId: 选填|String|设备号
         checkLastDeviceId: 选填|Boolean|检查上次登入设备是否与这次一样
+        deviceType: 选填|设备类型列表
+        subPlatformId: 选填|子平台列表
         ```
 	* 操作成功:
 	    ```
@@ -1915,6 +1939,8 @@ API说明：
 				phoneNumber: “11755555555” //非必填， 填写则绑定电话号码+设备ID
 				accountPrefix: “e” // 账号名字前缀，非必填，默认”g”
 				referralId: "4322" //推荐人邀请码
+				deviceType: 1 //选填|设备类型列表
+				subPlatformId: 401 //选填|子平台列表
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
 	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
@@ -1934,6 +1960,8 @@ API说明：
 				accountPrefix: “e” // 玩家帐号前缀，可不填
 				checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
 				referralId: 邀请码
+				deviceType: 1 //选填|设备类型列表
+				subPlatformId: 401 //选填|子平台列表
 			}
 	* 响应内容：`{status: 200/40x, data: playerObject}`
 	* playerObject包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
@@ -1965,6 +1993,10 @@ API说明：
 	* clientDomain: 登陆域名
 	* deviceId: 设备号
 	* checkLastDeviceId： true // 选填，检查上次登入设备是否与这次一样
+	* deviceType: 1 //选填|[设备类型列表](#设备类型列表)
+    * subPlatformId: 401 //选填|[子平台列表](#子平台列表)
+    
+    
 	* 响应内容:`{status: 200/40x, data: playerObject} playerObject包含token，用于重新建立链接`
 	* 操作成功： status--200, data--玩家对象
 	* 操作失败： status--40x, data--null
@@ -2076,6 +2108,8 @@ API说明：
                 phoneNumber: “17355544411“ // 玩家电话号码, 必填
                 smsCode: "2451", // 短信验证码, 必填
                 password: "888888", //密码, 必填
+                deviceType: 1, //选填|设备类型列表
+                subPlatformId: 401 //选填|子平台列表
             }
     * 响应内容：`{status: 200/40x, data: playerObject}`
     * playerObject包含token，用于重新建立链接
@@ -2093,6 +2127,8 @@ API说明：
                 platformId: “1”, //平台ID - 必填
                 phoneNumber: “17355544411“ // 玩家电话号码, 必填
                 password: "888888", //密码, 必填
+                deviceType: 1, //选填|设备类型列表
+                subPlatformId: 401 //选填|子平台列表
             }
     * 响应内容：`{status: 200/40x, data: playerObject}`
     * playerObject包含token，用于重新建立链接
@@ -3131,7 +3167,7 @@ API说明：
     * 请求内容：
         ```
         platformId: 必填|String|平台ID
-        clientType: 选填|String|1：WEB，2：H5，4：APP
+        clientType: 选填|String|1：WEB，2：H5，4：APP，5: Android APP, 6: IOS APP
         ```
     * 操作成功:
         ```
@@ -3422,7 +3458,7 @@ API说明：
 	* 请求内容：
 	    ```
 	    code: 必填|String|优惠唯一代码
-	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    topUpRecordId: 选填|String|存款唯一ID (存送金组, 提升留存组)
 	    festivalItemId: 选填|String|特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得
 	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
 	    ```
@@ -4625,6 +4661,8 @@ API说明：
 				realName:String,// 非必填
 				phoneNumber:Number,
 				captcha:String,
+				deviceType: Number,
+				subPlatformId: Number
 			}
 	* name: // 代理账号
 	* platformId: // 平台id
@@ -4638,6 +4676,8 @@ API说明：
 	* DOB: // 代理生日
 	* qq: // 代理qq号码
 	* commissionType: // 非必填，当代理基础数据的『佣金设置』＝前端自选时，可请求（1天输赢:1,7天输赢:2,半月输赢:3,1月输赢:4,7天投注额:5）(5/29 尚无）
+	* deviceType: // 装置,  1-浏览器(browser)，2-h5，3-安卓APP, 4-IOS APP
+	* subPlatformId: //子平台ID, 401(易游棋牌), 402（v68）, 403（易游）
 	* 响应内容：`{status:200/4xx}`
 	* 操作成功： status--200
 	* 操作失败： status--4xx
@@ -4675,8 +4715,10 @@ API说明：
 	* 用于验证玩家webSocket链接是否有效。
 	* 当玩家已登录，但是webSocket链接断开，再建立链接时可以用token来验证链接是否仍然有效.
 	* name: authenticate
-	* 请求内容：`{partnerId: “xxxxxxxxx”,token: “xxxxxxx”获奖}`
+	* 请求内容：`{partnerId: “xxxxxxxxx”,token: “xxxxxxx”获奖, deviceType: 1, subPlatformId: 401}`
 	* partnerId: 已登录的代理会员id
+	* deviceType: 1 //选填|[设备类型列表](#设备类型列表)
+    * subPlatformId: 401 //选填|[子平台列表](#子平台列表)
 	* 响应内容： `{status: 200/4xx,data: true/false/null}`
 	* 操作成功: status--200, data--true, 有效，false, 鉴定失败
 	* 操作失败：status--4xx, data-null
@@ -4719,7 +4761,9 @@ API说明：
 				"name": "testpartner4",  //登录用户名
 				"password": "123456",  //登录密码
 				"clientDomain": "xxxx",  //登录域名
-				"captcha": "2425"  //验证码
+				"captcha": "2425"  //验证码,
+				"deviceType": 1, // 设备类型列表
+                "subPlatformId": 401 子平台列表
 			}
 	* 响应内容：
 		* ```
@@ -4811,6 +4855,8 @@ API说明：
 	* data: 代理详细信息
 	* token: 用于重新建立连接
 	* errorMsg: 错误消息, 失败时该字段才有效。
+	* deviceType: // 装置,  1-浏览器(browser)，2-h5，3-安卓APP, 4-IOS APP
+    * subPlatformId: //子平台ID, 401(易游棋牌), 402（v68）, 403（易游）
 
 <div id='代理会员登出'></div>
 
@@ -6420,6 +6466,136 @@ API说明：
             }
     * 操作失败：status--4xx, data-null, errorMessage:””
     * 该接口需要登录
+
+<div id='查询代理佣金设置数据'></div>
+
+* **46. 查询代理佣金设置数据**
+    * name: getPartnerCommissionRate
+    * service:partner
+    * 请求内容
+        * ```
+            {
+              "platformId": "4", //平台ID - 必填
+              "partnerId": "15088", // 代理ID - 必填
+              "commissionClass": "2" //必填，固定（2）
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data": [
+                         {
+                           "providerGroupId": 0, // 大厅组ID
+                           "providerGroupName": "group1", //大厅组名字
+                           "commissionType": 2,
+                           "list": [
+                             {
+                               "commissionRate": 0.22, // 佣金比例
+                               "activePlayerValueTo": null, // 活跃玩家
+                               "activePlayerValueFrom": null, // 活跃玩家
+                               "playerConsumptionAmountTo": null, // 玩家投注
+                               "playerConsumptionAmountFrom": null // 玩家投注
+                             }
+                           ]
+                         },
+                         {
+                           "providerGroupId": 2,
+                           "providerGroupName": "group2",
+                           "commissionType": 2,
+                           "list": [
+                             {
+                               "playerConsumptionAmountFrom": null,
+                               "playerConsumptionAmountTo": null,
+                               "activePlayerValueFrom": null,
+                               "activePlayerValueTo": null,
+                               "commissionRate": 0.21
+                             }
+                           ]
+                         }
+                       ]
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
+<div id='代理给下级代理开户'></div>
+
+* **46. 代理给下级代理开户**
+    * name: createDownLinePartner
+    * service:partner
+    * 请求内容
+        * ```
+            {
+              "deviceType": 1, 选填|设备类型列表
+              "subPlatformId": 401, 选填|子平台列表
+              "account": "pzmtest2", // 账号 - 必填
+              "password": "888888", // 密码 - 必填
+              "phoneNumber": "11755433463", // 电话号码 - 必填
+              "commissionRate": [ // 通过getPartnerCommissionRate 拿的回文 - 必填
+                {
+                  "providerGroupId": 1,
+                  "providerGroupName": "易博真人",
+                  "commissionType": 7,
+                  "list": [
+                    {
+                      "commissionRate": 0.04,
+                      "activePlayerValueTo": null,
+                      "activePlayerValueFrom": 1,
+                      "playerConsumptionAmountTo": null,
+                      "playerConsumptionAmountFrom": 1
+                    },
+                    {
+                      "commissionRate": 0.06,
+                      "activePlayerValueTo": null,
+                      "activePlayerValueFrom": 2,
+                      "playerConsumptionAmountTo": null,
+                      "playerConsumptionAmountFrom": 1001
+                    },
+                    {
+                      "commissionRate": 0.08,
+                      "activePlayerValueTo": null,
+                      "activePlayerValueFrom": 2,
+                      "playerConsumptionAmountTo": null,
+                      "playerConsumptionAmountFrom": 10001
+                    }
+                  ]
+                }
+              ]
+            }
+            
+            {
+              "platformId": "4", //平台ID - 必填
+              "partnerId": "15088", // 代理ID - 必填
+              "commissionClass": "2" //必填，固定（2）
+            }
+            
+    * 正常响应内容：status--200, data--代理信息数据
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
+<div id='代理获取推广二维码和推广海报'></div>
+
+* **49. 代理获取推广二维码和推广海报**
+    * name: getPartnerPoster
+    * service:partner
+    * 请求内容
+        * ```
+            {
+              "platformId": "4", //平台ID - 必填
+              "url": "www.google.com", // 需要生成二维码的地址 - 必填
+              "device": 0, // Number -  0: WEB, 1: H5, 不填: 都找 （优先获取排列顺序高且可用的海报）
+              "production": true // Boolean - true: 只获取正式站可用（默认），false: 可获取非正式站可用海报
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data":  {
+                     qrcode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgCMnl9X1Q4eFRpkwZ', // base64 图片
+                     poster: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgCMnl9X1Q4eFRpkwZ' // base64 图片
+                 }
+            }
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
     
 <!--文档没有华语名称，因此暂时命名“平台”-->
 # 平台：
@@ -6607,7 +6783,6 @@ API说明：
 					"playerLevelUpPeriod": 3,
 					"manualPlayerLevelUp": true,
 					"autoCheckPlayerLevelUp": true,
-                    "autoCheckPlayerLevelDown": true,
 					"canMultiReward": false,
 					"autoApproveBonusProfitOffset": 2000,
 					"autoApproveProfitTimesMinAmount": 2000,
@@ -6912,7 +7087,9 @@ API说明：
 				"DOB": "xxxx-xx-xx",
 				"telSalesName": "xxx",
 				"promoMethod": "xxx",
-				"fame": "xxxx"
+				"fame": "xxxx",
+				"deviceType": 1 //选填|设备类型列表
+				"subPlatformId": 401 //子平台列表
 			}
 	* 响应内容：`{"status": 200,"data": {} // player data}`
 
@@ -7123,6 +7300,7 @@ API说明：
 		* clientType： 1 - PC; 2- H5; 4- APP
 		* displayFormat: 1 - 背景展示; 2 - 平铺2项1列; 3 - 平铺3项1列; 5 - 平铺5项1列
 		* onClickAction: 1 - 打开新页面； 2 - 活动详情； 3 - 跳转优惠页面； 4 - 跳转官网页面； 5 - 启动游戏； 6 - 啥都不干; 7 - 自定义文本
+		* topButtonClick, rightButtonClick, bottomButtonClick, rewardButtonClick: 1 - 前往指定页面； 2 - 返回； 3 - 申请优惠； 4 - 联络客服
 		* code: 
 		    * recommendation - 热门推荐
 			* rewardPoint - 积分说明
@@ -7660,9 +7838,11 @@ msg:"兑换成功，已用（300）积分,换取（10）元。剩馀（29）积�
 
 * **2. 提交电销代码**
 	* name:  submitDXCode
-	* 请求内容：`{code: “4g83123d”, domain: “eu23333.com”}`
+	* 请求内容：`{code: “4g83123d”, domain: “eu23333.com”, deviceType: 1, subPlatformId: 401}`
 	* code: 电销注册代码
 	* domain: 当下注册域名
+	* deviceType: 1 //选填|[设备类型列表](#设备类型列表)
+    * subPlatformId: 401 //选填|[子平台列表](#子平台列表)
 	* 响应内容：
 		* ```
 			{

@@ -57,7 +57,7 @@ var playerReportDataDaySummarySchema = new Schema({
     //scheduler summary data create time
     createTime: {type: Date, index: true, default: Date.now},
     // constPlayerLoginDevice
-    loginDevice: {type: Number, index: true}
+    loginDevice: {type: String, index: true}
 });
 
 module.exports = playerReportDataDaySummarySchema;

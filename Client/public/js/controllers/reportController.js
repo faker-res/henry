@@ -104,6 +104,64 @@ define(['js/app'], function (myApp) {
 
         vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
+        vm.topUpReportInputDevice = {
+            0: 'BACKSTAGE',
+            1: 'WEB_PLAYER',
+            3: 'H5_PLAYER',
+            5: 'APP_PLAYER',
+        };
+
+        vm.propsosalDeviceList = {
+            // for player
+            "1": "WEB_PLAYER",
+            "1403": "WEB_PLAYER_EU",
+            "1402": "WEB_PLAYER_V68",
+            "1401": "WEB_PLAYER_EU_CHESS",
+            "2": "H5_PLAYER",
+            "2403": " H5_PLAYER_EU",
+            "2402": "H5_PLAYER_V68",
+            "2401": "H5_PLAYER_EU_CHESS",
+            "3403": "APP_PLAYER_ANDROID_EU",
+            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+            "3402": "APP_PLAYER_ANDROID_V68",
+            "4403": "APP_PLAYER_IOS_EU",
+            "4401": "APP_PLAYER_IOS_EU_CHESS",
+            "4402": "APP_PLAYER_IOS_V68",
+            // for partner
+            "P1": "WEB_PARTNER",
+            "P1403": "WEB_PARTNER_EU",
+            "P1402": "WEB_PARTNER_V68",
+            "P1401": "WEB_PARTNER_EU_CHESS",
+            "P2": "H5_PARTNER",
+            "P2403": "H5_PARTNER_EU",
+            "P2402": "H5_PARTNER_V68",
+            "P2401": "H5_PARTNER_EU_CHESS",
+            "P3403": "APP_PARTNER_ANDROID_EU",
+            "P3401": "APP_PARTNER_ANDROID_EU_CHESS",
+            "P3402": "APP_PARTNER_ANDROID_V68",
+            "P4403": "APP_PARTNER_IOS_EU",
+            "P4401": "APP_PARTNER_IOS_EU_CHESS",
+            "P4402": "APP_PARTNER_IOS_V6"
+        };
+
+        vm.registrationDeviceList = {
+            "0": "BACKSTAGE",
+            "1": "WEB_PLAYER",
+            "1403": "WEB_PLAYER_EU",
+            "1402": "WEB_PLAYER_V68",
+            "1401": "WEB_PLAYER_EU_CHESS",
+            "2": "H5_PLAYER",
+            "2403": "H5_PLAYER_EU",
+            "2402": "H5_PLAYER_V68",
+            "2401": "H5_PLAYER_EU_CHESS",
+            "3403": "APP_PLAYER_ANDROID_EU",
+            "3401": "APP_PLAYER_ANDROID_EU_CHESS",
+            "3402": "APP_PLAYER_ANDROID_V68",
+            "4403": "APP_PLAYER_IOS_EU",
+            "4401": "APP_PLAYER_IOS_EU_CHESS",
+            "4402": "APP_PLAYER_IOS_V68",
+        };
+
         vm.claimStatus = {
             valid: "STILL VALID",
             accepted: "ACCEPTED",
@@ -142,6 +200,23 @@ define(['js/app'], function (myApp) {
             {typeId: 3, name: 'ALIPAY'},
             {typeId: 4, name: 'WechatPay'}
         ];
+
+        vm.constPlayerDevice = {
+            WEB_PLAYER: "1",
+            WEB_PLAYER_EU: "1403",
+            WEB_PLAYER_V68: "1402",
+            WEB_PLAYER_EU_CHESS: "1401",
+            H5_PLAYER: "2",
+            H5_PLAYER_EU: "2403",
+            H5_PLAYER_V68: "2402",
+            H5_PLAYER_EU_CHESS: "2401",
+            APP_PLAYER_ANDROID_EU: "3403",
+            APP_PLAYER_ANDROID_EU_CHESS: "3401",
+            APP_PLAYER_ANDROID_V68: "3402",
+            APP_PLAYER_IOS_EU: "4403",
+            APP_PLAYER_IOS_EU_CHESS: "4401",
+            APP_PLAYER_IOS_V68: "4402"
+        }
 
         vm.loginDeviceList = {
             1: 'WEB',
@@ -296,7 +371,8 @@ define(['js/app'], function (myApp) {
         'comparePhoneNum',
         'resetAllPartnerCustomizedCommissionRate',
         'savePreventBlockUrl',
-        'deletePreventBlockUrl'];
+        'deletePreventBlockUrl',
+        'resetGroupPartnerCommissionRate'];
 
         //get all platform data from server
         vm.setPlatform = function (platObj) {
@@ -1492,9 +1568,9 @@ define(['js/app'], function (myApp) {
 
         vm.setupMultiInputDXTracking = function () {
             let dxTrackingGroupSelect = $('select#selectDXTracking');
-            if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
-                return;
-            }
+            // if (dxTrackingGroupSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
             dxTrackingGroupSelect.multipleSelect({
                 showCheckbox: true,
                 allSelected: $translate("All Selected"),
@@ -1569,6 +1645,7 @@ define(['js/app'], function (myApp) {
                     break;
 
                 case "DX_NEWACCOUNT_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId)
                     vm.getAllPromoteWay(platformObjId).then(() => {
                         endLoadMultipleSelect('.spicker');
                     });
@@ -1583,6 +1660,9 @@ define(['js/app'], function (myApp) {
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
                 case "DX_TRACKING_REPORT":
+                    vm.getCredibilityRemarksByPlatformId(platformObjId).then(() => {
+                        vm.setupMultiInputDXTracking();
+                    });
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
             }
@@ -1831,6 +1911,10 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.platformList = [];
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
+
+            if (vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length){
+                return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
+            }
             vm.reportSearchTimeStart = new Date().getTime();
 
             $('#topupTableSpin').show();
@@ -1847,6 +1931,17 @@ define(['js/app'], function (myApp) {
                     }
                 })
             }
+
+            let topUpRecordInputDevice = vm.queryTopup.userAgent;
+            if(vm.queryTopup && vm.queryTopup.userAgent){
+                if(vm.queryTopup.userAgent.indexOf("5") !== -1 && vm.queryTopup.userAgent.indexOf("7") === -1){
+                    topUpRecordInputDevice.push("7");
+                }
+                if(vm.queryTopup.userAgent.indexOf("6") !== -1 && vm.queryTopup.userAgent.indexOf("8") === -1){
+                    topUpRecordInputDevice.push("8");
+                }
+            }
+            
             utilService.getDataTablePageSize("#topupTablePage", vm.queryTopup, 30);
             let sendObj = vm.queryTopup.proposalId ? {
                 // platformId: vm.curPlatformId,
@@ -1859,7 +1954,7 @@ define(['js/app'], function (myApp) {
             } : {
                 playerName: vm.queryTopup.playerName,
                 mainTopupType: vm.queryTopup.mainTopupType,
-                userAgent: vm.queryTopup.userAgent,
+                userAgent: topUpRecordInputDevice,
                 topupType: vm.queryTopup.topupType,
                 merchantGroup: angular.fromJson(angular.toJson(vm.queryTopup.merchantGroup)),
                 depositMethod: vm.queryTopup.depositMethod,
@@ -1887,6 +1982,10 @@ define(['js/app'], function (myApp) {
 
             if (vm.queryTopup && vm.queryTopup.merchantName && vm.queryTopup.merchantName.length > 0) {
                 sendObj.merchantName = vm.queryTopup.merchantName;
+            }
+
+            if (sendObj && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length && vm.loginDeviceList && vm.queryTopup.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+                sendObj.loginDevice = vm.queryTopup.loginDevice;
             }
 
             console.log('searchTopupRecord sendObj', sendObj);
@@ -2022,7 +2121,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -2769,6 +2868,18 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.changeWinRateLoginDevice = function () {
+            if (vm.winRateQuery && vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length > 0
+                && vm.winRateQuery.loginDevice.includes("1")) {
+                vm.winRateQuery.loginDevice.push(1);
+            }
+
+            if (vm.winRateQuery && vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length > 0
+                && vm.winRateQuery.loginDevice.includes("2")) {
+                vm.winRateQuery.loginDevice.push(2);
+            }
+        }
+
         vm.getWinRateReportData = function () {
             vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
@@ -2781,7 +2892,7 @@ define(['js/app'], function (myApp) {
             vm.curWinRateQuery.limit = 0;
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length >= Object.keys(vm.winRateLoginDeviceList).length ? [] : vm.winRateQuery.loginDevice;
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
             let socketName = 'winRateReport';
@@ -2848,7 +2959,7 @@ define(['js/app'], function (myApp) {
             if (listAll) {
                 vm.curWinRateQuery.listAll = true;
             }
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length >= Object.keys(vm.winRateLoginDeviceList).length ? [] : vm.winRateQuery.loginDevice;
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
 
@@ -2886,7 +2997,7 @@ define(['js/app'], function (myApp) {
 
             vm.curWinRateQuery.startTime = vm.winRateQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curWinRateQuery.endTime = vm.winRateQuery.endTime.data('datetimepicker').getLocalDate();
-            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice;
+            vm.curWinRateQuery.loginDevice = vm.winRateQuery.loginDevice && vm.winRateQuery.loginDevice.length == 14 ? []: vm.winRateQuery.loginDevice;
 
             let socketName = 'getWinRateByGameType';
             if (vm.curWinRateQuery.searchBySummaryData) {
@@ -2907,7 +3018,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId || vm.selectedPlatform._id;
-                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.winRateLoginDeviceList[String(item.loginDevice)]) : "";
                         item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
@@ -2940,8 +3051,12 @@ define(['js/app'], function (myApp) {
                 sendData.cpGameType = cpGameType;
             }
 
-            if (Object.keys(vm.loginDeviceList).includes(loginDevice)) {
-                sendData.loginDevice = Number(loginDevice);
+            if (Object.keys(vm.winRateLoginDeviceList).includes(loginDevice)) {
+                if ((loginDevice.indexOf("1") != -1) || (loginDevice.indexOf("2") != -1)) {
+                    sendData.loginDevice = {$in: [loginDevice, Number(loginDevice)]}
+                } else {
+                    sendData.loginDevice = loginDevice;
+                }
             } else {
                delete sendData.loginDevice;
             }
@@ -4037,6 +4152,11 @@ define(['js/app'], function (myApp) {
             } else if (admins && admins.length > 0) {
                 query.admins = admins;
             }
+            if(vm.feedbackQuery.registrationDevice && vm.feedbackQuery.registrationDevice.length == Object.keys(vm.registrationDeviceList).length) {
+                query.registrationDevice = [];
+            } else {
+                query.registrationDevice = vm.feedbackQuery.registrationDevice;
+            }
 
             query.start = vm.feedbackQuery.start.data('datetimepicker').getLocalDate();
             query.end = vm.feedbackQuery.end.data('datetimepicker').getLocalDate();
@@ -4093,6 +4213,7 @@ define(['js/app'], function (myApp) {
                     };
                     vm.feedbackQuery.totalCount = data.data.size;
                     vm.feedbackData = data.data.data.map(item => {
+                        item = utilService.determineRegistrationDevice(item);
                         item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
                         item.createTime$ = utilService.$getTimeFromStdTimeFormat(item.feedback.createTime);
                         item.endTime$ = utilService.$getTimeFromStdTimeFormat(item.endTime);
@@ -4109,6 +4230,8 @@ define(['js/app'], function (myApp) {
                         item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
                         item.feedbackTopic$ = (item.feedback.topic == null ||item.feedback.topic == undefined) ? '-' : item.feedback.topic;
                         item.feedbackAdminName$ = (item && item.feedback && item.feedback.adminId && item.feedback.adminId.adminName) ? item.feedback.adminId.adminName : '-';
+                        // item.registrationDevice$ = (item && item.registrationDevice) ? $translate(vm.registrationDeviceList[item.registrationDevice]) : '-';
+                        item.registrationInterface$ = $translate(item.registrationInterface$);
                         item.credibility$ = "";
                         if (item.credibilityRemarks) {
                             for (let i = 0; i < item.credibilityRemarks.length; i++) {
@@ -4230,35 +4353,37 @@ define(['js/app'], function (myApp) {
                 "order": vm.feedbackQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
-                    {'sortCol': 'valueScore', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'credibility$', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'createTime$', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'endTime$', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'provider$', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [18], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'profit', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'registrationDevice$', 'aTargets': [2], bSortable: true},
+                    {'sortCol': 'valueScore', 'aTargets': [3], bSortable: true},
+                    {'sortCol': 'credibility$', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'createTime$', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'endTime$', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'provider$', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'profit', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'feedbackAdminName$', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'feedbackTopic$', 'aTargets': [23], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('ORDER')},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationInterface$"},
                     {title: $translate('PLAYER_VALUE'), data: "valueScore"},
                     {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('FEEDBACK_TIME'), data: "createTime$"},
@@ -4637,10 +4762,12 @@ define(['js/app'], function (myApp) {
                         }
                         else if (item.registrationBrowser$ && (item.registrationBrowser$.indexOf("WebKit") !== -1 || item.registrationBrowser$.indexOf("WebView") !== -1)) {
                             if (item.partner) {
-                                item.registrationAgent$ = "APP Agent";
+                                // item.registrationAgent$ = "APP Agent";
+                                item.registrationAgent$ = "HTML5 Agent";
                             }
                             else {
-                                item.registrationAgent$ = "APP Player";
+                                // item.registrationAgent$ = "APP Player";
+                                item.registrationAgent$ = "HTML5 Player";
                             }
                         }
                         else if (item.registrationOS$ && (item.registrationOS$.indexOf("iOS") !== -1 || item.registrationOS$.indexOf("ndroid") !== -1 || item.registrationBrowser$.indexOf("obile") !== -1)) {
@@ -4873,7 +5000,7 @@ define(['js/app'], function (myApp) {
                 isExport: isExport
             };
 
-            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.loginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.loginDeviceList).length){
+            if (sendQuery && sendQuery.query && vm.deviceQuery.loginDevice && vm.deviceQuery.loginDevice.length && vm.deviceReportLoginDeviceList && vm.deviceQuery.loginDevice.length != Object.keys(vm.deviceReportLoginDeviceList).length){
                 sendQuery.query.loginDevice = vm.deviceQuery.loginDevice;
             }
             console.log('sendQuery', sendQuery);
@@ -4948,7 +5075,7 @@ define(['js/app'], function (myApp) {
                         item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
                         if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                            item.totalPlatformFeeEstimate$ = parseFloat(item.totalPlatformFeeEstimate).toFixed(2);
                         }
 
                         return item;
@@ -5186,6 +5313,11 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
                 isExport: isExport
             };
+
+            if (vm.playerQuery.loginDevice && vm.playerQuery.loginDevice.length) {
+                sendquery.query.loginDevice = vm.playerQuery.loginDevice;
+            }
+
             console.log('sendquery', sendquery);
 
             socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
@@ -6175,7 +6307,8 @@ define(['js/app'], function (myApp) {
                     admins: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0 ? vm.dxTrackingQuery.admins : admins,
                     adminIds: vm.dxTrackingQuery.admins && vm.dxTrackingQuery.admins.length > 0
                         ? vm.dxTrackingQuery.admins.map(adm => vm.queryAdmins.find(e => e.adminName === adm)._id)
-                        : adminIds
+                        : adminIds,
+                    registrationDevice: vm.dxTrackingQuery.registrationDevice
                 }
             };
 
@@ -6214,6 +6347,20 @@ define(['js/app'], function (myApp) {
                         item.playerLevel$ = "";
                     }
 
+                    item.registrationDevice$ = "";
+                    // if (item && item.playerInfo && item.playerInfo.registrationDevice) {
+                    //     item.registrationDevice$ = $translate(vm.registrationDeviceList[item.playerInfo.registrationDevice]);
+                    // } else {
+                    //     item.registrationDevice$ = "";
+                    // }
+                    // change to registrationInterface to display
+                    if (item && item.playerInfo && item.playerInfo.hasOwnProperty("registrationInterface")){
+                        utilService.determineRegistrationDevice(item.playerInfo);
+                        item.registrationDevice$ = item && item.playerInfo && item.playerInfo.registrationInterface$ ? item.playerInfo.registrationInterface$ : "";
+                    }
+
+
+
                     item.provider$ = "";
                     if (item.providerInfo) {
                         item.provider$ = item.providerInfo;
@@ -6240,20 +6387,22 @@ define(['js/app'], function (myApp) {
                     "order": vm.dxTrackingQuery.aaSorting || [[2, 'desc']],
                     aoColumnDefs: [
                         {'sortCol': 'name', 'aTargets': [0], bSortable: true},
-                        {'sortCol': 'credibility$', 'aTargets': [1], bSortable: true},
-                        {'sortCol': 'playerLevel$', 'aTargets': [2], bSortable: true},
-                        {'sortCol': 'valueScore', 'aTargets': [3], bSortable: true},
-                        {'sortCol': 'date', 'aTargets': [4], bSortable: true},
-                        {'sortCol': 'topUpAmount$', 'aTargets': [5], bSortable: true},
-                        {'sortCol': 'topUpTimes', 'aTargets': [6], bSortable: true},
-                        {'sortCol': 'bonusAmount$', 'aTargets': [7], bSortable: true},
-                        {'sortCol': 'provider$', 'aTargets': [8], bSortable: true},
-                        {'sortCol': 'consumptionTimes', 'aTargets': [9], bSortable: true},
-                        {'sortCol': 'validConsumptionAmount$', 'aTargets': [10], bSortable: true},
-                        {'sortCol': 'adminName', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'registrationDevice$', 'aTargets': [1], bSortable: true},
+                        {'sortCol': 'credibility$', 'aTargets': [2], bSortable: true},
+                        {'sortCol': 'playerLevel$', 'aTargets': [3], bSortable: true},
+                        {'sortCol': 'valueScore', 'aTargets': [4], bSortable: true},
+                        {'sortCol': 'date', 'aTargets': [5], bSortable: true},
+                        {'sortCol': 'topUpAmount$', 'aTargets': [6], bSortable: true},
+                        {'sortCol': 'topUpTimes', 'aTargets': [7], bSortable: true},
+                        {'sortCol': 'bonusAmount$', 'aTargets': [8], bSortable: true},
+                        {'sortCol': 'provider$', 'aTargets': [9], bSortable: true},
+                        {'sortCol': 'consumptionTimes', 'aTargets': [10], bSortable: true},
+                        {'sortCol': 'validConsumptionAmount$', 'aTargets': [11], bSortable: true},
+                        {'sortCol': 'adminName', 'aTargets': [12], bSortable: true},
                     ],
                     columns: [
                         {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                        {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                         {title: $translate('CREDIBILITY'), data: "credibility$"},
                         {title: $translate('playerLevelName'), data: "playerLevel$"},
                         {title: $translate('PlayerValue'), data: "valueScore"},
@@ -6386,6 +6535,7 @@ define(['js/app'], function (myApp) {
             let sendquery = {
                 platformId: vm.dxNewPlayerQuery.platformId,
                 query: {
+                    credibilityRemarks: vm.dxNewPlayerQuery.credibilityRemarks,
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
                     queryStart: vm.dxNewPlayerQuery.queryStart.data('datetimepicker').getLocalDate(),
@@ -6411,6 +6561,10 @@ define(['js/app'], function (myApp) {
                 limit: isExport ? 5000 : (vm.dxNewPlayerQuery.limit || null),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
             };
+
+            if (vm.registrationDeviceList && vm.dxNewPlayerQuery && vm.dxNewPlayerQuery.registrationDevice && vm.dxNewPlayerQuery.registrationDevice.length != Object.keys(vm.registrationDeviceList).length ) {
+                sendquery.query.registrationDevice = vm.dxNewPlayerQuery.registrationDevice;
+            }
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getDXNewPlayerReport', sendquery, function (data) {
                 findReportSearchTime();
@@ -6435,6 +6589,12 @@ define(['js/app'], function (myApp) {
                     item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
                     item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
                     item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                    // item.registrationDevice$ = item && item.registrationDevice ? $translate(vm.registrationDeviceList[item.registrationDevice]) : "";
+                    // change to registrationInterface to display
+                    if (item && item.hasOwnProperty("registrationInterface")) {
+                        utilService.determineRegistrationDevice(item);
+                        item.registrationDevice$ = item && item.registrationInterface$ ? $translate(item.registrationInterface$) : "";
+                    }
 
                     item.playerLevel$ = "";
                     if (vm.playerLvlData[item.playerLevel]) {
@@ -6534,32 +6694,34 @@ define(['js/app'], function (myApp) {
                 aoColumnDefs: [
                     {'sortCol': 'name', 'aTargets': [1], bSortable: true},
                     {'sortCol': 'playerLevel', 'aTargets': [2], bSortable: true},
-                    {'sortCol': 'registrationTime', 'aTargets': [3], bSortable: true},
-                    {'sortCol': 'endTime', 'aTargets': [4], bSortable: true},
-                    {'sortCol': 'manualTopUpAmount', 'aTargets': [5], bSortable: true},
-                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [6], bSortable: true},
-                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [7], bSortable: true},
-                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [8], bSortable: true},
-                    {'sortCol': 'topUpTimes', 'aTargets': [9], bSortable: true},
-                    {'sortCol': 'topUpAmount', 'aTargets': [10], bSortable: true},
-                    {'sortCol': 'bonusTimes', 'aTargets': [11], bSortable: true},
-                    {'sortCol': 'bonusAmount', 'aTargets': [12], bSortable: true},
-                    {'sortCol': 'rewardAmount', 'aTargets': [13], bSortable: true},
-                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [14], bSortable: true},
-                    {'sortCol': 'consumptionTimes', 'aTargets': [15], bSortable: true},
-                    {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
-                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
-                    {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
-                    {'sortCol': 'phoneArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'ipArea', 'aTargets': [21], bSortable: true},
-                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [25], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'registrationTime', 'aTargets': [4], bSortable: true},
+                    {'sortCol': 'endTime', 'aTargets': [5], bSortable: true},
+                    {'sortCol': 'manualTopUpAmount', 'aTargets': [6], bSortable: true},
+                    {'sortCol': 'weChatTopUpAmount', 'aTargets': [7], bSortable: true},
+                    {'sortCol': 'aliPayTopUpAmount', 'aTargets': [8], bSortable: true},
+                    {'sortCol': 'onlineTopUpAmount', 'aTargets': [9], bSortable: true},
+                    {'sortCol': 'topUpTimes', 'aTargets': [10], bSortable: true},
+                    {'sortCol': 'topUpAmount', 'aTargets': [11], bSortable: true},
+                    {'sortCol': 'bonusTimes', 'aTargets': [12], bSortable: true},
+                    {'sortCol': 'bonusAmount', 'aTargets': [13], bSortable: true},
+                    {'sortCol': 'rewardAmount', 'aTargets': [14], bSortable: true},
+                    {'sortCol': 'consumptionReturnAmount', 'aTargets': [15], bSortable: true},
+                    {'sortCol': 'consumptionTimes', 'aTargets': [16], bSortable: true},
+                    {'sortCol': 'validConsumptionAmount', 'aTargets': [17], bSortable: true},
+                    {'sortCol': 'consumptionBonusAmount', 'aTargets': [18], bSortable: true},
+                    {'sortCol': 'consumptionAmount', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'phoneArea', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'ipArea', 'aTargets': [22], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [26], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [27], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
                     {title: $translate('PRODUCT_NAME'), data: "platform$"},
                     {title: $translate('PLAYERNAME'), data: "name", sClass: "realNameCell wordWrap"},
+                    {title: $translate('REGISTRATION_DEVICE'), data: "registrationDevice$"},
                     {title: $translate('PlayerValue'), data: "valueScore"},
+                    {title: $translate('CREDIBILITY'), data: "credibility$"},
                     {title: $translate('REGISTRATION_TIME'), data: "registrationTime$"},
                     {title: $translate('endTime'), data: "endTime$"},
                     {
@@ -6698,7 +6860,7 @@ define(['js/app'], function (myApp) {
                 });
                 $('#dxNewPlayerReportTable').off('order.dt');
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'playerQuery', vm.searchDXNewPlayerReport);
+                    vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
             }
 
@@ -7387,6 +7549,14 @@ define(['js/app'], function (myApp) {
                 newproposalQuery.platformList = vm.platformList.map(platform => platform._id);
             }
 
+            if (vm.proposalQuery && (vm.proposalQuery.inputDevice != -1 || typeof vm.proposalQuery.inputDevice == 'undefined') && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length){
+                return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
+            }
+            // reset back the inputDevice to null if both filter are not selected
+            else if (vm.proposalQuery && vm.proposalQuery.inputDevice == -1 && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length == 0){
+                vm.proposalQuery.inputDevice = "";
+            }
+
             $('#proposalTableSpin').show();
             newproposalQuery.limit = newproposalQuery.limit || 10;
             var sendData = newproposalQuery.proposalId ? {
@@ -7412,6 +7582,10 @@ define(['js/app'], function (myApp) {
                 sortCol: newproposalQuery.sortCol,
                 isExport: isExport
             };
+
+            if (sendData && vm.proposalQuery.loginDevice && vm.proposalQuery.loginDevice.length && vm.propsosalDeviceList && vm.proposalQuery.loginDevice.length != Object.keys(vm.propsosalDeviceList).length){
+                sendData.loginDevice = vm.proposalQuery.loginDevice;
+            }
 
             console.log('sendData', sendData);
 
@@ -8082,12 +8256,18 @@ define(['js/app'], function (myApp) {
             if (!vm.newPlayerQuery || !vm.newPlayerQuery.platformId) {
                 return socketService.showErrorMessage($translate('Product Name is Mandatory'));
             }
+            if (vm.newPlayerQuery && vm.newPlayerQuery.registrationDevice && vm.newPlayerQuery.registrationDevice.length > 0) {
+                vm.isShowNewPlayerDeviceRecord = true;
+            } else {
+                vm.isShowNewPlayerDeviceRecord = false;
+            }
             let platformObjId = vm.newPlayerQuery.platformId;
             vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
                 platform: platformObjId,
                 startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.newPlayerQuery.endTime.data('datetimepicker').getLocalDate(),
+                registrationDevice: vm.newPlayerQuery.registrationDevice
             };
             socketService.$socket($scope.AppSocket, 'getNewAccountReportData', sendData, function (data) {
                 console.log('data', data.data);
@@ -8110,6 +8290,17 @@ define(['js/app'], function (myApp) {
                             vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
                             vm.newPlayerQuery.totalNewValidPlayer = vm.newPlayerQuery.newValidPlayer.length;
                             let backEndCreateWayExisted = false;
+                            // ============ device new player ============
+                            vm.newPlayerQuery.deviceData = Object.keys(vm.registrationDeviceList).map(
+                                device => {
+                                    let devicePlayers = vm.newPlayerQuery.newPlayers.filter(player => player && player.registrationDevice && (player.registrationDevice === device));
+                                    let deviceResult = vm.calculateNewPlayerData(devicePlayers, vm.registrationDeviceList[device]);
+                                    deviceResult.registrationDevice = vm.registrationDeviceList[device];
+                                    delete deviceResult.promoteWayName;
+
+                                    return deviceResult;
+                                }
+                            );
                             // ============ promote way new player ============
                             vm.newPlayerQuery.promoteWayData = vm.allPromoteWay.map(
                                 promoteWay => {
@@ -8228,6 +8419,7 @@ define(['js/app'], function (myApp) {
             $temp.remove();
             socketService.showConfirmMessage($translate('Link has copy to clipboard'),3000);
         }
+        vm.filterNoNewAccountDevice = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoNewAccountPromoteWay = promoteWay => promoteWay.totalNewAccount != 0;
         vm.filterNoValidPlayer = promoteWay => promoteWay.validPlayer != 0;
         vm.filterNoNewPlayer = promoteWay => promoteWay.totalNewAccount != 0;
@@ -10343,6 +10535,11 @@ define(['js/app'], function (myApp) {
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
 
+                    if(vm.newPlayerQuery && vm.newPlayerQuery.registrationDevice && vm.newPlayerQuery.registrationDevice.length > 0 && document.getElementById("newAccountDeviceTable")) {
+                        tab = document.getElementById("newAccountDeviceTable");
+                        htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+                    }
+
                     if(document.getElementById("validPlayerPromoteWay")) {
                         htmlContent += "<tr></tr><tr><td><strong>" + $translate("Valid Player (promote way analysis)") + "</strong></td></tr>";
                         tab = document.getElementById("validPlayerPromoteWay");
@@ -10972,7 +11169,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType) : null;
+                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
                             let text = $translate(inputDevice ? $scope.constPlayerRegistrationInterface[inputDevice] : data ? $scope.constPlayerRegistrationInterface[data] : $scope.constPlayerRegistrationInterface['0']);
                             return "<div>" + text + "</div>";
                         }
@@ -11706,6 +11903,9 @@ define(['js/app'], function (myApp) {
             }
             else if (choice == "DEVICE_REPORT") {
                 vm.reportSearchTime = 0;
+                let cloneLoginDevices = JSON.parse(JSON.stringify(vm.registrationDeviceList));
+                delete cloneLoginDevices["0"];
+                vm.deviceReportLoginDeviceList = cloneLoginDevices;
                 utilService.actionAfterLoaded('#deviceReportTablePage', function () {
                     // Get Promote CS and way lists
                     vm.allPromoteWay = {};
@@ -11876,6 +12076,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
                 vm.reportSearchTime = 0;
+                vm.isShowNewPlayerDeviceRecord = false;
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
@@ -11888,7 +12089,10 @@ define(['js/app'], function (myApp) {
                     vm.winRateSummaryData = {};
                     vm.winRateQuery.providerId = 'all';
                     vm.winRateQuery.loginDevice = [];
-                    Object.keys(vm.loginDeviceList).forEach(key => {
+                    let cloneDevices = JSON.parse(JSON.stringify(vm.registrationDeviceList));
+                    delete cloneDevices["0"];
+                    vm.winRateLoginDeviceList = cloneDevices;
+                    Object.keys(vm.winRateLoginDeviceList).forEach(key => {
                         if (key) {
                             vm.winRateQuery.loginDevice.push(key);
                         }
@@ -11962,7 +12166,8 @@ define(['js/app'], function (myApp) {
                             valueScoreOperator: ">=",
                             topUpTimesOperator: ">=",
                             bonusTimesOperator: ">=",
-                            topUpAmountOperator: ">="
+                            topUpAmountOperator: ">=",
+                            registrationDevice: []
                         };
                         vm.feedbackQuery.totalCount = 0;
                         vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
@@ -11980,7 +12185,7 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "feedbackQuery", vm.drawFeedbackReport)
                         });
                     })
-
+                    endLoadMultipleSelect('.spicker');
                 });
 
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {

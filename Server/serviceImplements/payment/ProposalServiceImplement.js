@@ -86,7 +86,7 @@ var ProposalServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.topupFail.expectsData = 'proposalId';
@@ -106,7 +106,7 @@ var ProposalServiceImplement = function () {
                     });
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.applyBonusFail.expectsData = 'proposalId';

@@ -33,7 +33,7 @@ var GameTypeServiceImplement = function () {
             err=> {
                 return wsFunc.response(conn, {status: err.code || constServerCode.COMMON_ERROR, errorMessage: err.message, oldCode: data.oldCode, newCode:data.newCode});
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.delete.expectsData = 'gameTypeId';

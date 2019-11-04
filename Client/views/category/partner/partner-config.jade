@@ -26,6 +26,9 @@
                         span {{"PartnerAdvertisement" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "partnerPosterAds"}', ng-click='vm.configTabClicked("partnerPosterAds")', ng-if="checkViewPermission('Partner', 'Config', 'partnerPosterAds')")
                         span {{"partnerPosterAds" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "commissionBillboard"}', ng-click='vm.configTabClicked("commissionBillboard")', ng-if="checkViewPermission('Partner', 'Config', 'commissionBillboard')")
+                        span {{"commissionBillboard" | translate}}
+
 
 
     .col-md-9(style="padding-left:0;padding-right:15px")
@@ -53,3 +56,5 @@
                     include ./setting/partner-setting-advert
                 div(ng-if='vm.selectedConfigTab=="partnerPosterAds"')
                     include ./setting/partner-setting-poster-advertisement
+                div(ng-if='vm.selectedConfigTab=="commissionBillboard"')
+                    include ./setting/partner-setting-commission-billboard

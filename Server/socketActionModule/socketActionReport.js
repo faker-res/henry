@@ -634,7 +634,7 @@ function socketActionReport(socketIO, socket) {
             var start = data.startTime ? new Date(data.startTime) : new Date(0);
             var end = data.endTime ? new Date(data.endTime) : new Date();
             var platform = ObjectId(data.platform);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getNewAccountReportData, [platform, start, end], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getNewAccountReportData, [platform, start, end, data.registrationDevice], actionName, isValidData);
         },
 
         getAllFeedbackResultList: function getAllFeedbackResultList() {

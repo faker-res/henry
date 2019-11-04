@@ -102,11 +102,6 @@
                                     text(ng-show='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.autoCheckPlayerLevelUp', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
                             tr
-                                td {{'Auto Check Player Level Down' | translate}}
-                                td
-                                    text(ng-show='!vm.configTableEdit')
-                                    input(type='checkbox', ng-model='vm.autoCheckPlayerLevelDown', ng-disabled='!vm.configTableEdit', ng-click = 'vm.autoCheckLevelUpPopUp()')
-                            tr
                                 td {{'PLAYER_SELF_LEVELUP' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit')
@@ -986,11 +981,11 @@
                                                     br
                                                     .pull-right
                                                         button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, false, false,vm.partnerCommission.srcConfig)') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommission')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommissionEdit')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.showConfig, true, false)') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="!vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.createUpdatePartnerCommissionConfig()') {{'SUBMIT' | translate}}
 
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, false, true, vm.partnerCommission.gameProviderGroup)') {{'CANCEL' | translate}}
-                                                        button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommission')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
+                                                        button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && !vm.partnerCommission.isEditing && checkViewPermission('Platform', 'ConfigEdit', 'PartnerCommissionEdit')", ng-click='vm.isSetAllDisablePartnerConfigSetting(vm.partnerCommission.gameProviderGroup, true, true)') {{'Edit' | translate}}
                                                         button.btn.btn-primary.common-button(ng-if="vm.partnerCommission.isGameProviderIncluded && vm.partnerCommission.isEditing", ng-click='vm.submitPartnerCommissionConfigWithGameProviderGroup()') {{'SUBMIT' | translate}}
                                                     br
                                                     div(ng-if="vm.updateCommissionRateRequirement")
@@ -1271,6 +1266,7 @@
                             tr
                                 td {{'VOICE_VERIFICATION_CODE' | translate}}
                                 td
+                                    select(ng-model='vm.platformBasic.voiceCodeProvider' ng-options='v as i | translate for (i,v) in vm.constVoiceCodeProvider', ng-disabled='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.useVoiceCode', ng-disabled='!vm.configTableEdit')
 
                             br
@@ -1659,7 +1655,7 @@
 
 
                     br
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    //table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th {{'PARTNER_WITHDRAWAL_AUTO_APPROVAL' | translate}}
@@ -2128,7 +2124,7 @@
                             text {{"ADD GROUP" | translate}}
                             img.img-edit
 
-                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'smsGroup')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'smsGroupEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button.pull-right(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("smsGroup")') {{"CANCEL" | translate}}

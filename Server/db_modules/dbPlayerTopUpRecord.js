@@ -261,7 +261,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "count": {"$sum": 1},
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -293,7 +293,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
                             }
@@ -325,7 +325,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
 
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
@@ -360,9 +360,10 @@ var dbPlayerTopUpRecord = {
                                 "$group": {
                                     "_id": {
                                         "playerId": "$data.playerObjId",
+                                        "platformId": "$data.platformId",
                                         "merchantName": "$data.merchantName",
                                         "merchantNo": "$data.merchantNo",
-                                        "loginDevice": "$data.loginDevice"
+                                        "loginDevice": "$device"
                                     },
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -371,6 +372,7 @@ var dbPlayerTopUpRecord = {
                                 "$project": {
                                     _id: 0,
                                     playerId: "$_id.playerId",
+                                    platformId: "$_id.platformId",
                                     merchantName: "$_id.merchantName",
                                     merchantNo: "$_id.merchantNo",
                                     loginDevice: "$_id.loginDevice",
@@ -740,8 +742,8 @@ var dbPlayerTopUpRecord = {
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
-                                                playerId: reward._id.playerId,
-                                                platformId: reward._id.platformId,
+                                                playerId: onlineTopUpByMerchant.playerId,
+                                                platformId: onlineTopUpByMerchant.platformId,
                                                 totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
                                                 onlineTopUpFeeDetail: [onlineTopUpByMerchant],
                                                 loginDevice: onlineTopUpByMerchant.loginDevice || null
@@ -990,7 +992,7 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('queryObj', queryObj);
+        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
 
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
@@ -1156,6 +1158,9 @@ var dbPlayerTopUpRecord = {
                 }
             }
 
+            if (query.loginDevice && query.loginDevice.length){
+                queryObj['device'] = {$in: query.loginDevice};
+            }
             return queryObj;
         }
 

@@ -319,7 +319,14 @@ var dbPlayerTopUpDaySummary = {
         )
     },
 
-    playerReportDaySummary_calculatePlatformDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
+    playerReportDaySummary_calculatePlatformDaySummaryForPlayers: async function (startTime, endTime, platformId, playerObjIds) {
+        // remove existing summaries for time frame
+        await dbconfig.collection_playerReportDataDaySummary.remove({
+            platformId: platformId,
+            playerId: {$in: playerObjIds},
+            date: {$gte: startTime, $lt: endTime}
+        });
+
         return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
             function(data){
                 console.log("LH check player report 15------");

@@ -1,89 +1,90 @@
 form(name="form_new_player", novalidate)
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label *{{"PLAYER_NAME" | translate}}
-			input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
-			span.help-block(style='color: #b94a48', ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
-			span.help-block(style='color: #b94a48', ng-show='vm.euPrefixNotExist') {{'PLAYER_NAME' | translate}}&nbsp;{{'EU8 account must start with "e"' | translate}}
-		.form-group.col-md-6
-			label.control-label {{"EMAIL" | translate}}
-			input.form-control(type="email", name="email", placeholder='{{"winner@qq.com"}}', ng-model="vm.newPlayer.email")
-			span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label *{{"PASSWORD" | translate}}
-			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
-			span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
-		.form-group.col-md-6
-			label.control-label *{{"PASSWORD_RETYPE" | translate}}
-			input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")
-			span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-2
-			label.control-label {{'DEFAULT_PASSWORD' | translate}}
-			div
-				button.common-button.btn.btn-warning(ng-click="vm.newPlayer.password='888888';vm.playerPswverify='888888'") 888888
-		.form-group.col-md-2
-			label.control-label {{"GENDER" | translate}}
-			div
-				input#genderMale(style="margin-right:8px;" type="radio", name="gender",value='{{true}}', ng-model="vm.newPlayer.gender")
-				label(for="genderMale", style="margin-right:20px;") {{"Male" | translate}}
-				input#genderFemale(style="margin-right:8px;" type="radio", name="gender",value='{{false}}', ng-model="vm.newPlayer.gender")
-				label(for="genderFemale") {{"Female" | translate}}
-		.form-group.col-md-2
-			label.control-label {{"csPromoteWay" | translate}}
-			div
-				select.form-control(ng-model='vm.newPlayer.promoteWay')
-					option(ng-repeat='promoteWay in vm.allPromoteWay', value='{{promoteWay.name}}') {{promoteWay.name}}
-		.form-group.col-md-6
-			label.control-label {{"REAL_NAME" | translate}}
-			input.form-control(ng-mouseleave="vm.existRealNameDetector(true)", type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
-			div(ng-show="vm.existRealName", style='color:red;display:inline-block') {{"Real Name Already Exists" | translate}}
-			div.btn.btn-primary.btn-sm(ng-show="vm.existRealName", ng-click="vm.initRealNameRecord()", data-target="#sameRealNameLog", data-toggle="modal", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label {{"NICK_NAME" | translate}}
-			input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
-		.form-group.col-md-6
-			label.control-label {{"DOB" | translate}}
-			#datepickerDOB
-	//div.form-group.col-md-6
-	//	label.control-label {{"GAME_CREDIT" | translate}}
-	//	input.form-control(type="number", name="gameCredit", placeholder='{{"GAME_CREDIT" | translate}}', ng-model="vm.newPlayer.gameCredit")
-	//div.form-group.col-md-6
-		label.control-label {{"GOLD" | translate}}
-		input.form-control(type="number", name="gold", placeholder='{{"GOLD" | translate}}', ng-model="vm.newPlayer.gold")
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label {{"PARTNER" | translate}}
-			label.form-control(ng-click='vm.showPartnerSelectModal(vm.newPlayer)') {{vm.partnerIdObj[vm.newPlayer.partner].partnerName}}
-			//select.form-control(name="partner", ng-model="vm.newPlayer.partner", ng-click='vm.showPartnerSelectModal()')
-				option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
-				option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
-		.form-group.col-md-6
-			label.control-label *{{"TELEPHONE" | translate}}
-			input.form-control(ng-mouseleave="vm.existNumberDetector(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.phoneNumber", required)
-			div(ng-show="vm.existPhone", style='color:red;display:inline-block') {{"Phone Number Already Exists" | translate}}
-			div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.initPhoneNumberRecord()", data-toggle="modal", data-target="#duplicatePhoneNumberLog", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
-			//div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label {{"REFERRAL" | translate}}
-			input.referralValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.newPlayer.referralName', ng-change='vm.getReferralPlayer(vm.newPlayer, "change")')
-			i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
-			i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
-		.form-group.col-md-6
-			label.control-label {{"Registration Domain" | translate}}
-			label.form-control {{vm.newPlayer.domain}}
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-6
-			label.control-label.margin-right-5 {{"RECEIVE_SMS" | translate}}
-				input.pull-left.margin-right-5(type="checkbox", name="telephone", ng-model="vm.newPlayer.receiveSMS")
-		.form-group.col-md-6
-			label.control-label.margin-right-5 {{"createPartner" | translate}}
-				input.pull-left.margin-right-5(type="checkbox", name="createPartner", ng-model="vm.newPlayer.createPartner")
-	.row.margin-left-5.margin-right-5
-		.form-group.col-md-12
-			label.control-label {{"REMARKS" | translate}}
-			.textareaDetail
-				textarea.form-control(type="textarea", rows='4', name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="vm.newPlayer.remark")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PLAYER_NAME" | translate}}
+            input.form-control(type="text", placeholder='{{"PLAYER_NAME" | translate}}', ng-model="vm.newPlayer.name", ng-change='vm.checkPlayerNameValidity(vm.newPlayer.name, form_new_player)', required)
+            span.help-block.colorRed(ng-show='vm.duplicateNameFound') {{'PLAYER_NAME' | translate}}&nbsp;{{'existed already' | translate}}
+            span.help-block.colorRed(ng-show='vm.euPrefixNotExist') {{'PLAYER_NAME' | translate}}&nbsp;{{'EU8 account must start with "e"' | translate}}
+        .form-group.col-md-6
+            label.control-label {{"EMAIL" | translate}}
+            input.form-control(type="email", name="email", placeholder='{{"winner@qq.com"}}', ng-model="vm.newPlayer.email")
+            span.help-block(ng-show="form_new_player.email.$dirty && form_new_player.email.$error.email") {{"EMAIL_INVALID" | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PASSWORD" | translate}}
+            input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password1", ng-model="vm.newPlayer.password", required,match="vm.playerPswverify")
+            span.help-block(style='color: #b94a48', ng-show="form_new_player.password1.$dirty && vm.passwordLengthCheck(vm.newPlayer.password)") {{'Minimum Password length is' | translate}}&nbsp; 6.
+        .form-group.col-md-6
+            label.control-label *{{"PASSWORD_RETYPE" | translate}}
+            input.form-control(type="password", placeholder='{{"PASSWORD" | translate}}', name="password2", ng-model="vm.playerPswverify", required,match="vm.newPlayer.password")
+            span.help-block(ng-show="form_new_player.password2.$dirty && form_new_player.password2.$error.match && !form_new_player.password2.$error.required") {{"PASSWORD_NOT_MATCH" | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-2
+            label.control-label {{'DEFAULT_PASSWORD' | translate}}
+            div
+                button.common-button.btn.btn-warning(ng-click="vm.newPlayer.password='888888';vm.playerPswverify='888888'") 888888
+        .form-group.col-md-2
+            label.control-label {{"GENDER" | translate}}
+            div
+                input#genderMale(style="margin-right:8px;" type="radio", name="gender",value='{{true}}', ng-model="vm.newPlayer.gender")
+                label(for="genderMale", style="margin-right:20px;") {{"Male" | translate}}
+                input#genderFemale(style="margin-right:8px;" type="radio", name="gender",value='{{false}}', ng-model="vm.newPlayer.gender")
+                label(for="genderFemale") {{"Female" | translate}}
+        .form-group.col-md-2
+            label.control-label {{"csPromoteWay" | translate}}
+            div
+                select.form-control(ng-model='vm.newPlayer.promoteWay')
+                    option(ng-repeat='promoteWay in vm.allPromoteWay', value='{{promoteWay.name}}') {{promoteWay.name}}
+        .form-group.col-md-6
+            label.control-label {{"REAL_NAME" | translate}}
+            input.form-control(ng-mouseleave="vm.existRealNameDetector(true)", type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="vm.newPlayer.realName")
+            div(ng-show="vm.existRealName", style='color:red;display:inline-block') {{"Real Name Already Exists" | translate}}
+            div.btn.btn-primary.btn-sm(ng-show="vm.existRealName", ng-click="vm.initRealNameRecord()", data-target="#sameRealNameLog", data-toggle="modal", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"NICK_NAME" | translate}}
+            input.form-control(type="text", placeholder='{{"NICK_NAME" | translate}}', ng-model="vm.newPlayer.nickName")
+        .form-group.col-md-6
+            label.control-label {{"DOB" | translate}}
+            #datepickerDOB
+    //div.form-group.col-md-6
+    //	label.control-label {{"GAME_CREDIT" | translate}}
+    //	input.form-control(type="number", name="gameCredit", placeholder='{{"GAME_CREDIT" | translate}}', ng-model="vm.newPlayer.gameCredit")
+    //div.form-group.col-md-6
+        label.control-label {{"GOLD" | translate}}
+        input.form-control(type="number", name="gold", placeholder='{{"GOLD" | translate}}', ng-model="vm.newPlayer.gold")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"PARTNER" | translate}}
+            label.form-control(ng-click='vm.showPartnerSelectModal(vm.newPlayer)') {{vm.partnerIdObj[vm.newPlayer.partner].partnerName}}
+            //select.form-control(name="partner", ng-model="vm.newPlayer.partner", ng-click='vm.showPartnerSelectModal()')
+                option(value='{{null}}', ng-selected='null==vm.newPlayer.partner') {{'NULL' | translate}}
+                option(ng-repeat='(i,v) in vm.partnerIdObj', value='{{i}}', ng-selected='i==vm.newPlayer.partner') {{v.partnerName}}
+        .form-group.col-md-6
+            label.control-label *{{"TELEPHONE" | translate}}
+            input.form-control(ng-mouseleave="vm.checkIsPhoneNumberExist(true)", type="telephone", name="telephone", placeholder='{{"TELEPHONE" | translate}}', maxlength="11", ng-pattern="vm.phonePattern", ng-model="vm.newPlayer.encodedPhoneNumber", required)
+            //div(ng-show="vm.existPhone", style='color:red;display:inline-block') {{"Phone Number Already Exists" | translate}}
+            //div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.initPhoneNumberRecord()", data-toggle="modal", data-target="#duplicatePhoneNumberLog", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
+            //div.btn.btn-primary.btn-sm(ng-show="vm.existPhone", ng-click="vm.loadPhoneNumberRecord(vm.newPlayer.phoneNumber)", style='display:inline-block;margin-left:10px;')  {{'DETAIL_INFO' | translate}}
+            span.help-block.colorRed(ng-if='vm.duplicatedPhoneErr.str') {{vm.duplicatedPhoneErr.str}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label {{"REFERRAL" | translate}}
+            input.referralValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.newPlayer.referralName', ng-change='vm.getReferralPlayer(vm.newPlayer, "change")')
+            i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
+            i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+        .form-group.col-md-6
+            label.control-label {{"Registration Domain" | translate}}
+            label.form-control {{vm.newPlayer.domain}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label.margin-right-5 {{"RECEIVE_SMS" | translate}}
+                input.pull-left.margin-right-5(type="checkbox", name="telephone", ng-model="vm.newPlayer.receiveSMS")
+        .form-group.col-md-6
+            label.control-label.margin-right-5 {{"createPartner" | translate}}
+                input.pull-left.margin-right-5(type="checkbox", name="createPartner", ng-model="vm.newPlayer.createPartner")
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-12
+            label.control-label {{"REMARKS" | translate}}
+            .textareaDetail
+                textarea.form-control(type="textarea", rows='4', name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="vm.newPlayer.remark")

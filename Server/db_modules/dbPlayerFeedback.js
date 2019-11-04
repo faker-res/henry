@@ -440,7 +440,7 @@ var dbPlayerFeedback = {
         )
     },
 
-    getPlayerFeedbackReportAdvance: function (platform, query, index, limit, sortCol) {
+    getPlayerFeedbackReportAdvance: async function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -488,6 +488,15 @@ var dbPlayerFeedback = {
             query.admins = query.admins.map(e => ObjectId(e));
             console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
+        }
+        if(query.registrationDevice && query.registrationDevice.length > 0) {
+            let playerObjIds = await dbconfig.collection_players.find({
+                registrationDevice: {$in: query.registrationDevice}
+            },{_id:1}).lean();
+            let playerObjIds2 = playerObjIds.map((item) => {
+                return item._id;
+            });
+            matchObjFeedback.playerId = {$in: playerObjIds2}
         }
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
