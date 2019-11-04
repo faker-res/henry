@@ -8571,9 +8571,15 @@ let dbPlayerReward = {
                     if (playerData.validCredit >= deductAmount) {
                         // Player has enough amount in validCredit
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
-                    } else if (lastProviderCredit && lastProviderCredit >= 1 && lastProviderCredit >= deductAmount) {
+                    } else if (
+                        playerData.platform.useTransferFromLastProvider
+                        && lastProviderCredit && lastProviderCredit >= 1 && lastProviderCredit >= deductAmount
+                    ) {
                         // If the last played provider has credit inside, we transfer out the money
-                        await dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId, -1, null, true);
+                        await dbPlayerInfo.transferPlayerCreditFromProvider(
+                            playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId
+                            , -1, null, true
+                        );
 
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                     } else {
