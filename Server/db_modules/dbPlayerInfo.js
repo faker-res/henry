@@ -30890,7 +30890,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     return recordSum;
 }
 
-async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod) {
+async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDownPeriod, isReturnReject) {
     let levelMaintainProposalType = dbconfig.collection_proposalType.findOne({
         platformId: playerObj.platform,
         name: constProposalType.PLAYER_LEVEL_MAINTAIN
@@ -30932,7 +30932,7 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
                         ]
                     }
                 ],
-                'data.upOrDown': {$in:["LEVEL_UP", null]},
+                'data.upOrDown': {$in:["LEVEL_UP", "LEVEL_DOWN", null]},
                 type: {$in: levelType.map(proposalType => proposalType._id)},
                 createTime: {
                     $gte: checkLevelDownPeriod.startTime,
@@ -30953,6 +30953,9 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
         }
     ).catch(
         err => {
+            if (isReturnReject) {
+                return Promise.reject(err);
+            }
             return false;
         }
     )
@@ -31960,9 +31963,21 @@ function manualPlayerLevelMaintainReward(playerObjId, adminInfo) {
             }
             platform = player.platform;
 
+            if (!platform) {
+                return Promise.reject({message: "Cannot find platform"});
+            }
+
             playerLevel = player.playerLevel;
 
             if (player.forbidLevelMaintainReward && player.permission && player.permission.banReward) {
+                return Promise.reject({
+                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                    name: "DataError",
+                    message: "Player do not have permission for reward"
+                });
+            }
+
+            if (!(playerLevel && playerLevel.value)) {
                 return Promise.reject({
                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                     name: "DataError",
@@ -31980,72 +31995,24 @@ function manualPlayerLevelMaintainReward(playerObjId, adminInfo) {
             proposalType = proposalTypeData;
             let platformPeriod = platform.playerLevelDownPeriod;
             let rewardPeriodTime;
-
+            let checkLevelDownPeriod; // period for checking consumption and top up
             if (platformPeriod == constPlayerLevelUpPeriod.DAY) {
                 rewardPeriodTime = dbUtil.getTodaySGTime();
+                checkLevelDownPeriod = dbUtil.getYesterdaySGTime();
             } else if (platformPeriod == constPlayerLevelUpPeriod.WEEK) {
                 rewardPeriodTime = dbUtil.getCurrentWeekSGTime();
+                checkLevelDownPeriod = dbUtil.getLastWeekSGTime();
             } else if (platformPeriod == constPlayerLevelUpPeriod.MONTH) {
                 rewardPeriodTime = dbUtil.getCurrentMonthSGTIme();
+                checkLevelDownPeriod = dbUtil.getLastMonthSGTime();
             }
 
             if (!rewardPeriodTime) {
                 return Promise.reject({name: "DBError", message: "Cannot find platform level down period"})
             }
 
-
-            return dbconfig.collection_proposal.findOne({
-                'data.playerObjId': {$in: [ObjectId(player._id), String(player._id)]},
-                'data.platformObjId': {$in: [ObjectId(platform._id), String(platform._id)]},
-                type: proposalTypeData._id,
-                createTime: {
-                    $gte: rewardPeriodTime.startTime,
-                    $lt: rewardPeriodTime.endTime
-                },
-                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.PENDING]}
-            }).lean();
-        }
-    ).then(
-        rewardProposal => {
-            if (!rewardProposal) {
-
-                let proposalData = {
-                    levelName: playerLevel.name,
-                    levelObjId: playerLevel._id,
-                    levelValue: playerLevel.value,
-                    proposalPlayerLevel: playerLevel.name,
-                    playerLevelName: playerLevel.name,
-                    proposalPlayerLevelValue: playerLevel.value,
-                    platformId: platform._id,
-                    platformObjId: String(platform._id),
-                    playerId: player.playerId,
-                    playerName: player.name,
-                    playerObjId: String(player._id),
-                    upOrDown: "LEVEL_MAINTAIN"
-                };
-
-                if (playerLevel && playerLevel.reward && playerLevel.reward.bonusCreditLevelDown) {
-                    proposalData.rewardAmount = playerLevel.reward.bonusCreditLevelDown;
-                    proposalData.isRewardTask = playerLevel.reward.isRewardTaskLevelDown;
-                    if (proposalData.isRewardTask) {
-                        if (playerLevel.reward.providerGroupLevelDown && playerLevel.reward.providerGroupLevelDown !== "free") {
-                            proposalData.providerGroup = playerLevel.reward.providerGroupLevelDown;
-                        }
-                        proposalData.requiredUnlockAmount = playerLevel.reward.requiredUnlockTimesLevelDown * playerLevel.reward.bonusCreditLevelDown;
-                    }
-
-                    let proposal = {data: proposalData};
-                    if (adminInfo) {
-                        proposal.creator = adminInfo;
-                        proposal.entryType = constProposalEntryType.ADMIN;
-                    }
-
-                    return dbProposal.createProposalWithTypeName(platform._id, constProposalType.PLAYER_LEVEL_MAINTAIN, proposal);
-                }
-
-            } else {
-                return Promise.reject({message: "该玩家周期内已经领取『" + playerLevel.name + "』的保级优惠。"});
-            }
+            player.platform = platform._id;
+            return checkLevelMaintainReward(player, rewardPeriodTime, checkLevelDownPeriod, true);
         }
     );
 }
