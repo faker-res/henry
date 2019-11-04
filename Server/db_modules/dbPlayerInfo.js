@@ -8567,7 +8567,7 @@ let dbPlayerInfo = {
                     return Q.reject({
                         name: "DataError",
                         code: constServerCode.DOCUMENT_NOT_FOUND,
-                        message: "Unable to find player"
+                        message: localization.localization.translate("Unable to find player")
                     });
                 }
             }
@@ -18353,6 +18353,7 @@ let dbPlayerInfo = {
 
                     return Promise.all([lastTopUpProm, lastConsumptionProm, pendingCount]).then(
                         timeCheckData => {
+                            console.log('JY check rewardData.selectedTopup ==>', timeCheckData[0]);
                             rewardData.selectedTopup = timeCheckData[0];
                             rewardData.lastConsumptionData = timeCheckData[1];
 
