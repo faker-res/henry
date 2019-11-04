@@ -5992,6 +5992,7 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            console.log('JY check rewardData.selectedTopup==>', rewardData.selectedTopup)
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
