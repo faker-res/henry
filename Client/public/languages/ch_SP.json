@@ -1352,7 +1352,7 @@
   "Fail": "失败",
   "Lock Lobby Group": "锁大厅设置",
   "Game Type Config": "游戏类型设置",
-  "gameTypeConfig": "游戏类型设置",
+  "gameTypeConfigEdit": "游戏类型设置",
   "VALID_CONSUMPTION": "有效投注额",
   "EARNING_RATIO": "营收比例",
   "Daily Settlement": "每日结算",
