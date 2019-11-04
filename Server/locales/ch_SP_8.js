@@ -191,6 +191,7 @@ var simplifiedChinese = {
     "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
     "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
     "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
+    "S top up amount has not met the reward condition": "拆分后的存款提案额度未达到优惠申请条件",
     "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠",
 
     "Incorrect reward event data": "不正确的奖励活动数据",
