@@ -2950,7 +2950,6 @@ define(['js/app'], function (myApp) {
             vm.curGameTypeQuery.limit = 0;
             vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
             vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
-            // vm.curGameTypeQuery.startTime = utilService.setNDaysAgo(new Date(), 365); // need remove
             vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
             console.log('vm.curGameTypeQuery', vm.curGameTypeQuery);
@@ -3000,7 +2999,6 @@ define(['js/app'], function (myApp) {
             vm.curGameTypeQuery.limit = 0;
             vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
             vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
-            // vm.curGameTypeQuery.startTime = utilService.setNDaysAgo(new Date(), 365); // need remove
             vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.listAllProviders = true;
@@ -3034,7 +3032,6 @@ define(['js/app'], function (myApp) {
             vm.curGameTypeQuery.limit = 0;
             vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
             vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
-            // vm.curGameTypeQuery.startTime = utilService.setNDaysAgo(new Date(), 365); // need remove
             vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.listAllProviders = false;
@@ -3065,8 +3062,6 @@ define(['js/app'], function (myApp) {
             vm.curGameTypeQuery.providerName = providerName;
             vm.curGameTypeQuery.limit = 0;
             vm.curGameTypeQuery.providerId = providerId;
-
-            // vm.curGameTypeQuery.startTime = utilService.setNDaysAgo(new Date(), 365); // need remove
             vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
             vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
