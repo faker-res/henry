@@ -75,7 +75,7 @@ function socketActionPlatform(socketIO, socket) {
 
         getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.deviceType);
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty('deviceType') );
 
             socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId, data.deviceType], actionName, isValidData);
         },

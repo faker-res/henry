@@ -26037,27 +26037,7 @@ define(['js/app'], function (myApp) {
                                     rowData => {
                                         if (rowData.hasOwnProperty("onClickAction")){
                                             rowData.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === rowData.onClickAction)
-                                            switch (rowData.onClickAction){
-                                                case '1':
-                                                case 1:
-                                                    rowData.displayRoute$ = rowData.newPageUrl ? rowData.newPageUrl : "";
-                                                    break;
-                                                case '2':
-                                                case 2:
-                                                    rowData.displayRoute$ = rowData.activityUrl ? rowData.activityUrl : "";
-                                                    break;
-                                                case '4':
-                                                case 4:
-                                                    rowData.displayRoute$ = rowData.route ? rowData.route : "";
-                                                    break;
-                                                case '5':
-                                                case 5:
-                                                    rowData.displayRoute$ = rowData.gameCode ? rowData.gameCode : "";
-                                                    break;
-                                                default:
-                                                    rowData.displayRoute$ = "";
-                                                    break;
-                                            }
+                                            rowData.displayRoute$ = utilService.getFrontEndSettingRoute(rowData);
                                         }
                                         return rowData
                                     }
@@ -26952,6 +26932,11 @@ define(['js/app'], function (myApp) {
                             vm.frontEndDeletedList = [];
                             vm.frontEndCarouselSetting = data.data.map(item => {
                                 item.device = item.device.toString();
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
+                                }
+
                                 return item;
                             });
 
@@ -43560,13 +43545,13 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initPopularRecommendationSetting = function() {
-                if(!vm.popularDevice){
-                    vm.popularDevice = "1";
+                if(!vm.frontEndFirstPageSelectedSubTab){
+                    vm.frontEndFirstPageSelectedSubTab = "1";
                 }
                 vm.newPopularRecommendationSetting = {
                     isPlayerVisible: true,
                     isPlayerWithRegisteredHpNoVisible: true,
-                    device: vm.popularDevice
+                    device: vm.frontEndFirstPageSelectedSubTab
                 };
 
                 vm.addNewPopularRecommendationSetting();
@@ -43855,19 +43840,19 @@ define(['js/app'], function (myApp) {
                 // await vm.updatePopularRecommendationSetting();
                 let promArr;
 
-                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '1') {
                     promArr = [
                         "pcImage",
                         "pcNewPage",
                         "pcPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '4') {
                     promArr = [
                         "appImage",
                         "appNewPage",
                         "appPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '2') {
                     promArr = [
                         "H5Image",
                         "H5NewPage",
