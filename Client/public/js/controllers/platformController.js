@@ -44180,6 +44180,10 @@ define(['js/app'], function (myApp) {
                                 if (item && item.device){
                                     item.device = item.device.toString();
                                 }
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
+                                }
                                 return item;
                             });
 

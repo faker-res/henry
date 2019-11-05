@@ -1,48 +1,73 @@
-div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+div(style="background: #d3d3d34d; padding: 10px; margin-top: 10px; margin-bottom: 30px; position:relative;")
     div(style="display: inline;")
         label {{'Setting For Pop-up Advertisement' | translate}}
         br
         label.text-danger {{'Note: can be inter-switchable between CS Test and Production' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.initPopUpAdvertisementSetting()")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
+div.text-right
+    button.btn-danger.btn.btn-space(ng-click="vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button#popUpAdvSaveButton.btn-primary.btn(ng-click="vm.updatePopUpAdvertisementSetting()") {{'SAVE' | translate}}
 
 div.col-md-4.fronendConfigDiv.popUpAdvModal(style="height: 60vh; min-height: 500px;")
     span(style='font-weight: bold;') {{'PC' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area1
-            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="pc in vm.popUpAdvertisementData", ng-if="pc.device == 1", ng-dblclick="vm.editPopUpAdvertisement(pc._id)", id="{{pc._id}}")
-                span(style="vertical-align: -webkit-baseline-middle;") {{pc.title}}
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="pc.isVisible" ng-click="pc.isVisible = false") on
-                    button.btn.btn-success(ng-if="!pc.isVisible", ng-click="pc.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.popUpAdvertisementData)")
-                        span.fa.fa-trash-o
+            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="pc in vm.popUpAdvertisementData", ng-if="pc.device == 1", id="{{pc._id}}")
+                div.detailDivLeft
+                    span.detailDivSpan {{ pc.title }}
+                    <br/>
+                    span {{ pc.onClickAction$ | translate}}
+                    <br/>
+                    span {{ pc.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="pc.isVisible" ng-click="pc.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!pc.isVisible", ng-click="pc.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editPopUpAdvertisement(pc._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.popUpAdvertisementData)")
+                            span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.popUpAdvModal(style="height: 60vh; min-height: 500px;")
     span(style='font-weight: bold;') {{'H5' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area2
-            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="h5 in vm.popUpAdvertisementData", ng-if="h5.device == 2", ng-dblclick="vm.editPopUpAdvertisement(h5._id)", id="{{h5._id}}")
-                span(style="vertical-align: -webkit-baseline-middle;") {{h5.title}}
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="h5.isVisible" ng-click="h5.isVisible = false") on
-                    button.btn.btn-success(ng-if="!h5.isVisible", ng-click="h5.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.popUpAdvertisementData)")
-                        span.fa.fa-trash-o
-
+            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="h5 in vm.popUpAdvertisementData", ng-if="h5.device == 2", id="{{h5._id}}")
+                div.detailDivLeft
+                    span.detailDivSpan {{ h5.title }}
+                    <br/>
+                    span {{ h5.onClickAction$ | translate}}
+                    <br/>
+                    span {{ h5.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="h5.isVisible" ng-click="h5.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!h5.isVisible", ng-click="h5.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editPopUpAdvertisement(h5._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.popUpAdvertisementData)")
+                            span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.popUpAdvModal(style="height: 60vh; min-height: 500px;")
     span(style='font-weight: bold;') {{'App' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area3
-            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="app in vm.popUpAdvertisementData", ng-if="app.device == 4", ng-dblclick="vm.editPopUpAdvertisement(app._id)", id="{{app._id}}")
-                span(style="vertical-align: -webkit-baseline-middle;") {{app.title}}
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="app.isVisible" ng-click="app.isVisible = false") on
-                    button.btn.btn-success(ng-if="!app.isVisible", ng-click="app.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.popUpAdvertisementData)")
-                        span.fa.fa-trash-o
-
-div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
-    button#popUpAdvSaveButton.btn-primary.btn(ng-click="vm.updatePopUpAdvertisementSetting()") {{'SAVE' | translate}}
+            li.draggable-item(style="background: white !important; text-align: left;", ng-repeat="app in vm.popUpAdvertisementData", ng-if="app.device == 4", id="{{app._id}}")
+                div.detailDivLeft
+                    span.detailDivSpan {{ app.title }}
+                    <br/>
+                    span {{ app.onClickAction$ | translate}}
+                    <br/>
+                    span {{ app.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="app.isVisible" ng-click="app.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!app.isVisible", ng-click="app.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editPopUpAdvertisement(app._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.popUpAdvertisementData)")
+                            span.fa.fa-trash-o
