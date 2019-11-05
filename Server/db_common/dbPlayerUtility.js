@@ -358,6 +358,7 @@ const dbPlayerUtility = {
     },
 
     getProviderCreditByObjId: (playerObjId, providerId) => {
+        console.log('getProviderCreditByObjId start', providerId);
         return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -376,6 +377,7 @@ const dbPlayerUtility = {
         ).then(
             data => {
                 if (data) {
+                    console.log('getProviderCreditByObjId end', data && data.credit);
                     return {
                         providerId: providerId,
                         credit: Math.floor(parseFloat(data.credit))
