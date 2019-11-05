@@ -8569,6 +8569,10 @@ let dbPlayerReward = {
                         console.log(`${playerData.name} last played provider balance is ${lastProviderCredit}`);
                     }
 
+                    console.log('playerData.platform.useTransferFromLastProvider', playerData.platform.useTransferFromLastProvider);
+                    console.log('lastProviderCredit', lastProviderCredit);
+                    console.log('deductAmount', deductAmount);
+
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= deductAmount) {
                         // Player has enough amount in validCredit
