@@ -1041,6 +1041,7 @@ var dbRewardEvent = {
 
     checkRewardEventGroupApplicable: function (playerData, eventData, rewardData, playerRetentionRecord) {
         let todayTime = dbUtil.getTodaySGTime();
+        console.log('JY check todayTime here==>', todayTime);
         let intervalTime;
         let selectedRewardParam = {};
         rewardData = rewardData || {};
