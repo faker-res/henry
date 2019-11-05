@@ -8565,6 +8565,7 @@ let dbPlayerReward = {
                     // Check the amount in last played provider
                     if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId) {
                         lastProviderCredit = await dbPlayerUtil.getProviderCreditByObjId(playerData._id, playerData.lastPlayedProvider.providerId).credit;
+                        console.log(`${playerData.name} last played provider balance is ${lastProviderCredit}`);
                     }
 
                     // Decide whether player has enough free amount to apply
