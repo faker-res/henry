@@ -3372,6 +3372,8 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         new: true
     }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
         updatedRTG => {
+
+            console.log('LK checking RTG before status update-- 2', updatedRTG.curConsumption + "/" + updatedRTG.targetConsumption);
             let rewardTaskUnlockedProgress = Promise.resolve();
 
             // Debug negative RTG curConsumption
@@ -3443,6 +3445,7 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                             statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                         }
 
+                        console.log('LK checking RTG update status obj--', statusUpdObj);
                         if (statusUpdObj.status) {
                             let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                 {_id: updatedRTG._id},
@@ -3495,7 +3498,7 @@ function findRTGToUpdate (oldData, newData) {
             console.log("checking for negative consumption (newValidAmount, oldValidAmount, incValidAmt, playerObjId)", newData.validAmount, oldData.validAmount, incValidAmt, oldData.playerId)
             incValidAmt = 0
         }
-
+        console.log('LK checking update RTG playerId--', oldData.playerId);
         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}, newData.updateTime).then(
             RTGs => {
                 if (RTGs && RTGs.length) {
@@ -3507,6 +3510,7 @@ function findRTGToUpdate (oldData, newData) {
                     // Filter RTGs
                     RTGs.filter(RTG => {
                         if (RTG) {
+                            console.log('LK checking get RTG detail--', RTG.curConsumption);
                             if (RTG.providerGroup && RTG.providerGroup.providers && RTG.providerGroup.providers.length) {
                                 RTG.providerGroup.providers.forEach(provider => {
                                     if (String(provider) === String(oldData.providerId)) {

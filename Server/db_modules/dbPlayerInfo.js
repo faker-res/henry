@@ -5399,6 +5399,8 @@ let dbPlayerInfo = {
 
                     topupUpdateRTG(player, platform, amount).then(
                         () => {
+
+                            console.log('before RTG...', player + '/' + platform + '/' + amount);
                             if (proposalData && proposalData.data) {
                                 // Move bonus code and apply top up promo here
                                 if (proposalData.data.bonusCode) {
@@ -11883,6 +11885,7 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
+        console.log('FreeAmount RTG...', playerObjId + '/' + platformObjId + '/' + topUpAmount);
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -11924,6 +11927,7 @@ let dbPlayerInfo = {
                             targetConsumption: topUpAmount || 0
                         };
 
+                        console.log('saveObj RTG...', saveObj);
                         // create new reward group
                         return new dbconfig.collection_rewardTaskGroup(saveObj).save().then(
                             newRecord => {
