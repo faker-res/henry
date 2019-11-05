@@ -32359,6 +32359,7 @@ define(['js/app'], function (myApp) {
                         vm.platformBasic.voiceCodeProvider = platformData.voiceCodeProvider || vm.constVoiceCodeProvider.TENCENT_CLOUD;
                         vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus = platformData.isPhoneNumberBoundToPlayerBeforeApplyBonus;
                         vm.platformBasic.appDataVer = platformData.appDataVer;
+                        vm.platformBasic.useTransferFromLastProvider = platformData.useTransferFromLastProvider;
                     });
                 })
             };
@@ -34897,7 +34898,8 @@ define(['js/app'], function (myApp) {
                         voiceCodeProvider: srcData.voiceCodeProvider,
                         ipCheckPeriod: srcData.ipCheckPeriod,
                         isPhoneNumberBoundToPlayerBeforeApplyBonus: srcData.isPhoneNumberBoundToPlayerBeforeApplyBonus,
-                        appDataVer: srcData.appDataVer
+                        appDataVer: srcData.appDataVer,
+                        useTransferFromLastProvider: srcData.useTransferFromLastProvider,
                     }
                 };
                 let isProviderGroupOn = false;
@@ -35619,10 +35621,15 @@ define(['js/app'], function (myApp) {
                                     deletedProviders = cloneGameProvider.providers;
                                 }
 
+                                if (cloneGameProvider.ebetWallet !== editedGameProvider.ebetWallet) {
+                                    isProviderChanged = true;
+                                }
+
                                 if (isProviderChanged) {
                                     socketActionLog[key] = {
                                         name: providerGroupName,
                                         providerGroupId: providerGroupId,
+                                        ebetWallet: editedGameProvider.ebetWallet
                                     };
                                 }
                                 if (addedProviders && addedProviders.length) {

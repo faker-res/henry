@@ -588,6 +588,8 @@ var platformSchema = new Schema({
     voiceCodeProvider: {type: Number, default: 1},
     // display front end reward points ranking data
     displayFrontEndRewardPointsRankingData: {type: Boolean, default: true},
+    // Use transfer from last provider to apply reward
+    useTransferFromLastProvider: {type: Boolean, default: false}
 });
 
 //add platform id before save

@@ -5399,6 +5399,8 @@ let dbPlayerInfo = {
 
                     topupUpdateRTG(player, platform, amount).then(
                         () => {
+
+                            console.log('before RTG...', player + '/' + platform + '/' + amount);
                             if (proposalData && proposalData.data) {
                                 // Move bonus code and apply top up promo here
                                 if (proposalData.data.bonusCode) {
@@ -10955,7 +10957,6 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardEventList => {
-                console.log('rewardEventList', rewardEventList);
                 rewardList = rewardEventList;
                 // to handle old data without registrationInterface; set to WEB
                 if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){
@@ -11883,6 +11884,7 @@ let dbPlayerInfo = {
      * @returns {Promise.<*>}
      */
     checkFreeAmountRewardTaskGroup: function (playerObjId, platformObjId, topUpAmount) {
+        console.log('FreeAmount RTG...', playerObjId + '/' + platformObjId + '/' + topUpAmount);
         if (!platformObjId) {
             throw Error("platformObjId was not provided!");
         }
@@ -11924,6 +11926,7 @@ let dbPlayerInfo = {
                             targetConsumption: topUpAmount || 0
                         };
 
+                        console.log('saveObj RTG...', saveObj);
                         // create new reward group
                         return new dbconfig.collection_rewardTaskGroup(saveObj).save().then(
                             newRecord => {
@@ -12415,6 +12418,30 @@ let dbPlayerInfo = {
                                             console.log("ZM player level up checkpoint 5", playerObj.name);
                                             let inputDevice = dbUtility.getInputDevice(userAgent, false);
                                             let promResolve = Promise.resolve();
+
+                                            if (!userAgent && playerObj && playerObj.loginDevice) {
+                                                let device = playerObj.loginDevice.substring(0,1);
+
+                                                if (device) {
+                                                    switch (Number(device)) {
+                                                        case 1:
+                                                            inputDevice = constPlayerRegistrationInterface.WEB_PLAYER;
+                                                            break;
+                                                        case 2:
+                                                            inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
+                                                            break;
+                                                        case 3:
+                                                        case 4:
+                                                            inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
+                                                            break;
+                                                        default:
+                                                            inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+                                                            break;
+                                                    }
+                                                } else {
+                                                    inputDevice = constPlayerRegistrationInterface.BACKSTAGE;
+                                                }
+                                            }
 
                                             // return dbconfig.collection_playerState.findOne({player: playerObj._id}).lean().then(
                                             //     stateRec => {
@@ -18187,6 +18214,8 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
+        ).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
         ).lean().then(
             playerData => {
                 if (!playerData) {
