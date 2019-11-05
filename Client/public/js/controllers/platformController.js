@@ -25522,7 +25522,8 @@ define(['js/app'], function (myApp) {
                         vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'popularRecommendation':
-                        vm.frontEndFirstPageSelectedSubTab = 'pc';
+                        vm.popularRecommendationSettingDevice = 'pc';
+                        vm.frontEndFirstPageSelectedSubTab = 1;
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
                         vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, 1);
@@ -25584,7 +25585,7 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointClarification':
                         break;
                     case 'popularRecommendation':
-                        vm.frontEndFirstPageSelectedSubTab = 'pc';
+                        vm.popularRecommendationSettingDevice = 'pc';
                         break;
                     case 'carouselConfiguration':
                         vm.isPartnerForCarouselConfiguration = false;
@@ -25989,6 +25990,37 @@ define(['js/app'], function (myApp) {
                             vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
+                            if (vm.frontEndPopularRecommendationData && vm.frontEndPopularRecommendationData.length) {
+                                vm.frontEndPopularRecommendationData.forEach(
+                                    rowData => {
+                                        if (rowData.hasOwnProperty("onClickAction")){
+                                            rowData.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === rowData.onClickAction)
+                                            switch (rowData.onClickAction){
+                                                case '1':
+                                                case 1:
+                                                    rowData.displayRoute$ = rowData.newPageUrl ? rowData.newPageUrl : "";
+                                                    break;
+                                                case '2':
+                                                case 2:
+                                                    rowData.displayRoute$ = rowData.activityUrl ? rowData.activityUrl : "";
+                                                    break;
+                                                case '4':
+                                                case 4:
+                                                    rowData.displayRoute$ = rowData.route ? rowData.route : "";
+                                                    break;
+                                                case '5':
+                                                case 5:
+                                                    rowData.displayRoute$ = rowData.gameCode ? rowData.gameCode : "";
+                                                    break;
+                                                default:
+                                                    rowData.displayRoute$ = "";
+                                                    break;
+                                            }
+                                        }
+                                        return rowData
+                                    }
+                                )
+                            }
                         }
                     })
                 }, function (err) {
@@ -43447,7 +43479,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getPopularRecommendationSettingDevice = function(type){
-                vm.frontEndFirstPageSelectedSubTab = type;
                 let deviceConst = null;
                 switch (type) {
                     case 'pc':
@@ -43463,6 +43494,7 @@ define(['js/app'], function (myApp) {
                         deviceConst = 1;
                         break;
                 }
+                vm.frontEndFirstPageSelectedSubTab = deviceConst;
                 if (vm.filterFrontEndSettingPlatform && deviceConst){
                     vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, deviceConst)
                 }
@@ -43607,7 +43639,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.refreshSPicker();
-                $('#popularRecommendationSetting').modal();
+                // $('#popularRecommendationSetting').modal();
                 $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.popularRecommendationImageFile);});
@@ -43841,7 +43873,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#popularRecommendationSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                                 }, function (err) {
                                     console.log("saveFrontEndPopularRecommendationSetting err", err);
                                 });
@@ -43930,7 +43962,7 @@ define(['js/app'], function (myApp) {
                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
-                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                         })
                     }, function (err) {
                         console.log('err', err);
