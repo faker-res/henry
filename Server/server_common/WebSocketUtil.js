@@ -366,7 +366,7 @@ var WebSocketUtility = {
                     code: data.code
                 }, reqData);
             }
-        ).catch(WebSocketUtility.errorHandler).done();
+        ).catch(WebSocketUtility.errorHandler);
     },
 
     notifyEBETLuZhuClient: function (service, functionName, data, clientAPIServerNo) {

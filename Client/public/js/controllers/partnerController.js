@@ -46,6 +46,12 @@ define(['js/app'], function (myApp) {
             WEEKLY_CONSUMPTION: 5,
             DAILY_CONSUMPTION: 7
         };
+
+        vm.subPlatformType = [
+            "CHESS",
+            "V68"
+        ];
+
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -16367,6 +16373,10 @@ define(['js/app'], function (myApp) {
                 targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
             };
 
+            if (vm.subPlatformId && vm.subPlatformId != ""){
+                sendData.subPlatformId = vm.subPlatformId;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPartnerPosterAdsList', sendData, function (data) {
                 console.log("partner poster ads list", data);
                 if (data && data.data) {
@@ -16452,6 +16462,9 @@ define(['js/app'], function (myApp) {
                     targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
                 }
 
+                if (vm.subPlatformId && vm.subPlatformId != ''){
+                    sendData.subPlatformId = vm.subPlatformId;
+                }
                 socketService.$socket($scope.AppSocket, 'addNewPartnerPosterAdsRecord', sendData, function (data) {
                     if (data) {
                         vm.resetPartnerAddPosterAdsTable();
@@ -17396,6 +17409,33 @@ define(['js/app'], function (myApp) {
                 });
                 vm.platformInSetting = selectedPlatform.data;
 
+                if (vm.selectedConfigTab && vm.selectedConfigTab === 'partnerPosterAds') {
+                    vm.platformName =  vm.platformInSetting.name;
+                    vm.platformId =  vm.platformInSetting.platformId;
+
+                    if (vm.platformName && vm.subPlatformType && vm.subPlatformType.length) {
+                        vm.subPlatformIdList = {};
+
+                        for (let i = 1; i <= vm.subPlatformType.length; i++) {
+                            let counter = i.toString();
+                            if (i < 10) {
+                                counter = "0" + i;
+                            }
+                            let text = vm.platformName + '_' + vm.subPlatformType[i - 1] + " (" + vm.platformId + counter + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + counter;
+                        }
+
+                        // hardcode 03 as the product itself
+                        if (vm.subPlatformIdList) {
+                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                        }
+                    }
+                }
+
+                if (vm.selectedConfigTab && vm.selectedConfigTab != 'partnerPosterAds'){
+                    vm.subPlatformId = null;
+                }
                 vm.getConfigData();
             }
         };
@@ -17803,6 +17843,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.consecutiveTransferInOut = vm.platformInSetting.consecutiveTransferInOut;
 
             vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.platformInSetting.partnerEnableAutoApplyBonus;
+            vm.autoApprovalBasic.partnerForbidApplyBonusNeedCsApproval = vm.platformInSetting.partnerForbidApplyBonusNeedCsApproval;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleBonusApplyLessThan;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan;
             vm.autoApprovalBasic.partnerWithdrawalCommissionDifference = vm.platformInSetting.partnerWithdrawalCommissionDifference;
@@ -18194,6 +18235,7 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.platformInSetting._id},
                 updateData: {
                     partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                    partnerForbidApplyBonusNeedCsApproval: srcData.partnerForbidApplyBonusNeedCsApproval,
                     partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                     partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                     partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference

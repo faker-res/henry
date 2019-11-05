@@ -697,13 +697,13 @@ function socketActionPlatform(socketIO, socket) {
         getPartnerPosterAdsList: function getPartnerPosterAdsList(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         addNewPartnerPosterAdsRecord: function addNewPartnerPosterAdsRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("orderNo") && data.title && data.posterImage && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         deletePartnerPosterAdsRecord: function deletePartnerPosterAdsRecord(data){

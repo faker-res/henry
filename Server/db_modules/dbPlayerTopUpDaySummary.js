@@ -323,6 +323,7 @@ var dbPlayerTopUpDaySummary = {
         // remove existing summaries for time frame
         await dbconfig.collection_playerReportDataDaySummary.remove({
             platformId: platformId,
+            playerId: {$in: playerObjIds},
             date: {$gte: startTime, $lt: endTime}
         });
 

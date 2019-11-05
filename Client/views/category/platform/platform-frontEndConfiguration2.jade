@@ -98,6 +98,11 @@ style.
                             .search-filters-item
                                 label {{'PRODUCT_NAME' | translate}}
                                 select.form-control(ng-model='vm.filterFrontEndSettingPlatform', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.frontEndSettingPlatform()')
+                            .search-filters-item(ng-if="vm.selectedFrontEndSettingTab === 'partnerCarouselConfiguration' || vm.selectedFrontEndSettingTab === 'partnerUrlConfiguration' || vm.selectedFrontEndSettingTab === 'partnerSkinManagement'")
+                                label {{'SUB_PLATFORM_ID' | translate}}
+                                select.form-control(ng-model='vm.filterFrontEndSettingSubPlatformId', ng-change='vm.frontEndSettingPlatform(vm.filterFrontEndSettingSubPlatformId)')
+                                    option(value="")
+                                    option(ng-repeat='(i,v) in vm.subPlatformIdList' value='{{v}}') {{i | translate}}
                 .text-center(ng-if='!vm.filterFrontEndSettingPlatform')
                     label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 
@@ -1145,7 +1150,7 @@ style.
                                 .full-width-input-block
                                     label(style="width: 30%;") APP {{"ON-CLICK ACTION"|translate}}
                                     div.inline-block(style="width: 70%;")
-                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null")
+                                        select.form-control.inline-block(ng-model="vm.newFrontEndCarousel.onClickAction" ng-options='v as i | translate for (i, v) in vm.frontEndSettingOnClickAction' ng-change="vm.resetOnClickSetting(vm.newFrontEndCarousel, null)")
                                 .full-width-input-block(ng-show="vm.newFrontEndCarousel.onClickAction == 1")
                                     label(style="width: 30%;") {{"PAGE DETAIL"|translate}}
                                     div.inline-block(style="width: 70%;")

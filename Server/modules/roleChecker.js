@@ -302,6 +302,7 @@ var roleChecker = {
                 ModifyFeedbackTopic: ['createPartnerFeedbackTopic', 'deletePartnerFeedbackTopic'],
             },
             "Config": {
+                ValidActiveUpdate: [],
                 PartnerBasic: [],
                 AutoApproval: [],
                 largeWithdrawalSetting: [],
@@ -704,7 +705,8 @@ var roleChecker = {
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
                 FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
-                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
+                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup'],
+                ReCalculateReport: ['reCalculatePlayerReportSummary']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],

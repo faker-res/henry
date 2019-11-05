@@ -94,7 +94,7 @@ var proposal = {
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
+            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
@@ -477,13 +477,21 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.isFromPMSTopUp && (proposalData.data.isFromPMSTopUp.toString() === 'true') &&
+                        (data[0].name == constProposalType.PLAYER_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP)) {
+                        proposalData.status = constProposalStatus.PENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
                         status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
-                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerObjIds", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {
@@ -494,6 +502,12 @@ var proposal = {
 
                     if (queryObj['data.playerObjId']) {
                         queryObj['data.playerObjId'] = ObjectId(queryObj['data.playerObjId']);
+                    }
+
+                    if (queryObj['data.playerObjIds']) {
+                        queryObj['data.playerObjIds'] = queryObj['data.playerObjIds'].map(objId => ObjectId(objId))
+                        queryObj['data.playerObjIds'] = {$in: queryObj['data.playerObjIds']};
+                        queryObj['data.playerObjId'] = queryObj['data.playerObjIds']
                     }
 
                     // Player modify payment info
@@ -529,6 +543,16 @@ var proposal = {
                                 proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                                 proposalData.data.playerLevelName = data[2].playerLevel.name;
                                 proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                            }
+                        }
+                    } else {
+                        if (proposalData.data && proposalData.data.partnerName) {
+                            let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
+                            let partner = await dbconfig.collection_partner.findOne({_id: partnerId}).lean();
+                            if(partner && partner.loginDevice) {
+                                proposalData.device = partner.loginDevice;
+                            } else {
+                                console.log("no partner or no partner loginDevice", partner);
                             }
                         }
                     }
@@ -663,7 +687,11 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
-                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE) {
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data
+                        && (proposalData.data.depositMethod == 1) && proposalData.data.parentTopUpAmount
+                        && (proposalData.data.parentTopUpAmount > 50000)) //allow creating multiple proposals when parent proposal is manual top up , deposit method is 网银 and 50k amount which is fixed from pms
+                ) {
 
                     return Promise.reject({
                         name: "DBError",
@@ -2380,7 +2408,8 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
                             ];
                         }
 
@@ -10565,8 +10594,9 @@ function isBankInfoMatched(proposalData, playerId){
 
                 let allProposalQuery = {
                     'data.platformId': ObjectId(player.platform._id),
-                    // createTime: {$lt: proposalData.createTime},
-                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
+                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}],
+                    'status': constProposalStatus.APPROVED,
+                    createTime: {$gte: new Date(player.registrationTime)},
                 };
 
                 if (proposalData.data.playerId) {
@@ -10576,10 +10606,20 @@ function isBankInfoMatched(proposalData, playerId){
                     allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
                 }
 
-                return dbconfig.collection_proposal.find(allProposalQuery)
-                    .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .sort({createTime: -1}).lean();
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: ObjectId(player.platform._id),
+                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
+                }).lean().then(
+                    proposalTypeData => {
+                        if (proposalTypeData && proposalTypeData._id) {
+                            allProposalQuery.type = proposalTypeData._id;
 
+                            return dbconfig.collection_proposal.find(allProposalQuery)
+                                .populate({path: "type", model: dbconfig.collection_proposalType})
+                                .sort({createTime: -1}).lean();
+                        }
+                    }
+                );
             },
             error => {
                 return;

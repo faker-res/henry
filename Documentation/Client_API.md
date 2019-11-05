@@ -230,6 +230,7 @@
         46. [查询代理的下级代理信息](#查询代理的下级代理信息)
         47. [查询代理佣金设置数据](#查询代理佣金设置数据)
         48. [代理给下级代理开户](#代理给下级代理开户)
+        49. [代理获取推广二维码和推广海报](#代理获取推广二维码和推广海报)
 	12. [平台](#平台：)
 		1.  [获取平台公告](#获取平台公告)
 		2. [获取平台信息](#获取平台信息)
@@ -3166,7 +3167,7 @@ API说明：
     * 请求内容：
         ```
         platformId: 必填|String|平台ID
-        clientType: 选填|String|1：WEB，2：H5，4：APP
+        clientType: 选填|String|1：WEB，2：H5，4：APP，5: Android APP, 6: IOS APP
         ```
     * 操作成功:
         ```
@@ -3457,7 +3458,7 @@ API说明：
 	* 请求内容：
 	    ```
 	    code: 必填|String|优惠唯一代码
-	    topUpRecordId: 选填|String|存款唯一ID (存送金组)
+	    topUpRecordId: 选填|String|存款唯一ID (存送金组, 提升留存组)
 	    festivalItemId: 选填|String|特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得
 	    appliedObjIdList: 选填|String Array|幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id
 	    ```
@@ -6568,6 +6569,31 @@ API说明：
             }
             
     * 正常响应内容：status--200, data--代理信息数据
+    * 操作失败：status--4xx, data-null, errorMessage:””
+    * 该接口需要登录
+    
+<div id='代理获取推广二维码和推广海报'></div>
+
+* **49. 代理获取推广二维码和推广海报**
+    * name: getPartnerPoster
+    * service:partner
+    * 请求内容
+        * ```
+            {
+              "platformId": "4", //平台ID - 必填
+              "url": "www.google.com", // 需要生成二维码的地址 - 必填
+              "device": 0, // Number -  0: WEB, 1: H5, 不填: 都找 （优先获取排列顺序高且可用的海报）
+              "production": true // Boolean - true: 只获取正式站可用（默认），false: 可获取非正式站可用海报
+            }
+    * 响应内容：
+        * ```
+            {
+              "status": 200,
+              "data":  {
+                     qrcode: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgCMnl9X1Q4eFRpkwZ', // base64 图片
+                     poster: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgCMnl9X1Q4eFRpkwZ' // base64 图片
+                 }
+            }
     * 操作失败：status--4xx, data-null, errorMessage:””
     * 该接口需要登录
     
