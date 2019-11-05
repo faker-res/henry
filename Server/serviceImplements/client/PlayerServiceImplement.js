@@ -1889,6 +1889,12 @@ let PlayerServiceImplement = function () {
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                         }, data);
+                    } else if (error && error.message == "Verification code invalid") {
+                        wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_INVALID,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Verification code invalid"),
+                        }, data);
                     } else if (error && error.isRegisterError) {
                         wsFunc.response(conn, {
                             status: constServerCode.PHONENUMBER_ALREADY_EXIST,
