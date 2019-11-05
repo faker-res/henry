@@ -104,6 +104,18 @@ define(['js/app'], function (myApp) {
 
         vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
+        vm.reportInputDevice = {
+            0: 'BACKSTAGE',
+            1: 'WEB_PLAYER',
+            2: 'WEB_AGENT',
+            3: 'H5_PLAYER',
+            4: 'H5_AGENT',
+            5: 'H5_PLAYER', // 包壳APP 当做 H5 显示 （Echo 要求）
+            6: 'H5_AGENT', // 包壳APP 当做 H5 显示（Echo 要求）
+            7: 'APP_NATIVE_PLAYER',
+            8: 'APP_NATIVE_PARTNER',
+        };
+
         vm.topUpReportInputDevice = {
             0: 'BACKSTAGE',
             1: 'WEB_PLAYER',
@@ -2122,7 +2134,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
                             let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
-                            let text = $translate(inputDevice ? vm.playerInputDevice[inputDevice] : data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
+                            let text = $translate(inputDevice ? vm.reportInputDevice[inputDevice] : data ? vm.reportInputDevice[data] : vm.reportInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -7691,11 +7703,8 @@ define(['js/app'], function (myApp) {
                         title: $translate('INPUT_DEVICE'),
                         data: "inputDevice",
                         render: function (data, type, row) {
-                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++) {
-                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] === data) {
-                                    return $translate(Object.keys(vm.inputDevice)[i]);
-                                }
-                            }
+                            let text = $translate(typeof data == 'number' ? vm.reportInputDevice[data] : "")
+                            return "<div>" + text + "</div>";
                         }
                     },
                     {
