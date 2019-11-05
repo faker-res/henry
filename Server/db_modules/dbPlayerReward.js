@@ -8579,7 +8579,8 @@ let dbPlayerReward = {
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                     } else if (
                         playerData.platform.useTransferFromLastProvider
-                        && lastProviderCredit && lastProviderCredit >= 1 && lastProviderCredit >= deductAmount
+                        && lastProviderCredit && lastProviderCredit >= 1
+                        && Math.floor(Number(lastProviderCredit)) >= Math.floor(deductAmount)
                     ) {
                         // If the last played provider has credit inside, we transfer out the money
                         await dbPlayerInfo.transferPlayerCreditFromProvider(
