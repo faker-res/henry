@@ -10955,7 +10955,6 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardEventList => {
-                console.log('rewardEventList', rewardEventList);
                 rewardList = rewardEventList;
                 // to handle old data without registrationInterface; set to WEB
                 if (playerDetail && !playerDetail.hasOwnProperty('registrationInterface')){

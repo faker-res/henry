@@ -2155,6 +2155,19 @@ var dbUtility = {
         delete entry.updateTime;
         delete entry.settlementPeriod;
         delete entry.needSettlement;
+
+        if (entry && entry.condition) {
+            delete entry.condition.userAgent;
+            delete entry.condition.consumptionProvider;
+            delete entry.condition.topupType;
+            delete entry.condition.onlineTopUpType;
+            delete entry.condition.bankCardType;
+            delete entry.condition.depositMethod;
+            delete entry.condition.forbidApplyReward;
+            delete entry.condition.ignoreTopUpDirtyCheckForReward;
+            delete entry.condition.ignoreAllTopUpDirtyCheckForReward;
+        }
+
         return entry;
     }
 };
