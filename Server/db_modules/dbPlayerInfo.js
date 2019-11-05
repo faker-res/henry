@@ -18187,6 +18187,8 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
+        ).populate(
+            {path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}
         ).lean().then(
             playerData => {
                 if (!playerData) {
