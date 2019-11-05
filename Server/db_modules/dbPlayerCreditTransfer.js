@@ -1807,8 +1807,8 @@ let dbPlayerCreditTransfer = {
                             }).populate({
                                 path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
                             }).lean().then(RTG => {
-                                console.log("Reward Task Group filter",RTG);
-                                let providerName = RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
+                                console.log("Reward Task Group filter", RTG);
+                                let providerName = RTG && RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
                                 if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (ebetWalletProviders.includes(providerName)) ||
                                     (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
