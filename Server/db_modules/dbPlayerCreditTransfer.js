@@ -1217,6 +1217,7 @@ let dbPlayerCreditTransfer = {
                                 }
                                 return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                     res => {
+                                        // misleading console log message, it just mean transfer out success no matter ebetwallet or not
                                         console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                         return res;
                                     },
@@ -2058,14 +2059,14 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
     console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
-    let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
-        dbConfig.collection_gameProviderGroup.findOne({
-            platform: platform,
-            providers: providerId
-        }).lean();
+    let gameProviderGroupProm = dbConfig.collection_gameProviderGroup.findOne({
+        platform: platform,
+        providers: providerId
+    }).lean();
+
     return gameProviderGroupProm.then(
         res => {
-            gameProviderGroup = res;
+            gameProviderGroup = res || gameProviderGroup;
 
             if (gameProviderGroup) {
                 // Search for reward task group of this player on this provider
