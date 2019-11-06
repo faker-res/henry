@@ -32291,7 +32291,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     _id: platformObjId || null
                 }
-                socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'getPlatformDetail', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getPlatformBasic--getPlatform', data.data);
                         let platformData = data.data;
