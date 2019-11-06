@@ -107,6 +107,16 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
         },
         /**
+         * Get a platform by platformName or _id
+         * It is intentionally duplicating getPlatform, used to prevent websocket response interception - Huat
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getPlatformDetail: function getPlatformDetail(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id));
+            socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
+        },
+        /**
          * Get provider list by platformName or _id
          * @param {json} data - Query data. It has to contain platformName or _id
          */
