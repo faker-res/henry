@@ -5075,74 +5075,132 @@ var dbQualityInspection = {
     },
 
     getManualProcessRecord: function (data) {
-        let manualProcessRecordProm = Promise.resolve();
-        let todayStartDate = dbUtility.getTodaySGTime().startTime;
+        let adminObjIdList = data.adminObjId;
+        let startDate = new Date(data.startDate);
+        let endDate = new Date(data.endDate);
+        let sort = data.sortCol || {"totalCount": -1};
+        let index = data.index || 0;
+        let limit = data.limit || 50;
 
-        let matchObj = {
-            adminObjId: {$in: data.adminObjId.map( p => ObjectId(p))},
-            createTime: {$gte: new Date(data.startDate), $lt: new Date(data.endDate)}
-        };
+        let adminObjIdArr = [];
+        let manualSubmitProm = [];
+        let manualApprovalProm = [];
+        let manualCancelProm = [];
+        let getAdminProm = Promise.resolve();
 
-        let groupByObj = {
-            _id: "$adminObjId",
-            submitCount: {$sum: "$manualSubmitCount"},
-            approvalCount: {$sum: "$manualApprovalCount"},
-            cancelCount: {$sum: "$manualCancelCount"},
-            totalCount: {$sum: {$sum: ["$manualSubmitCount", "$manualApprovalCount", "$manualCancelCount"]}},
-            submitProposalIdList: {$push: '$manualSubmitProposalId'},
-            approvalProposalIdList: {$push: '$manualApprovalProposalId'},
-            cancelProposalIdList: {$push: '$manualCancelProposalId'},
-        };
-        data.sortCol = data.sortCol || {"totalCount": -1};
-
-        if (data && data.endDate && new Date(data.endDate)> new Date(todayStartDate)){
-            // get the latest record and save into summary record
-            let newEndDate = new Date(data.endDate);
-            let newStartDate = todayStartDate;
-
-            manualProcessRecordProm = dbQualityInspection.getManualProposalDailySummaryRecord(newStartDate, newEndDate, data.adminObjId)
+        console.log("checking startDate", startDate);
+        console.log("checking endDate", endDate);
+        if (!adminObjIdList || (adminObjIdList && adminObjIdList.length == 0)){
+            getAdminProm = dbconfig.collection_platform.find({}, {csDepartment: 1}).populate({
+                path: "csDepartment",
+                model: dbconfig.collection_department
+            }).lean().then(
+                platformList => {
+                    if (platformList && platformList.length) {
+                        platformList.forEach(
+                            platform => {
+                                if (platform && platform.csDepartment && platform.csDepartment.length){
+                                    platform.csDepartment.forEach(
+                                        csDepartment => {
+                                            if (csDepartment && csDepartment.users && csDepartment.users.length){
+                                                csDepartment.users.forEach(
+                                                    adminObjId => {
+                                                        let index = adminObjIdArr.findIndex(p => p == adminObjId);
+                                                        if (index == -1){
+                                                            adminObjIdArr.push(adminObjId)
+                                                        }
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+                }
+            )
+        } else {
+            adminObjIdArr = adminObjIdList
         }
 
-        return manualProcessRecordProm.then(
+        return getAdminProm.then(
             () => {
-                return dbconfig.collection_manualProcessDailySummaryRecord.aggregate(
-                    {
-                        $match: matchObj
-                    }, {
-                        $group: groupByObj
-                    },{
-                        $sort: data.sortCol
-                    }
-                ).read("secondaryPreferred");
+                if (adminObjIdArr && adminObjIdArr.length){
+                    manualSubmitProm = dbconfig.collection_proposal.find({
+                        'creator.id': {$in: adminObjIdArr.map(adminObjId => {return adminObjId.toString()})},
+                        createTime: {$gte: startDate, $lt: endDate}
+                    }, {creator: 1, proposalId: 1}).read("secondaryPreferred").lean();
+
+                    manualApprovalProm = dbconfig.collection_proposalProcessStep.find({
+                        operationTime: {$gte: startDate, $lt: endDate},
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS, constProposalStatus.APPROVE]},
+                        operator: {$in: adminObjIdArr.map(adminObjId => {return ObjectId(adminObjId)})}
+                    }, {operator: 1}).read("secondaryPreferred").lean();
+
+                    manualCancelProm = dbconfig.collection_proposalProcessStep.find({
+                        operationTime: {$gte: startDate, $lt: endDate},
+                        status: {$in: [constProposalStatus.REJECTED, constProposalStatus.CANCEL]},
+                        operator: {$in: adminObjIdArr.map(adminObjId => {return ObjectId(adminObjId)})}
+                    }, {operator: 1}).read("secondaryPreferred").lean();
+
+
+                }
+                return Promise.all([manualSubmitProm, manualApprovalProm, manualCancelProm])
             }
         ).then(
-            recordData => {
-                // console.log("checking recordData", recordData)
-                let index = data.index || 0;
-                let limit = data.limit || 50;
-                let size = recordData && recordData.length ? recordData.length : 0;
-                let sliceRecordData = recordData.splice(index, limit);
+            async retData => {
+                if (retData && retData.length && adminObjIdArr && adminObjIdArr.length){
+                    let manualSubmitData = retData[0];
+                    let manualApprovalData = retData[1];
+                    let manualCancelData = retData[2];
+                    let result = [];
 
-                if(sliceRecordData && sliceRecordData.length){
-                    sliceRecordData.forEach(
-                        record => {
-                            if (record && record.submitProposalIdList && record.submitProposalIdList.length){
-                                record.submitProposalIdArr = concatProposalIdList (record.submitProposalIdList)
-                            }
-
-                            if (record && record.approvalProposalIdList && record.approvalProposalIdList.length){
-                                record.approvalProposalIdArr = concatProposalIdList (record.approvalProposalIdList)
-                            }
-
-                            if (record && record.cancelProposalIdList && record.cancelProposalIdList.length){
-                                record.cancelProposalIdArr = concatProposalIdList (record.cancelProposalIdList)
-                            }
-
-                            return record
+                    for(let adminObjId of adminObjIdArr) {
+                        let adminData = {};
+                        let submitData = await manualSubmitCal(adminObjId, manualSubmitData);
+                        let approvalData = await manualApprovalOrCancelCal(adminObjId, manualApprovalData);
+                        let cancelData = await manualApprovalOrCancelCal(adminObjId, manualCancelData);
+                        adminData.totalCount = submitData.count + approvalData.count + cancelData.count;
+                        if(!isNaN(adminData.totalCount) && adminData.totalCount > 0) {
+                            adminData._id = adminObjId;
+                            adminData.submitCount = submitData.count;
+                            adminData.submitProposalIdArr = submitData.proposalList;
+                            adminData.approvalCount = approvalData.count;
+                            adminData.approvalProposalIdArr = approvalData.proposalList;
+                            adminData.cancelCount = cancelData.count;
+                            adminData.cancelProposalIdArr = cancelData.proposalList;
+                            result.push(adminData);
                         }
-                    )
+                    }
+
+                    // sorting
+                    let sortKey = Object.keys(sort)[0];
+                    let order = Boolean(sort[sortKey] > 0) ? -1 : 1;
+                    result.sort((curItem,nextItem)=>{
+                        if (curItem[sortKey] > nextItem[sortKey]) {
+                            return order;
+                        } else if (curItem[sortKey] < nextItem[sortKey]) {
+                            return order;
+                        } else {
+                            return 0;
+                        }
+                    });
+                    // limit
+                    let slicedResult = result.splice(index, limit);
+                    // size
+                    let size = result && result.length ? result.length : 0;
+
+                    return {data: slicedResult, size: size};
                 }
-                return {data: sliceRecordData, size: size}
+            },
+            err => {
+                console.log("Error when getting manual process record; Error: ", err);
+                return Promise.reject({
+                    name: "DataError",
+                    message: "Error when getting manual process record",
+                    error: err
+                })
             }
         ).catch(
             err => {
@@ -5153,19 +5211,104 @@ var dbQualityInspection = {
                     error: err
                 })
             }
-        )
+        );
 
-        function concatProposalIdList (proposalIdList) {
-            let tempProposalList = [];
-            proposalIdList.forEach(
-                list => {
-                    if (list && list.length){
-                        tempProposalList = tempProposalList.concat(list);
+        function manualSubmitCal(adminObjId, manualSubmitData) {
+            if (adminObjId && manualSubmitData && manualSubmitData.length){
+                let filteredData = manualSubmitData.filter(p => p && p.creator && p.creator.id && p.creator.id == adminObjId)
+                let proposalList = [];
+
+                filteredData.forEach(
+                    data => {
+                        if (data && data.proposalId){
+                            proposalList.push(data.proposalId)
+                        }
                     }
-                }
-            )
+                )
 
-            return tempProposalList
+                return {
+                    count: filteredData && filteredData.length ? filteredData.length : 0,
+                    proposalList: proposalList
+                }
+            }
+            return {
+                count: 0,
+                proposalList: []
+            }
+        }
+
+        function manualApprovalOrCancelCal(adminObjId, manualData) {
+            if (adminObjId && manualData && manualData.length) {
+                let filteredData = manualData.filter(p => {
+                    if (p.operator && adminObjId) {
+                        return p.operator.toString() == adminObjId.toString()
+                    }
+                });
+                let proposalList = [];
+                let processStepList = [];
+                let gettingProposalStepProm = Promise.resolve();
+                let gettingProposalProcessProm = Promise.resolve();
+                let processList = [];
+
+                filteredData.forEach(
+                    data => {
+                        if (data && data._id) {
+                            processStepList.push(ObjectId(data._id))
+                        }
+                    }
+                );
+
+                if (processStepList && processStepList.length) {
+                    gettingProposalStepProm = dbconfig.collection_proposalProcess.find({
+                        steps: {$in: processStepList}
+                    }).lean();
+                }
+
+                return gettingProposalStepProm.then(
+                    processStepArr => {
+                        if (processStepArr && processStepArr.length){
+                            processStepArr.forEach(p => {
+                                if (p && p._id) {
+                                    processList.push(ObjectId(p._id))
+                                }
+                            })
+                        }
+
+                        if (processList && processList.length){
+                            gettingProposalProcessProm = dbconfig.collection_proposal.find({
+                                process: {$in: processList}
+                            }, {proposalId: 1}).lean();
+                        }
+
+                        return gettingProposalProcessProm
+                    }
+                ).then(
+                    proposalArr => {
+                        if (proposalArr && proposalArr.length){
+                            proposalArr.forEach(
+                                proposal => {
+                                    if (proposal && proposal.proposalId){
+                                        proposalList.push(proposal.proposalId)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                ).then(
+                    () => {
+                        return {
+                            count: filteredData && filteredData.length ? filteredData.length : 0,
+                            proposalList: proposalList
+                        }
+                    }
+                )
+            }
+            else{
+                return {
+                    count: 0,
+                    proposalList: []
+                }
+            }
         }
     },
 
