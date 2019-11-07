@@ -1906,6 +1906,7 @@ img.img-platform {
     background-color: #0a1e2f;
 }
 
+ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft,
 ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft,
 ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft,
 ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft{
@@ -1914,6 +1915,7 @@ ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft{
     display: inline-block;
 }
 
+ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivRight{
@@ -1922,6 +1924,7 @@ ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivRight{
     display: inline-block;
 }
 
+ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft  > span.detailDivSpan,
 ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
 ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
 ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft > span.detailDivSpan {

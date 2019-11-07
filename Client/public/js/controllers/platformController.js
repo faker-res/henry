@@ -26205,6 +26205,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
                       $scope.$evalAsync( () => {
                           console.log('getFrontEndRewardSetting', data.data);
+                          let frontEndRewardSettingOnClickAction = Object.assign({}, vm.frontEndSettingOnClickAction);
+                          frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data;
@@ -26229,6 +26231,19 @@ define(['js/app'], function (myApp) {
                                           }
                                           if (object && object.app && object.app.hasOwnProperty('onClickAction')){
                                               object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.pc.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                          }
+                                          else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.h5.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                          }
+                                          else if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.app.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
                                           }
 
                                           return object;
@@ -44667,6 +44682,44 @@ define(['js/app'], function (myApp) {
                             if (data && data.data) {
                                 vm.registrationSettingData = data.data;
                                 vm.allRegistrationSettingData = data.data;
+                            }
+
+                            if (vm.registrationSettingData && vm.registrationSettingData.length) {
+                                vm.registrationSettingData.map(
+                                    object => {
+                                        if (object && object.pc && object.pc.hasOwnProperty('displayFormat')) {
+                                            object.pc.displayFormat = object.pc.displayFormat.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')) {
+                                            object.h5.displayFormat = object.h5.displayFormat.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('displayFormat')) {
+                                            object.app.displayFormat = object.app.displayFormat.toString();
+                                        }
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.pc.onClickAction = object.pc.onClickAction.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.h5.onClickAction = object.h5.onClickAction.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.app.onClickAction = object.app.onClickAction.toString();
+                                        }
+
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.pc.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                        } else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.h5.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                        } else if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.app.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
+                                        }
+
+                                        return object;
+                                    }
+                                )
                             }
 
                             let tempId = vm.registrationCategory && vm.registrationCategory.length? vm.registrationCategory[vm.registrationCategory.length -1]._id : "";
