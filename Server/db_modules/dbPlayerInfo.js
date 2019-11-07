@@ -94,6 +94,7 @@ let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlatform = require('../db_modules/dbPlatform');
 const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
+const dbEbetWallet = require('../db_modules/dbEbetWallet');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
@@ -118,7 +119,7 @@ const RESTUtils = require('../modules/RESTUtils');
 
 // Others
 const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
-const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
+const ebetWalletProviders = dbEbetWallet.getWalletPlatformNames(); // TRAP ALERT :: this apply to all wallet channel, not just EBETwallet
 
 let dbPlayerInfo = {
 
