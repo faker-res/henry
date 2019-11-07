@@ -12,6 +12,7 @@ const dbOps = require('./../db_common/dbOperations');
 
 const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
+const dbEbetWallet = require("./../db_modules/dbEbetWallet");
 
 const cpmsAPI = require("../externalAPI/cpmsAPI");
 
@@ -23,7 +24,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const localization = require("../modules/localization");
 const translate = localization.localization.translate;
 
-const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
+const ebetWalletProviders = dbEbetWallet.getWalletPlatformNames(); // TRAP ALERT :: this apply to all wallet channel, not just EBETwallet
 
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
@@ -1412,12 +1413,14 @@ let dbPlayerCreditTransfer = {
             });
         };
 
-        return dbConfig.collection_gameProviderGroup.find({
-            platform: platform,
-            providers: providerId,
-        }).populate(
-            {path: "providers", model: dbConfig.collection_gameProvider}
-        ).lean().then(groups => {
+        return dbEbetWallet.getRelevantPOIDsFromPOID(providerId).then(poids => { // get relevent wallet channel group
+            return dbConfig.collection_gameProviderGroup.find({
+                platform: platform,
+                providers: {$in: poids}
+            }).populate(
+                {path: "providers", model: dbConfig.collection_gameProvider}
+            ).lean();
+        }).then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
