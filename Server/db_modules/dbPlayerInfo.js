@@ -10839,7 +10839,7 @@ let dbPlayerInfo = {
 
                     console.log('rewardEvent.length', rewardEvent.length);
                     for (var i = 0; i < rewardEvent.length; i++) {
-                        var rewardEventItem = rewardEvent[i].toObject();
+                        var rewardEventItem = rewardEvent[i];
                         delete rewardEventItem.platform;
 
                         if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
