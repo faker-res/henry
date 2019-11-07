@@ -330,7 +330,6 @@ let PlayerServiceImplement = function () {
                     isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
             }, (err) => {
-
                 console.log(err);
                 if (err && err.status) {
                     if (err.errorMessage || err.message) {
@@ -647,6 +646,7 @@ let PlayerServiceImplement = function () {
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             data: {noOfAttempt: 0},
                             errorMessage: localization.translate(error.message, conn.lang, conn.platformId),
+                            player: error.player
                         }, data);
                     }
                     else {
