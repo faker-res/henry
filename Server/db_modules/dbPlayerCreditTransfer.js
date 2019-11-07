@@ -1777,12 +1777,18 @@ let dbPlayerCreditTransfer = {
             });
         };
 
+        console.log("playerCreditTransferFromEbetWallets getPlayerGameCredit", { // debug log #22332F
+            username: userName,
+            platformId: platformId,
+            providerId: providerShortId
+        })
         return dbPlayerCreditTransfer.getPlayerGameCredit({
             username: userName,
             platformId: platformId,
             providerId: providerShortId
         }).then(res => {
             gameCredit = res;
+            console.log("playerCreditTransferFromEbetWallets gameCredit", gameCredit) // debug log #22332F
             if(gameCredit && gameCredit.wallet) {
                 return dbConfig.collection_gameProviderGroup.find({
                     platform: platform
@@ -1815,7 +1821,8 @@ let dbPlayerCreditTransfer = {
                             }).lean().then(RTG => {
                                 console.log("Reward Task Group filter", RTG);
                                 let providerName = RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
-                                if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (ebetWalletProviders.includes(providerName)) ||
+                                console.log('playerCreditTransferFromEbetWallets group if detail', group.name, providerName, hasEbet, gameCredit.wallet[group.ebetWallet]) // debug log #22332F
+                                if((providerName && ebetWalletProviders.includes(providerName)) ||
                                     (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
@@ -1849,6 +1856,7 @@ let dbPlayerCreditTransfer = {
                     //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
                     //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
                     return Promise.all(checkRTGProm).then(() => {
+                        console.log('playerCreditTransferFromEbetWallets gameCredit.wallet[0]', gameCredit.wallet[0]) // debug log #22332F
                         if(gameCredit.wallet[0] > 0) {
                             transferOut = transferOut.then(() => {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
