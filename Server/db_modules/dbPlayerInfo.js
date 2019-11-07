@@ -10795,8 +10795,8 @@ let dbPlayerInfo = {
                     let rewardEventQ = {
                         platform: playerPlatformId,
                         $or: [
-                            {validEndTime: {$lt: new Date}},
-                            {"condition.validEndTime": {$lt: new Date}}
+                            {validEndTime: {$lt: new Date()}},
+                            {"condition.validEndTime": {$lt: new Date()}}
                         ]
                     };
 
@@ -10837,7 +10837,6 @@ let dbPlayerInfo = {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
 
-                    console.log('rewardEvent.length', rewardEvent.length);
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i];
                         delete rewardEventItem.platform;
