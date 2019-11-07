@@ -646,7 +646,8 @@ let PlayerServiceImplement = function () {
                             status: constServerCode.PLAYER_IS_FORBIDDEN,
                             data: {noOfAttempt: 0},
                             errorMessage: localization.translate(error.message, conn.lang, conn.platformId),
-                            player: error.player
+                            player: error.player,
+                            playerId: error.playerId
                         }, data);
                     }
                     else {
