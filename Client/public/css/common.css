@@ -851,7 +851,7 @@ ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivRight,
 ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivRight{
-    text-align: center;
+    text-align: right;
     width: 40%;
     display: inline-block;
 }
