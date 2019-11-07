@@ -614,7 +614,6 @@ var dbPlayerConsumptionRecord = {
         let playerData;
         let referralRecord;
 
-        console.log('save consumption record', data);
         return newRecord.save().then(
             res => {
                 record = res;
