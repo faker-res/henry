@@ -172,6 +172,12 @@ define(['js/app'], function (myApp) {
                 1: "consumptionType", // 投注条件
                 2: "depositType" // 存款条件
             }
+
+            vm.topUpAmountConfigDevice = {
+                1: "WEB",
+                2: "H5",
+                3: "APP"
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -24860,6 +24866,7 @@ define(['js/app'], function (myApp) {
                         vm.newDelayDurationGroup = {};
                         break;
                     case 'topUpAmountConfig':
+                        vm.isProceed = true;
                         vm.getPlatformTopUpAmountConfig(platformObjId);
                         break;
                     case 'bonusBasic':
@@ -34910,7 +34917,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     query: {platformObjId: vm.filterConfigPlatform},
                     updateData: {
-                        commonTopUpAmountRange: srcData.commonTopUpAmountRange,
+                        topUpAmountRange: srcData.topUpAmountRange,
                         topUpCountAmountRange: srcData.topUpCountAmountRange
                     }
                 };
@@ -44953,27 +44960,136 @@ define(['js/app'], function (myApp) {
             }
 
             //#region top up amount range setting
+            vm.editingTopUpAmountConfig = function (type, index, editingTopUpAmount) {
+                if (type === 'topUpAmountConfig' && vm.topUpAmountBasic && vm.topUpAmountBasic.topUpAmountRange && vm.topUpAmountBasic.topUpAmountRange.length > 0) {
+                    for (let i = 0; i < vm.topUpAmountBasic.topUpAmountRange.length; i++) {
+
+                        if (i != index) {
+                            let deviceInList = vm.topUpAmountBasic.topUpAmountRange[i].device;
+                            let duplicate = deviceInList.filter(function(v) {
+                                return editingTopUpAmount.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                vm.isProceed = false;
+                            } else {
+                                vm.isProceed = true;
+                            }
+                        }
+                    }
+                } else if (type === 'topUpCountAmountConfig' && vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length > 0) {
+                    for (let i = 0; i < vm.topUpAmountBasic.topUpCountAmountRange.length; i++) {
+                        let tempTopUpCountRange = vm.topUpAmountBasic.topUpCountAmountRange[i];
+                        if ((i != index) &&
+                            tempTopUpCountRange.topUpCount &&
+                            editingTopUpAmount && editingTopUpAmount.topUpCount &&
+                            (tempTopUpCountRange.topUpCount == editingTopUpAmount.topUpCount)) {
+                            let deviceInList = tempTopUpCountRange.device;
+                            let duplicate = deviceInList.filter(function(v) {
+                                return editingTopUpAmount.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                vm.isProceed = false;
+                            } else {
+                                vm.isProceed = true;
+                            }
+                        }
+                    }
+                }
+            };
+
+            vm.updateTopUpAmountRangeConfigInEdit = function (type, data) {
+                if (type == 'add') {
+                    if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpAmountRange && vm.topUpAmountBasic.topUpAmountRange.length) {
+                        addTopUpRangeConfig();
+                    } else {
+                        if (data) {
+                            vm.topUpAmountBasic.topUpAmountRange = [];
+                            addTopUpRangeConfig();
+                        }
+                    }
+
+                } else if (type == 'remove') {
+                    vm.topUpAmountBasic.topUpAmountRange.splice(data, 1);
+                }
+                vm.refreshSPicker();
+
+                function addTopUpRangeConfig() {
+                    if (data.device && data.device.length > 0) {
+                        let isDuplicateDevice = false;
+
+                        for (let i = 0; i < vm.topUpAmountBasic.topUpAmountRange.length; i++) {
+                            let deviceInList = vm.topUpAmountBasic.topUpAmountRange[i].device;
+                            let duplicate = deviceInList.filter(function(v,i,a){
+                                return data.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                isDuplicateDevice = true;
+                                break;
+                            }
+                        }
+
+                        if (isDuplicateDevice) {
+                            socketService.showErrorMessage($translate("Device is duplicate"));
+                        } else {
+                            vm.topUpAmountBasic.topUpAmountRange.push({device: data.device, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        }
+                    } else {
+                        socketService.showErrorMessage($translate("Device is mandatory"));
+                    }
+                }
+            };
+
             vm.updateTopUpCountAmountRangeConfigInEdit = function (type, data) {
                 if (type == 'add') {
                     if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
-                        if (data.topUpCount) {
-                            vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
-                        } else {
-                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
-                        }
+                        addTopUpCountRangeConfig();
                     } else {
                         if (data) {
-                            if (data.topUpCount) {
-                                vm.topUpAmountBasic.topUpCountAmountRange = [];
-                                vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
-                            } else {
-                                socketService.showErrorMessage($translate("Top Up Count is mandatory"));
-                            }
+                            vm.topUpAmountBasic.topUpCountAmountRange = [];
+                            addTopUpCountRangeConfig();
                         }
                     }
 
                 } else if (type == 'remove') {
                     vm.topUpAmountBasic.topUpCountAmountRange.splice(data, 1);
+                }
+                vm.refreshSPicker();
+
+                function addTopUpCountRangeConfig() {
+                    if (data.topUpCount && data.device.length > 0) {
+                        let isDuplicateDevice = false;
+
+                        for (let i = 0; i < vm.topUpAmountBasic.topUpCountAmountRange.length; i++) {
+                            let deviceInList = vm.topUpAmountBasic.topUpCountAmountRange[i].device;
+                            let duplicate = deviceInList.filter(function(v,i,a){
+                                return data.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                if (vm.topUpAmountBasic.topUpCountAmountRange[i].topUpCount && vm.topUpAmountBasic.topUpCountAmountRange[i].topUpCount == data.topUpCount) {
+                                    isDuplicateDevice = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isDuplicateDevice) {
+                            socketService.showErrorMessage($translate("Device and Top Up Count is duplicate"));
+                        } else {
+                            vm.topUpAmountBasic.topUpCountAmountRange.push({device: data.device, topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        }
+                    } else {
+                        if (!data.topUpCount) {
+                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                        }
+
+                        if (!data.device || data.device.length == 0) {
+                            socketService.showErrorMessage($translate("Device is mandatory"));
+                        }
+                    }
                 }
             };
 
@@ -44988,14 +45104,6 @@ define(['js/app'], function (myApp) {
                         vm.topUpAmountBasic = {};
                         if (data && data.data) {
                             vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
-                        }
-
-                        if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
-                            vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
-                            vm.topUpAmountBasic.commonTopUpAmountRange = {
-                                minAmount: 10,
-                                maxAmount: 1000000
-                            };
                         }
                     })
                 });
