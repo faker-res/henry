@@ -870,7 +870,7 @@ const dbPlayerPayment = {
                     newProposal.inputDevice = constPlayerRegistrationInterface.H5_PLAYER;
                 }
                 else if (Number(topupRequest.clientType) == 4) {
-                    newProposal.inputDevice = constPlayerRegistrationInterface.APP_PLAYER;
+                    newProposal.inputDevice = constPlayerRegistrationInterface.APP_NATIVE_PLAYER;
                     //
                     // if (topupRequest && topupRequest.userAgent && topupRequest.userAgent.browser && topupRequest.userAgent.browser.name
                     //     && (topupRequest.userAgent.browser.name.indexOf("WebKit") !== -1 || topupRequest.userAgent.browser.name.indexOf("WebView") !== -1)) {
