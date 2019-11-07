@@ -2092,6 +2092,12 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
                     rewardTaskGroupProm = Promise.resolve(null);
                 } else {
+                    console.log("checkProviderGroupCredit rewardTaskGroupProm", {
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    })
                     rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
