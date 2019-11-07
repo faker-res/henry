@@ -2072,14 +2072,17 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
     console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
-    let gameProviderGroupProm = dbConfig.collection_gameProviderGroup.findOne({
-        platform: platform,
-        providers: providerId
-    }).lean();
+    // The reason to allow outside gameProviderGroup to pass in is,
+    // There are time that would want to pass in other provider group to transferOut whole wallet channel
+    let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
+        dbConfig.collection_gameProviderGroup.findOne({
+            platform: platform,
+            providers: providerId
+        }).lean();
 
     return gameProviderGroupProm.then(
         res => {
-            gameProviderGroup = res || gameProviderGroup;
+            gameProviderGroup = res;
 
             if (gameProviderGroup) {
                 // Search for reward task group of this player on this provider
