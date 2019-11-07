@@ -16079,6 +16079,7 @@ let dbPlayerInfo = {
         );
     },
 
+
     authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain, loginDevice) {
         var deferred = Q.defer();
         jwt.verify(token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
