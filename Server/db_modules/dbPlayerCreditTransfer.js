@@ -1789,9 +1789,12 @@ let dbPlayerCreditTransfer = {
         }).then(res => {
             gameCredit = res;
             console.log("playerCreditTransferFromEbetWallets gameCredit", gameCredit) // debug log #22332F
+            return dbEbetWallet.getRelevantPOIDsFromPOID(providerId);
+        }).then(poids => {
             if(gameCredit && gameCredit.wallet) {
                 return dbConfig.collection_gameProviderGroup.find({
-                    platform: platform
+                    platform: platform,
+                    providers: {$in: poids},
                 }).populate(
                     {path: "providers", model: dbConfig.collection_gameProvider}
                 ).lean();
