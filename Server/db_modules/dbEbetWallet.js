@@ -24,11 +24,11 @@ const dbEbetWallet = {
         );
     },
     getEBETWalletStringProviderObjIds: async () => {
-        let providers = await dbconfig.collection_gameProvider.find({_id: {$in: dbEbetWallet.EBETWalletPlatformNames}}, {_id: 1}).lean();
+        let providers = await dbconfig.collection_gameProvider.find({name: {$in: dbEbetWallet.EBETWalletPlatformNames}}, {_id: 1}).lean();
         return providers.map(provider => String(provider._id));
     },
     getV68WalletStringProviderObjIds: async () => {
-        let providers = await dbconfig.collection_gameProvider.find({_id: {$in: dbEbetWallet.V68WalletPlatformNames}}, {_id: 1}).lean();
+        let providers = await dbconfig.collection_gameProvider.find({name: {$in: dbEbetWallet.V68WalletPlatformNames}}, {_id: 1}).lean();
         return providers.map(provider => String(provider._id));
     },
     getAllWalletStringPOIDInArray: async () => {
