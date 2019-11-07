@@ -10791,7 +10791,16 @@ let dbPlayerInfo = {
                 if (platform) {
                     playerPlatformId = platform._id;
                     routeSetting = platform.playerRouteSetting ? platform.playerRouteSetting : null;
-                    let rewardEventProm = dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
+
+                    let rewardEventQ = {
+                        platform: playerPlatformId,
+                        $or: [
+                            {validEndTime: {$lt: new Date}},
+                            {"condition.validEndTime": {$lt: new Date}}
+                        ]
+                    };
+
+                    let rewardEventProm = dbconfig.collection_rewardEvent.find(rewardEventQ)
                         .populate({
                             path: "type",
                             model: dbconfig.collection_rewardType
@@ -10805,7 +10814,7 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "condition.providerGroup",
                             model: dbconfig.collection_gameProviderGroup,
-                        })
+                        }).lean();
 
                     let rewardEventGroupProm = dbconfig.collection_rewardEventGroup.find({platform: playerPlatformId}).lean();
                     let referralConfigProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerPlatformId});
