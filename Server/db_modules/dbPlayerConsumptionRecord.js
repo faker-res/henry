@@ -603,18 +603,6 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-    saveToTopUpHourSummary: function (saveObj){
-        dbconfig.collection_playerTopUpHourSummary(saveObj).save().then(
-            saveRecord => {
-                console.log('save rc..', saveRecord);
-            }, error => {
-                return Promise.reject({name: "DBError", message: "Error save top up summary", error: error});
-            }
-
-
-        );
-    },
-
     /**
      * @param data
      * @param platformObj
@@ -628,29 +616,10 @@ var dbPlayerConsumptionRecord = {
 
         console.log('save consumption record', data);
         return newRecord.save().then(
-            async res => {
+            res => {
                 record = res;
 
                 if (record) {
-                   //  let game = await dbconfig.collection_game.find({_id: data.gameId}).lean();
-                   // let provider = await dbconfig.collection_gameProvider.find({_id: data.providerId}).lean();
-                   //
-                   //  let saveObj = {
-                   //      player: data.playerId,
-                   //      name: data.userName,
-                   //      platform: data.platformId,
-                   //      provider: provider[0].name,
-                   //      game: game[0].name,
-                   //      gameType: data.gameType,
-                   //      consumptionAmount: data.amount,
-                   //      consumptionValidAmount: data.validAmount,
-                   //      consumptionBonusAmount: data.bonusAmount,
-                   //      winRatio: data.winRatio,
-                   //      type: "5"
-                   //  }
-                   //  console.log('save obj..', saveObj);
-                   //  await dbPlayerConsumptionRecord.saveToTopUpHourSummary(saveObj);
-
                     // Update player consumption sum
                     dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
                         console.error('update hour summary failed', err);
