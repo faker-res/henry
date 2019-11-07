@@ -1396,6 +1396,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
+    // TRAP ALERT :: providerId here accept provider's ObjectId instead of actual providerId
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync, isUpdateTransferId, currentDate) {
         let checkAmountProm = [];
         let transferIn = Promise.resolve();
@@ -1412,7 +1413,8 @@ let dbPlayerCreditTransfer = {
         };
 
         return dbConfig.collection_gameProviderGroup.find({
-            platform: platform
+            platform: platform,
+            providers: providerId,
         }).populate(
             {path: "providers", model: dbConfig.collection_gameProvider}
         ).lean().then(groups => {
