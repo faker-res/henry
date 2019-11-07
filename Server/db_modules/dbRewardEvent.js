@@ -640,13 +640,13 @@ var dbRewardEvent = {
                                 let topUpAfterConsumption = [];
                                 let playerRetentionRecord = data[3];
 
-                                let todayTime = dbUtil.getTodaySGTime();
+                                let todayDateTime = dbUtil.getTodaySGTime();
                                 // check if the player retention record is expired
                                 if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && rewardEvent.condition && rewardEvent.condition.hasOwnProperty('definePlayerLoginMode') && rewardEvent.condition.definePlayerLoginMode == 3){
                                     let newDefinedIntervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, rewardEvent);
                                     // set the player retention record to be null if it is expired
-                                    if (newDefinedIntervalTime.endTime <= todayTime.startTime){
-                                        playerRetentionRecord.lastApplyDate = todayTime.startTime;
+                                    if (newDefinedIntervalTime.endTime <= todayDateTime.startTime){
+                                        playerRetentionRecord.lastApplyDate = todayDateTime.startTime;
                                         playerRetentionRecord.accumulativeDay = null;
                                     }
                                 }
@@ -1041,6 +1041,7 @@ var dbRewardEvent = {
 
     checkRewardEventGroupApplicable: function (playerData, eventData, rewardData, playerRetentionRecord) {
         let todayTime = dbUtil.getTodaySGTime();
+        console.log('JY check todayTime here==>', todayTime);
         let intervalTime;
         let selectedRewardParam = {};
         rewardData = rewardData || {};

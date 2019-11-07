@@ -256,8 +256,4 @@ describe("Test Client API - reward(PlayerLoseReturnRewardGroup) service", functi
         //
         client.disconnect();
     });
-
-    //notifyNewMail
-    //sendPlayerMailFromPlayerToAdmin
-
 });
