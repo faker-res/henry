@@ -107,6 +107,16 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
         },
         /**
+         * Get a platform by platformName or _id
+         * It is intentionally duplicating getPlatform, used to prevent websocket response interception - Huat
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getPlatformDetail: function getPlatformDetail(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id));
+            socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
+        },
+        /**
          * Get provider list by platformName or _id
          * @param {json} data - Query data. It has to contain platformName or _id
          */
@@ -697,13 +707,13 @@ function socketActionPlatform(socketIO, socket) {
         getPartnerPosterAdsList: function getPartnerPosterAdsList(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         addNewPartnerPosterAdsRecord: function addNewPartnerPosterAdsRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("orderNo") && data.title && data.posterImage && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         deletePartnerPosterAdsRecord: function deletePartnerPosterAdsRecord(data){

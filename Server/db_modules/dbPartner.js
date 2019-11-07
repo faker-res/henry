@@ -2764,7 +2764,7 @@ let dbPartner = {
                                         proposalData.isAutoApproval = partner.platform.enableAutoApplyBonus;
                                     }
 
-                                    if (!partner.permission.applyBonus && partner.platform.playerForbidApplyBonusNeedCsApproval) {
+                                    if (!partner.permission.applyBonus && partner.platform.partnerForbidApplyBonusNeedCsApproval) {
                                         proposalData.remark = "禁用提款" + lastBonusRemark;
                                         proposalData.needCsApproved = true;
                                     }
@@ -2790,6 +2790,7 @@ let dbPartner = {
 
                                     };
                                     newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
+
 
                                     return getPartnerAllCommissionAmount(partner.platform._id, partner._id, new Date()).then(
                                         partnerCommission => {

@@ -606,7 +606,6 @@ var dbPlayerConsumptionRecord = {
 
 
     /**
-     * TODO:: WORK IN PROGRESS
      * @param data
      * @param platformObj
      */
@@ -667,11 +666,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             returnableAmt => {
-                console.log("checking the last outer returnableAmt", returnableAmt)
                 let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
                 let nonXIMAAmt = record.validAmount - readyXIMAAmt;
-                console.log("checking the last outer record.validAmount", record.validAmount)
-                console.log("checking the last outer nonXIMAAmt", nonXIMAAmt)
 
                 return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
             },
@@ -2372,7 +2368,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         const matchObj = {
@@ -2391,14 +2387,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         if (listAll) {
@@ -2534,7 +2523,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         const matchObj = {
@@ -2556,14 +2545,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         let groupById = null;
@@ -2724,25 +2706,26 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
         let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         // the player are non-repeatable
         let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                 $match: matchObj
+            },
+            {
+                $project: {
+                    'loginDevice': {$substr:["$loginDevice",0,4]},
+                    'providerId' : 1,
+                    'cpGameType': 1,
+                    'playerId': 1
+                }
             },
             {
                 $group: {
@@ -2757,6 +2740,16 @@ var dbPlayerConsumptionRecord = {
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: matchObj
+            },
+            {
+                $project: {
+                    'loginDevice': {$substr:["$loginDevice",0,4]},
+                    'cpGameType': 1,
+                    'amount': 1,
+                    'validAmount': 1,
+                    'count': 1,
+                    'bonusAmount': 1
+                }
             },
             {
                 $group: {
@@ -2795,20 +2788,13 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
         let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         // the player are non-repeatable
@@ -2935,13 +2921,30 @@ var dbPlayerConsumptionRecord = {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(party => {
-                        if(party._id && party._id.cpGameType && item._id && item._id.cpGameType && item._id.loginDevice
+                        if (party._id && party._id.cpGameType && party._id.loginDevice
+                            && item._id && item._id.cpGameType && item._id.loginDevice
                             && (party._id.cpGameType == item._id.cpGameType)
-                            && party._id.loginDevice && (party._id.loginDevice == item._id.loginDevice)){
+                            && (String(party._id.loginDevice) === String(item._id.loginDevice))){
+                            // meet cpGameType and loginDevice requirement
                             return item;
-                        } else if (party._id && party._id.cpGameType && !party._id.loginDevice && item._id && item._id.cpGameType && !item._id.loginDevice && (party._id.cpGameType == item._id.cpGameType)) {
+                        } else if (
+                            party._id && party._id.cpGameType && !party._id.loginDevice
+                            && item._id && item._id.cpGameType && !item._id.loginDevice
+                            && (party._id.cpGameType == item._id.cpGameType)) {
+                            // meet only cpGameType requirement but not loginDevice
                             return item;
-                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id.cpGameType && (party._id.providerId == providerId)) {
+                        } else if (
+                            party._id && !party._id.cpGameType && party._id.providerId && party._id.loginDevice
+                            && item._id && !item._id.cpGameType && item._id.loginDevice
+                            && (party._id.providerId == providerId)
+                            && (String(party._id.loginDevice) === String(item._id.loginDevice))) {
+                            // meet only loginDevice requirement but not cpGameType
+                            return item;
+                        } else if (
+                            party._id && !party._id.cpGameType && !party._id.loginDevice && party._id.providerId
+                            && !item._id.cpGameType && !item._id.loginDevice
+                            && (party._id.providerId == providerId)) {
+                            // meet only providerId requirement but not cpGameType and loginDevice
                             return item;
                         }
                     })
@@ -3001,7 +3004,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.loginDevice = loginDevice;
         }
 
-        if (cpGameType && providerId && !loginDevice){
+        if (providerId && !loginDevice){
             matchObj.loginDevice = { $exists: false }
         }
 
@@ -3081,7 +3084,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.loginDevice = loginDevice;
         }
 
-        if (cpGameType && providerId && !loginDevice){
+        if (providerId && !loginDevice){
             matchObj.loginDevice = { $exists: false }
         }
 
@@ -3369,6 +3372,8 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         new: true
     }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
         updatedRTG => {
+
+            console.log('LK checking RTG before status update-- 2', updatedRTG.curConsumption + "/" + updatedRTG.targetConsumption);
             let rewardTaskUnlockedProgress = Promise.resolve();
 
             // Debug negative RTG curConsumption
@@ -3440,6 +3445,7 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                             statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                         }
 
+                        console.log('LK checking RTG update status obj--', statusUpdObj);
                         if (statusUpdObj.status) {
                             let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                 {_id: updatedRTG._id},
@@ -3492,7 +3498,7 @@ function findRTGToUpdate (oldData, newData) {
             console.log("checking for negative consumption (newValidAmount, oldValidAmount, incValidAmt, playerObjId)", newData.validAmount, oldData.validAmount, incValidAmt, oldData.playerId)
             incValidAmt = 0
         }
-
+        console.log('LK checking update RTG playerId--', oldData.playerId);
         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}, newData.updateTime).then(
             RTGs => {
                 if (RTGs && RTGs.length) {
@@ -3504,6 +3510,7 @@ function findRTGToUpdate (oldData, newData) {
                     // Filter RTGs
                     RTGs.filter(RTG => {
                         if (RTG) {
+                            console.log('LK checking get RTG detail--', RTG.curConsumption);
                             if (RTG.providerGroup && RTG.providerGroup.providers && RTG.providerGroup.providers.length) {
                                 RTG.providerGroup.providers.forEach(provider => {
                                     if (String(provider) === String(oldData.providerId)) {

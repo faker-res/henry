@@ -1,4 +1,10 @@
-div
+div(style="margin-bottom: 10px;")
     text.inline-block.margin-right-5 {{'PLATFORM' | translate}}
     select.inline-block( ng-model="vm.platformIdInSetting" ng-change="vm.getPlatformInSetting()")
         option(ng-repeat='(i,j) in vm.platformList', value= '{{j.data && j.data.platformId}}') {{j.data && j.data.platformId || ""}} - {{j.text | translate}}
+
+div(style="margin-bottom: 10px;" ng-if="vm.selectedConfigTab === 'partnerPosterAds'")
+    text.inline-block.margin-right-5 {{'SUB_PLATFORM_ID' | translate}}
+    select.inline-block(ng-model='vm.subPlatformId', ng-change='vm.getPlatformInSetting()')
+        option(value="")
+        option(ng-repeat='(i,v) in vm.subPlatformIdList' value='{{v}}') {{i | translate}}

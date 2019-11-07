@@ -808,16 +808,20 @@ var dbPlayerFeedback = {
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
         let isBothFilter = false;
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length) {
             isBothFilter = true;
-            let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
-            let filteredPlayer = await dbconfig.collection_playerFeedback.find({
-                createTime: {$gte: new Date(feedbackTimes)},
+            let feedbackQuery = {
                 platform: query.selectedPlatform,
-                topic: query.filterFeedbackTopic,
-            }).lean();
+                topic: {$in: query.filterFeedbackTopic},
+            }
+            if (query.filterFeedback) {
+                let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
+                feedbackQuery.createTime = {$gte: new Date(feedbackTimes)};
+            }
+
+            let filteredPlayer = await dbconfig.collection_playerFeedback.find(feedbackQuery).lean();
             let filteredUniquePlayersObjId = [];
-            console.log('Filter Feedback', filteredPlayer);
+            console.log('Filter Feedback', filteredPlayer, feedbackQuery);
             for(i =0; i < filteredPlayer.length; i++){
                 filteredUniquePlayersObjId.push(filteredPlayer[i].playerId);
             }

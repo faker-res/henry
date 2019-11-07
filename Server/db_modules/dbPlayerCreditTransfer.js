@@ -23,6 +23,8 @@ const ObjectId = mongoose.Types.ObjectId;
 const localization = require("../modules/localization");
 const translate = localization.localization.translate;
 
+const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
+
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
     getPlayerGameCredit: (obj) => {
@@ -1215,6 +1217,7 @@ let dbPlayerCreditTransfer = {
                                 }
                                 return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                     res => {
+                                        // misleading console log message, it just mean transfer out success no matter ebetwallet or not
                                         console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                         return res;
                                     },
@@ -1787,12 +1790,11 @@ let dbPlayerCreditTransfer = {
         }).then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
-                    console.log('playerCreditTransferFROMEbetWallets group', group);
-                    console.log("gameCredit ", gameCredit);
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0 && gameCredit.wallet.hasOwnProperty(group.ebetWallet.toString())) {
                         let hasEbet = false;
                         group.providers.forEach(provider => {
-                            if(provider.code.toUpperCase() === "EBET" || provider.code.toUpperCase() === "EBETSLOTS" || provider.code.toUpperCase() === "EBETBOARD") {
+                            let providerName = provider.code ? provider.code.toUpperCase() : '';
+                            if (ebetWalletProviders.includes(providerName)) {
                                 hasEbet = true;
                             }
                         });
@@ -1806,9 +1808,9 @@ let dbPlayerCreditTransfer = {
                             }).populate({
                                 path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
                             }).lean().then(RTG => {
-                                console.log("Reward Task Group filter",RTG);
-                                if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" ||
-                                    RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETBOARD") ||
+                                console.log("Reward Task Group filter", RTG);
+                                let providerName = RTG && RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
+                                if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (ebetWalletProviders.includes(providerName)) ||
                                     (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
@@ -2057,14 +2059,14 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
     console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
-    let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
-        dbConfig.collection_gameProviderGroup.findOne({
-            platform: platform,
-            providers: providerId
-        }).lean();
+    let gameProviderGroupProm = dbConfig.collection_gameProviderGroup.findOne({
+        platform: platform,
+        providers: providerId
+    }).lean();
+
     return gameProviderGroupProm.then(
         res => {
-            gameProviderGroup = res;
+            gameProviderGroup = res || gameProviderGroup;
 
             if (gameProviderGroup) {
                 // Search for reward task group of this player on this provider

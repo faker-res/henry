@@ -42,6 +42,18 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     label favicon
     div.inline-block
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{"PC_BAIDU_STATISTICS" | translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_PC" ng-change="vm.urlConfigShowMessage=''")
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{"H5-IOS_BAIDU_STATISTICS" | translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_H5_IOS" ng-change="vm.urlConfigShowMessage=''")
+.full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
+    label {{"H5-ANDROID_BAIDU_STATISTICS" | translate}}
+    div.inline-block
+        input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_H5_ANDROID" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block(ng-if="vm.isPartnerForUrlConfiguration")
     label {{ "Download Address For APP At Main Page"| translate}}
@@ -304,7 +316,7 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 
 .full-width-input-block
     button.btn.btn-success(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
-    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration)') {{"SAVE_SETTING" | translate}}
+    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration, vm.filterFrontEndSettingSubPlatformId)') {{"SAVE_SETTING" | translate}}
     span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
 
 

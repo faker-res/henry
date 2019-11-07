@@ -1661,10 +1661,15 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
         }
     ).then(
-        function (playerData) {
+        async function (playerData) {
             console.log('DX created player: ', playerData.name);
             let profile = {name: playerData.name, password: playerData.password};
             let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+            //  set the loginDevice as registrationDevice if direct login after registered
+            if (playerData && playerData.registrationDevice){
+                playerData.loginDevice = playerData.registrationDevice;
+            }
 
             let newPlayerData = JSON.parse(JSON.stringify(playerData));
             let playerNameWithPrefix = newPlayerData.name || "";
@@ -1677,7 +1682,9 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newPlayerData.ua = loginDetails.ua ? loginDetails.ua : (newPlayerData.userAgent || "");
                 newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
                 //after created new player, need to create login record and apply login reward
-                dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
+
+                // got to update the player loginDevice before applying applyDxMissionReward
+                await dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
                 dbApiLog.createApiLog(conn, wsFunc, null, {}, newPlayerData).catch(errorUtils.reportError);
             }
 
@@ -1719,6 +1726,10 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.phoneProvince = phoneLocation.province;
                 newData.phoneCity = phoneLocation.city;
                 newData.phoneType = phoneLocation.type;
+            }
+
+            if (playerData && playerData._id){
+                newData.playerObjId = playerData._id;
             }
 
             let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();

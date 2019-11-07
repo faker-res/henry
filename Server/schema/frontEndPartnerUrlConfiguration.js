@@ -4,6 +4,8 @@ var Schema = mongoose.Schema;
 var frontEndPartnerUrlConfigurationSchema = new Schema({
     // Platform
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
+    // subPlatformId - 子平台ID: 401(易游棋牌); 402（v68; 403（易游）
+    subPlatformId: {type: Number, index: true},
     // title
     websiteTitle: {type: String},
     // name

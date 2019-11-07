@@ -1478,9 +1478,9 @@ var dbUtility = {
         }
 
         let userAgentInput = [{
-            browser: ua.browser.name || '',
-            device: ua.device.name || '',
-            os: ua.os.name || ''
+            browser: (ua && ua.browser && ua.browser.name) || '',
+            device: (ua && ua.device && ua.device.name) || '',
+            os: (ua && ua.os && ua.os.name) || ''
         }];
 
         let inputDevice="";
@@ -2155,6 +2155,19 @@ var dbUtility = {
         delete entry.updateTime;
         delete entry.settlementPeriod;
         delete entry.needSettlement;
+
+        if (entry && entry.condition) {
+            delete entry.condition.userAgent;
+            delete entry.condition.consumptionProvider;
+            delete entry.condition.topupType;
+            delete entry.condition.onlineTopUpType;
+            delete entry.condition.bankCardType;
+            delete entry.condition.depositMethod;
+            delete entry.condition.forbidApplyReward;
+            delete entry.condition.ignoreTopUpDirtyCheckForReward;
+            delete entry.condition.ignoreAllTopUpDirtyCheckForReward;
+        }
+
         return entry;
     }
 };
