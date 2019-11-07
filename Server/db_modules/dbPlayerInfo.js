@@ -10795,8 +10795,8 @@ let dbPlayerInfo = {
                     let rewardEventQ = {
                         platform: playerPlatformId,
                         $or: [
-                            {validEndTime: {$lt: new Date()}},
-                            {"condition.validEndTime": {$lt: new Date()}}
+                            {validEndTime: {$gte: new Date()}},
+                            {"condition.validEndTime": {$gte: new Date()}}
                         ]
                     };
 
