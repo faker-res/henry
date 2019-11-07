@@ -87,7 +87,8 @@ var dbPlayerRegistrationIntentRecord = {
                 entryType: data.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                 userType: data.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 status: status,
-                inputDevice: inputDevice? inputDevice: 0
+                inputDevice: inputDevice? inputDevice: 0,
+                device: data.registrationDevice || null
             };
 
             //data.ipArea = geoip('210.21.84.23');
@@ -259,10 +260,14 @@ var dbPlayerRegistrationIntentRecord = {
 
 
         return dbconfig.collection_players.findOne({playerId:query.playerId,platform:query.platform})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).then(
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                 (playerData) => {
                     if(playerData && playerData.playerLevel){
                         updateQuery.data.playerLevelName = playerData.playerLevel.name;
+                    }
+
+                    if (playerData && playerData.hasOwnProperty('registrationDevice')){
+                        updateQuery.device = playerData.registrationDevice;
                     }
 
                     if (updateQuery && updateQuery.data && updateQuery.data.platformId && typeof updateQuery.data.platformId != 'object' && query && query.platform) {

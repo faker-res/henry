@@ -510,7 +510,8 @@ let dbPlayerInfo = {
                                         isTestPlayer: false,
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId,
-                                        registrationDevice: inputData.registrationDevice
+                                        registrationDevice: inputData.registrationDevice,
+                                        loginDevice: inputData.registrationDevice, // directly login in by passing token after registration
                                     };
 
                                     if (inputData.guestDeviceId){
@@ -7527,6 +7528,7 @@ let dbPlayerInfo = {
                                     }
                                     if (loginData && loginData.registrationDevice) {
                                         newPlayerData.registrationDevice = loginData.registrationDevice;
+                                        newPlayerData.loginDevice = loginData.registrationDevice;
                                     }
                                     let checkDeviceIdProm = Promise.resolve();
 
