@@ -6,17 +6,17 @@ var dbEbetWalletFunc = function () {
 module.exports = new dbEbetWalletFunc();
 
 const dbEbetWallet = {
-    EBETWalletPlatformNames: [
+    EBETWalletPlatformNames: [ // is provider code
         "EBET",
         "EBETSLOTS",
         "EBETBOARD",
     ],
-    V68WalletPlatformNames: [
+    V68WalletPlatformNames: [ // is provider code
         "V68LIVE",
         "V68SLOT",
         "V68BOARD"
     ],
-    getWalletPlatformNames: () => {
+    getWalletPlatformNames: () => { // is provider code
         return [].concat(
             // note:: add here when there is new wallet channel
             dbEbetWallet.EBETWalletPlatformNames,
@@ -24,11 +24,11 @@ const dbEbetWallet = {
         );
     },
     getEBETWalletStringProviderObjIds: async () => {
-        let providers = await dbconfig.collection_gameProvider.find({name: {$in: dbEbetWallet.EBETWalletPlatformNames}}, {_id: 1}).lean();
+        let providers = await dbconfig.collection_gameProvider.find({code: {$in: dbEbetWallet.EBETWalletPlatformNames}}, {_id: 1}).lean();
         return providers.map(provider => String(provider._id));
     },
     getV68WalletStringProviderObjIds: async () => {
-        let providers = await dbconfig.collection_gameProvider.find({name: {$in: dbEbetWallet.V68WalletPlatformNames}}, {_id: 1}).lean();
+        let providers = await dbconfig.collection_gameProvider.find({code: {$in: dbEbetWallet.V68WalletPlatformNames}}, {_id: 1}).lean();
         return providers.map(provider => String(provider._id));
     },
     getAllWalletStringPOIDInArray: async () => {
