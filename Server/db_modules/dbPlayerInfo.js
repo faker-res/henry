@@ -94,6 +94,7 @@ let dbPlayerLevel = require('../db_modules/dbPlayerLevel');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbPlatform = require('../db_modules/dbPlatform');
 const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
+const dbEbetWallet = require('../db_modules/dbEbetWallet');
 let dbPlayerTopUpRecord = require('./../db_modules/dbPlayerTopUpRecord');
 let dbProposal = require('./../db_modules/dbProposal');
 let dbProposalType = require('./../db_modules/dbProposalType');
@@ -118,7 +119,7 @@ const RESTUtils = require('../modules/RESTUtils');
 
 // Others
 const paymentChannelPermission = ['topupOnline', 'topupManual', 'alipayTransaction', 'disableWechatPay'];
-const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
+const ebetWalletProviders = dbEbetWallet.getWalletPlatformNames(); // TRAP ALERT :: this apply to all wallet channel, not just EBETwallet
 
 let dbPlayerInfo = {
 
@@ -510,7 +511,8 @@ let dbPlayerInfo = {
                                         isTestPlayer: false,
                                         isRealPlayer: true,
                                         guestDeviceId: inputData.guestDeviceId,
-                                        registrationDevice: inputData.registrationDevice
+                                        registrationDevice: inputData.registrationDevice,
+                                        loginDevice: inputData.registrationDevice, // directly login in by passing token after registration
                                     };
 
                                     if (inputData.guestDeviceId){
@@ -6958,7 +6960,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "Player is forbidden to login",
                         code: constServerCode.PLAYER_IS_FORBIDDEN,
-                        player: playerObj.name
+                        player: playerObj.name,
+                        playerId: playerObj.playerId
                     });
                 }
 
@@ -7527,6 +7530,7 @@ let dbPlayerInfo = {
                                     }
                                     if (loginData && loginData.registrationDevice) {
                                         newPlayerData.registrationDevice = loginData.registrationDevice;
+                                        newPlayerData.loginDevice = loginData.registrationDevice;
                                     }
                                     let checkDeviceIdProm = Promise.resolve();
 
@@ -10791,7 +10795,16 @@ let dbPlayerInfo = {
                 if (platform) {
                     playerPlatformId = platform._id;
                     routeSetting = platform.playerRouteSetting ? platform.playerRouteSetting : null;
-                    let rewardEventProm = dbconfig.collection_rewardEvent.find({platform: playerPlatformId})
+
+                    let rewardEventQ = {
+                        platform: playerPlatformId,
+                        $or: [
+                            {validEndTime: {$gte: new Date()}},
+                            {"condition.validEndTime": {$gte: new Date()}}
+                        ]
+                    };
+
+                    let rewardEventProm = dbconfig.collection_rewardEvent.find(rewardEventQ)
                         .populate({
                             path: "type",
                             model: dbconfig.collection_rewardType
@@ -10805,7 +10818,7 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "condition.providerGroup",
                             model: dbconfig.collection_gameProviderGroup,
-                        })
+                        }).lean();
 
                     let rewardEventGroupProm = dbconfig.collection_rewardEventGroup.find({platform: playerPlatformId}).lean();
                     let referralConfigProm = dbconfig.collection_platformReferralConfig.findOne({platform: playerPlatformId});
@@ -10828,9 +10841,8 @@ let dbPlayerInfo = {
                     rewardEventGroup = JSON.parse(JSON.stringify(rewardEventGroup)); // to change all object id to string
                     var rewardEventArray = [];
 
-                    console.log('rewardEvent.length', rewardEvent.length);
                     for (var i = 0; i < rewardEvent.length; i++) {
-                        var rewardEventItem = rewardEvent[i].toObject();
+                        var rewardEventItem = rewardEvent[i];
                         delete rewardEventItem.platform;
 
                         if (referralConfig && rewardEventItem && rewardEventItem.type && rewardEventItem.type.name && (rewardEventItem.type.name === constProposalType.REFERRAL_REWARD_GROUP)) {
@@ -16106,6 +16118,7 @@ let dbPlayerInfo = {
             }
         );
     },
+
 
     authenticate: function (playerId, token, playerIp, conn, isLogin, ua, md, inputDevice, clientDomain, loginDevice) {
         var deferred = Q.defer();

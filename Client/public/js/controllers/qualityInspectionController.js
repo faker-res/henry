@@ -4439,6 +4439,7 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedCS && vm.selectedCS.length){
                     searchQuery.adminObjId = vm.selectedCS
                 }
+                console.log('searchQuery', searchQuery);
 
                 socketService.$socket($scope.AppSocket, 'getManualProcessRecord', searchQuery, function (data) {
                     console.log('manaulProcessRecord', data);

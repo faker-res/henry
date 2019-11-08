@@ -3336,6 +3336,7 @@
   "authenticatePlayerPartner": "玩家+代理链接验证",
   "getMailList": "获取玩家站内信",
   "notifyNewMail": "通知玩家有新的站内信",
+  "notifyCreditChange": "通知客户端额度改变",
   "getCredit": "获取玩家额度",
   "getCreditInfo": "获取玩家额度信息",
   "getCreditBalance": "获取玩家全额投注",
