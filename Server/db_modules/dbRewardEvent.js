@@ -415,6 +415,7 @@ var dbRewardEvent = {
                     });
                 }
                 let intervalTime;
+                console.log('JY check rewardEvent.type.name', rewardEvent.type.name)
                 switch (rewardEvent.type.name) {
                     case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                         let todayTime = dbUtil.getTodaySGTime();
@@ -1172,6 +1173,7 @@ var dbRewardEvent = {
                 };
 
                 // check reward apply restriction on ip, phone and IMEI
+                console.log('JY check intervalTime here==>', intervalTime);
                 checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
 
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
