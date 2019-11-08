@@ -7591,7 +7591,12 @@ define(['js/app'], function (myApp) {
                 vm.similarIpForPlayers = data.data.data;
                 vm.similarIpForPlayer.totalCount = data.data.total || 0;
                 vm.similarIpForPlayer.loading = false;
-                vm.drawPagedSimilarIpForPlayerTable(vm.similarIpForPlayers, vm.similarIpForPlayer.totalCount, newSearch);
+
+                async function getSelectedSinglePlayerPlatform () {
+                    await vm.getCredibilityRemarks(null, vm.selectedSinglePlayer.platform);
+                    vm.drawPagedSimilarIpForPlayerTable(vm.similarIpForPlayers, vm.similarIpForPlayer.totalCount, newSearch);
+                }
+                getSelectedSinglePlayerPlatform()
             })
         };
 
@@ -21195,9 +21200,15 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
-        vm.getCredibilityRemarks = (forbidUIRenderTwice) => {
+        vm.getCredibilityRemarks = (forbidUIRenderTwice, selectedSinglePlayerPlatform) => {
             return new Promise((resolve, reject) => {
-                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform.data._id}, function (data) {
+                let sendQuery = {
+                    platformObjId: vm.selectedPlatform.data._id
+                };
+                if(selectedSinglePlayerPlatform){
+                    sendQuery.platformObjId = selectedSinglePlayerPlatform;
+                }
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', sendQuery, function (data) {
                     vm.credibilityRemarks = data.data;
                     vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
                     vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
