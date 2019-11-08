@@ -6960,7 +6960,8 @@ let dbPlayerInfo = {
                         name: "DataError",
                         message: "Player is forbidden to login",
                         code: constServerCode.PLAYER_IS_FORBIDDEN,
-                        player: playerObj.name
+                        player: playerObj.name,
+                        playerId: playerObj.playerId
                     });
                 }
 

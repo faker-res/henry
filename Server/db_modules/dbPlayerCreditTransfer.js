@@ -1789,9 +1789,12 @@ let dbPlayerCreditTransfer = {
         }).then(res => {
             gameCredit = res;
             console.log("playerCreditTransferFromEbetWallets gameCredit", gameCredit) // debug log #22332F
+            return dbEbetWallet.getRelevantPOIDsFromPOID(providerId);
+        }).then(poids => {
             if(gameCredit && gameCredit.wallet) {
                 return dbConfig.collection_gameProviderGroup.find({
-                    platform: platform
+                    platform: platform,
+                    providers: {$in: poids},
                 }).populate(
                     {path: "providers", model: dbConfig.collection_gameProvider}
                 ).lean();
@@ -2072,14 +2075,17 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
     console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
-    let gameProviderGroupProm = dbConfig.collection_gameProviderGroup.findOne({
-        platform: platform,
-        providers: providerId
-    }).lean();
+    // The reason to allow outside gameProviderGroup to pass in is,
+    // There are time that would want to pass in other provider group to transferOut whole wallet channel
+    let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
+        dbConfig.collection_gameProviderGroup.findOne({
+            platform: platform,
+            providers: providerId
+        }).lean();
 
     return gameProviderGroupProm.then(
         res => {
-            gameProviderGroup = res || gameProviderGroup;
+            gameProviderGroup = res;
 
             if (gameProviderGroup) {
                 // Search for reward task group of this player on this provider
@@ -2089,6 +2095,12 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
                     rewardTaskGroupProm = Promise.resolve(null);
                 } else {
+                    console.log("checkProviderGroupCredit rewardTaskGroupProm", {
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    })
                     rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
