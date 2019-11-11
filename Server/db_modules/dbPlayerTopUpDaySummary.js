@@ -335,7 +335,7 @@ var dbPlayerTopUpDaySummary = {
             sum.date = startTime;
             sum.createTime = new Date();
             return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
-                console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary err", err)
+                console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary sum and err", sum, err)
             });
         });
 
