@@ -229,6 +229,21 @@ var dailyPlatformSettlement = {
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(
                 error => console.log({name: "DBError", message: "Error checking player level down!", error: error})
             )
+        ).then(
+            () => {
+                let proms = [];
+                for (let i = 1; i <= 5; i++) {
+                    if (dbPartner && dbPartner.forceRecalculateCBB) {
+                        let prom = dbPartner.forceRecalculateCBB(platformId, String(i)).catch(
+                            error => console.log({name: "DBError", message: "Error recalculate commission bill board!", error: error})
+                        )
+                        proms.push(prom)
+                    }
+                }
+                return Promise.all(proms).catch(err => {
+                    console.log("Error recalculate commission bill board!", err)
+                });
+            }
         )
         //     .then(
         //     () => dbPlatform.resetPlatformPlayerLevelData(platformId).catch(
