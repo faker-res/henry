@@ -76,7 +76,7 @@ div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
     label.inline-block.left-div {{ "htmlTextColor" | translate}}
     div.inline-block.colorBox-fixed-width
-    a(data-toggle="modal", data-target='#modalSkinColor', ng-click="vm.getFrontEndUrlConfigType('pc', 'htmlTextColor', $event)")
+        a(data-toggle="modal", data-target='#modalSkinColor', ng-click="vm.getFrontEndUrlConfigType('pc', 'htmlTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.htmlTextColor, "background-image": vm.frontEndUrlConfig.pc.htmlTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
