@@ -30968,6 +30968,12 @@ async function checkLevelMaintainReward (playerObj, lvlDownPeriod, checkLevelDow
                             {'data._id': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
                             {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
                         ]
+                    },
+                    {
+                        $and: [
+                            {'data.playerObjIds': {$in: [ObjectId(playerObj._id), String(playerObj._id)]}},
+                            {'data.platformId': {$in: [ObjectId(playerObj.platform), String(playerObj.platform)]}}
+                        ]
                     }
                 ],
                 'data.upOrDown': {$in:["LEVEL_UP", "LEVEL_DOWN", null]},
