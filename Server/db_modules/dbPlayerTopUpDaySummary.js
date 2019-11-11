@@ -327,44 +327,19 @@ var dbPlayerTopUpDaySummary = {
             date: {$gte: startTime, $lt: endTime}
         });
 
-        return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
-            function(data){
-                console.log("LH check player report 15------");
-                if(data && data.length > 0){
-                    console.log("LH check player report 16------", data.length);
-                    return data;
-                }
-                // else{
-                //     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
-                // }
-            },
-            function (error){
-                return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
-            }
-        ).then(
-            function (data){
-                if (data) {
-                    var proms = data.map(
-                        sum => {
-                            sum.date = startTime;
-                            sum.createTime = new Date();
-                            return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum);
-                        }
-                    );
-                    return Q.all(proms);
-                }
-            },
-            function (error){
-                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
-            }
-        ).then(
-            function (data) {
-                return data;
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
-            }
-        );
+        let data = await dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds);
+        if (!data) {
+            return [];
+        }
+        let proms = data.map(sum => {
+            sum.date = startTime;
+            sum.createTime = new Date();
+            return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
+                console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary err", err)
+            });
+        });
+
+        return Promise.all(proms);
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
