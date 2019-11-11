@@ -264,6 +264,8 @@ let PlayerServiceImplement = function () {
             // }
         }
 
+        console.log("checking device", [data.registrationDevice, data.phoneNumber, data.deviceType, data.subPlatformId])
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
@@ -564,6 +566,8 @@ let PlayerServiceImplement = function () {
             //     isValidData = false;
             // }
         }
+
+        console.log("checking device", [data.loginDevice, data.name, data.deviceType, data.subPlatformId])
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md, data.checkLastDeviceId], isValidData, true, true, true).then(
             playerData => {
@@ -1532,6 +1536,8 @@ let PlayerServiceImplement = function () {
         }
 
         data.registrationDevice = data.loginDevice;
+
+        console.log("checking device", [data.loginDevice, data.phoneNumber, data.deviceType, data.subPlatformId])
 
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua, data.checkLastDeviceId], isValidData, true, true, true).then(
             player => {
