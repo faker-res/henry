@@ -10870,6 +10870,9 @@ let dbPlayerInfo = {
                             })
                             rewardEventItem.param.imageUrl = imageUrlArr;
 
+                            if (rewardEventItem.condition) {
+                                rewardEventItem.condition.imageUrl = imageUrlArr;
+                            }
                         } else if (rewardEventItem && rewardEventItem.condition && rewardEventItem.condition.imageUrl
                             && typeof rewardEventItem.condition.imageUrl != 'string' && rewardEventItem.condition.imageUrl.length > 0) {
                             rewardEventItem.condition.imageUrl.forEach(imageUrlString => {
