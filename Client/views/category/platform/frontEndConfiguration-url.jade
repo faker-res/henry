@@ -5,321 +5,379 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         br
         label.text-danger {{'URL_CONFIGURATION_NOTE' | translate}}
 
+.full-width-input-block(style="margin: 30px 0;")
+    button.btn.btn-primary(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
+    button.btn.btn-primary(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration, vm.filterFrontEndSettingSubPlatformId)') {{"SAVE_SETTING" | translate}}
+    span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
+
 .full-width-input-block
-    label {{"WEBSITE_TITLE"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"WEBSITE_TITLE"|translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteTitle" placeholder="{{'Please insert title'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block
-    label {{"WEBSITE_NAME"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"WEBSITE_NAME"|translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.websiteName" placeholder="{{'Please insert website name'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"APP_DOWNLOAD"|translate}}
+    label.inline-block.left-div {{"APP_DOWNLOAD"|translate}}
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"ANDROID"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"ANDROID"|translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.androidAppUrl" placeholder="{{'Please insert app（android）download url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"IOS"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"IOS"|translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.iosAppUrl" placeholder="{{'Please insert app（ios）download url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block
-    label meta(KeyWords)
-    div.inline-block
+    label.inline-block.left-div meta(KeyWords)
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaKeyword" placeholder="{{'Please insert meta(KeyWords)'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block
-    label meta(Description)
-    div.inline-block
+    label.inline-block.left-div meta(Description)
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.metaDescription" placeholder="{{'Please insert meta(Description)'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block
-    label favicon
-    div.inline-block
+    label.inline-block.left-div favicon
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.faviconUrl" placeholder="{{'Please insert favicon(link-icon) image url'|translate}}" ng-change="vm.urlConfigShowMessage=''")
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"PC_BAIDU_STATISTICS" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{"PC_BAIDU_STATISTICS" | translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_PC" ng-change="vm.urlConfigShowMessage=''")
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"H5-IOS_BAIDU_STATISTICS" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{"H5-IOS_BAIDU_STATISTICS" | translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_H5_IOS" ng-change="vm.urlConfigShowMessage=''")
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{"H5-ANDROID_BAIDU_STATISTICS" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{"H5-ANDROID_BAIDU_STATISTICS" | translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStats_H5_ANDROID" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block(ng-if="vm.isPartnerForUrlConfiguration")
-    label {{ "Download Address For APP At Main Page"| translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "Download Address For APP At Main Page"| translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.appDownloadAddress" ng-change="vm.urlConfigShowMessage=''")
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
-    label {{"Current Skin(PC)"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"Current Skin(PC)"|translate}}
+    div.inline-block.middle-div
         select.form-control(ng-model='vm.frontEndUrlConfig.pc.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==1", value='{{v._id}}') {{v.name}}
+    div.inline-block.right-div
+        button.btn.btn.btn-success(ng-click="vm.initSkinManagement(1)") {{"SKIN_MANAGEMENT" | translate}}
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "htmlTextColor" | translate}}
-    div.inline-block
-        a(data-toggle="modal", data-target='#modalSkinColor', ng-click="vm.getFrontEndUrlConfigType('pc', 'htmlTextColor', $event)")
+    label.inline-block.left-div {{ "htmlTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
+    a(data-toggle="modal", data-target='#modalSkinColor', ng-click="vm.getFrontEndUrlConfigType('pc', 'htmlTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.htmlTextColor, "background-image": vm.frontEndUrlConfig.pc.htmlTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor1" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor1" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'textColor1', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.textColor1, "background-image": vm.frontEndUrlConfig.pc.textColor1 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor2" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor2" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'textColor2', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.textColor2, "background-image": vm.frontEndUrlConfig.pc.textColor2 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "popUpListBgColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "popUpListBgColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'popUpListBgColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.popUpListBgColor, "background-image": vm.frontEndUrlConfig.pc.popUpListBgColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "popUpListLabelColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "popUpListLabelColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'popUpListLabelColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.popUpListLabelColor, "background-image": vm.frontEndUrlConfig.pc.popUpListLabelColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "popUpListKeyInColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "popUpListKeyInColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'popUpListKeyInColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.popUpListKeyInColor, "background-image": vm.frontEndUrlConfig.pc.popUpListKeyInColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "popUpListFrameColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "popUpListFrameColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'popUpListFrameColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.popUpListFrameColor, "background-image": vm.frontEndUrlConfig.pc.popUpListFrameColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formHoverColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formHoverColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formHoverColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formHoverColor, "background-image": vm.frontEndUrlConfig.pc.formHoverColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBgColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBgColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formBgColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formBgColor, "background-image": vm.frontEndUrlConfig.pc.formBgColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formLabelTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formLabelTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formLabelTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formLabelTextColor, "background-image": vm.frontEndUrlConfig.pc.formLabelTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formInputTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formInputTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formInputTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formInputTextColor, "background-image": vm.frontEndUrlConfig.pc.formInputTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBorderBottomColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBorderBottomColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formBorderBottomColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formBorderBottomColor, "background-image": vm.frontEndUrlConfig.pc.formBorderBottomColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formHoverBottomFrameColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formHoverBottomFrameColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'formHoverBottomFrameColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor, "background-image": vm.frontEndUrlConfig.pc.formHoverBottomFrameColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "dropDownFrameBgColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "dropDownFrameBgColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('pc', 'dropDownFrameBgColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.pc.dropDownFrameBgColor, "background-image": vm.frontEndUrlConfig.pc.dropDownFrameBgColor }')
 
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
-    label {{"Current Skin(H5)"|translate}}
-    div.inline-block
+    label.inline-block.left-div.inline-block.left-div {{"Current Skin(H5)"|translate}}
+    div.inline-block.middle-div
         select.form-control(ng-model='vm.frontEndUrlConfig.h5.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==2", value='{{v._id}}') {{v.name}}
+    div.inline-block.right-div
+        button.btn.btn.btn-success(ng-click="vm.initSkinManagement(2)") {{"SKIN_MANAGEMENT" | translate}}
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "htmlTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "htmlTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'htmlTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.htmlTextColor, "background-image": vm.frontEndUrlConfig.h5.htmlTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor1" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor1" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'textColor1', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.textColor1, "background-image": vm.frontEndUrlConfig.h5.textColor1 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor2" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor2" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'textColor2', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.textColor2, "background-image": vm.frontEndUrlConfig.h5.textColor2 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'mainNavTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.mainNavTextColor, "background-image": vm.frontEndUrlConfig.h5.mainNavTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavActiveTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'mainNavActiveTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.mainNavActiveTextColor, "background-image": vm.frontEndUrlConfig.h5.mainNavActiveTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveBorderColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavActiveBorderColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'mainNavActiveBorderColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.mainNavActiveBorderColor, "background-image": vm.frontEndUrlConfig.h5.mainNavActiveBorderColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "navTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'navTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.navTextColor, "background-image": vm.frontEndUrlConfig.h5.navTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navActiveTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "navActiveTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'navActiveTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.navActiveTextColor, "background-image": vm.frontEndUrlConfig.h5.navActiveTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBgColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBgColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'formBgColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.formBgColor, "background-image": vm.frontEndUrlConfig.h5.formBgColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formLabelTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formLabelTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'formLabelTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.formLabelTextColor, "background-image": vm.frontEndUrlConfig.h5.formLabelTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formInputTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formInputTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'formInputTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.formInputTextColor, "background-image": vm.frontEndUrlConfig.h5.formInputTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBorderBottomColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBorderBottomColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('h5', 'formBorderBottomColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.h5.formBorderBottomColor, "background-image": vm.frontEndUrlConfig.h5.formBorderBottomColor }')
 
 div.frontendConfigSeperator(ng-if="!vm.isPartnerForUrlConfiguration")
 .full-width-input-block
-    label {{"Current Skin(APP)"|translate}}
-    div.inline-block
+    label.inline-block.left-div {{"Current Skin(APP)"|translate}}
+    div.inline-block.middle-div
         select.form-control(ng-model='vm.frontEndUrlConfig.app.skin' ng-change="vm.urlConfigShowMessage=''")
             option(ng-repeat='(i,v) in vm.frontEndSkinSetting', ng-if="v.device==4", value='{{v._id}}') {{v.name}}
+    div.inline-block.right-div
+        button.btn.btn.btn-success(ng-click="vm.initSkinManagement(4)") {{"SKIN_MANAGEMENT" | translate}}
 
 .full-width-input-block(ng-if="vm.isPartnerForUrlConfiguration")
-    label {{"BAIDU_STATS_CODE"| translate}}
-    div.inline-block
+    label.inline-block.left-div {{"BAIDU_STATS_CODE"| translate}}
+    div.inline-block.middle-div
         input.form-control(type="text" ng-model="vm.frontEndUrlConfig.baiduStatsCode" ng-change="vm.urlConfigShowMessage=''")
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "htmlTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "htmlTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'htmlTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.htmlTextColor, "background-image": vm.frontEndUrlConfig.app.htmlTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor1" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor1" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'textColor1', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.textColor1, "background-image": vm.frontEndUrlConfig.app.textColor1 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "textColor2" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "textColor2" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'textColor2', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.textColor2, "background-image": vm.frontEndUrlConfig.app.textColor2 }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'mainNavTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.mainNavTextColor, "background-image": vm.frontEndUrlConfig.app.mainNavTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavActiveTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'mainNavActiveTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.mainNavActiveTextColor, "background-image": vm.frontEndUrlConfig.app.mainNavActiveTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "mainNavActiveBorderColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "mainNavActiveBorderColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'mainNavActiveBorderColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.mainNavActiveBorderColor, "background-image": vm.frontEndUrlConfig.app.mainNavActiveBorderColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "navTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'navTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.navTextColor, "background-image": vm.frontEndUrlConfig.app.navTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "navActiveTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "navActiveTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'navActiveTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.navActiveTextColor, "background-image": vm.frontEndUrlConfig.app.navActiveTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBgColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBgColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'formBgColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.formBgColor, "background-image": vm.frontEndUrlConfig.app.formBgColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formLabelTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formLabelTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'formLabelTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.formLabelTextColor, "background-image": vm.frontEndUrlConfig.app.formLabelTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formInputTextColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formInputTextColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'formInputTextColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.formInputTextColor, "background-image": vm.frontEndUrlConfig.app.formInputTextColor }')
 
 .full-width-input-block(ng-if="!vm.isPartnerForUrlConfiguration")
-    label {{ "formBorderBottomColor" | translate}}
-    div.inline-block
+    label.inline-block.left-div {{ "formBorderBottomColor" | translate}}
+    div.inline-block.colorBox-fixed-width
         a(data-toggle="modal", data-target='#modalSkinColor' ng-click="vm.getFrontEndUrlConfigType('app', 'formBorderBottomColor', $event)")
             div.colorDisplay(ng-style='{"background-color": vm.frontEndUrlConfig.app.formBorderBottomColor, "background-image": vm.frontEndUrlConfig.app.formBorderBottomColor }')
 
-.full-width-input-block
-    button.btn.btn-success(ng-if="!vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig()') {{"SAVE_SETTING" | translate}}
-    button.btn.btn-success(ng-if="vm.isPartnerForUrlConfiguration" style="float: right;" ng-click='vm.saveFrontEndUrlConfig(vm.isPartnerForUrlConfiguration, vm.filterFrontEndSettingSubPlatformId)') {{"SAVE_SETTING" | translate}}
-    span(style='display:inline-block; float: right; margin-top: 8px; margin-right: 10px') {{vm.urlConfigShowMessage | translate}}
 
 
+
+#modalSkinManagement.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"SKIN_MANAGEMENT" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body.margin-all-5
+                        .col-md-12
+                            .full-width-input-block
+                                label(ng-if="!vm.isPartnerForSkinManagement") {{"SKIN_DEVICE"|translate}}
+                                label(ng-if="vm.isPartnerForSkinManagement") {{"PARTNER_SKIN_DEVICE"|translate}}
+                                div.inline-block
+                                    select.form-control(ng-model='vm.newFrontEndSkinSetting.device' ng-change='vm.skinSettingShowMessage=""')
+                                        option(ng-repeat='(i,v) in frontEndSettingDevice', value='{{i}}') {{v}}
+
+                            .full-width-input-block
+                                label {{"SKIN_NAME"|translate}}
+                                div.inline-block
+                                    input.form-control(type="text" ng-model="vm.newFrontEndSkinSetting.name", ng-change='vm.skinSettingShowMessage=""')
+
+                            .full-width-input-block
+                                label {{"SKIN_URL"|translate}}
+                                div.inline-block
+                                    input.form-control(type="text" ng-model="vm.newFrontEndSkinSetting.url", ng-change='vm.skinSettingShowMessage=""')
+
+                            .full-width-input-block
+                                label
+                                div.inline-block
+                                    button.btn.btn-success(ng-if="!vm.isPartnerForSkinManagement" ng-click='vm.saveFrontEndSkinSetting()') {{"ADD_SKIN" | translate}}
+                                    button.btn.btn-success(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.saveFrontEndSkinSetting(vm.isPartnerForSkinManagement, vm.filterFrontEndSettingSubPlatformId)') {{"ADD_SKIN" | translate}}
+                                    span(style='display:inline-block;padding-left: 5px;') {{vm.skinSettingShowMessage | translate}}
+                            div
+                                br
+
+                            .full-width-input-block
+                                label {{"DELETE_SKIN_SELECTION"|translate}}
+                                div.inline-block
+                                    select.form-control(ng-model='vm.selectedFrontEndSkin' style="width:80%;display:inline-block" ng-change='vm.skinSettingShowMessage=""')
+                                        option(ng-repeat='(i,v) in vm.frontEndSkinSetting', value='{{v._id}}') {{v.name$}}
+
+                            .full-width-input-block
+                                label
+                                div.inline-block
+                                    button.btn.btn-warning(ng-if="!vm.isPartnerForSkinManagement" ng-click='vm.removeFrontEndSkinSetting(vm.selectedFrontEndSkin)') {{"DELETE_SELECTED_SKIN_BUTTON" | translate}}
+                                        button.btn.btn-warning(ng-if="vm.isPartnerForSkinManagement" ng-click='vm.removeFrontEndSkinSetting(vm.selectedFrontEndSkin, vm.filterFrontEndSettingSubPlatformId, vm.isPartnerForSkinManagement)') {{"DELETE_SELECTED_PARTNER_SKIN_BUTTON" | translate}}
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.closeSkinSetting()') {{"CLOSE" | translate}}
 
 
 #modalSkinColor.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
