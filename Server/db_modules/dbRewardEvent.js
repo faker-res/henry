@@ -682,6 +682,12 @@ var dbRewardEvent = {
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
 
+                                            // Check reward apply limit in the life time of the whole event
+                                            if (rewardEvent.condition && rewardEvent.condition.applyLimit && checkRewardData.eventInLifeTimeCount && rewardEvent.condition.applyLimit <= checkRewardData.eventInLifeTimeCount) {
+                                                checkRewardData.status = 3; // 已达到玩家可申请次数
+                                                delete checkRewardData.eventInLifeTimeCount;
+                                            }
+
                                             if (rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
                                                 if (checkRewardData.condition.deposit.status == 1 || checkRewardData.condition.bet.status == 1) {
                                                     checkRewardData.status = 1;
@@ -1254,12 +1260,29 @@ var dbRewardEvent = {
 
                 forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
+
+            // check the application limit has reached of the whole event
+            let eventInLifeTimeProm = Promise.resolve([]);
+            if (eventData.condition && eventData.condition.applyLimit) {
+                let query = {
+                    lastApplyDate: {
+                        $gte: eventData.validStartTime,
+                        $lte: eventData.validEndTime
+                    },
+                    rewardEventObjId: eventData._id,
+                    platformObjId: playerData.platform._id,
+                    playerObjId: playerData._id
+                };
+                eventInLifeTimeProm = dbconfig.collection_playerRetentionRewardGroupRecord.find(query).count().lean();
+            }
+
             promArr.push(appliedCountProm);
             promArr.push(withdrawalProm);
             promArr.push(consumptionProm);
             promArr.push(accumulativeCountProm);
             promArr.push(checkHasReceivedProm);
             promArr.push(todayHasAppliedProm);
+            promArr.push(eventInLifeTimeProm);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
@@ -2484,6 +2507,8 @@ var dbRewardEvent = {
                         else{
                             returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
                         }
+
+                        returnData.eventInLifeTimeCount = rewardSpecificData[6] || 0;
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
