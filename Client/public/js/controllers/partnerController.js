@@ -7783,6 +7783,7 @@ define(['js/app'], function (myApp) {
                         platformPageName: vm.platformPageName,
                         prepareEditCritical: vm.prepareEditCritical,
                         submitCriticalUpdate: vm.submitCriticalUpdate,
+                        isEditingPartnerBankAccountName: vm.isEditingPartnerBankAccountName,
                         isEditingPartnerPayment: vm.isEditingPartnerPayment,
                         checkPartnerField: vm.checkPartnerField,
                         partnerValidity: vm.partnerValidity,
@@ -7835,6 +7836,7 @@ define(['js/app'], function (myApp) {
                         today: new Date().toISOString(),
                         commissionType: vm.constPartnerCommisionType,
                         partnerId: selectedPartner._id,
+                        partnerRealName: selectedPartner.realName,
                         isIdInList: commonService.isIdInList,
                         partnerBeforeEditing: _.clone(editPartner),
                         newPartner: _.clone(editPartner),
@@ -7894,6 +7896,7 @@ define(['js/app'], function (myApp) {
                 option.childScope.prepareEditPartnerPayment = function () {
                     vm.prepareEditPartnerPayment();
                     this.isEditingPartnerPayment = vm.isEditingPartnerPayment;
+                    this.isEditingPartnerBankAccountName = vm.isEditingPartnerBankAccountName;
                     this.partnerPayment = vm.partnerPayment;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
@@ -7982,6 +7985,7 @@ define(['js/app'], function (myApp) {
                 }
                 vm.isEditingPartnerPayment = false;
                 vm.isEditingPartnerPaymentShowVerify = false;
+                vm.isEditingPartnerBankAccountName = false;
                 vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
                 vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
                 vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
