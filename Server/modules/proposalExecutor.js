@@ -1559,7 +1559,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_partner.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit}
+                                    {realName: proposalData.data.realNameAfterEdit, bankAccountName: proposalData.data.realNameAfterEdit}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect partner data", error: Error()});
