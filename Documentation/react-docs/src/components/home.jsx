@@ -1,59 +1,43 @@
 import React, { Component } from 'react';
 import Menu from './menu';
 import Content from './content';
+import ApiContent from '../ApiContent';
 
 class Home extends Component {
     state = {
-        api: {
-            Login: [
-                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#登录"},
-                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家登录"},
-            ],
-            Register: [
-                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#玩家开户"}
-            ]
-        },
         display:{},
         linkList:{}
     };
 
     UNSAFE_componentWillMount() {
-        let api = this.state.api;
-        let testData = [];
-        for (let key in api) {
-            testData.push(api[key]);
-        }
-        let displayData;
-        displayData = JSON.parse(JSON.stringify(testData[0]));
-        this.setState({display: displayData});
+        // console.log('state', ApiContent[Object.keys(ApiContent)[0]])
+        this.setState({display: ApiContent[Object.keys(ApiContent)[0]]})
     }
 
     clickHandler = (event) => {
-        let api = this.state.api;
-        let testData = [];
-        for (let key in api) {
-            testData.push(api[key]);
-        }
-        let index = Object.keys(api).indexOf(event.target.innerText);
-        this.setState({display: testData[index]});
-        this.setState({linkList: ""});
-
+        let name = event.target.innerText;
+        this.setState({display: ApiContent[name]})
     };
 
-    showLinkHandler = (event) => {
-        let api = this.state.display;
-        let index = api.findIndex(item => item.name.toString() === event.target.innerText);
-        this.setState({linkList: api[index]});
+    showContentHandler = (event) => {
+        // console.log('display', this.state.display);
+        let content = this.state.display;
+        let name = event.target.innerText;
+        this.setState({linkList: content[name]});
+        console.log('linklist', content[name]);
     };
+
+
 
     render() {
-        const lists = Object.keys(this.state.api).map((key, index) => {
+        const lists = Object.keys(ApiContent).map((key, index) => {
             return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
         });
-
-        const btns = this.state.display.map((item, index) => {
-                return <button key={index} onClick={this.showLinkHandler} className="btn btn-dark m-1">{item.name}</button>
+        const btns = Object.keys(this.state.display).map((key, index) => {
+            return <button key={index} onClick={this.showContentHandler} className="btn btn-dark m-1">{key}</button>
         });
+
+
 
         return (
             <div>
@@ -64,8 +48,10 @@ class Home extends Component {
                     <Content
                         linkBtn = {btns}
 
-                        url = {this.state.linkList.url}
-                        name = {this.state.linkList.name}
+                        desc = {this.state.linkList.desc}
+                        requestContent = {this.state.linkList.requestContent}
+                        statusSuccess = {this.state.linkList.statusSuccess}
+                        statusFailed = {this.state.linkList.statusFailed}
 
                     />
                 </div>
