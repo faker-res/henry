@@ -1457,8 +1457,8 @@ var proposal = {
 
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
                 if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
-                    data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
-                    data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
+                    data.data.bankAccountWhenApprove = (data && data.data && data.data.bankAccountWhenSubmit) || data.data.playerObjId.bankAccount;
+                    data.data.bankNameWhenApprove = (data && data.data && data.data.bankNameWhenSubmit) || data.data.playerObjId.bankName;
                     data.data.playerObjId = data.data.playerObjId._id;
                 }
 
