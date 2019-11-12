@@ -4120,24 +4120,30 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let query = {};
 
-            if (vm.feedbackQuery.departments) {
-                if (vm.feedbackQuery.roles) {
-                    vm.queryRoles.map(e => {
-                        if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
-                            e.users.map(f => admins.push(f._id))
-                        }
-                    })
-                } else {
-                    vm.queryRoles.map(e => {
-                        if (e && e._id != "" && e.users && e.users.length) {
-                            e.users.map(f => {
-                                if (f && f._id != "") {
-                                    admins.push(f._id);
-                                }
-                            });
-                        }
-                    });
-                }
+            // if (vm.feedbackQuery.departments) {
+            //     if (vm.feedbackQuery.roles) {
+            //         vm.queryRoles.map(e => {
+            //             if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
+            //                 e.users.map(f => admins.push(f._id))
+            //             }
+            //         })
+            //     } else {
+            //         vm.queryRoles.map(e => {
+            //             if (e && e._id != "" && e.users && e.users.length) {
+            //                 e.users.map(f => {
+            //                     if (f && f._id != "") {
+            //                         admins.push(f._id);
+            //                     }
+            //                 });
+            //             }
+            //         });
+            //     }
+            // }
+            if(vm.feedbackQuery.departments && vm.feedbackQuery.departments.length > 0 &&
+                (!vm.feedbackQuery.admins || vm.feedbackQuery.admins.length == 0)) {
+                vm.queryAdmins.forEach(item => {
+                    admins.push(item._id);
+                });
             }
 
             if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
