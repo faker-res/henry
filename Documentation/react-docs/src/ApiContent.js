@@ -4,15 +4,15 @@ let ApiContent = {
     Login: {
         playerLogin: {
             desc: "玩家登录接口",
-            requestContent:{"platformId": "必填|String|玩家注册平台","name":"必填|String|玩家用户名","password": "必填|String|玩家密码"},
+            requestContent:{platformId: "必填|String|玩家注册平台",name:"必填|String|玩家用户名",password: "必填|String|玩家密码"},
             statusSuccess:"status: 200, data: 玩家对象, token: 玩家token",
             statusFailed:"status: 40x, data: -, errorMessage: 错误信息"
         },
         partnerLogin: {
-            desc: "gugyygyg ygyug yuguy bjhbhikb",
-            requestContent:"gbe gnjfakbgu ejg bera g",
-            statusSuccess:"dngk lgndflkng lknglk",
-            statusFailed:"gfdih f ga ghk hgusa"
+            desc: "玩家登录接口partner",
+            requestContent:{platformId: "必填|String|代理注册平台",name:"必填|String|代理用户名",password: "必填|String|登录密码"},
+            statusSuccess:"status: 200, data: 玩家对象, token: 玩家token",
+            statusFailed:"status: 40x, data: -, errorMessage: 错误信息"
         }
     },
     Topup: {

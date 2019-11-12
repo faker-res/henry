@@ -3,10 +3,12 @@ import Menu from './menu';
 import Content from './content';
 import ApiContent from '../ApiContent';
 
+var selectedName;
 class Home extends Component {
     state = {
         display:{},
-        linkList:{}
+        linkList:{},
+        contentList:{}
     };
 
     UNSAFE_componentWillMount() {
@@ -20,24 +22,27 @@ class Home extends Component {
     };
 
     showContentHandler = (event) => {
-        // console.log('display', this.state.display);
         let content = this.state.display;
-        let name = event.target.innerText;
-        this.setState({linkList: content[name]});
-        console.log('linklist', content[name]);
+        selectedName = event.target.innerText;
+        this.setState({linkList: content[selectedName]});
     };
 
-
-
     render() {
+        var content = "";
         const lists = Object.keys(ApiContent).map((key, index) => {
             return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
         });
         const btns = Object.keys(this.state.display).map((key, index) => {
             return <button key={index} onClick={this.showContentHandler} className="btn btn-dark m-1">{key}</button>
         });
-
-
+        if(selectedName){
+            content = Object.keys(this.state.display[selectedName].requestContent).map((key, index) => {
+                console.log('key', key);
+                console.log('content', this.state.display[selectedName].requestContent);
+                console.log('value', this.state.display[selectedName].requestContent[key]);
+                return <li>{key + " : " + this.state.display[selectedName].requestContent[key]}</li>;
+            })
+        }
 
         return (
             <div>
@@ -45,15 +50,20 @@ class Home extends Component {
                     <Menu
                         list = {lists}
                     />
-                    <Content
-                        linkBtn = {btns}
+                    （
+                        for(let key in object){
+                            <Content
+                            linkBtn = {btns}
 
-                        desc = {this.state.linkList.desc}
-                        requestContent = {this.state.linkList.requestContent}
-                        statusSuccess = {this.state.linkList.statusSuccess}
-                        statusFailed = {this.state.linkList.statusFailed}
+                            desc = {this.state.linkList.desc}
+                            requestContent = {content}
+                            statusSuccess = {this.state.linkList.statusSuccess}
+                            statusFailed = {this.state.linkList.statusFailed}
 
-                    />
+                            />
+                        }
+
+                    ）
                 </div>
             </div>
         );
