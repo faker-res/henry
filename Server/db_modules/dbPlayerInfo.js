@@ -9562,6 +9562,9 @@ let dbPlayerInfo = {
             function (data) {
                 // Set BState back to false
                 dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
+                // Notify client on credit change
+                messageDispatcher.sendMessage('creditUpdate', {recipientId: playerData._id});
+
                 return Promise.resolve(data);
             },
             function (err) {
@@ -10121,7 +10124,9 @@ let dbPlayerInfo = {
             }
         ).then(
             function (data) {
-                // updateBatchStatus(isBatch);
+                // Notify client on credit change
+                messageDispatcher.sendMessage('creditUpdate', {recipientId: playerObj._id});
+
                 return Promise.resolve(data);
             },
             function (err) {
@@ -15348,6 +15353,7 @@ let dbPlayerInfo = {
 
                     if (bUpdateCredit) {
                         dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: player._id});
                     }
                     dbConsumptionReturnWithdraw.reduceXimaWithdraw(player._id, ximaWithdrawUsed).catch(errorUtils.reportError);
                     return proposal;
