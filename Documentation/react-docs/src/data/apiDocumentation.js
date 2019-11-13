@@ -1,16 +1,29 @@
 // ********************************************* login data ***********************************
 
-const loginRequestContent = {
-    platformId: "必填|String|玩家注册平台",
-    name: "必填|String|玩家用户名",
-    password: "必填|String|玩家密码",
-    captcha: "选填|String|验证码 (登录三次失败后需要填验证码)",
-    clientDomain: "选填|String|登陆域名",
-    deviceId: "选填|String|设备号",
-    checkLastDeviceId: "选填|Boolean|检查上次登入设备是否与这次一样",
-    deviceType: "选填|设备类型列表",
-    subPlatformId: "选填|子平台列表"
-};
+// const loginRequestContent = {
+//     platformId: "必填|String|玩家注册平台",
+//     name: "必填|String|玩家用户名",
+//     password: "必填|String|玩家密码",
+//     captcha: "选填|String|验证码 (登录三次失败后需要填验证码)",
+//     clientDomain: "选填|String|登陆域名",
+//     deviceId: "选填|String|设备号",
+//     checkLastDeviceId: "选填|Boolean|检查上次登入设备是否与这次一样",
+//     deviceType: "选填|设备类型列表",
+//     subPlatformId: "选填|子平台列表"
+// };
+
+
+const loginRequestContent = [
+    {param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台'},
+    {param: "name", mandatory: "是", type: 'String', content: '玩家用户名'},
+    {param: "password", mandatory: "是", type: 'String', content: '玩家密码'},
+    {param: "captcha", mandatory: "否", type: 'String', content: '验证码 (登录三次失败后需要填验证码)'},
+    {param: "clientDomain", mandatory: "否", type: 'String', content: '登陆域名'},
+    {param: "deviceId", mandatory: "否", type: 'String', content: '设备号'},
+    {param: "checkLastDeviceId", mandatory: "否", type: 'Boolean', content: '检查上次登入设备是否与这次一样'},
+    {param: "deviceType", mandatory: "否", type: '', content: '设备类型列表'},
+    {param: "subPlatformId", mandatory: "否", type: '', content: '子平台列表'},
+];
 
 const loginStatusOfSuccess = {
     status: 200,
@@ -25,9 +38,9 @@ const loginStatusOfFailed = {
 };
 
 // ********************************************* isLogin data ***********************************
-const isLoginRequestContent = {
-    playerId: "必填|String|玩家ID"
-};
+const isLoginRequestContent = [
+    {param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID'}
+];
 
 const isLoginStatusOfSuccess = {
     status: 200,
@@ -48,21 +61,22 @@ let apiDoc = {
     login: {
         name: "登入",
         login: {
-            title:"登录",
+            title: "登录",
             functionName: "Login",
-            desc:"玩家登录接口",
-            // requestContent: loginRequestContent ,
+            desc: "玩家登录接口",
+            requestContent: loginRequestContent,
             // statusOfSuccess: loginStatusOfSuccess,
             // statusOfFailed: loginStatusOfFailed,
         },
         isLogin: {
             title: "是否已成功登入",
             functionName: "isLogin",
-            desc:"查询玩家是否登录",
-            requestContent: isLoginRequestContent ,
+            desc: "查询玩家是否登录",
+            requestContent: isLoginRequestContent,
             statusOfSuccess: isLoginStatusOfSuccess,
             statusOfFailed: isLoginStatusOfFailed,
         }
+
     },
     topup: {
         name: "充值"
