@@ -4,31 +4,12 @@ import Content from './content';
 import apiData from '../data/apiDocumentation';
 
 class Home extends Component {
-    // state = {
-    //     api: {
-    //         Login: [
-    //             {name: "Login", url: "http://54.179.151.35:888/ClientApi/#登录"},
-    //             {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家登录"},
-    //         ],
-    //         Register: [
-    //             {name: "Register", url: "http://54.179.151.35:888/ClientApi/#玩家开户"}
-    //         ]
-    //     },
-    //     display:{},
-    //     dataList:{}
-    // };
     constructor(props) {
         super(props);
         this.state = {display: apiData.login };
     }
 
-
-    // UNSAFE_componentWillMount() {
-    //     this.setState({display: {}});
-    // }
-
     clickHandler = (event) => {
-        console.log(event.target.parentElement.children);
         let arr = event.target.parentElement.children;
         for (let i=0; i< arr.length; i++){
             arr[i].className = "nav-item"
@@ -39,8 +20,6 @@ class Home extends Component {
                 this.setState({display: apiData[key]});
             }
         }
-
-
     };
 
     showDataHandler = (event) => {
@@ -49,30 +28,14 @@ class Home extends Component {
                 this.setState({dataList: this.state.display[key]});
             }
         });
-
     };
 
     render() {
-        // const navLists = Object.keys(apiData).map((key, index) => {
-        //     return <li className="nav-item" key={index} onClick={this.clickHandler}>
-        //         {apiData[key].name}</li>;
-        // });
-
         let navLists = [];
         for(let key in apiData){
             navLists.push(<li className="nav-item" key={key} onClick={this.clickHandler}>
                 {apiData[key].name}</li>);
         }
-
-        // for(let key in apiData){
-        //     console.log(key);
-        //     const navLists = () => {
-        //         return <li className="nav-item" key={index} onClick={this.clickHandler}>
-        //             {apiData[key].name}</li>;
-        //     }
-        // }
-
-
 
         const btns = Object.keys(this.state.display).map((item, index) => {
             if(this.state.display[item].title){
@@ -80,37 +43,6 @@ class Home extends Component {
                     {this.state.display[item].title}</button>
             }
         });
-
-        // let dataList = [];
-        // let keys = Object.keys(this.state.dataList)
-        // for (let i = 0; i < keys.length; i++) {
-        //     let key = keys[i];
-        //     let item = this.state.dataList[key];
-        //
-        //     if (typeof (item) !== "object") {
-        //         console.log("key", key)
-        //         dataList.push(<div>{item}</div>);
-        //     } else {
-        //         for (let [subitemKey, subitem] of Object.entries(item)) {
-        //             console.log("subitemKey", subitemKey)
-        //             dataList.push(<div>{subitemKey}: {subitem}</div>);
-        //         }
-        //     }
-        // }
-
-        // let dataList = Object.keys(this.state.dataList).map((item, index) => {
-        //     if (typeof (this.state.dataList[item]) !== "object") {
-        //         return <div key={index}>{this.state.dataList[item]}</div>
-        //     }
-        //     if(typeof(this.state.dataList[item]) === "object" ){
-        //         Object.entries(this.state.dataList[item]).map((innerItem, index) => {
-        //             console.log(innerItem)
-        //             return <div key={index}>{innerItem}</div>
-        //         })
-        //
-        //     }
-        //
-        // });
 
         let requestContentTable = apiData.login.login.requestContent.map((item) => {
             return  <tr>
@@ -120,7 +52,6 @@ class Home extends Component {
                         <td>{item.content}</td>
                     </tr>
         });
-
 
         return (
             <div className="container border">
