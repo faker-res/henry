@@ -332,7 +332,6 @@ var dbPlayerTopUpDaySummary = {
             return [];
         }
         let proms = data.map(sum => {
-            console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers debug log #35E14C", JSON.stringify(sum, null, 2));
             sum.date = startTime;
             sum.createTime = new Date();
             return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
