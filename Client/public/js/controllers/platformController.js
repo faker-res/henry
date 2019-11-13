@@ -25574,10 +25574,10 @@ define(['js/app'], function (myApp) {
                             vm.subPlatformIdList[text] = vm.platformId + counter;
                         }
 
-                        // hardcode 03 as the product itself
+                        // hardcode 10 as the product itself
                         if (vm.subPlatformIdList) {
-                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
-                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
                         }
                     }
                 }
