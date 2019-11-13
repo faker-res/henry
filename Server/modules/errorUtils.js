@@ -1,5 +1,7 @@
 var dbMigration = require('./../db_modules/dbMigration');
 
+const constServerCode = require('./../const/constServerCode');
+
 var errorUtils = {
 
     reportError: function (error) {
@@ -87,6 +89,34 @@ var errorUtils = {
         dbMigration.errorHandler(svc._service.name, svc.name, data, "Data Invalid").catch(
             err => {}
         );
+    },
+
+    throwSystemError: (code, customErrMsg, errorStack) => {
+        let errorMsg = {code: constServerCode.COMMON_ERROR};
+
+        switch (code) {
+            case constServerCode.INVALID_PLATFORM:
+                errorMsg.message = "Platform Not Found";
+                break;
+            case constServerCode.PLAYER_NO_PERMISSION:
+                errorMsg.message = "Player does not have this permission";
+                break;
+        }
+
+        if (code) {
+            errorMsg.code = code;
+        }
+
+        if (customErrMsg) {
+            errorMsg.message = customErrMsg;
+        }
+
+        if (errorStack) {
+            errorMsg.error = errorStack;
+        }
+
+        return Promise.reject(errorMsg);
+
     }
 
 };
