@@ -4,24 +4,23 @@ import Content from './content';
 import apiData from '../data/apiDocumentation';
 
 class Home extends Component {
-    state = {
-        display:{},
-        dataList:{},
-        funcList:{}
-    };
-
-    UNSAFE_componentWillMount() {
-        this.setState({display: apiData.login});
-        this.setState({funcList: this.state.display.func});
+    constructor(props) {
+        super(props);
+        this.state = {display: apiData.login };
     }
 
     clickHandler = (event) => {
-        Object.keys(apiData).map((key) => {
+        let arr = event.target.parentElement.children;
+        for (let i=0; i< arr.length; i++){
+            arr[i].className = "nav-item"
+        }
+        event.target.className += " active";
+        for(let key in apiData){
             if(apiData[key].name === event.target.innerText){
                 this.setState({display: apiData[key]});
                 this.setState({funcList: apiData[key].func});
             }
-        });
+        }
     };
 
     showDataHandler = (event) => {
@@ -32,18 +31,12 @@ class Home extends Component {
         });
     };
 
-    populateDataList = () => {
-        console.log('display list',apiData);
-        console.log('display func',apiData.func);
-        this.setState({funcList: this.state.display.func});
-        console.log('func list',this.state.funcList);
-    }
-
     render() {
-        const lists = Object.keys(apiData).map((key, index) => {
-            return <li className="nav-item" key={index} onClick={this.clickHandler}
-                       style={{cursor: "pointer"}}>{apiData[key].name}</li>;
-        });
+        let navLists = [];
+        for(let key in apiData){
+            navLists.push(<li className="nav-item" key={key} onClick={this.clickHandler}>
+                {apiData[key].name}</li>);
+        }
 
         const btns = Object.keys(this.state.display.func).map((item, index) => {
             if(this.state.display.func[item].title){
@@ -52,10 +45,12 @@ class Home extends Component {
             }
         });
 
-        let requestContentTable = Object.keys(this.state.dataList).map((item, index) => {
+        let requestContentTable = apiData.login.login.requestContent.map((item) => {
             return  <tr>
-                        <td>{item}</td>
-                        <td>{this.state.dataList[item]}</td>
+                        <td>{item.param}</td>
+                        <td>{item.mandatory}</td>
+                        <td>{item.type}</td>
+                        <td>{item.content}</td>
                     </tr>
         });
 
@@ -82,22 +77,28 @@ class Home extends Component {
 
 
         return (
-            <div>
+            <div className="container border">
                 <div className="row">
-                    <Menu
-                        list = {lists}
-                    />
-                    {loopContent()}
-                    {/*<Content*/}
-                    {/*    linkBtn = {btns}*/}
-                    {/*    title = {this.state.dataList.title}*/}
-                    {/*    functionName = {this.state.dataList.functionName}*/}
-                    {/*    desc = {this.state.dataList.desc}*/}
-                    {/*    requestContent = {requestContentTable}*/}
-                    {/*    statusOfSuccess = {requestContentTable}*/}
-                    {/*    statusOfFailed = {requestContentTable}*/}
-                    {/*/>*/}
+                    <div className="col-4 col-lg-2">
+                        <Menu
+                            nav = {navLists}
+                        />
+                    </div>
+                    <div className="col-8 col-lg-10 mainContent">
+                        {loopContent()}
+                        {/*<Content*/}
+                            {/*// linkBtn = {btns}*/}
+                            {/*title = {this.state.display.name}*/}
+                            {/*// functionName = {this.state.dataList.functionName}*/}
+                            {/*// desc = {this.state.dataList.desc}*/}
+                            {/*requestContent = {requestContentTable}*/}
+                            {/*// statusOfSuccess = {requestContentTable}*/}
+                            {/*// statusOfFailed = {requestContentTable}*/}
 
+                            {/*// data={dataList}*/}
+
+                        {/*/>*/}
+                    </div>
                 </div>
             </div>
         );
