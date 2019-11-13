@@ -1061,6 +1061,7 @@ var proposalExecutor = {
                 //valid data
                 let updateMultipleBankInfo = false;
                 let playerData;
+                console.log('##han-prod proposalData===', proposalData);
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
@@ -1072,7 +1073,7 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
-                                if(playerUpdate.bankName && playerUpdate.bankAccountName){
+                                if (playerUpdate.bankName && playerUpdate.bankAccountName) {
                                     playerUpdate.realName = playerUpdate.bankAccountName;
                                 }
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
@@ -1085,11 +1086,16 @@ var proposalExecutor = {
                                     'data.playerName': proposalData.data.playerName,
                                     'data.playerId': proposalData.data.playerId,
                                 };
+                                console.log('##han-prod propQuery===', propQuery);
+                                console.log('##han-prod playerUpdate===', playerUpdate);
+                                console.log('##han-prod updateMultipleBankInfo===', updateMultipleBankInfo);
 
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
+                                        console.log('##han-prod proposal===', proposal);
                                         if (proposal && proposal.length > 1) {
                                             if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
+                                                console.log('##han-prod DELETE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
@@ -1103,7 +1109,9 @@ var proposalExecutor = {
                                                     {upsert: true, new: true}
                                                 ).lean().then(
                                                     bankData => {
+                                                        console.log('##han-prod bankData===', bankData);
                                                         if (bankData && bankData._id) {
+                                                            console.log('##han-prod UPDATE===');
                                                             return dbconfig.collection_players.findOneAndUpdate(
                                                                 {_id: data._id, platform: data.platform},
                                                                 {multipleBankDetailInfo: bankData._id},
@@ -1116,6 +1124,7 @@ var proposalExecutor = {
                                                     }
                                                 );
                                             } else {
+                                                console.log('##han-prod HERE===11');
                                                 return dbconfig.collection_players.findOneAndUpdate(
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
@@ -1123,6 +1132,7 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                         } else {
+                                            console.log('##han-prod HERE===22');
                                             if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
                                             }
@@ -1155,6 +1165,7 @@ var proposalExecutor = {
                         });
                     }).then(
                         function (data) {
+                            console.log('##han-prod data===', data);
                             let loggerInfo = {};
                             if (proposalData.data.bankName) {
                                 loggerInfo = {
@@ -1200,6 +1211,7 @@ var proposalExecutor = {
                             loggerInfo.creatorType = constProposalUserType.SYSTEM_USERS;
                             loggerInfo.creatorObjId = proposalData.creator ? proposalData.creator.id : null;
 
+                            console.log('##han-prod loggerInfo===', loggerInfo);
                             // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
