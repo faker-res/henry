@@ -17,7 +17,7 @@ var playerBillBoardranking ={
 
         let totalRecord = 10;
         let recordDate = new Date();
-        recordDate.setHours(recordDate.getHours() - 1);
+        recordDate.setHours(recordDate.getHours() - 23);
         let matchQuery = {
             $match: {
                 createTime: {$gte: recordDate},
