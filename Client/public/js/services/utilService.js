@@ -1356,6 +1356,16 @@ define([], function () {
                 }
             }
             return registrationInterface;
+        };
+
+        //find the index of an object in an array by comparing its _id
+        this.indexOfByObjId = (arr, objId) => {
+            arr.forEach((item, index) => {
+                if(item._id == objId) {
+                    return index;
+                }
+            });
+            return -1;
         }
     };
 
