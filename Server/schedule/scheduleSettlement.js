@@ -13,24 +13,24 @@ var errorUtils = require("../modules/errorUtils.js");
 console.log("Settlement schedule start");
 
 /* This function is executed every minute */
-var minuteJob = new CronJob('0 * * * * *', function() {
-    // create daily settlement cronJob for each game provider
+var minuteJob = new CronJob('0 * * * * *', function () {
+    //create daily settlement cronJob for each game provider
     console.log('settlement cron job start');
     var processProviders = () => dbGameProvider.getAllGameProviders().then(
-        function(providers) {
+        function(providers){
             console.log('settlement cron job done getAllGameProviders');
-            if ( providers ) {
-                return promiseUtils.each(providers, function(providerData) {
-                    // start daily settlement for platform
+            if( providers ){
+                return promiseUtils.each(providers, function (providerData) {
+                    //start daily settlement for platform
                     if (providerData.dailySettlementHour != null && providerData.dailySettlementMinute != null) {
                         return dailyProviderSettlement.startDailyProviderSettlement(providerData).then(
-                            function(data) {
+                            function (data) {
                                 if (data) {
                                     console.log(new Date().toString() + "Daily Provider Settlement Done", providerData._id, data);
                                 }
                             }
                         ).catch(
-                            function(error) {
+                            function (error) {
                                 console.log("Daily Provider Settlement error", providerData._id);
                                 errorUtils.reportError(error);
                             }
@@ -38,23 +38,22 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                     }
                 });
             }
-
-            else {
+            else{
                 console.log("No game providers");
             }
         },
-        function(error) {
+        function(error){
             console.log("Error finding all game providers", error);
         }
     ).catch(
-        function(error) {
+        function (error) {
             console.log("Error executing provider settlement", error.stack || error);
         }
     );
 
-    // create daily settlement cronJob for each platform
+    //create daily settlement cronJob for each platform
     var processPlatforms = () => dbPlatform.getAllPlatforms().then(
-        function(platforms) {
+        function (platforms) {
             if (platforms) {
                 let curTime = new Date();
                 return promiseUtils.each(platforms, function (platformData) {
@@ -65,32 +64,33 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                     var task5 = null;
                     var task6 = null;
 
-                    // start daily settlement for platform
+                    //start daily settlement for platform
                     if (platformData.dailySettlementHour != null && platformData.dailySettlementMinute != null) {
+
                         task1 = () => dailyPlatformSettlement.startDailyPlatformSettlement(platformData).then(
-                            function(data) {
+                            function (data) {
                                 if (data) {
                                     console.log(new Date().toString() + "Daily Platform Settlement Done", platformData._id, data);
                                 }
                             }
                         ).catch(
-                            function(error) {
+                            function (error) {
                                 console.log("Daily Platform Settlement error doing", platformData._id);
                                 errorUtils.reportError(error);
                             }
                         );
                     }
 
-                    // create weekly cronjob for each platform
+                    //create weekly cronjob for each platform
                     if (platformData.weeklySettlementDay != null && platformData.weeklySettlementHour != null && platformData.weeklySettlementMinute != null) {
                         task2 = () => weeklyPlatformSettlement.startWeeklyPlatformSettlement(platformData).then(
-                            function(data) {
+                            function (data) {
                                 if (data) {
                                     console.log(new Date().toString() + "Weekly Platform Settlement Done", platformData._id, data);
                                 }
                             }
                         ).catch(
-                            function(error) {
+                            function (error) {
                                 console.log("Weekly Platform Settlement error doing", platformData._id);
                                 errorUtils.reportError(error);
                             }
@@ -102,11 +102,11 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                         task3 = () => dailyPlatformSettlement.startDailyRefreshPaymentQuota(platformData).then(
                             data => {
                                 if (data) {
-                                    console.log(new Date().toString() + "Daily Refresh Payment Quota Done", platformData._id, data);
+                                    console.log(new Date().toString() + "Daily Refresh Payment Quota Done", platformData._id, data)
                                 }
                             }
                         ).catch(
-                            function(error) {
+                            function (error) {
                                 console.log("Daily Refresh Payment Quota error doing", platformData._id);
                                 errorUtils.reportError(error);
                             }
@@ -120,7 +120,7 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                             }
                         }
                     ).catch(
-                        function(error) {
+                        function (error) {
                             console.log("Daily Distribute tsPhone error doing", platformData._id);
                             errorUtils.reportError(error);
                         }
@@ -143,7 +143,7 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                                 })
                                 errorUtils.reportError(error);
                             }
-                        );
+                        )
                     }
 
                     // hard code check at 02:00 everyday
@@ -155,7 +155,7 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                                 }
                             }
                         ).catch(
-                            function(error) {
+                            function (error) {
                                 console.log("Daily Decompose tsPhone error doing", platformData._id);
                                 errorUtils.reportError(error);
                             }
@@ -166,11 +166,11 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                 });
             }
         },
-        function(error) {
+        function (error) {
             console.log("Error finding all platforms", error);
         }
     ).catch(
-        function(error) {
+        function (error) {
             console.log("Error executing platform settlement", error.stack || error);
         }
     );
@@ -189,7 +189,7 @@ var minuteJob = new CronJob('0 * * * * *', function() {
                     }
                 }
             ).catch(
-                function(error) {
+                function (error) {
                     console.log("Daily Phone Trade error doing");
                     errorUtils.reportError(error);
                 }
@@ -201,9 +201,9 @@ var minuteJob = new CronJob('0 * * * * *', function() {
 
     return Promise.all([processProviders(), processTsPhone(), processPlatforms()]);
 
-}, function() {
+}, function () {
         console.log("Daily Settlement Done", Date());
     },
     true /* Start the job right now */
-    // timeZone /* Time zone of this job. */
+    //timeZone /* Time zone of this job. */
 );
