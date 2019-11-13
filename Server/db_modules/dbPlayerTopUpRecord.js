@@ -193,6 +193,7 @@ var dbPlayerTopUpRecord = {
                             }
                         ];
                     }
+                    console.log("#35E143 getAggregateInput(playerIds)", getAggregateInput(playerIds))
 
                     return dbconfig.collection_playerTopUpRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
                         data => data,
@@ -402,11 +403,16 @@ var dbPlayerTopUpRecord = {
                         let playerReportDaySummary = [];
 
                         if(topUpDetails && topUpDetails.length > 0){
+                            console.log("#35E14X topUp", JSON.stringify(topUpDetails, null, 2))
                             console.log("LH check player report 4------", topUpDetails.length);
                             topUpDetails.forEach(
                                 topUp => {
                                     if(topUp && topUp._id && topUp._id.playerId){
                                         let indexNo = playerReportDaySummary.findIndex(p => p.playerId && topUp._id && topUp._id.playerId && p.playerId.toString() == topUp._id.playerId.toString() && p.loginDevice == topUp._id.loginDevice);
+
+                                        if (String(topUp._id.playerId) === "5b0a4fe77044520044e38b2b") {
+                                            console.log("#35E144 topUp", JSON.stringify(topUp, null, 2), indexNo)
+                                        }
 
                                         if(indexNo == -1){
                                             let topUpObj = {
@@ -431,13 +437,13 @@ var dbPlayerTopUpRecord = {
                                             playerReportDaySummary[indexNo].topUpTimes += topUp.times;
 
                                             if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].manualTopUpAmount || 0);
+                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount;
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                playerReportDaySummary[indexNo].onlineTopUpAmount = (topUp.oriAmount || topUp.amount) + (playerReportDaySummary[indexNo].onlineTopUpAmount || 0);
+                                                playerReportDaySummary[indexNo].onlineTopUpAmount = topUp.oriAmount || topUp.amount;
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].alipayTopUpAmount || 0);
+                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount;
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].wechatpayTopUpAmount || 0);
+                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount;
                                             }
                                         }
                                     }
