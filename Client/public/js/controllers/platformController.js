@@ -17884,6 +17884,15 @@ define(['js/app'], function (myApp) {
                     if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                        e.roles.map(r => {
+                            if(r.users && r.users.length) {
+                                r.users.map(u => {
+                                    if(u._id != "" && utilService.indexOfByObjId(vm.queryAdmins, u._id) < 0) {
+                                        vm.queryAdmins.push(u);
+                                    }
+                                })
+                            }
+                        });
                     }
                 });
 
