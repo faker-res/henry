@@ -574,6 +574,8 @@ var proposalExecutor = {
                                     changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
                             }
 
+                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                             return player;
                         },
                         error => {
@@ -1559,7 +1561,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_partner.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit}
+                                    {realName: proposalData.data.realNameAfterEdit, bankAccountName: proposalData.data.realNameAfterEdit}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect partner data", error: Error()});
@@ -1734,6 +1736,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => {
@@ -1750,6 +1753,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1762,6 +1766,7 @@ var proposalExecutor = {
             executePlayerQuickpayTopUp: function (proposalData) {
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
                     data => {
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1776,6 +1781,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1793,6 +1799,7 @@ var proposalExecutor = {
                         data => {
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                             return proposalData;
                         },
                         error => Promise.reject(error)
@@ -3447,6 +3454,8 @@ var proposalExecutor = {
                                             else if (retData[1].data.rewardType && retData[1].data.rewardType == constRandomRewardType.PROMOCODE_C){
                                                 sendMessageToPlayer(retData[1], constMessageType.RANDOM_REWARD_PROMO_CODE_C_SUCCESS, {});
                                             }
+
+                                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                                             dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                                             return retData[1]
                                         }
@@ -5611,6 +5620,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                         return deferred.resolve(resolveValue || taskData);
                     },
                     error => {
@@ -5629,6 +5640,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                         return deferred.resolve(resolveValue || taskData);
                     }
                 ).catch(
@@ -5684,6 +5697,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             ).then(
                 //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                 () => {
+                    messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                 }
             ).then(
@@ -5859,6 +5873,7 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
                     rewardTask = data;
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                     sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                    messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                     return resolveValue || taskData;
                 }
             ).catch(
