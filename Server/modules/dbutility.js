@@ -1214,7 +1214,7 @@ var dbUtility = {
                         shardKeys.forEach((shardKey) => {
                             shardQuery[shardKey] = data[shardKey]
                         });
-                        return model.findOneAndUpdate(shardQuery, updateData);
+                        return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                     }
                     else {
                         var newModel = new model(query);
@@ -1224,7 +1224,7 @@ var dbUtility = {
                                 shardKeys.forEach((shardKey) => {
                                     shardQuery[shardKey] = newData[shardKey]
                                 });
-                                return model.findOneAndUpdate(shardQuery, updateData, {new: true});
+                                return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                             },
                             function (error) {
                                 return Q.reject({name: "DBError", message: "Error creating db data", error: error});
