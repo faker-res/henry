@@ -17868,10 +17868,12 @@ define(['js/app'], function (myApp) {
 
             vm.setQueryRole = (modal) => {
                 vm.queryRoles = [];
+                vm.queryAdmins = [];
 
                 vm.queryDepartments.map(e => {
                     if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
+                        vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
 
@@ -17906,6 +17908,9 @@ define(['js/app'], function (myApp) {
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
                     }
                 });
+                if (modal && modal.roles && modal.roles.length == 0) {
+                    vm.setQueryRole(modal);
+                }
 
                 vm.refreshSPicker();
                 $scope.safeApply();

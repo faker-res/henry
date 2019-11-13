@@ -1,48 +1,101 @@
 import React, { Component } from 'react';
 import Menu from './menu';
 import Content from './content';
-import ApiContent from '../ApiContent';
+import apiData from '../data/apiDocumentation';
 
-var selectedName;
 class Home extends Component {
     state = {
+        api: {
+            Login: [
+                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#登录"},
+                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家登录"},
+            ],
+            Register: [
+                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#玩家开户"}
+            ]
+        },
         display:{},
-        linkList:{},
-        contentList:{}
+        dataList:{}
     };
 
     UNSAFE_componentWillMount() {
-        // console.log('state', ApiContent[Object.keys(ApiContent)[0]])
-        this.setState({display: ApiContent[Object.keys(ApiContent)[0]]})
+        this.setState({display: apiData.login});
     }
 
     clickHandler = (event) => {
-        let name = event.target.innerText;
-        this.setState({display: ApiContent[name]})
+        Object.keys(apiData).map((key) => {
+            if(apiData[key].name === event.target.innerText){
+                this.setState({display: apiData[key]});
+            }
+        });
     };
 
-    showContentHandler = (event) => {
-        let content = this.state.display;
-        selectedName = event.target.innerText;
-        this.setState({linkList: content[selectedName]});
+    showDataHandler = (event) => {
+        Object.keys(this.state.display).map((key) => {
+            if(this.state.display[key].title === event.target.innerText){
+                this.setState({dataList: this.state.display[key]});
+            }
+        });
+
     };
 
     render() {
-        var content = "";
-        const lists = Object.keys(ApiContent).map((key, index) => {
-            return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
+        const lists = Object.keys(apiData).map((key, index) => {
+            return <li className="nav-item" key={index} onClick={this.clickHandler}
+                       style={{cursor: "pointer"}}>{apiData[key].name}</li>;
         });
-        const btns = Object.keys(this.state.display).map((key, index) => {
-            return <button key={index} onClick={this.showContentHandler} className="btn btn-dark m-1">{key}</button>
+
+        const btns = Object.keys(this.state.display).map((item, index) => {
+            if(this.state.display[item].title){
+                return <button className="btn btn-dark m-1" key={index} onClick={this.showDataHandler}>
+                    {this.state.display[item].title}</button>
+            }
         });
-        if(selectedName){
-            content = Object.keys(this.state.display[selectedName].requestContent).map((key, index) => {
-                console.log('key', key);
-                console.log('content', this.state.display[selectedName].requestContent);
-                console.log('value', this.state.display[selectedName].requestContent[key]);
-                return <li>{key + " : " + this.state.display[selectedName].requestContent[key]}</li>;
-            })
-        }
+
+        console.log(this.state.dataList);
+
+        // let dataList = [];
+        // let keys = Object.keys(this.state.dataList)
+        // for (let i = 0; i < keys.length; i++) {
+        //     let key = keys[i];
+        //     let item = this.state.dataList[key];
+        //
+        //     if (typeof (item) !== "object") {
+        //         console.log("key", key)
+        //         dataList.push(<div>{item}</div>);
+        //     } else {
+        //         for (let [subitemKey, subitem] of Object.entries(item)) {
+        //             console.log("subitemKey", subitemKey)
+        //             dataList.push(<div>{subitemKey}: {subitem}</div>);
+        //         }
+        //     }
+        // }
+
+        // let dataList = Object.keys(this.state.dataList).map((item, index) => {
+        //     if (typeof (this.state.dataList[item]) !== "object") {
+        //         return <div key={index}>{this.state.dataList[item]}</div>
+        //     }
+        //     if(typeof(this.state.dataList[item]) === "object" ){
+        //         Object.entries(this.state.dataList[item]).map((innerItem, index) => {
+        //             console.log(innerItem)
+        //             return <div key={index}>{innerItem}</div>
+        //         })
+        //
+        //     }
+        //
+        // });
+
+        let requestContentTable = Object.keys(this.state.dataList).map((item, index) => {
+            console.log(item);
+            return  <tr>
+                        <td>{item}</td>
+                        <td>{this.state.dataList[item]}</td>
+                    </tr>
+
+
+
+        });
+
 
         return (
             <div>
@@ -50,20 +103,20 @@ class Home extends Component {
                     <Menu
                         list = {lists}
                     />
-                    （
-                        for(let key in object){
-                            <Content
-                            linkBtn = {btns}
 
-                            desc = {this.state.linkList.desc}
-                            requestContent = {content}
-                            statusSuccess = {this.state.linkList.statusSuccess}
-                            statusFailed = {this.state.linkList.statusFailed}
+                    <Content
+                        linkBtn = {btns}
+                        title = {this.state.dataList.title}
+                        functionName = {this.state.dataList.functionName}
+                        desc = {this.state.dataList.desc}
+                        requestContent = {requestContentTable}
+                        statusOfSuccess = {requestContentTable}
+                        statusOfFailed = {requestContentTable}
 
-                            />
-                        }
+                        // data={dataList}
 
-                    ）
+
+                    />
                 </div>
             </div>
         );

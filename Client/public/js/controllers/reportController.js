@@ -1354,10 +1354,12 @@ define(['js/app'], function (myApp) {
 
         vm.setQueryRole = (modal) => {
             vm.queryRoles = [];
+            vm.queryAdmins = [];
 
             vm.queryDepartments.map(e => {
                 if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                     vm.queryRoles = vm.queryRoles.concat(e.roles);
+                    vm.queryAdmins = vm.queryAdmins.concat(e.users);
                 }
             });
 
@@ -1398,6 +1400,9 @@ define(['js/app'], function (myApp) {
                     vm.queryAdmins = vm.queryAdmins.concat(e.users);
                 }
             });
+            if (modal && modal.roles && modal.roles.length == 0) {
+                vm.setQueryRole(modal);
+            }
 
             endLoadMultipleSelect('.spicker');
             $scope.safeApply();
@@ -4477,23 +4482,23 @@ define(['js/app'], function (myApp) {
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             let sumData = {
-                7: vm.feedbackDataSum.manualTopUpAmount,
-                8: vm.feedbackDataSum.weChatTopUpAmount,
-                9: vm.feedbackDataSum.aliPayTopUpAmount,
-                10: vm.feedbackDataSum.onlineTopUpAmount,
-                11: vm.feedbackDataSum.topUpTimes,
-                12: vm.feedbackDataSum.topUpAmount,
-                13: vm.feedbackDataSum.bonusTimes,
-                14: vm.feedbackDataSum.bonusAmount,
-                15: vm.feedbackDataSum.rewardAmount,
-                16: vm.feedbackDataSum.consumptionReturnAmount,
-                17: vm.feedbackDataSum.consumptionTimes,
-                18: vm.feedbackDataSum.validConsumptionAmount,
-                19: vm.feedbackDataSum.consumptionBonusAmount,
-                20: vm.feedbackDataSum.profit,
-                23: vm.feedbackDataSum.consumptionAmount,
-                24: vm.feedbackDataSum.totalPlatformFeeEstimate.toFixed(2),
-                25: vm.feedbackDataSum.totalOnlineTopUpFee.toFixed(2),
+                8: vm.feedbackDataSum.manualTopUpAmount,
+                9: vm.feedbackDataSum.weChatTopUpAmount,
+                10: vm.feedbackDataSum.aliPayTopUpAmount,
+                11: vm.feedbackDataSum.onlineTopUpAmount,
+                12: vm.feedbackDataSum.topUpTimes,
+                13: vm.feedbackDataSum.topUpAmount,
+                14: vm.feedbackDataSum.bonusTimes,
+                15: vm.feedbackDataSum.bonusAmount,
+                16: vm.feedbackDataSum.rewardAmount,
+                17: vm.feedbackDataSum.consumptionReturnAmount,
+                18: vm.feedbackDataSum.consumptionTimes,
+                19: vm.feedbackDataSum.validConsumptionAmount,
+                20: vm.feedbackDataSum.consumptionBonusAmount,
+                21: vm.feedbackDataSum.profit,
+                24: vm.feedbackDataSum.consumptionAmount,
+                25: vm.feedbackDataSum.totalPlatformFeeEstimate.toFixed(2),
+                26: vm.feedbackDataSum.totalOnlineTopUpFee.toFixed(2),
             };
 
             if(isExport){

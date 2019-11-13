@@ -268,10 +268,11 @@ const messageDispatcher = {
                     return data;
                 }
             );
-        }
-        // @todo SMS format
-        else {
-            // return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
+        } else if (format === 'creditUpdate') {
+            let wsMessageClient = serverInstance.getWebSocketMessageClient();
+            if (wsMessageClient) {
+                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "notifyCreditChange", metaData);
+            }
         }
     }
 
