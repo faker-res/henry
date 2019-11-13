@@ -47,21 +47,24 @@ const isLoginStatusOfFailed = {
 let apiDoc = {
     login: {
         name: "登入",
-        login: {
-            title:"登录",
-            functionName: "Login",
-            desc:"玩家登录接口",
-            // requestContent: loginRequestContent ,
-            // statusOfSuccess: loginStatusOfSuccess,
-            // statusOfFailed: loginStatusOfFailed,
-        },
-        isLogin: {
-            title: "是否已成功登入",
-            functionName: "isLogin",
-            desc:"查询玩家是否登录",
-            requestContent: isLoginRequestContent ,
-            statusOfSuccess: isLoginStatusOfSuccess,
-            statusOfFailed: isLoginStatusOfFailed,
+        func:{
+            login: {
+                title:"登录",
+                functionName: "Login",
+                desc:"玩家登录接口",
+                // requestContent: loginRequestContent ,
+                // statusOfSuccess: loginStatusOfSuccess,
+                // statusOfFailed: loginStatusOfFailed,
+            },
+            isLogin: {
+                title: "是否已成功登入",
+                functionName: "isLogin",
+                desc:"查询玩家是否登录",
+                requestContent: isLoginRequestContent ,
+                statusOfSuccess: isLoginStatusOfSuccess,
+                statusOfFailed: isLoginStatusOfFailed,
+            },
+
         }
     },
     topup: {
