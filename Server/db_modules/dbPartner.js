@@ -8613,18 +8613,17 @@ let dbPartner = {
             }
         ]).read("secondaryPreferred");
 
-        console.log('calculatePartnerCommissionBillBoard partnerData', partnerData);
+        partnerData = partnerData || [];
 
-        if (!(partnerData && partnerData.length)) {
-            return;
+        let populatedData = [];
+        if (partnerData && partnerData.length) {
+            // populate partner
+            populatedData = await dbconfig.collection_partner.populate(partnerData, {
+                path: '_id',
+                model: dbconfig.collection_partner,
+                select: "partnerName"
+            });
         }
-
-        // populate partner
-        let populatedData = await dbconfig.collection_partner.populate(partnerData, {
-            path: '_id',
-            model: dbconfig.collection_partner,
-            select: "partnerName"
-        });
 
         // save to record
         for (let i = 0; i < populatedData.length; i++) {
