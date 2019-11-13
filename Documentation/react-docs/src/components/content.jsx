@@ -9,12 +9,10 @@ class Content extends Component{
         return (
             <div className="mb-5 p-2 ">
                 <div>
-                    {this.props.linkBtn}
-                    <h2>{this.props.title}</h2>
+                    <h2>{this.props.title} ({this.props.functionName})</h2>
                 </div>
 
                 <div>
-                    <h5>functionName: {this.props.functionName}</h5>
                     <h5>{this.props.desc}</h5>
 
 
@@ -30,13 +28,13 @@ class Content extends Component{
                     </table>
 
 
-                    <h5>操作成功:</h5>
+                    {this.props.respondSuccess ? <h5>操作成功:</h5> : null}
                     <table className="table table-bordered table-sm">
-                        {this.props.statusOfSuccess}
+                        {this.props.respondSuccess}
                     </table>
-                    <h5>操作失败:</h5>
+                    {this.props.respondFailure ? <h5>操作失败:</h5> : null}
                     <table className="table table-bordered table-sm">
-                        {this.props.statusOfFailed}
+                        {this.props.respondFailure}
                     </table>
 
                     </div>

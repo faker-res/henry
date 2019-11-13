@@ -38,21 +38,20 @@ class Home extends Component {
                 {apiData[key].name}</li>);
         }
 
-        const btns = Object.keys(this.state.display.func).map((item, index) => {
-            if(this.state.display.func[item].title){
-                return <button className="btn btn-dark m-1" key={index} onClick={this.showDataHandler}>
-                    {this.state.display.func[item].title}</button>
-            }
-        });
-
-        let requestContentTable = apiData.login.login.requestContent.map((item) => {
-            return  <tr>
+        let generateRequestContent = (name) => {
+            let rows = [];
+            this.state.funcList[name].requestContent.map((item) => {
+                rows.push(
+                    <tr>
                         <td>{item.param}</td>
                         <td>{item.mandatory}</td>
                         <td>{item.type}</td>
                         <td>{item.content}</td>
                     </tr>
-        });
+                )
+            });
+            return rows;
+        };
 
         console.log(this.state.display.func);
         console.log(this.state.funcList);
@@ -62,13 +61,12 @@ class Home extends Component {
             for(let key in this.state.funcList){
 
                 temp.push(<Content
-                    linkBtn = {btns}
                     title = {this.state.funcList[key].title}
                     functionName = {this.state.funcList[key].functionName}
                     desc = {this.state.funcList[key].desc}
-                    requestContent = {requestContentTable}
-                    statusOfSuccess = {requestContentTable}
-                    statusOfFailed = {requestContentTable}
+                    requestContent = {generateRequestContent(key)}
+                    // respondSuccess = {this.state.funcList[key].respondSuccess ? this.state.funcList[key].respondSuccess.status : null}
+                    // respondFailure = {this.state.funcList[key].respondFailure ? this.state.funcList[key].respondFailure.status : null}
                 />);
             }
             console.log('temp',temp);
@@ -86,18 +84,6 @@ class Home extends Component {
                     </div>
                     <div className="col-8 col-lg-10 mainContent">
                         {loopContent()}
-                        {/*<Content*/}
-                            {/*// linkBtn = {btns}*/}
-                            {/*title = {this.state.display.name}*/}
-                            {/*// functionName = {this.state.dataList.functionName}*/}
-                            {/*// desc = {this.state.dataList.desc}*/}
-                            {/*requestContent = {requestContentTable}*/}
-                            {/*// statusOfSuccess = {requestContentTable}*/}
-                            {/*// statusOfFailed = {requestContentTable}*/}
-
-                            {/*// data={dataList}*/}
-
-                        {/*/>*/}
                     </div>
                 </div>
             </div>

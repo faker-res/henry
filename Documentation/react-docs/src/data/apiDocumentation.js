@@ -1,18 +1,4 @@
 // ********************************************* login data ***********************************
-
-// const loginRequestContent = {
-//     platformId: "必填|String|玩家注册平台",
-//     name: "必填|String|玩家用户名",
-//     password: "必填|String|玩家密码",
-//     captcha: "选填|String|验证码 (登录三次失败后需要填验证码)",
-//     clientDomain: "选填|String|登陆域名",
-//     deviceId: "选填|String|设备号",
-//     checkLastDeviceId: "选填|Boolean|检查上次登入设备是否与这次一样",
-//     deviceType: "选填|设备类型列表",
-//     subPlatformId: "选填|子平台列表"
-// };
-
-
 const loginRequestContent = [
     {param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台'},
     {param: "name", mandatory: "是", type: 'String', content: '玩家用户名'},
@@ -39,6 +25,7 @@ const loginStatusOfFailed = {
 
 // ********************************************* isLogin data ***********************************
 const isLoginRequestContent = [
+    {param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID'},
     {param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID'}
 ];
 
@@ -63,19 +50,19 @@ let apiDoc = {
         func:{
             login: {
                 title:"登录",
-                functionName: "Login",
+                functionName: "login",
                 desc:"玩家登录接口",
-                // requestContent: loginRequestContent ,
-                // statusOfSuccess: loginStatusOfSuccess,
-                // statusOfFailed: loginStatusOfFailed,
+                requestContent: loginRequestContent ,
+                // respondSuccess: loginStatusOfSuccess,
+                // respondFailure: loginStatusOfFailed,
             },
             isLogin: {
                 title: "是否已成功登入",
                 functionName: "isLogin",
                 desc:"查询玩家是否登录",
                 requestContent: isLoginRequestContent ,
-                statusOfSuccess: isLoginStatusOfSuccess,
-                statusOfFailed: isLoginStatusOfFailed,
+                respondSuccess: isLoginStatusOfSuccess,
+                respondFailure: isLoginStatusOfFailed,
             },
 
         }
