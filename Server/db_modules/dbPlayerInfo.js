@@ -26333,7 +26333,12 @@ let dbPlayerInfo = {
                                 console.log('return data..',returnData.allWin);
                             }
                         }
-                    );
+                    ).then(returnRecord => {
+                        if(returnRecord) {
+                            return returnData;
+                        }
+                    });
+
 
                     // old code, will delete it if the new code is working fine. Else, uncomment old code.
 
