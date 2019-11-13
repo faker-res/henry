@@ -482,6 +482,9 @@ let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymen
 let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
 let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
 
+let playerTopUpHourSummarySchema = require('./../schema/logs2/playerTopUpHourSummary');
+let playerTopUpHourSummaryModel = dbLogs2.model('playerTopUpHourSummary', playerTopUpHourSummarySchema, 'playerTopUpHourSummary');
+
 let commissionBBSchema = require('./../schema/commissionBB');
 let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commissionBB');
 
@@ -893,6 +896,7 @@ var dbProperties = {
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
     collection_playerGameTypeConsumptionWeekSummary: playerGameTypeConsumptionWeekSummaryModel,
+    collection_playerTopUpHourSummary: playerTopUpHourSummaryModel,
 
 
     collection_commissionBB: commissionBBModel,
