@@ -2595,8 +2595,15 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                 for (let x = 0, len = rewardPointsProgress.length; x < len; x++) {
                     let progressData = rewardPointsProgress[x];
 
-                    if (progressData && progressData.rewardPointsEventObjId && progressData.rewardPointsEventObjId.toString() === reward._id.toString()
-                        && progressData.lastUpdateTime >= rewardStartTime && progressData.lastUpdateTime <= rewardEndTime) {
+                    if (
+                        progressData && progressData.rewardPointsEventObjId
+                        && progressData.rewardPointsEventObjId.toString() === reward._id.toString()
+                        && progressData.lastUpdateTime >= rewardStartTime
+                        && progressData.lastUpdateTime <= rewardEndTime
+                    ) {
+
+                        console.log('xxy', progressData);
+
                         currentGoal = progressData.count;
                         turnQualifiedLoginDate = progressData.turnQualifiedLoginDate || "";
                         if (progressData.isApplied) {
