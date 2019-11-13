@@ -9,6 +9,7 @@ var simplifiedChinese = {
     "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
     "Captcha code invalid": "图形验证码无效",
     "Phone number already exists": "此手机号已被注册，请联系客服人员",
+    "Please contact CS for latest app": "版本已更新，请联系客服索取最新版本",
     "The player name to be registered is different from the one in SMS log. Please get a new one.": "新开户名字与SMS记录里的名字不符，请重新获取验证码，谢谢。",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
