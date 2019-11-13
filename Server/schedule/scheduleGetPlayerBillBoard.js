@@ -1,5 +1,5 @@
 var CronJob = require('cron').CronJob;
-var playerBillBoardranking = require('./../scheduleTask/PlayerBillBoardRanking');
+var playerBillBoardranking = require('./../scheduleTask/playerBillBoardranking');
 var errorUtils = require("../modules/errorUtils.js");
 // at every minute = 0, means every hours
 var hourJob = new CronJob('0 * * * *', function() {
