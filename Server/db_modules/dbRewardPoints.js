@@ -1741,11 +1741,6 @@ let dbRewardPoints = {
                         ).then(
                             summary => {
                                 let periodTopupAmount = summary && summary[0] && summary[0].amount ? summary[0].amount : 0;
-
-                                console.log('xxx event', event);
-                                console.log('topupMatchQuery', topupMatchQuery);
-                                console.log('xxx periodTopupAmount', periodTopupAmount);
-
                                 let eventProgress = getEventProgress(rewardProgressList, event);
                                 eventProgress.rewardPointsObjId = rewardPointRecord._id;
                                 let progressChanged = updateTopupProgressCount(eventProgress, event, periodTopupAmount);
@@ -2601,9 +2596,6 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         && progressData.lastUpdateTime >= rewardStartTime
                         && progressData.lastUpdateTime <= rewardEndTime
                     ) {
-
-                        console.log('xxy', progressData);
-
                         currentGoal = progressData.count;
                         turnQualifiedLoginDate = progressData.turnQualifiedLoginDate || "";
                         if (progressData.isApplied) {
@@ -2662,6 +2654,7 @@ function getRewardPointEvent(category, rewardPointEvent, gameProvider, rewardPoi
                         "manualTopupType": reward.target && reward.target.depositMethod ? reward.target.depositMethod : "",
                         "bankCardType": reward.target && reward.target.bankType ? reward.target.bankType : "",
                         "dailyRequestDeposit": reward.target && reward.target.dailyTopupAmount ? reward.target.dailyTopupAmount : 0,
+                        "singleRequestDeposit": reward.target && reward.target.singleTopupAmount ? reward.target.singleTopupAmount : 0,
                         "title": reward.rewardTitle,
                         "content": reward.rewardContent,
                         "gradeLimit": level,
