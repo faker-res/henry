@@ -48,45 +48,70 @@ class Home extends Component {
         let generateRespondSuc = (name) => {
             let rows = [];
             for(let key in this.state.funcList[name].respondSuccess){
-                console.log('res', key);
-                rows.push(
-                    <h6>{key} : {this.state.funcList[name].respondSuccess[key]}</h6>
-                )
+                if(key == "data") {
+                    let lines = this.state.funcList[name].respondSuccess[key].split(/\r?\n/);
+                    rows.push(
+                        <div>data: {lines[0]}</div>
+                    )
+                    lines.forEach((line, index) => {
+                        if(index > 0) {
+                            line = line.replace(/\s/g, "\u00a0"); 
+                            rows.push(
+                                <div>{line}</div>
+                            )
+                        }
+                    });
+                } else {
+                    rows.push(
+                        <div>{key} : {this.state.funcList[name].respondSuccess[key]}</div>
+                    )
+                }
             }
-            console.log('rows', rows);
             return rows;
         };
 
         let generateRespondFal = (name) => {
             let rows = [];
             for(let key in this.state.funcList[name].respondFailure){
-                console.log('res', key);
                 rows.push(
-                    <h6>{key} : {this.state.funcList[name].respondFailure[key]}</h6>
+                    <div>{key} : {this.state.funcList[name].respondFailure[key]}</div>
                 )
             }
-            console.log('rows', rows);
             return rows;
         }
 
-        console.log(this.state.display.func);
-        console.log(this.state.funcList);
-        console.log(this.state);
-        let loopContent = () => {
-            let temp = [];
-            for(let key in this.state.funcList){
+        let drawTableRow = (funcName, contentKey) => {
+            let rows = [];
+            if(this.state.funcList.hasOwnProperty(funcName) && this.state.funcList[funcName].hasOwnProperty(contentKey)) {
+                this.state.funcList[funcName][contentKey].map((item) => {
+                    rows.push(
+                        <tr>
+                            {item.param ? <td>{item.param}</td> : null}
+                            {item.mandatory ? <td>{item.mandatory}</td> : null}
+                            {item.type ? <td>{item.type}</td> : null}
+                            {item.content ? <td>{item.content}</td> : null}
+                        </tr>
+                    )
+                });
+            }
+            return rows;
+        }
 
-                temp.push(<Content
+        let loopContent = () => {
+            let contents = [];
+            for(let key in this.state.funcList){
+                contents.push(<Content
                     title = {this.state.funcList[key].title}
                     functionName = {this.state.funcList[key].functionName}
+                    serviceName = {this.state.funcList[key].serviceName}
                     desc = {this.state.funcList[key].desc}
                     requestContent = {generateRequestContent(key)}
                     respondSuccess = {generateRespondSuc(key)}
+                    respondSuccessContent = {drawTableRow(key, 'respondSuccessContent')}
                     respondFailure = {generateRespondFal(key)}
                 />);
             }
-            console.log('temp',temp);
-            return temp;
+            return contents;
         }
 
         return (
