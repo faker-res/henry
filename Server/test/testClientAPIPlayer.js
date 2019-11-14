@@ -777,7 +777,7 @@ describe("Test Client API - Player service", function () {
     it('Should Get Update DeviceId', function () {
         clientPlayerAPITest.updateDeviceId(function (data) {
             data.status.should.equal(200);
-            data.data.number.should.be.a('string');
+            data.data.should.be.a('boolean');
 
         }, {playerId: testPlayerId, deviceId: "deviceId123"});
     });

@@ -45,7 +45,7 @@ describe("Test Client API - Player service", function () {
         testPlatformId = testPlatform.platformId;
 
         // create test player
-        let testPlayer = await commonTestFun.createTestPlayer(testPlatformObjId);
+        let testPlayer = await commonTestFun.createTestPlayer(testPlatformObjId, true);
         testPlayerName = testPlayer.name;
         testPlayerObjId = testPlayer._id;
         testPlayerId = testPlayer.playerId;

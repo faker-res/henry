@@ -75,7 +75,7 @@ let commonTestFunc = {
         return dbPlatform.createPlatform(platformData);
     },
 
-    createTestPlayer: function (platformId) {
+    createTestPlayer: function (platformId, isRequiredDOB=false) {
         return Q.all([
             commonTestFunc.getTestMerchantGroup(platformId),
             commonTestFunc.getTestBankCardGroup(platformId),
@@ -110,6 +110,10 @@ let commonTestFunc = {
                     merchantGroup: merchantGroup._id,
                     bankCardGroup: bankCardGroup._id
                 };
+
+                if (isRequiredDOB) {
+                    playerData.DOB = new Date();
+                }
                 return dbPlayerInfo.createPlayerInfo(playerData);
             }
         );

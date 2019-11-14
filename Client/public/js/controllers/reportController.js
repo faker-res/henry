@@ -126,32 +126,40 @@ define(['js/app'], function (myApp) {
         vm.propsosalDeviceList = {
             // for player
             "1": "WEB_PLAYER",
-            "1403": "WEB_PLAYER_EU",
+            "1403": "WEB_PLAYER_EU_OLD",
+            "1410": "WEB_PLAYER_EU",
             "1402": "WEB_PLAYER_V68",
             "1401": "WEB_PLAYER_EU_CHESS",
             "2": "H5_PLAYER",
-            "2403": " H5_PLAYER_EU",
+            "2403": " H5_PLAYER_EU_OLD",
+            "2410": " H5_PLAYER_EU",
             "2402": "H5_PLAYER_V68",
             "2401": "H5_PLAYER_EU_CHESS",
-            "3403": "APP_PLAYER_ANDROID_EU",
+            "3403": "APP_PLAYER_ANDROID_EU_OLD",
+            "3410": "APP_PLAYER_ANDROID_EU",
             "3401": "APP_PLAYER_ANDROID_EU_CHESS",
             "3402": "APP_PLAYER_ANDROID_V68",
-            "4403": "APP_PLAYER_IOS_EU",
+            "4403": "APP_PLAYER_IOS_EU_OLD",
+            "4410": "APP_PLAYER_IOS_EU",
             "4401": "APP_PLAYER_IOS_EU_CHESS",
             "4402": "APP_PLAYER_IOS_V68",
             // for partner
             "P1": "WEB_PARTNER",
-            "P1403": "WEB_PARTNER_EU",
+            "P1403": "WEB_PARTNER_EU_OLD",
+            "P1410": "WEB_PARTNER_EU",
             "P1402": "WEB_PARTNER_V68",
             "P1401": "WEB_PARTNER_EU_CHESS",
             "P2": "H5_PARTNER",
-            "P2403": "H5_PARTNER_EU",
+            "P2403": "H5_PARTNER_EU_OLD",
+            "P2410": "H5_PARTNER_EU",
             "P2402": "H5_PARTNER_V68",
             "P2401": "H5_PARTNER_EU_CHESS",
-            "P3403": "APP_PARTNER_ANDROID_EU",
+            "P3403": "APP_PARTNER_ANDROID_EU_OLD",
+            "P3410": "APP_PARTNER_ANDROID_EU",
             "P3401": "APP_PARTNER_ANDROID_EU_CHESS",
             "P3402": "APP_PARTNER_ANDROID_V68",
-            "P4403": "APP_PARTNER_IOS_EU",
+            "P4403": "APP_PARTNER_IOS_EU_OLD",
+            "P4410": "APP_PARTNER_IOS_EU",
             "P4401": "APP_PARTNER_IOS_EU_CHESS",
             "P4402": "APP_PARTNER_IOS_V6"
         };
@@ -159,17 +167,21 @@ define(['js/app'], function (myApp) {
         vm.registrationDeviceList = {
             "0": "BACKSTAGE",
             "1": "WEB_PLAYER",
-            "1403": "WEB_PLAYER_EU",
+            "1403": "WEB_PLAYER_EU_OLD",
+            "1410": "WEB_PLAYER_EU",
             "1402": "WEB_PLAYER_V68",
             "1401": "WEB_PLAYER_EU_CHESS",
             "2": "H5_PLAYER",
-            "2403": "H5_PLAYER_EU",
+            "2403": "H5_PLAYER_EU_OLD",
+            "2410": "H5_PLAYER_EU",
             "2402": "H5_PLAYER_V68",
             "2401": "H5_PLAYER_EU_CHESS",
-            "3403": "APP_PLAYER_ANDROID_EU",
+            "3403": "APP_PLAYER_ANDROID_EU_OLD",
+            "3410": "APP_PLAYER_ANDROID_EU",
             "3401": "APP_PLAYER_ANDROID_EU_CHESS",
             "3402": "APP_PLAYER_ANDROID_V68",
-            "4403": "APP_PLAYER_IOS_EU",
+            "4403": "APP_PLAYER_IOS_EU_OLD",
+            "4410": "APP_PLAYER_IOS_EU",
             "4401": "APP_PLAYER_IOS_EU_CHESS",
             "4402": "APP_PLAYER_IOS_V68",
         };
@@ -215,17 +227,21 @@ define(['js/app'], function (myApp) {
 
         vm.constPlayerDevice = {
             WEB_PLAYER: "1",
-            WEB_PLAYER_EU: "1403",
+            WEB_PLAYER_EU_OLD: "1403",
+            WEB_PLAYER_EU: "1410",
             WEB_PLAYER_V68: "1402",
             WEB_PLAYER_EU_CHESS: "1401",
             H5_PLAYER: "2",
-            H5_PLAYER_EU: "2403",
+            H5_PLAYER_EU_OLD: "2403",
+            H5_PLAYER_EU: "2410",
             H5_PLAYER_V68: "2402",
             H5_PLAYER_EU_CHESS: "2401",
-            APP_PLAYER_ANDROID_EU: "3403",
+            APP_PLAYER_ANDROID_EU_OLD: "3403",
+            APP_PLAYER_ANDROID_EU: "3410",
             APP_PLAYER_ANDROID_EU_CHESS: "3401",
             APP_PLAYER_ANDROID_V68: "3402",
-            APP_PLAYER_IOS_EU: "4403",
+            APP_PLAYER_IOS_EU_OLD: "4403",
+            APP_PLAYER_IOS_EU: "4410",
             APP_PLAYER_IOS_EU_CHESS: "4401",
             APP_PLAYER_IOS_V68: "4402"
         }
@@ -1360,6 +1376,15 @@ define(['js/app'], function (myApp) {
                 if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                     vm.queryRoles = vm.queryRoles.concat(e.roles);
                     vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                    e.roles.map(r => {
+                        if(r.users && r.users.length) {
+                            r.users.map(u => {
+                                if(u._id != "" && utilService.indexOfByObjId(vm.queryAdmins, u._id) < 0) {
+                                    vm.queryAdmins.push(u);
+                                }
+                            })
+                        }
+                    });
                 }
             });
 
@@ -4132,24 +4157,30 @@ define(['js/app'], function (myApp) {
             let admins = [];
             let query = {};
 
-            if (vm.feedbackQuery.departments) {
-                if (vm.feedbackQuery.roles) {
-                    vm.queryRoles.map(e => {
-                        if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
-                            e.users.map(f => admins.push(f._id))
-                        }
-                    })
-                } else {
-                    vm.queryRoles.map(e => {
-                        if (e && e._id != "" && e.users && e.users.length) {
-                            e.users.map(f => {
-                                if (f && f._id != "") {
-                                    admins.push(f._id);
-                                }
-                            });
-                        }
-                    });
-                }
+            // if (vm.feedbackQuery.departments) {
+            //     if (vm.feedbackQuery.roles) {
+            //         vm.queryRoles.map(e => {
+            //             if (e._id != "" && (vm.feedbackQuery.roles.indexOf(e._id) >= 0)) {
+            //                 e.users.map(f => admins.push(f._id))
+            //             }
+            //         })
+            //     } else {
+            //         vm.queryRoles.map(e => {
+            //             if (e && e._id != "" && e.users && e.users.length) {
+            //                 e.users.map(f => {
+            //                     if (f && f._id != "") {
+            //                         admins.push(f._id);
+            //                     }
+            //                 });
+            //             }
+            //         });
+            //     }
+            // }
+            if(vm.feedbackQuery.departments && vm.feedbackQuery.departments.length > 0 &&
+                (!vm.feedbackQuery.admins || vm.feedbackQuery.admins.length == 0)) {
+                vm.queryAdmins.forEach(item => {
+                    admins.push(item._id);
+                });
             }
 
             if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
@@ -4482,23 +4513,23 @@ define(['js/app'], function (myApp) {
             };
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             let sumData = {
-                7: vm.feedbackDataSum.manualTopUpAmount,
-                8: vm.feedbackDataSum.weChatTopUpAmount,
-                9: vm.feedbackDataSum.aliPayTopUpAmount,
-                10: vm.feedbackDataSum.onlineTopUpAmount,
-                11: vm.feedbackDataSum.topUpTimes,
-                12: vm.feedbackDataSum.topUpAmount,
-                13: vm.feedbackDataSum.bonusTimes,
-                14: vm.feedbackDataSum.bonusAmount,
-                15: vm.feedbackDataSum.rewardAmount,
-                16: vm.feedbackDataSum.consumptionReturnAmount,
-                17: vm.feedbackDataSum.consumptionTimes,
-                18: vm.feedbackDataSum.validConsumptionAmount,
-                19: vm.feedbackDataSum.consumptionBonusAmount,
-                20: vm.feedbackDataSum.profit,
-                23: vm.feedbackDataSum.consumptionAmount,
-                24: vm.feedbackDataSum.totalPlatformFeeEstimate.toFixed(2),
-                25: vm.feedbackDataSum.totalOnlineTopUpFee.toFixed(2),
+                8: vm.feedbackDataSum.manualTopUpAmount,
+                9: vm.feedbackDataSum.weChatTopUpAmount,
+                10: vm.feedbackDataSum.aliPayTopUpAmount,
+                11: vm.feedbackDataSum.onlineTopUpAmount,
+                12: vm.feedbackDataSum.topUpTimes,
+                13: vm.feedbackDataSum.topUpAmount,
+                14: vm.feedbackDataSum.bonusTimes,
+                15: vm.feedbackDataSum.bonusAmount,
+                16: vm.feedbackDataSum.rewardAmount,
+                17: vm.feedbackDataSum.consumptionReturnAmount,
+                18: vm.feedbackDataSum.consumptionTimes,
+                19: vm.feedbackDataSum.validConsumptionAmount,
+                20: vm.feedbackDataSum.consumptionBonusAmount,
+                21: vm.feedbackDataSum.profit,
+                24: vm.feedbackDataSum.consumptionAmount,
+                25: vm.feedbackDataSum.totalPlatformFeeEstimate.toFixed(2),
+                26: vm.feedbackDataSum.totalOnlineTopUpFee.toFixed(2),
             };
 
             if(isExport){

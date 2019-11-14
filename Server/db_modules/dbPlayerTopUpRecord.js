@@ -431,13 +431,13 @@ var dbPlayerTopUpRecord = {
                                             playerReportDaySummary[indexNo].topUpTimes += topUp.times;
 
                                             if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].manualTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                playerReportDaySummary[indexNo].onlineTopUpAmount = topUp.oriAmount || topUp.amount;
+                                                playerReportDaySummary[indexNo].onlineTopUpAmount = (topUp.oriAmount || topUp.amount) + (playerReportDaySummary[indexNo].onlineTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].alipayTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].wechatpayTopUpAmount || 0);
                                             }
                                         }
                                     }

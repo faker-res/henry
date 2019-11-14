@@ -17329,7 +17329,7 @@ define(['js/app'], function (myApp) {
                                 searchType: vm.playerFeedbackSearchType
                             };
                 let sendQuery = {
-                    query: vm.playerFeedbackQuery,
+                    query: JSON.parse(JSON.stringify(vm.playerFeedbackQuery)),
                     index: vm.playerFeedbackQuery.index,
                     //new block
                     isMany: isMany,
@@ -17337,6 +17337,16 @@ define(['js/app'], function (myApp) {
                     endTime: endTime
                     //new Block
                 };
+                let admins = [];
+                if(vm.playerFeedbackQuery.departments && vm.playerFeedbackQuery.departments.length > 0 &&
+                    (!vm.playerFeedbackQuery.admins || vm.playerFeedbackQuery.admins.length == 0)) {
+                    vm.queryAdmins.forEach(item => {
+                        admins.push(item._id);
+                    });
+                }
+                if ( (vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0) || admins.length) {
+                    sendQuery.query.admins = vm.playerFeedbackQuery.admins && vm.playerFeedbackQuery.admins.length > 0 ? vm.playerFeedbackQuery.admins : admins;
+                }
                 console.log("getPlayerFeedbackQuery sendQuery", sendQuery)
                 socketService.$socket($scope.AppSocket, 'getPlayerFeedbackQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
@@ -17874,6 +17884,15 @@ define(['js/app'], function (myApp) {
                     if (e._id != "" && (modal.departments.indexOf(e._id) >= 0)) {
                         vm.queryRoles = vm.queryRoles.concat(e.roles);
                         vm.queryAdmins = vm.queryAdmins.concat(e.users);
+                        e.roles.map(r => {
+                            if(r.users && r.users.length) {
+                                r.users.map(u => {
+                                    if(u._id != "" && utilService.indexOfByObjId(vm.queryAdmins, u._id) < 0) {
+                                        vm.queryAdmins.push(u);
+                                    }
+                                })
+                            }
+                        });
                     }
                 });
 
@@ -18309,24 +18328,30 @@ define(['js/app'], function (myApp) {
 
                 let admins = [];
 
-                if (vm.feedbackAdminQuery.departments) {
-                    if (vm.feedbackAdminQuery.roles) {
-                        vm.queryRoles.map(e => {
-                            if (e._id != "" && (vm.feedbackAdminQuery.roles.indexOf(e._id) >= 0)) {
-                                e.users.map(f => admins.push(f._id))
-                            }
-                        })
-                    } else {
-                        vm.queryRoles.map(e => {
-                            if (e && e._id != "" && e.users && e.users.length) {
-                                e.users.map(f => {
-                                    if (f && f._id != "") {
-                                        admins.push(f._id);
-                                    }
-                                });
-                            }
-                        });
-                    }
+                // if (vm.feedbackAdminQuery.departments) {
+                //     if (vm.feedbackAdminQuery.roles) {
+                //         vm.queryRoles.map(e => {
+                //             if (e._id != "" && (vm.feedbackAdminQuery.roles.indexOf(e._id) >= 0)) {
+                //                 e.users.map(f => admins.push(f._id))
+                //             }
+                //         })
+                //     } else {
+                //         vm.queryRoles.map(e => {
+                //             if (e && e._id != "" && e.users && e.users.length) {
+                //                 e.users.map(f => {
+                //                     if (f && f._id != "") {
+                //                         admins.push(f._id);
+                //                     }
+                //                 });
+                //             }
+                //         });
+                //     }
+                // }
+                if(vm.feedbackAdminQuery.departments && vm.feedbackAdminQuery.departments.length > 0 &&
+                    (!vm.feedbackAdminQuery.admins || vm.feedbackAdminQuery.admins.length == 0)) {
+                    vm.queryAdmins.forEach(item => {
+                        admins.push(item._id);
+                    });
                 }
 
                 if (vm.feedbackAdminQuery.admins && vm.feedbackAdminQuery.admins.length) {
@@ -25549,10 +25574,10 @@ define(['js/app'], function (myApp) {
                             vm.subPlatformIdList[text] = vm.platformId + counter;
                         }
 
-                        // hardcode 03 as the product itself
+                        // hardcode 10 as the product itself
                         if (vm.subPlatformIdList) {
-                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
-                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
                         }
                     }
                 }

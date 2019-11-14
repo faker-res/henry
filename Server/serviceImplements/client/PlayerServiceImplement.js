@@ -203,6 +203,17 @@ let PlayerServiceImplement = function () {
     };
 
     this.createGuestPlayer.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
         let userAgent = [{
@@ -542,6 +553,17 @@ let PlayerServiceImplement = function () {
     //added case
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
         let isValidData = Boolean(data && data.name && data.password && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
@@ -1487,6 +1509,18 @@ let PlayerServiceImplement = function () {
     };
 
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
+
         let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
@@ -1647,6 +1681,18 @@ let PlayerServiceImplement = function () {
     };
 
     this.phoneNumberLoginWithPassword.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
+
         let isValidData = Boolean(data && data.phoneNumber && data.password && data.platformId);
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
@@ -1790,6 +1836,18 @@ let PlayerServiceImplement = function () {
     };
 
     this.registerByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
+
         var isValidData = Boolean(data && data.platformId && data.phoneNumber && data.smsCode);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
@@ -1921,6 +1979,18 @@ let PlayerServiceImplement = function () {
     };
 
     this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
+
+        // HARD BLOCK V68 for now
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
+            wsFunc.response(conn, {
+                status: constServerCode.COMMON_ERROR,
+                errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
+                data: {noOfAttempt: conn.noOfAttempt},
+            }, data);
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Please contact CS for latest app");
+        }
+
+
         var isValidData = Boolean(data && data.platformId && data.phoneNumber);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.loginIps = [data.lastLoginIp];
