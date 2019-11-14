@@ -53,8 +53,8 @@ let apiDoc = {
                 functionName: "login",
                 desc:"玩家登录接口",
                 requestContent: loginRequestContent ,
-                // respondSuccess: loginStatusOfSuccess,
-                // respondFailure: loginStatusOfFailed,
+                respondSuccess: loginStatusOfSuccess,
+                respondFailure: loginStatusOfFailed,
             },
             isLogin: {
                 title: "是否已成功登入",

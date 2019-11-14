@@ -23,14 +23,6 @@ class Home extends Component {
         }
     };
 
-    showDataHandler = (event) => {
-        Object.keys(this.state.display).map((key) => {
-            if(this.state.display[key].title === event.target.innerText){
-                this.setState({dataList: this.state.display[key]});
-            }
-        });
-    };
-
     render() {
         let navLists = [];
         for(let key in apiData){
@@ -53,6 +45,30 @@ class Home extends Component {
             return rows;
         };
 
+        let generateRespondSuc = (name) => {
+            let rows = [];
+            for(let key in this.state.funcList[name].respondSuccess){
+                console.log('res', key);
+                rows.push(
+                    <p>{key} : {this.state.funcList[name].respondSuccess[key]}</p>
+                )
+            }
+            console.log('rows', rows);
+            return rows;
+        };
+
+        let generateRespondFal = (name) => {
+            let rows = [];
+            for(let key in this.state.funcList[name].respondFailure){
+                console.log('res', key);
+                rows.push(
+                    <p>{key} : {this.state.funcList[name].respondFailure[key]}</p>
+                )
+            }
+            console.log('rows', rows);
+            return rows;
+        }
+
         console.log(this.state.display.func);
         console.log(this.state.funcList);
         console.log(this.state);
@@ -65,8 +81,8 @@ class Home extends Component {
                     functionName = {this.state.funcList[key].functionName}
                     desc = {this.state.funcList[key].desc}
                     requestContent = {generateRequestContent(key)}
-                    // respondSuccess = {this.state.funcList[key].respondSuccess ? this.state.funcList[key].respondSuccess.status : null}
-                    // respondFailure = {this.state.funcList[key].respondFailure ? this.state.funcList[key].respondFailure.status : null}
+                    respondSuccess = {generateRespondSuc(key)}
+                    respondFailure = {generateRespondFal(key)}
                 />);
             }
             console.log('temp',temp);
