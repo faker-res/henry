@@ -2766,7 +2766,8 @@ let dbPartner = {
 
                                     if (!partner.permission.applyBonus && partner.platform.partnerForbidApplyBonusNeedCsApproval) {
                                         proposalData.remark = "禁用提款" + lastBonusRemark;
-                                        proposalData.needCsApproved = true;
+                                        // proposalData.needCsApproved = true; BUG #714 FPMS代理提案异常 2019/11/12 要求更改逻辑为普通审核
+                                        proposalData.isAutoApproval = false;
                                     }
 
                                     if (partner.platform.bonusSystemType && bonusSystemConfig) {
