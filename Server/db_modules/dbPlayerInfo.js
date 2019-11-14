@@ -25590,6 +25590,7 @@ let dbPlayerInfo = {
     },
 
     getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerObjIds) {
+        console.log('LK checking bill board', platformId, playerId, mode);
         let prom;
         let playerDataField;
         let consumptionField;
@@ -26319,9 +26320,11 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    console.log('LK checking bill board query', matchQuery);
                     return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).then(
                         summaryRecord => {
                             if(summaryRecord && summaryRecord.length){
+                                console.log('LK checking bill board summary Record', summaryRecord);
                                 for(var i = 0; i < summaryRecord.length; i++){
                                     if(summaryRecord[i].name){
                                         summaryRecord[i].name = censoredPlayerName(summaryRecord[i].name);
@@ -26331,214 +26334,207 @@ let dbPlayerInfo = {
                                 console.log('summary..', summaryRecord);
                                 returnData.allWin.boardRanking = summaryRecord;
                                 console.log('return data..',returnData.allWin);
+                                return returnData;
                             }
                         }
                     ).then(returnRecord => {
                         if(returnRecord) {
                             return returnData;
+                        }else{
+                            // purpose of here: prevent when fetch summary data failed, can redirect to old method
+                            // especially for first time update before hour shcedule job start, summary collection got no data to show, fetch from old method first.
+                            // if schedule task works fine, here won't be call after first update.
+                            console.log('first time update');
+                            if (periodCheck) {
+                                if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
+                                    recordDate = dbUtility.getTodaySGTime();
+                                } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
+                                    recordDate = dbUtility.getCurrentWeekSGTime();
+                                } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
+                                    recordDate = dbUtility.getCurrentMonthSGTIme();
+                                } else {
+                                    return Promise.reject({name: "DataError", message: "Invalid period"});
+                                }
+                                matchQuery = {
+                                    $match: {
+                                        platformId: platformObj._id,
+                                        createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
+                                        $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
+                                    },
+                                };
+                            } else {
+                                recordDate = new Date();
+                                recordDate.setHours(recordDate.getHours() - hourCheck);
+                                matchQuery = {
+                                    $match: {
+                                        platformId: platformObj._id,
+                                        createTime: {$gte: recordDate},
+                                        $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
+                                    },
+                                };
+                            }
+
+
+                            if (providerObjIds && providerObjIds.length) {
+                                matchQuery.$match.providerId = {$in: providerObjIds};
+                            }
+
+                            return dbconfig.collection_playerConsumptionRecord.aggregate([
+                                matchQuery,
+                                {
+                                    $group: {
+                                        _id: "$playerId",
+                                        providerId: {$addToSet: "$providerId"},
+                                        gameId: {$addToSet: {$cond: [{$not: ["$cpGameType"]}, "$gameId", "$null"]}},
+                                        cpGameType: {$addToSet: {$ifNull: ['$cpGameType', '$null']}},
+                                        amount: {$sum: "$bonusAmount"},
+                                        createTime: {$addToSet: "$createTime"}
+                                    }
+                                }
+                            ]).then(
+                                consumptionRecord => {
+                                    function sortRankingRecord(a, b) {
+                                        if (a.amount < b.amount)
+                                            return 1;
+                                        if (a.amount > b.amount)
+                                            return -1;
+                                        if (a.amount == b.amount) {
+                                            a.createTime = a.createTime.sort(function (a, b) {
+                                                return b - a
+                                            });
+                                            b.createTime = b.createTime.sort(function (a, b) {
+                                                return b - a
+                                            });
+                                            if (a.createTime[0] < b.createTime[0]) {
+                                                return -1;
+                                            }
+                                            if (a.createTime[0] > b.createTime[0]) {
+                                                return 1;
+                                            }
+                                        }
+                                        return 0;
+                                    }
+
+                                    let playerRanking;
+                                    let sortedData = consumptionRecord.sort(sortRankingRecord);
+
+                                    for (let i = 0; i < sortedData.length; i++) {
+                                        if (sortedData[i].amount) {
+                                            //round to 2 decimal places
+                                            sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
+                                        }
+                                        sortedData[i].rank = i + 1;
+                                        if (sortedData[i].createTime) {
+                                            delete sortedData[i].createTime;
+                                        }
+                                        if (playerObj && playerObj.name) {
+                                            if (sortedData[i]._id.toString() == playerObj._id.toString()) {
+                                                playerRanking = sortedData[i];
+                                            }
+                                        }
+                                    }
+
+                                    if (sortedData.length > totalRecord) {
+                                        sortedData.length = totalRecord;
+                                    }
+                                    if (playerRanking) {
+                                        sortedData.push(playerRanking);
+                                    }
+
+                                    returnData.allWin = {};
+
+                                    if (sortedData && sortedData.length) {
+                                        return dbconfig.collection_players.populate(sortedData, [{
+                                            path: '_id',
+                                            model: dbconfig.collection_players,
+                                            select: "name"
+                                        }, {
+                                            path: 'providerId',
+                                            model: dbconfig.collection_gameProvider,
+                                            select: "name"
+                                        }, {
+                                            path: "gameId",
+                                            model: dbconfig.collection_game,
+                                            select: "name"
+                                        }
+                                        ]).then(
+                                            populatedProvider => {
+                                                for (let i = 0; i < populatedProvider.length; i++) {
+                                                    // populatedProvider[i].rank = i + 1;
+                                                    if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
+                                                        populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
+                                                        delete populatedProvider[i]._id;
+                                                    }
+
+                                                    if (!populatedProvider[i].providerName) {
+                                                        populatedProvider[i].providerName = "";
+                                                    }
+                                                    if (!populatedProvider[i].gameName) {
+                                                        populatedProvider[i].gameName = "";
+                                                    }
+                                                    if (populatedProvider[i].cpGameType) {
+                                                        for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
+                                                            if (populatedProvider[i].gameName) {
+                                                                populatedProvider[i].gameName += ", ";
+                                                            }
+                                                            populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
+                                                        }
+                                                        delete populatedProvider[i].cpGameType;
+                                                    }
+
+                                                    if (populatedProvider[i].gameId) {
+                                                        for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
+                                                            if (populatedProvider[i].gameName) {
+                                                                populatedProvider[i].gameName += ", ";
+                                                            }
+                                                            if (populatedProvider[i].gameId[k].name) {
+                                                                populatedProvider[i].gameName += populatedProvider[i].gameId[k].name;
+                                                            }
+                                                        }
+                                                        delete populatedProvider[i].gameId;
+                                                    }
+                                                    if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
+                                                        for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
+
+                                                            if (populatedProvider[i].providerName) {
+                                                                populatedProvider[i].providerName += ", ";
+                                                            }
+                                                            if (populatedProvider[i].providerId[j].name) {
+                                                                populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
+                                                            }
+                                                        }
+                                                        delete populatedProvider[i].providerId;
+                                                    }
+                                                }
+
+                                                if (playerObj) {
+                                                    returnData.allWin.playerRanking = {};
+                                                    if (playerRanking) {
+                                                        returnData.allWin.playerRanking = populatedProvider[populatedProvider.length - 1];
+                                                        populatedProvider.length -= 1;
+                                                    } else {
+                                                        returnData.allWin.playerRanking.error = "No consumption record for this player";
+                                                    }
+                                                }
+                                                returnData.allWin.boardRanking = populatedProvider;
+                                                console.log('bill board...', returnData.allWin);
+                                                return returnData;
+                                            }
+                                        );
+                                    } else {
+                                        returnData.allWin.boardRanking = [];
+
+                                        if (playerObj) {
+                                            returnData.allWin.playerRanking = {};
+                                        }
+
+                                        console.log('bill board...', returnData.allWin);
+                                        return returnData;
+                                    }
+                                }
+                            )
                         }
                     });
-
-
-                    // old code, will delete it if the new code is working fine. Else, uncomment old code.
-
-                    // if (periodCheck) {
-                    //     if (periodCheck == constPlayerBillBoardPeriod.DAILY) {
-                    //         recordDate = dbUtility.getTodaySGTime();
-                    //     } else if (periodCheck == constPlayerBillBoardPeriod.WEEKLY) {
-                    //         recordDate = dbUtility.getCurrentWeekSGTime();
-                    //     } else if (periodCheck == constPlayerBillBoardPeriod.MONTHLY) {
-                    //         recordDate = dbUtility.getCurrentMonthSGTIme();
-                    //     } else {
-                    //         return Promise.reject({name: "DataError", message: "Invalid period"});
-                    //     }
-                    //     matchQuery = {
-                    //         $match: {
-                    //             platformId: platformObj._id,
-                    //             createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
-                    //             $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
-                    //         },
-                    //     };
-                    // } else {
-                    //     recordDate = new Date();
-                    //     recordDate.setHours(recordDate.getHours() - hourCheck);
-                    //     matchQuery = {
-                    //         $match: {
-                    //             platformId: platformObj._id,
-                    //             createTime: {$gte: recordDate},
-                    //             $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
-                    //         },
-                    //     };
-                    // }
-                    //
-                    // if (providerObjIds && providerObjIds.length) {
-                    //     matchQuery.$match.providerId = {$in: providerObjIds};
-                    // }
-                    //
-                    // return dbconfig.collection_playerConsumptionRecord.aggregate([
-                    //     matchQuery,
-                    //     {
-                    //         $group: {
-                    //             _id: "$playerId",
-                    //             providerId: {$addToSet: "$providerId"},
-                    //             gameId: {$addToSet: {$cond: [{$not: ["$cpGameType"]}, "$gameId", "$null"]}},
-                    //             cpGameType: {$addToSet: {$ifNull: ['$cpGameType', '$null']}},
-                    //             amount: {$sum: "$bonusAmount"},
-                    //             createTime: {$addToSet: "$createTime"}
-                    //         }
-                    //     }
-                    // ]).then(
-                    //     consumptionRecord => {
-                    //         function sortRankingRecord(a, b) {
-                    //             if (a.amount < b.amount)
-                    //                 return 1;
-                    //             if (a.amount > b.amount)
-                    //                 return -1;
-                    //             if (a.amount == b.amount) {
-                    //                 a.createTime = a.createTime.sort(function (a, b) {
-                    //                     return b - a
-                    //                 });
-                    //                 b.createTime = b.createTime.sort(function (a, b) {
-                    //                     return b - a
-                    //                 });
-                    //                 if (a.createTime[0] < b.createTime[0]) {
-                    //                     return -1;
-                    //                 }
-                    //                 if (a.createTime[0] > b.createTime[0]) {
-                    //                     return 1;
-                    //                 }
-                    //             }
-                    //             return 0;
-                    //         }
-                    //
-                    //         let playerRanking;
-                    //         let sortedData = consumptionRecord.sort(sortRankingRecord);
-                    //
-                    //         for (let i = 0; i < sortedData.length; i++) {
-                    //             if (sortedData[i].amount) {
-                    //                 //round to 2 decimal places
-                    //                 sortedData[i].amount = Number(sortedData[i].amount.toFixed(2));
-                    //             }
-                    //             sortedData[i].rank = i + 1;
-                    //             if (sortedData[i].createTime) {
-                    //                 delete sortedData[i].createTime;
-                    //             }
-                    //             if (playerObj && playerObj.name) {
-                    //                 if (sortedData[i]._id.toString() == playerObj._id.toString()) {
-                    //                     playerRanking = sortedData[i];
-                    //                 }
-                    //             }
-                    //         }
-                    //
-                    //         if (sortedData.length > totalRecord) {
-                    //             sortedData.length = totalRecord;
-                    //         }
-                    //         if (playerRanking) {
-                    //             sortedData.push(playerRanking);
-                    //         }
-                    //
-                    //         returnData.allWin = {};
-                    //
-                    //         if (sortedData && sortedData.length) {
-                    //             return dbconfig.collection_players.populate(sortedData, [{
-                    //                 path: '_id',
-                    //                 model: dbconfig.collection_players,
-                    //                 select: "name"
-                    //             }, {
-                    //                 path: 'providerId',
-                    //                 model: dbconfig.collection_gameProvider,
-                    //                 select: "name"
-                    //             }, {
-                    //                 path: "gameId",
-                    //                 model: dbconfig.collection_game,
-                    //                 select: "name"
-                    //             }
-                    //             ]).then(
-                    //                 populatedProvider => {
-                    //                     for (let i = 0; i < populatedProvider.length; i++) {
-                    //                         // populatedProvider[i].rank = i + 1;
-                    //                         if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
-                    //                             populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
-                    //                             delete populatedProvider[i]._id;
-                    //                         }
-                    //
-                    //                         if (!populatedProvider[i].providerName) {
-                    //                             populatedProvider[i].providerName = "";
-                    //                         }
-                    //                         if (!populatedProvider[i].gameName) {
-                    //                             populatedProvider[i].gameName = "";
-                    //                         }
-                    //                         if (populatedProvider[i].cpGameType) {
-                    //                             for (let z = 0; z < populatedProvider[i].cpGameType.length; z++) {
-                    //                                 if (populatedProvider[i].gameName) {
-                    //                                     populatedProvider[i].gameName += ", ";
-                    //                                 }
-                    //                                 populatedProvider[i].gameName += populatedProvider[i].cpGameType[z];
-                    //                             }
-                    //                             delete populatedProvider[i].cpGameType;
-                    //                         }
-                    //
-                    //                         if (populatedProvider[i].gameId) {
-                    //                             for (let k = 0; k < populatedProvider[i].gameId.length; k++) {
-                    //                                 if (populatedProvider[i].gameName) {
-                    //                                     populatedProvider[i].gameName += ", ";
-                    //                                 }
-                    //                                 if (populatedProvider[i].gameId[k].name) {
-                    //                                     populatedProvider[i].gameName += populatedProvider[i].gameId[k].name;
-                    //                                 }
-                    //                             }
-                    //                             delete populatedProvider[i].gameId;
-                    //                         }
-                    //                         if (populatedProvider[i].providerId && populatedProvider[i].providerId.length) {
-                    //                             for (let j = 0; j < populatedProvider[i].providerId.length; j++) {
-                    //
-                    //                                 if (populatedProvider[i].providerName) {
-                    //                                     populatedProvider[i].providerName += ", ";
-                    //                                 }
-                    //                                 if (populatedProvider[i].providerId[j].name) {
-                    //                                     populatedProvider[i].providerName += populatedProvider[i].providerId[j].name;
-                    //                                 }
-                    //                                 // if (populatedProvider[i].providerId[j].gameTypes) {
-                    //                                 //     for (let k = 0; k < populatedProvider[i].providerId[j].gameTypes.length; k++) {
-                    //                                 //         for (let l = 0; l < Object.keys(populatedProvider[i].providerId[j].gameTypes[k]).length; l++) {
-                    //                                 //             if (populatedProvider[i].gameName) {
-                    //                                 //                 populatedProvider[i].gameName += ", ";
-                    //                                 //             }
-                    //                                 //             populatedProvider[i].gameName += Object.keys(populatedProvider[i].providerId[j].gameTypes[k])[l];
-                    //                                 //         }
-                    //                                 //     }
-                    //                                 // }
-                    //                             }
-                    //                             delete populatedProvider[i].providerId;
-                    //                         }
-                    //                     }
-                    //
-                    //                     if (playerObj) {
-                    //                         returnData.allWin.playerRanking = {};
-                    //                         if (playerRanking) {
-                    //                             returnData.allWin.playerRanking = populatedProvider[populatedProvider.length - 1];
-                    //                             populatedProvider.length -= 1;
-                    //                         } else {
-                    //                             returnData.allWin.playerRanking.error = "No consumption record for this player";
-                    //                         }
-                    //                     }
-                    //                     returnData.allWin.boardRanking = populatedProvider;
-                    //                     console.log('bill board...', returnData.allDeposit);
-                    //                     return returnData;
-                    //                 }
-                    //             );
-                    //         } else {
-                    //             returnData.allWin.boardRanking = [];
-                    //
-                    //             if (playerObj) {
-                    //                 returnData.allWin.playerRanking = {};
-                    //             }
-                    //
-                    //             console.log('bill board...', returnData.allDeposit);
-                    //             return returnData;
-                    //         }
-                    //     }
-                    // )
                 } else if (mode == constPlayerBillBoardMode.WIN_SINGLE) {
                     let matchQuery;
                     if (periodCheck) {
