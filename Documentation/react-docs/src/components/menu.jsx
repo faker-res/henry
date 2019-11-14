@@ -4,7 +4,7 @@ class Menu extends Component{
     render(){
         return (
             <div className="navBar">
-                <ul className="navbar-nav mt-3">
+                <ul className="navbar-nav mt-3 mb-3">
                     {this.props.nav}
                 </ul>
             </div>

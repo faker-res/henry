@@ -50,7 +50,7 @@ class Home extends Component {
             for(let key in this.state.funcList[name].respondSuccess){
                 console.log('res', key);
                 rows.push(
-                    <p>{key} : {this.state.funcList[name].respondSuccess[key]}</p>
+                    <h6>{key} : {this.state.funcList[name].respondSuccess[key]}</h6>
                 )
             }
             console.log('rows', rows);
@@ -62,7 +62,7 @@ class Home extends Component {
             for(let key in this.state.funcList[name].respondFailure){
                 console.log('res', key);
                 rows.push(
-                    <p>{key} : {this.state.funcList[name].respondFailure[key]}</p>
+                    <h6>{key} : {this.state.funcList[name].respondFailure[key]}</h6>
                 )
             }
             console.log('rows', rows);
@@ -88,7 +88,6 @@ class Home extends Component {
             console.log('temp',temp);
             return temp;
         }
-
 
         return (
             <div className="container border">

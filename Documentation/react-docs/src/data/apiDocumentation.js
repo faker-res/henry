@@ -51,7 +51,7 @@ let apiDoc = {
             login: {
                 title:"登录",
                 functionName: "login",
-                desc:"玩家登录接口",
+                desc:"玩家登录接口\n玩家登录接口",
                 requestContent: loginRequestContent ,
                 respondSuccess: loginStatusOfSuccess,
                 respondFailure: loginStatusOfFailed,
