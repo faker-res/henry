@@ -25590,6 +25590,7 @@ let dbPlayerInfo = {
     },
 
     getPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerObjIds) {
+        console.log('LK checking bill board', platformId, playerId, mode);
         let prom;
         let playerDataField;
         let consumptionField;
@@ -26319,9 +26320,11 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    console.log('LK checking bill board query', matchQuery);
                     return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).then(
                         summaryRecord => {
                             if(summaryRecord && summaryRecord.length){
+                                console.log('LK checking bill board summary Record', summaryRecord);
                                 for(var i = 0; i < summaryRecord.length; i++){
                                     if(summaryRecord[i].name){
                                         summaryRecord[i].name = censoredPlayerName(summaryRecord[i].name);
