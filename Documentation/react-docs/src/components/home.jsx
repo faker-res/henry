@@ -96,8 +96,10 @@ class Home extends Component {
     render() {
         return (
             <div className="container border">
-                <div className="text-center border-bottom p-4">
-                    <h2>FPMS 客户端 SDK 文档</h2>
+                <div className="row">
+                    <div className="col-12 text-center border-bottom p-4">
+                        <h2>FPMS 客户端 SDK 文档</h2>
+                    </div>
                 </div>
                 <div className="row">
                     <div className="col-4 col-lg-2 pt-2">
