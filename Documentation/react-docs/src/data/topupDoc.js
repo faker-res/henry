@@ -23,7 +23,7 @@ getTopUpList: `{
 let topup = {
     name: "充值",
     func: {
-        login: {
+        getTopupList: {
             title: "获取充值记录",
             serviceName: "payment",
             functionName: "getTopupList",
