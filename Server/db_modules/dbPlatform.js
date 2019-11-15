@@ -3153,6 +3153,7 @@ var dbPlatform = {
             let themeIdList = [];
             let themeStyleObjId = null;
             let platformTopUpAmountConfig;
+            let topUpAmountRangeConfig = [];
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3226,6 +3227,28 @@ var dbPlatform = {
             ).then(
                 topUpAmountConfig => {
                     platformTopUpAmountConfig = topUpAmountConfig;
+                    let configClientType;
+
+                    switch (Number(inputDevice)) {
+                        case constPlayerRegistrationInterface.WEB_PLAYER:
+                            configClientType = '1';
+                            break;
+                        case constPlayerRegistrationInterface.H5_PLAYER:
+                            configClientType = '2';
+                            break;
+                        case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+                        case constPlayerRegistrationInterface.APP_PLAYER:
+                            configClientType = '3'
+                            break;
+                    }
+
+                    if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpAmountRange && platformTopUpAmountConfig.topUpAmountRange.length > 0 && configClientType) {
+                        platformTopUpAmountConfig.topUpAmountRange.forEach(range => {
+                            if (range && range.device && range.device.includes(String(configClientType))) {
+                                topUpAmountRangeConfig.push(range);
+                            }
+                        });
+                    }
 
                     return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
@@ -3486,7 +3509,10 @@ var dbPlatform = {
                             return appendPartnerConfig(platformData._id, returnedObj);
                         }
 
-                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                        if (topUpAmountRangeConfig && topUpAmountRangeConfig.length > 0 && topUpAmountRangeConfig[0] && topUpAmountRangeConfig[0].minAmount) {
+                            returnedObj.minDepositAmount = topUpAmountRangeConfig[0].minAmount;
+                        } else if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            // deprecated - retrieve this min when not yet set up new requirement's min and max
                             returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
                         } else {
                             returnedObj.minDepositAmount = 10;
@@ -7341,7 +7367,7 @@ var dbPlatform = {
                 } else {
                     let newSetting = {
                         platformObjId: query.platformObjId,
-                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpAmountRange: updateData.topUpAmountRange,
                         topUpCountAmountRange: updateData.topUpCountAmountRange
                     }
 

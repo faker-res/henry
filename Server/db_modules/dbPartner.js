@@ -2761,7 +2761,7 @@ let dbPartner = {
                                     };
 
                                     if(partner && partner.platform && partner.platform.partnerEnableAutoApplyBonus) {
-                                        proposalData.isAutoApproval = partner.platform.enableAutoApplyBonus;
+                                        proposalData.isAutoApproval = partner.platform.partnerEnableAutoApplyBonus;
                                     }
 
                                     if (!partner.permission.applyBonus && partner.platform.partnerForbidApplyBonusNeedCsApproval) {
@@ -2791,7 +2791,6 @@ let dbPartner = {
 
                                     };
                                     newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
-
 
                                     return getPartnerAllCommissionAmount(partner.platform._id, partner._id, new Date()).then(
                                         partnerCommission => {
