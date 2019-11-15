@@ -4482,6 +4482,8 @@ define(['js/app'], function (myApp) {
                 if (index != -1){
                     result =  vm.allGameProviders[index].name;
                 }
+            } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             }
             return $sce.trustAsHtml(result);
         };

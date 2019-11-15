@@ -5773,6 +5773,7 @@
   "autoAuditDetail": "自动审核详情",
   "bankInfoWhenSubmit": "提交瞬间银行卡",
   "bankInfoWhenApprove": "审核瞬间银行卡",
+  "bankAccountNameWhenSubmit": "提交瞬间账号姓名",
   "bankcard no:": "卡号: ",
   "Online Top Up Fee": "在线充值费用",
   "Check All Selection": "全部勾选",
