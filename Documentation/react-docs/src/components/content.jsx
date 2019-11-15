@@ -38,7 +38,9 @@ class Content extends Component{
     };
 
     drawRequestContent = () => {
-        if(this.props.requestContent && Object.keys(this.props.requestContent)) {
+        if(this.props.requestContent && this.props.requestContent.length) {
+            let rowData = this.props.requestContent;
+            let fields = Object.keys(this.props.requestContent[0])
             return (
                 <div>
                     <h5><b>请求内容:</b></h5>
@@ -52,9 +54,16 @@ class Content extends Component{
                             </tr>
                         </thead>
                         <tbody>
-                            {this.drawTableRows(this.props.requestContent)}
+                            {this.drawTableRows(rowData, fields, "param")}
                         </tbody>
                     </table>
+                </div>
+            )
+        } else if(this.props.requestContent && this.props.requestContent.length === 0) {
+            return (
+                <div>
+                    <h5><b>请求内容:</b></h5>
+                    <div className="bg-light p-1 pl-2">此接口不需要请求内容</div>
                 </div>
             )
         }
@@ -75,6 +84,8 @@ class Content extends Component{
 
     drawRespondSuccessContent = () => {
         if(this.props.respondSuccessContent && this.props.respondSuccessContent.length) {
+            let rowData = this.props.respondSuccessContent;
+            let fields = Object.keys(this.props.respondSuccessContent[0])
             return (
                 <div className="ml-4">
                     <h6><b>响应内容:</b></h6>
@@ -84,7 +95,7 @@ class Content extends Component{
                             <th>内容</th>
                         </tr>
                         <tbody>
-                            {this.drawTableRows(this.props.respondSuccessContent)}
+                            {this.drawTableRows(rowData, fields, "param")}
                         </tbody>
                     </table>
                 </div>
@@ -119,34 +130,60 @@ class Content extends Component{
                     if(index > 0) {
                         line = line.replace(/\s/g, "\u00a0");
                         rows.push(
-                            <div>{line}</div>
+                            <div key={index}>{line}</div>
                         )
                     }
                 });
             } else {
                 rows.push(
-                    <div key={key}>{key} : {inputObj[key]}</div>
+                    <div key={key}>{key}: {inputObj[key]}</div>
                 )
             }
         }
         return rows;
     };
 
-    drawTableRows = (inputArr) => {
+    drawTableRows = (inputArr, fields, listKeyProperty) => {
         let rows = [];
         if(inputArr && inputArr.length) {
             rows = inputArr.map((item) => {
+                listKeyProperty = listKeyProperty || Object.keys(item)[0];
+
+                let cells = fields.map(field => {
+                    return (<td key={field}>{item[field]}</td>)
+                })
+
                 return (
-                    <tr key={item.param}>
-                        {item.hasOwnProperty("param") ? <td>{item.param}</td> : null}
-                        {item.hasOwnProperty("mandatory") ? <td>{item.mandatory}</td> : null}
-                        {item.hasOwnProperty("type") ? <td>{item.type}</td> : null}
-                        {item.hasOwnProperty("content") ? <td>{item.content}</td> : null}
+                    <tr key={item[listKeyProperty]}>
+                        {cells}
                     </tr>
                 )
             });
         }
         return rows;
+    };
+
+    drawDefinitionData = () => {
+        if(this.props.fields && this.props.definitionData && this.props.definitionData.length) {
+            let rowData = this.props.definitionData;
+            let fields = Object.keys(this.props.fields)
+            return (
+                <div>
+                    <table className="table table-bordered table-sm w-auto">
+                        <thead>
+                            <tr>
+                                {this.props.fields.hasOwnProperty("name") ? <th>{this.props.fields.name}</th> : null}
+                                {this.props.fields.hasOwnProperty("value") ? <th>{this.props.fields.value}</th> : null}
+                                {this.props.fields.hasOwnProperty("desc") ? <th>{this.props.fields.desc}</th> : null}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {this.drawTableRows(rowData, fields, 'name')}
+                        </tbody>
+                    </table>
+                </div>
+            )
+        }
     };
 
     render() {
@@ -158,6 +195,10 @@ class Content extends Component{
 
                 <div className="mt-3">
                     {this.drawDescription()}
+                </div>
+
+                <div className="mt-3">
+                    {this.drawDefinitionData()}
                 </div>
 
                 <div className="mt-3">

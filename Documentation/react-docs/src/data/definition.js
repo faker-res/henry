@@ -1,7 +1,11 @@
 // 状态码定义：（状态码需统一，以便于管理）
 const statusCode = {
     title: "状态码定义",
-    data: [
+    fields: {
+        name: "状态码",
+        desc: "描述"
+    },
+    definitionData: [
         {name: "200/400", desc:"操作成功／服务器错误"},
         {name: "401", desc:"用户名或密码无效"},
         {name: "402", desc:"验证码错误"},
@@ -41,7 +45,12 @@ const statusCode = {
 //充值方式表：
 const topupType = {
     title: "充值方式表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+        desc: "说明"
+    },
+    definitionData:[
         {name: 'Netpay', value: '1', desc:'网银支付'},
         {name: 'WechatQR', value: '2', desc:'微信二维码支付'},
         {name: 'AlipayQR', value: '3', desc:'支付宝二维码支付'},
@@ -62,7 +71,11 @@ const topupType = {
 //提案类型表：
 const proposalType = {
     title: "提案类型表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:"更新玩家信息", value: "UpdatePlayerInfo"},
         {name:"更新玩家额度", value:"UpdatePlayerCredit"},
         {name:"更新玩家email", value:"UpdatePlayerEmail"},
@@ -91,7 +104,11 @@ const proposalType = {
 //提案类型表：
 const proposalStatusType = {
     title: "提案类型表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'待审批', value:'Pending'},
         {name:'已审核', value:'Approved'},
         {name:'审批拒绝',	 value:'Rejected'},
@@ -110,7 +127,11 @@ const proposalStatusType = {
 //额度变化类型列表：
 const amountVariety = {
     title: "额度变化类型列表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'更新玩家额度', value:'	UpdatePlayerCredit'},
         {name:'全勤奖励', value:'	FullAttendance'},
         {name:'玩家消费返点奖励', value:'PlayerConsumptionReturn'},
@@ -135,7 +156,11 @@ const amountVariety = {
 //在线支付用途: （有些平台要求玩家开户时给账号充值 ）
 const onlinePayment = {
     title: "在线支付用途",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'普通充值(Normal)', value:'1'},
         {name:'开户充值(CreateAccount)', value:'2'},
 
@@ -145,7 +170,11 @@ const onlinePayment = {
 //客户端类型：
 const clientType = {
     title: "客户端类型",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'浏览器(Browser)', value:'1'},
         {name:'手机应用程序(App)', value:'2'},
     ]
@@ -155,8 +184,12 @@ const clientType = {
 //手工存款充值方式(DepositMethod)
 const depositMethod = {
     title: "手工存款充值方式",
-    data:[
-        {name:'网银转账(OnlineTransfer)', value:'1'}
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
+        {name:'网银转账(OnlineTransfer)', value:'1'},
         {name:'ATM', value:'2'},
         {name:'柜台存款(Counter)', value:'3'},
         {name:'支付宝转账', value:'4'},
@@ -169,9 +202,14 @@ const depositMethod = {
 //充值提案状态：
 const topupProposalStatus = {
     title:"充值提案状态",
-    data:[
-        {name:'充值成功(Success)', value:'1'},
-        {name:'充值失败(Failure)', value:'2'},
+    fields: {
+        name: "名称",
+        value: "值",
+        desc: "说明"
+    },
+    definitionData:[
+        {name:'充值成功(Success)', value:'1', desc: ''},
+        {name:'充值失败(Failure)', value:'2', desc: ''},
         {name:'待处理(Pending)', value:'3', desc:'未处理，玩家还可以取消申请'},
         {name:'处理中(Processing)', value:'4', desc:'平台正在处理玩家的申请，不能取消申请了'},
         {name:'已取消(Cancelled)', value:'5', desc:'玩家可以主动取消申请(只能Pending状态时才能取消)'},
@@ -182,7 +220,11 @@ const topupProposalStatus = {
 //设备类型列表：
 const deviceType = {
     title: "设备类型列表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'浏览器(Browser)', value:'1'},
         {name:'H5', value:'2'},
         {name:'安卓 APP', value:'3'},
@@ -194,7 +236,11 @@ const deviceType = {
 //子平台列表：
 const subPlatform = {
     title:"子平台列表",
-    data:[
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
         {name:'易游棋牌', value:'401'},
         {name:'v68', value:'402'},
         {name:' 易游', value:'403'},
@@ -203,17 +249,20 @@ const subPlatform = {
 
 
 let definition = {
-    statusCode,
-    topupType,
-    proposalType,
-    proposalStatusType,
-    amountVariety,
-    onlinePayment,
-    clientType,
-    depositMethod,
-    topupProposalStatus,
-    deviceType,
-    subPlatform
+    name: "定义",
+    def: {
+        statusCode,
+        topupType,
+        proposalType,
+        proposalStatusType,
+        amountVariety,
+        onlinePayment,
+        clientType,
+        depositMethod,
+        topupProposalStatus,
+        deviceType,
+        subPlatform
+    }
 };
 
 export default definition;

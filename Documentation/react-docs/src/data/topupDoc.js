@@ -203,7 +203,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: ""
+                data: "null"
             },
             respondFailure: {
                 status: "420",
@@ -232,7 +232,7 @@ let topup = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
+                errorMessage: "详细错误信息",
             }
         },
         update: {
@@ -246,12 +246,12 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: ""
+                data: "null"
             },
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
+                errorMessage: "详细错误信息",
             }
         },
 
