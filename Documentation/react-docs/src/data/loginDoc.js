@@ -53,6 +53,27 @@ let login = {
                 errorMessage: "错误信息",
             },
         },
+        authenticate: {
+            title: "登陆状态验证",
+            serviceName: "player",
+            functionName: "authenticate",
+            desc: "用于验证玩家webSocket链接是否有效。\n当玩家已登录，但是webSocket链接断开，再建立链接是可以用token来验证链接",
+            requestContent: [
+                { param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID' },
+                { param: 'token', mandatory: "是", type: 'String', content: '玩家token' },
+                { param: 'isLogin', mandatory: "否", type: 'Boolean', content: '是否进行玩家登陆行为 },
+                { param: 'playerId', clientDomain: "否", type: 'String', content: '玩家所在域名' },
+            ],
+            respondSuccess: {
+                status: 200,
+                data: "true",
+            },
+            respondFailure: {
+                status: "40x",
+                data: "null",
+                errorMessage: "错误信息",
+            },
+        },
         playerLoginOrRegisterWithSMS: {
             title: "电话号码注册与登陆",
             serviceName: "player",
