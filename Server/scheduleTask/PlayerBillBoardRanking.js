@@ -6,18 +6,10 @@ var playerBillBoardranking ={
     calculateWinAllRanking: function() {
 
         var deferred = Q.defer();
-        function censoredPlayerName(name) {
-            let censoredName, front, censor = "***", rear;
-            front = name.substr(0, 2);
-            rear = name.substr(5);
-            censoredName = front + censor + rear;
-            censoredName = censoredName.substr(0, name.length);
-            return censoredName;
-        }
 
         let totalRecord = 10;
         let recordDate = new Date();
-        recordDate.setHours(recordDate.getHours() - 23);
+        recordDate.setHours(recordDate.getHours() - 1);
         let matchQuery = {
             $match: {
                 createTime: {$gte: recordDate},
@@ -103,7 +95,6 @@ var playerBillBoardranking ={
                                 for (let i = 0; i < populatedProvider.length; i++) {
                                     // populatedProvider[i].rank = i + 1;
                                     if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
-                                        // populatedProvider[i].name = censoredPlayerName(populatedProvider[i]._id.name);
                                         populatedProvider[i].name = populatedProvider[i]._id.name;
                                         populatedProvider[i].playerId = populatedProvider[i]._id;
                                         delete populatedProvider[i]._id;
@@ -150,6 +141,7 @@ var playerBillBoardranking ={
                                     }
                                 }
 
+                                console.log('LK checking boardRanking', populatedProvider);
                                 returnData.allWin.boardRanking = populatedProvider;
                                 var proms = [];
                                 for (var key in returnData.allWin.boardRanking) {
@@ -187,6 +179,7 @@ var playerBillBoardranking ={
     },
 
     saveToTopUpHourSummary: function(saveObj) {
+        console.log('save obj..', saveObj);
         var deferred = Q.defer();
         let query = {
             playerId: saveObj.playerId

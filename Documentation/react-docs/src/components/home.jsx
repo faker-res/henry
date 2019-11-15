@@ -1,58 +1,48 @@
 import React, { Component } from 'react';
 import Menu from './menu';
 import Content from './content';
+import apiData from '../data/apiDocumentation';
 
 class Home extends Component {
     state = {
-        api: {
-            Login: [
-                {name: "Login", url: "http://54.179.151.35:888/ClientApi/#登录"},
-                {name: "playerLogin", url: "http://54.179.151.35:888/ClientApi/#玩家登录"},
-            ],
-            Register: [
-                {name: "Register", url: "http://54.179.151.35:888/ClientApi/#玩家开户"}
-            ]
-        },
         display:{},
-        linkList:{}
+        dataList:{}
     };
-
-    UNSAFE_componentWillMount() {
-        let api = this.state.api;
-        let testData = [];
-        for (let key in api) {
-            testData.push(api[key]);
-        }
-        let displayData;
-        displayData = JSON.parse(JSON.stringify(testData[0]));
-        this.setState({display: displayData});
-    }
 
     clickHandler = (event) => {
-        let api = this.state.api;
-        let testData = [];
-        for (let key in api) {
-            testData.push(api[key]);
-        }
-        let index = Object.keys(api).indexOf(event.target.innerText);
-        this.setState({display: testData[index]});
-        this.setState({linkList: ""});
-
+        Object.keys(apiData).map((key) => {
+            if(apiData[key].name === event.target.innerText){
+                this.setState({display: apiData[key]});
+            }
+        });
     };
 
-    showLinkHandler = (event) => {
-        let api = this.state.display;
-        let index = api.findIndex(item => item.name.toString() === event.target.innerText);
-        this.setState({linkList: api[index]});
+    showDataHandler = (event) => {
+        Object.keys(this.state.display).map((key) => {
+            if(this.state.display[key].title === event.target.innerText){
+                this.setState({dataList: this.state.display[key]});
+            }
+        });
     };
 
     render() {
-        const lists = Object.keys(this.state.api).map((key, index) => {
-            return <li key={index} onClick={this.clickHandler} style={{cursor: "pointer"}}>{key}</li>;
+        const lists = Object.keys(apiData).map((key, index) => {
+            return <li className="nav-item" key={index} onClick={this.clickHandler}
+                       style={{cursor: "pointer"}}>{apiData[key].name}</li>;
         });
 
-        const btns = this.state.display.map((item, index) => {
-                return <button key={index} onClick={this.showLinkHandler} className="btn btn-dark m-1">{item.name}</button>
+        const btns = Object.keys(this.state.display).map((item, index) => {
+            if(this.state.display[item].title){
+                return <button className="btn btn-dark m-1" key={index} onClick={this.showDataHandler}>
+                    {this.state.display[item].title}</button>
+            }
+        });
+
+        let requestContentTable = Object.keys(this.state.dataList).map((item, index) => {
+            return  <tr>
+                        <td>{item}</td>
+                        <td>{this.state.dataList[item]}</td>
+                    </tr>
         });
 
         return (
@@ -61,12 +51,15 @@ class Home extends Component {
                     <Menu
                         list = {lists}
                     />
+
                     <Content
                         linkBtn = {btns}
-
-                        url = {this.state.linkList.url}
-                        name = {this.state.linkList.name}
-
+                        title = {this.state.dataList.title}
+                        functionName = {this.state.dataList.functionName}
+                        desc = {this.state.dataList.desc}
+                        requestContent = {requestContentTable}
+                        statusOfSuccess = {requestContentTable}
+                        statusOfFailed = {requestContentTable}
                     />
                 </div>
             </div>

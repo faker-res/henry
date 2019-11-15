@@ -225,7 +225,7 @@ const messageDispatcher = {
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
 
-    sendMessage: function (format, metaData, renderedContent, renderedSubject, contentIsHTML) {
+    sendMessage: async (format, metaData, renderedContent, renderedSubject, contentIsHTML) => {
         if (format === 'email') {
             const recipientEmail = metaData.player.email;
             assert(metaData.platform || metaData.platformId);
@@ -271,7 +271,9 @@ const messageDispatcher = {
         } else if (format === 'creditUpdate') {
             let wsMessageClient = serverInstance.getWebSocketMessageClient();
             if (wsMessageClient) {
-                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "notifyCreditChange", metaData);
+                let playerCreditInfo = await dbPlayerInfo.getCreditDetail(metaData.recipientId);
+                let result = Object.assign({}, metaData, playerCreditInfo);
+                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "notifyCreditChange", result);
             }
         }
     }
