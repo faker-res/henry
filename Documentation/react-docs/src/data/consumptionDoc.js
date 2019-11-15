@@ -62,7 +62,7 @@ searchConsumptionRecord: `[{
 
 };
 
-let consumtion = {
+let consumption = {
     name: "投注",
     func: {
         getPlayerDayStatus: {
@@ -229,4 +229,4 @@ let consumtion = {
     }
 };
 
-export default consumtion;
+export default consumption;
