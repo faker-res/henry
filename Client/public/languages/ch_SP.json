@@ -5604,6 +5604,7 @@
   "commissionBillboard": "佣金排行榜",
   "Commission_Rank": "佣金排名",
   "AccumulatedCommission": "累积佣金",
+  "useFluctuation have to at least trigger a day": "使用佣金波动得在每周至少选择一天触发",
 
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
@@ -6178,6 +6179,9 @@
   "TopUpAmountConfigEdit": "充值额度设置(编辑)",
   "Top Up Amount Config": "充值额度设置",
   "Top Up Count is mandatory": "存款笔数是必填",
+  "Device is mandatory": "装置是必填",
+  "Device is duplicate": "装置已重复",
+  "Device and Top Up Count is duplicate": "装置且存款笔数已重复",
   "TENCENT_CLOUD": "腾讯云",
   "NETEASE": "网易云",
   "YUNPIAN": "云片",

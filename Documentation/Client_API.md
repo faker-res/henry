@@ -7001,6 +7001,9 @@ API说明：
 				}
 				getPartnerConfig
 	* 请求失败: `{"status": 400,"errorMessage": "No platform exists with id: 11","data": null}`
+	* 1 代表 WEB
+    * 3 代表 H5
+    * 没提供device 参数的话会根据user agent来判定
 
 <div id='请求客服会电'></div>
 
