@@ -61,8 +61,8 @@ let login = {
             requestContent: [
                 { param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID' },
                 { param: 'token', mandatory: "是", type: 'String', content: '玩家token' },
-                { param: 'isLogin', mandatory: "否", type: 'Boolean', content: '是否进行玩家登陆行为 },
-                { param: 'playerId', clientDomain: "否", type: 'String', content: '玩家所在域名' },
+                { param: 'isLogin', mandatory: "否", type: 'Boolean', content: '是否进行玩家登陆行为' },
+                { param: 'clientDomain', mandatory: "否", type: 'String', content: '玩家所在域名' },
             ],
             respondSuccess: {
                 status: 200,
