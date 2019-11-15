@@ -3,7 +3,7 @@ import Menu from './menu';
 import Content from './content';
 import apiData from '../data/apiDocumentation';
 
-const antiPatternContentKeys = ["guide","definition"];
+// const antiPatternContentKeys = ["guide","definition"];
 
 class Home extends Component {
     constructor(props) {
@@ -11,26 +11,25 @@ class Home extends Component {
         let landingPage = "topup"
         this.state = {
             curNav: landingPage,
-            funcList: apiData[landingPage].func,
-            defList: apiData[landingPage].def
+            displayList: apiData[landingPage].func,
         };
     };
 
     navClickHandler = (event) => {
         let arr = event.target.parentElement.children;
         for (let i=0; i< arr.length; i++){
-            arr[i].className = "nav-item"
+            arr[i].className = arr[i].className.replace("active","").trim();
         }
         event.target.className += " active";
         for(let key in apiData){
-            if(apiData[key].name === event.target.innerText){
+            if(key === event.target.getAttribute('name')){
                 this.setState({curNav: key});
-                if(apiData[key].hasOwnProperty("func")) {
-                    this.setState({funcList: apiData[key].func});
-                    this.setState({defList: undefined})
-                } else if (apiData[key].hasOwnProperty("def")) {
-                    this.setState({defList: apiData[key].def});
-                    this.setState({funcList: undefined})
+                if(key === "guide") {
+                    this.setState({displayList: apiData.guide});
+                } else if (key === "definition") {
+                    this.setState({displayList: apiData[key].def});
+                } else {
+                    this.setState({displayList: apiData[key].func});
                 }
             }
         }
@@ -41,8 +40,11 @@ class Home extends Component {
         for(let key in apiData){
             let className = "nav-item";
             className += key === this.state.curNav ? " active" : "";
-            navList.push(<li className={className} key={key} onClick={this.navClickHandler}>
-                {apiData[key].name}</li>);
+            navList.push(
+                <li className={className} key={key} name={key} onClick={this.navClickHandler}>
+                    {apiData[key].name}
+                </li>
+            );
         }
         return (
             <Menu
@@ -53,39 +55,39 @@ class Home extends Component {
     drawContents = () => {
         let contents = [];
         let curTab = this.state.curNav;
-        if(!antiPatternContentKeys.includes(curTab)) {
-            for(let key in this.state.funcList) {
-                contents.push(
-                    <Content
-                        key = {key}
-                        title = {this.state.funcList[key].title}
-                        functionName = {this.state.funcList[key].functionName}
-                        serviceName = {this.state.funcList[key].serviceName}
-                        desc = {this.state.funcList[key].desc}
-                        requestContent = {this.state.funcList[key].requestContent}
-                        respondSuccess = {this.state.funcList[key].respondSuccess}
-                        respondSuccessContent = {this.state.funcList[key].respondSuccessContent}
-                        respondFailure = {this.state.funcList[key].respondFailure}
-                    />
-                );
-            }
-        } else if(curTab === "guide") {
+        if (curTab === "guide") {
             contents.push(
                 <Content
                     key = "guide"
-                    title = {this.state.funcList.guide.title}
-                    desc = {this.state.funcList.guide.desc}
+                    title = {this.state.displayList.name}
+                    desc = {this.state.displayList.text}
                 />
             );
-        } else if(curTab === "definition") {
-            for(let key in this.state.defList) {
+        } else if (curTab === "definition") {
+            for(let key in this.state.displayList) {
                 contents.push(
                     <Content
                         key = {key}
-                        title = {this.state.defList[key].title}
-                        desc = {this.state.defList[key].desc}
-                        fields = {this.state.defList[key].fields}
-                        definitionData = {this.state.defList[key].definitionData}
+                        title = {this.state.displayList[key].title}
+                        desc = {this.state.displayList[key].desc}
+                        fields = {this.state.displayList[key].fields}
+                        definitionData = {this.state.displayList[key].definitionData}
+                    />
+                );
+            }
+        } else {
+            for(let key in this.state.displayList) {
+                contents.push(
+                    <Content
+                        key = {key}
+                        title = {this.state.displayList[key].title}
+                        functionName = {this.state.displayList[key].functionName}
+                        serviceName = {this.state.displayList[key].serviceName}
+                        desc = {this.state.displayList[key].desc}
+                        requestContent = {this.state.displayList[key].requestContent}
+                        respondSuccess = {this.state.displayList[key].respondSuccess}
+                        respondSuccessContent = {this.state.displayList[key].respondSuccessContent}
+                        respondFailure = {this.state.displayList[key].respondFailure}
                     />
                 );
             }

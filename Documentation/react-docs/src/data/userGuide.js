@@ -1,4 +1,4 @@
-const userGuideText = `
+const text = `
 Interface List:
 1. connect
 2. wsEvent
@@ -144,12 +144,7 @@ document.getElementById("login").addEventListener("click", login);
 
 let guide = {
     name: "使用说明",
-    func: {
-        guide: {
-            title: "使用说明",
-            desc: userGuideText,
-        }
-    }
+    text,
 }
 
 export default guide;

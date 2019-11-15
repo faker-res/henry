@@ -21,8 +21,8 @@ let login = {
                 { param: "clientDomain", mandatory: "否", type: 'String', content: '登陆域名' },
                 { param: "deviceId", mandatory: "否", type: 'String', content: '设备号' },
                 { param: "checkLastDeviceId", mandatory: "否", type: 'Boolean', content: '检查上次登入设备是否与这次一样' },
-                { param: "deviceType", mandatory: "否", type: '', content: '设备类型列表' },
-                { param: "subPlatformId", mandatory: "否", type: '', content: '子平台列表' },
+                { param: "deviceType", mandatory: "否", type: 'String', content: '设备类型列表' },
+                { param: "subPlatformId", mandatory: "否", type: 'String', content: '子平台列表' },
             ],
             respondSuccess: {
                 status: 200,
