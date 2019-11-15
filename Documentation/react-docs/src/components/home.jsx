@@ -8,10 +8,10 @@ import apiData from '../data/apiDocumentation';
 class Home extends Component {
     constructor(props) {
         super(props);
-        let landingPage = "topup"
+        const landingPage = "reward";
         this.state = {
             curNav: landingPage,
-            displayList: apiData[landingPage].func,
+            displayList: apiData[landingPage].func || apiData[landingPage].def || apiData[landingPage]
         };
     };
 
@@ -35,22 +35,25 @@ class Home extends Component {
         }
     };
 
-    drawMenu = () => {
-        let navList = [];
+    buildMenuList = () => {
+        let menuList = [];
         for(let key in apiData){
-            let className = "nav-item";
-            className += key === this.state.curNav ? " active" : "";
-            navList.push(
-                <li className={className} key={key} name={key} onClick={this.navClickHandler}>
-                    {apiData[key].name}
-                </li>
-            );
+            let subList = [];
+            if(apiData[key].hasOwnProperty('func')) {
+                for(let funcName in apiData[key].func) {
+                    subList.push({
+                        title: apiData[key].func[funcName].title,
+                        funcKey: funcName
+                    })
+                }
+            }
+            menuList.push({
+                name: apiData[key].name,
+                key: key,
+                subList
+            });
         }
-        return (
-            <Menu
-                nav = {navList}
-            />
-        )
+        return menuList;
     };
     drawContents = () => {
         let contents = [];
@@ -103,7 +106,11 @@ class Home extends Component {
                 </div>
                 <div className="row">
                     <div className="col-4 col-lg-2 pt-2">
-                        {this.drawMenu()}
+                    <Menu
+                        curNav = {this.state.curNav}
+                        list = {this.buildMenuList()}
+                        onClick = {this.navClickHandler}
+                    />
                     </div>
                     <div className="col-8 col-lg-10 mainContent">
                         {this.drawContents()}
