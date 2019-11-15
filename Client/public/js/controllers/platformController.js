@@ -27093,7 +27093,13 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
-                        vm.displayFrontEndRewardPointsRankingData = true;
+                        let rewardSelectedPlatform;
+                        if(vm.rewardPointsSelectedPlatform && vm.allPlatformData && vm.allPlatformData.length) {
+                            rewardSelectedPlatform = vm.allPlatformData.find(platform => {
+                                return vm.rewardPointsSelectedPlatform == platform._id
+                            });
+                        }
+                        vm.displayFrontEndRewardPointsRankingData = rewardSelectedPlatform && rewardSelectedPlatform.displayFrontEndRewardPointsRankingData? true: false;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
