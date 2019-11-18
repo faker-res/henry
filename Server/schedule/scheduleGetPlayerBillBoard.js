@@ -2,7 +2,7 @@ var CronJob = require('cron').CronJob;
 var playerBillBoardranking = require('./../scheduleTask/PlayerBillBoardRanking');
 var errorUtils = require("../modules/errorUtils.js");
 // at every minute = 0, means every hours
-var hourJob = new CronJob('0 * * * *', function() {
+var hourJob = new CronJob('* * * * *', function() {
         console.log('hour job start');
         return playerBillBoardranking.calculateWinAllRanking().then(
             function(data) {
