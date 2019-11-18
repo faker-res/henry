@@ -219,6 +219,53 @@ const sampleData = {
         }
     }`,
 
+    getRewardRanking:`{
+        "status": 200,
+        "data": {
+            "stats": {
+                "totalCount": 1, //数据总数
+                "totalPage": 1, //一共多少页
+                "currentPage": 1, //当前页
+                "totalReceiveCount": 1, //优惠总领取次数
+                "totalAmount": 30, //优惠总金额
+                "totalPlayerCount": 1 //总参与人数
+            },** 当没有数据时候，为[] (即空数组)
+            "rewardRanking": [{
+                "username": "yunvincetest001", //玩家账号
+                "receiveCount": 1, //该玩家领取次数
+                "totalReceiveAmount": 30, //该玩家总领取金额
+                "highestAmount": "30", //单笔最高优惠金额
+                "data": { //本次（最近一次）优惠相关数据（投注记录拿领取优惠的最近一次数据）
+                    "rewardAmount": "30", //优惠金额
+                    "depositAmount": “100”,//存款金额 （存送金组、秒杀礼包、提升留存组）
+                    "rewardTime": "2018-12-05T06:48:30.455Z", //领取时间
+                    "betTime": "2018-12-05T09:38:40.460Z", //下注时间 （幸运注单，盈利翻倍组，投注优惠额组, 等等）
+                    "betType": "和", //下注类型 （幸运注单，盈利翻倍组，投注优惠额组, 等等）
+                    "betAmount": 200, //下注金额 （幸运注单，盈利翻倍组，投注优惠额组, 等等）
+                    "winAmount": -200, //派彩金额 （幸运注单，盈利翻倍组，投注优惠额组, 等等）
+                    "winTimes": -1 //盈利倍数 （幸运注单，盈利翻倍组，投注优惠额组, 等等）
+                }
+            }] //当发生数据有playerId的时候返回该字段
+            playerRanking: { // 玩家自身排行信息  
+                index: 99 // 玩家自己当前排名位置  
+                username: 'etest00001'，  
+                highestAmount: 1000,  
+                receiveCount: 10,  
+                totalReceiveAmount: 1000,  
+                data: {  
+                    rewardAmount: 100，  
+                    depositAmount: 100,  
+                    rewardTime: "2018-08-06T01:02:08.957Z",  
+                    betTime: "2018-08-06T01:02:08.957Z",  
+                    betAmount: 10,  
+                    betType: '和',  
+                    winAmount: 100,  
+                    winTimes: 10  
+                }  
+            }
+        }
+    }`,
+
     getConsumeRebateAmount:`{
         "status": 200／4xx,  //状态
         "data": {
@@ -745,7 +792,32 @@ let reward = {
                 errorMessage: "错误信息"
             }
         },
+
         // getRewardRanking
+        getRewardRanking:{
+            title: "获取某优惠领取排行榜",
+            serviceName: "reward",
+            functionName: "getRewardRanking",
+            desc:"获取申请优惠需要的条件信息",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "playerId", mandatory: "否", type: "String", content: "玩家ID" },
+                { param: "code", mandatory: "是", type: "String", content: "优惠code得" },
+                { param: "sortType", mandatory: "是", type: "int", content: "以什么类型排行.单笔最高优惠金额2.总累积最高金额3.累积成功领取次数4.领取时间" },
+                { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间" },
+                { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间" },
+                { param: "usePaging", mandatory: "否", type: "Boolean", content: "是否使用分页（默认是 true）" },
+                { param: "requestPage", mandatory: "否", type: "int", content: "请求第几页（默认是 1 第一页）" },
+                { param: "count", mandatory: "否", type: "int", content: "每页数据条数（默认为10条）" }
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.getRewardRanking
+            },
+            respondFailure: {
+                status: "40x",
+            }
+        },
 
         requestConsumeRebate:{
             title: "申请提前洗码",
