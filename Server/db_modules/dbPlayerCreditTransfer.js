@@ -1189,7 +1189,6 @@ let dbPlayerCreditTransfer = {
         let updateObj = {};
         let eBetWalletObj = {};
 
-        //if you are !idiot then u must be an imbecile
         // check if player.lastplayedprovider is the same as current providerid
         console.log("TransferPlayerCreditFromProviderWithProviderGroup**");
         console.log("playerObjId", playerObjId);
