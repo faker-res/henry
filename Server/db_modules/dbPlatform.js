@@ -4177,10 +4177,10 @@ var dbPlatform = {
         }
     },
 
-    getFrontEndPopularRecommendationSetting: (platformObjId) => {
+    getFrontEndPopularRecommendationSetting: (platformObjId, deviceType) => {
         let prom =  Promise.resolve();
-        if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
+        if (platformObjId && deviceType){
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: deviceType}).populate({
                 path: "popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
