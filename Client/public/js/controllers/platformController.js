@@ -34941,13 +34941,79 @@ define(['js/app'], function (myApp) {
 
             function updatePlatformTopUpAmountConfig(srcData) {
                 let isPass = true;
+                let isTopUpCountPass = true;
+                let isDevicePass = true;
+                let isDeviceAndTopUpCountPass = true;
+                let isCheckDuplicateDevicePass = true;
 
                 if (srcData.topUpCountAmountRange && srcData.topUpCountAmountRange.length) {
                     srcData.topUpCountAmountRange.forEach(el => {
                         if (!el.topUpCount) {
+                            isTopUpCountPass = false;
+                            isPass = false;
+                        } else if (!el.device || !el.device.length) {
+                            isDevicePass = false;
                             isPass = false;
                         }
-                    })
+                    });
+
+                    if (isPass) {
+                        let duplicateTopUpCounts = srcData.topUpCountAmountRange
+                            .map(e => e['topUpCount'])
+                            .map((e, i, final) => final.indexOf(e) !== i && i)
+                            .filter(obj=> srcData.topUpCountAmountRange[obj])
+                            .map(e => srcData.topUpCountAmountRange[e]["topUpCount"]);
+
+                        let duplicateData = srcData.topUpCountAmountRange.filter(obj=> duplicateTopUpCounts.includes(obj.topUpCount));
+                        if (duplicateData && duplicateData.length > 0) {
+                            let allDevice = [];
+                            duplicateData.forEach(item => {
+                                if (item && item.device && item.device.length > 0) {
+                                    allDevice.push.apply(allDevice, item.device);
+                                }
+                            });
+
+                            let existData = [];
+                            if (allDevice && allDevice.length > 0) {
+                                allDevice.forEach(item => {
+                                    if (existData[item]) {
+                                        isDeviceAndTopUpCountPass = false;
+                                        isPass = false;
+                                    } else {
+                                        existData[item] = true;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+
+                if (srcData.topUpAmountRange && srcData.topUpAmountRange.length) {
+                    let combinedDevices = [];
+                    srcData.topUpAmountRange.forEach(el => {
+                        if (!el.device || !el.device.length) {
+                            isDevicePass = false;
+                            isPass = false;
+                        }
+
+                        if (el && el.device && el.device.length > 0) {
+                            combinedDevices.push.apply(combinedDevices, el.device);
+                        }
+                    });
+
+                    let existDevices = [];
+                    if (isPass && combinedDevices && combinedDevices.length > 0) {
+                        combinedDevices.forEach(item => {
+                            if (existDevices[item]) {
+                                isCheckDuplicateDevicePass = false;
+                                isPass = false;
+                            } else {
+                                existDevices[item] = true;
+                            }
+                        });
+                    }
+
+
                 }
 
                 let sendData = {
@@ -34964,7 +35030,15 @@ define(['js/app'], function (myApp) {
                         loadPlatformData({loadAll: false});
                     });
                 } else {
-                    socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                    if (!isTopUpCountPass) {
+                        socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                    } else if (!isDevicePass) {
+                        socketService.showErrorMessage($translate("Device is mandatory"));
+                    } else if (!isDeviceAndTopUpCountPass) {
+                        socketService.showErrorMessage($translate("Device and Top Up Count is duplicate"));
+                    } else if (!isCheckDuplicateDevicePass) {
+                        socketService.showErrorMessage($translate("Device is duplicate"));
+                    }
                 }
             }
 
@@ -44996,45 +45070,6 @@ define(['js/app'], function (myApp) {
             }
 
             //#region top up amount range setting
-            vm.editingTopUpAmountConfig = function (type, index, editingTopUpAmount) {
-                if (type === 'topUpAmountConfig' && vm.topUpAmountBasic && vm.topUpAmountBasic.topUpAmountRange && vm.topUpAmountBasic.topUpAmountRange.length > 0) {
-                    for (let i = 0; i < vm.topUpAmountBasic.topUpAmountRange.length; i++) {
-
-                        if (i != index) {
-                            let deviceInList = vm.topUpAmountBasic.topUpAmountRange[i].device;
-                            let duplicate = deviceInList.filter(function(v) {
-                                return editingTopUpAmount.device.indexOf(v) > -1;
-                            });
-
-                            if (duplicate && duplicate.length > 0) {
-                                vm.isProceed = false;
-                            } else {
-                                vm.isProceed = true;
-                            }
-                        }
-                    }
-                } else if (type === 'topUpCountAmountConfig' && vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length > 0) {
-                    for (let i = 0; i < vm.topUpAmountBasic.topUpCountAmountRange.length; i++) {
-                        let tempTopUpCountRange = vm.topUpAmountBasic.topUpCountAmountRange[i];
-                        if ((i != index) &&
-                            tempTopUpCountRange.topUpCount &&
-                            editingTopUpAmount && editingTopUpAmount.topUpCount &&
-                            (tempTopUpCountRange.topUpCount == editingTopUpAmount.topUpCount)) {
-                            let deviceInList = tempTopUpCountRange.device;
-                            let duplicate = deviceInList.filter(function(v) {
-                                return editingTopUpAmount.device.indexOf(v) > -1;
-                            });
-
-                            if (duplicate && duplicate.length > 0) {
-                                vm.isProceed = false;
-                            } else {
-                                vm.isProceed = true;
-                            }
-                        }
-                    }
-                }
-            };
-
             vm.updateTopUpAmountRangeConfigInEdit = function (type, data) {
                 if (type == 'add') {
                     if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpAmountRange && vm.topUpAmountBasic.topUpAmountRange.length) {
