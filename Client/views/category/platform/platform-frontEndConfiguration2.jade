@@ -69,24 +69,6 @@ style.
         border-radius: 100% !important;
         margin: 0 .2em;
     }
-
-    .left-div {
-        width: 30% !important;
-    }
-
-    .middle-div {
-        width: 50% !important;
-        padding-right: 10px !important;
-    }
-
-    .right-div {
-        width: 20% !important;
-    }
-
-    div.inline-block.colorBox-fixed-width {
-        width: 80px;
-    }
-
 .row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{frontEndConfigTabActive: vm.selectedFrontEndSettingTab === "popularRecommendation"}', ng-click='vm.frontEndSettingTabClicked("popularRecommendation")')
@@ -95,8 +77,8 @@ style.
             span {{"CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{frontEndConfigTabActive: vm.selectedFrontEndSettingTab === "popUpAdvertisement"}', ng-click='vm.frontEndSettingTabClicked("popUpAdvertisement")')
             span {{"POP_UP_ADVERTISEMENT" | translate}}
-        //button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
-        //    span {{"SKIN_MANAGEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "skinManagement"}', ng-click='vm.frontEndSettingTabClicked("skinManagement")')
+            span {{"SKIN_MANAGEMENT" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "urlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("urlConfiguration")')
             span {{"URL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "rewardSetting"}', ng-click='vm.frontEndSettingTabClicked("rewardSetting")')
@@ -113,8 +95,8 @@ style.
             span {{"PARTNER_CAROUSEL_CONFIGURATION" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerUrlConfiguration"}', ng-click='vm.frontEndSettingTabClicked("partnerUrlConfiguration")')
             span {{"PARTNER_URL_CONFIGURATION" | translate}}
-        //button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerSkinManagement"}', ng-click='vm.frontEndSettingTabClicked("partnerSkinManagement")')
-        //    span {{"PARTNER_SKIN_MANAGEMENT" | translate}}
+        button.btn.btn-primary.common-button(ng-class='{active: vm.selectedFrontEndSettingTab === "partnerSkinManagement"}', ng-click='vm.frontEndSettingTabClicked("partnerSkinManagement")')
+            span {{"PARTNER_SKIN_MANAGEMENT" | translate}}
 
     .col-md-12
         .panel.panel-primary
@@ -155,9 +137,9 @@ style.
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="urlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "urlConfiguration")')
                     include frontEndConfiguration-url
 
-                //// Tab - skin management
-                //.col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
-                //    include frontEndConfiguration-skinManagement
+                // Tab - skin management
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="skinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "skinManagement")')
+                    include frontEndConfiguration-skinManagement
 
                 // Tab - Event Setting
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="rewardSetting" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "rewardSetting")')
@@ -184,8 +166,8 @@ style.
                 .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerUrlConfiguration" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "partnerUrlConfiguration")')
                     include frontEndConfiguration-url
 
-                //.col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerSkinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "partnerSkinManagement")')
-                //    include frontEndConfiguration-skinManagement
+                .col-md-12(ng-if='vm.selectedFrontEndSettingTab=="partnerSkinManagement" && vm.filterFrontEndSettingPlatform && checkViewPermission("Platform", "FrontEndConfiguration", "partnerSkinManagement")')
+                    include frontEndConfiguration-skinManagement
 
 #registrationGuidanceSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
