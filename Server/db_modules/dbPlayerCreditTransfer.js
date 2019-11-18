@@ -1200,10 +1200,10 @@ let dbPlayerCreditTransfer = {
         console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
         console.log("gameProviderGroup", gameProviderGroup);
         console.log("providerId", providerId);
-        if((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId) &&
-            playerData.lastPlayedProvider.providerId != providerId) {
+        if((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
+            playerData.lastPlayedProvider._id != providerId) {
             gameProviderGroup = null;
-            providerId = playerData.lastPlayedProvider.providerId;
+            providerId = playerData.lastPlayedProvider._id;
         }
         console.log("AFTER MAKE OVER");
         console.log("gameProviderGroup", gameProviderGroup);
