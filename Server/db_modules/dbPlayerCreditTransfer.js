@@ -1192,22 +1192,24 @@ let dbPlayerCreditTransfer = {
         // check if player.lastplayedprovider is the same as current providerid
         console.log("TransferPlayerCreditFromProviderWithProviderGroup**");
         console.log("playerObjId", playerObjId);
-        let playerData = await dbConfig.collection_players.findOne({_id:playerObjId}).populate({
-            path: "lastPlayedProvider",
-            model: dbConfig.collection_gameProvider
-        }).lean();
+        if(!useEbetWallet) {
+            let playerData = await dbConfig.collection_players.findOne({_id: playerObjId}).populate({
+                path: "lastPlayedProvider",
+                model: dbConfig.collection_gameProvider
+            }).lean();
 
-        console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
-        console.log("gameProviderGroup", gameProviderGroup);
-        console.log("providerId", providerId);
-        if((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
-            playerData.lastPlayedProvider._id != providerId) {
-            gameProviderGroup = null;
-            providerId = playerData.lastPlayedProvider._id;
+            console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+            if ((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
+                playerData.lastPlayedProvider._id != providerId) {
+                gameProviderGroup = null;
+                providerId = playerData.lastPlayedProvider._id;
+            }
+            console.log("AFTER MAKE OVER");
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
         }
-        console.log("AFTER MAKE OVER");
-        console.log("gameProviderGroup", gameProviderGroup);
-        console.log("providerId", providerId);
 
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
