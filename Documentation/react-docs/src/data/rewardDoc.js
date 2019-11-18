@@ -229,8 +229,8 @@ const sampleData = {
                 "totalReceiveCount": 1, //优惠总领取次数
                 "totalAmount": 30, //优惠总金额
                 "totalPlayerCount": 1 //总参与人数
-            },** 当没有数据时候，为[] (即空数组)
-            "rewardRanking": [{
+            },
+            "rewardRanking": [{     //** 当没有数据时候，为[] (即空数组)
                 "username": "yunvincetest001", //玩家账号
                 "receiveCount": 1, //该玩家领取次数
                 "totalReceiveAmount": 30, //该玩家总领取金额
@@ -803,7 +803,7 @@ let reward = {
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID" },
                 { param: "code", mandatory: "是", type: "String", content: "优惠code得" },
-                { param: "sortType", mandatory: "是", type: "int", content: "以什么类型排行.单笔最高优惠金额2.总累积最高金额3.累积成功领取次数4.领取时间" },
+                { param: "sortType", mandatory: "是", type: "int", content: "以什么类型排行 - 1.单笔最高优惠金额, 2.总累积最高金额, 3.累积成功领取次数, 4.领取时间" },
                 { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间" },
                 { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间" },
                 { param: "usePaging", mandatory: "否", type: "Boolean", content: "是否使用分页（默认是 true）" },

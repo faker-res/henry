@@ -1,15 +1,15 @@
 const sampleData = {
 getTopUpList: `{
     stats: {
-        totalCount: "提案总数",
-        startIndex: "当前页面",
-        requestCount: "页面总提案数",
-        totalAmount: "提案总额度"
+        totalCount: //提案总数,
+        startIndex: //当前页面,
+        requestCount: //页面总提案数,
+        totalAmount: //提案总额度
     },
     records: [{  //查询记录列表
-        amount: "充值额度",
-        createTime: "充值时间",
-        bDirty: "充值记录是否已使用"
+        amount: //充值额度,
+        createTime: //充值时间,
+        bDirty: //充值记录是否已使用
     }]
 }`,
 getTopupHistory: `{
