@@ -1,6 +1,7 @@
 
 var Q = require("q");
 var dbconfig = require('./../modules/dbproperties');
+var dbUtility = require('./../modules/dbutility');
 var playerBillBoardranking ={
 
     calculateWinAllRanking: function() {
@@ -9,10 +10,11 @@ var playerBillBoardranking ={
 
         let totalRecord = 10;
         let recordDate = new Date();
-        recordDate.setHours(recordDate.getHours() - 1);
+        recordDate = dbUtility.getCurrentWeekSGTime();
         let matchQuery = {
             $match: {
-                createTime: {$gte: recordDate},
+                // createTime: {$gte: recordDate},
+                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
                 $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
             },
         };
@@ -56,7 +58,6 @@ var playerBillBoardranking ={
 
                 let playerRanking;
                 let sortedData = consumptionRecord.sort(sortRankingRecord);
-                let playerList = [];
                 console.log('sortedData..', sortedData);
                 for (let i = 0; i < sortedData.length; i++) {
                     if (sortedData[i].amount) {
@@ -94,7 +95,6 @@ var playerBillBoardranking ={
                         ]).then(
                             populatedProvider => {
                                 for (let i = 0; i < populatedProvider.length; i++) {
-                                    playerList.push(populatedProvider.playerId);
                                     // populatedProvider[i].rank = i + 1;
                                     if (populatedProvider[i]._id && populatedProvider[i]._id.name) {
                                         populatedProvider[i].name = populatedProvider[i]._id.name;
@@ -144,39 +144,34 @@ var playerBillBoardranking ={
                                 }
 
                                 console.log('LK checking boardRanking', populatedProvider);
-                                // returnData.allWin.boardRanking = populatedProvider;
-                                return populatedProvider;
+                                returnData.allWin.boardRanking = populatedProvider;
+                                var proms = [];
+                                for (var key in returnData.allWin.boardRanking) {
+                                    var obj = returnData.allWin.boardRanking[key];
+                                    // save to topuphoursummary
+                                    let updateTime = new Date();
+                                    updateTime.setHours(recordDate.getHours());
+                                    console.log('LK checking cal rank updateTime', updateTime);
+                                    // type = ranking mode
+                                    obj.type = "5";
+                                    obj.updateTime = updateTime;
+                                    proms.push(playerBillBoardranking.saveToTopUpHourSummary(obj));
+                                }
+                                Q.all(proms).then(
+                                    function(data) {
+                                        deferred.resolve(data);
+                                    },
+                                    function(error) {
+                                        deferred.reject(error);
+                                    }
+                                ).catch(
+                                    function(error) {
+                                        deferred.reject(error);
+                                    }
+                                );
+                                return deferred.promise;
                             }
-                        ).then( sortedRecord => {
-                            console.log('playerId..', playerList);
-
-                            // returnData.allWin.boardRanking = sortedRecord;
-                            // var proms = [];
-                            // for (var key in returnData.allWin.boardRanking) {
-                            //     var obj = returnData.allWin.boardRanking[key];
-                            //     // save to topuphoursummary
-                            //     let updateTime = new Date();
-                            //     updateTime.setHours(recordDate.getHours());
-                            //     console.log('LK checking cal rank updateTime', updateTime);
-                            //     // type = ranking mode
-                            //     obj.type = "5";
-                            //     obj.updateTime = updateTime;
-                            //     proms.push(playerBillBoardranking.saveToTopUpHourSummary(obj));
-                            // }
-                            // Q.all(proms).then(
-                            //     function(data) {
-                            //         deferred.resolve(data);
-                            //     },
-                            //     function(error) {
-                            //         deferred.reject(error);
-                            //     }
-                            // ).catch(
-                            //     function(error) {
-                            //         deferred.reject(error);
-                            //     }
-                            // );
-                            // return deferred.promise;
-                        });
+                        );
                     } else {
                     returnData.allWin.boardRanking = [];
                     return returnData;
