@@ -1305,12 +1305,16 @@ ul.roleList {
     padding-top: 5px !important;
 }
 
+.padding-top-5em {
+    padding-top: 5em !important;
+}
+
 .padding-all-5 {
     padding: 5px !important;
 }
 
 .padding-all-20 {
- padding: 20px !important;
+    padding: 20px !important;
 }
 
 .padding-left-right-1 {
@@ -1900,38 +1904,6 @@ img.img-platform {
 .label-select-inline {
     display: inline-block;
     width: 100%;
-}
-
-.btn.btn-primary.common-button.frontEndConfigTabActive {
-    background-color: #0a1e2f;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft{
-    text-align: left;
-    width: 60%;
-    display: inline-block;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivRight{
-    text-align: right;
-    width: 40%;
-    display: inline-block;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft  > span.detailDivSpan,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft > span.detailDivSpan {
-    font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 10px;
-    display: inline-block;
 }
 
 .label-select-inline label {
@@ -3715,6 +3687,10 @@ tr.sn-selected, td.sn-selected {
 .widthto95 {
     width: calc(100% - 10px);
     transition: width, 1s, linear;
+}
+
+.width-5em {
+    width: 5em;
 }
 
 .subAll0 * {

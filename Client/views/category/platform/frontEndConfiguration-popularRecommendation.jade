@@ -1,74 +1,48 @@
-button.btn.btn-primary.common-button(ng-class="{frontEndConfigTabActive: vm.popularRecommendationSettingDevice === 'pc'}" ng-click="vm.getPopularRecommendationSettingDevice('pc'); vm.popularRecommendationSettingDevice = 'pc';") {{'PC' | translate}}
-button.btn.btn-primary.common-button(ng-class="{frontEndConfigTabActive: vm.popularRecommendationSettingDevice === 'h5'}" ng-click="vm.getPopularRecommendationSettingDevice('h5'); vm.popularRecommendationSettingDevice = 'h5';") {{'H5' | translate}}
-button.btn.btn-primary.common-button(ng-class="{frontEndConfigTabActive: vm.popularRecommendationSettingDevice === 'app'}" ng-click="vm.getPopularRecommendationSettingDevice('app'); vm.popularRecommendationSettingDevice = 'app';") {{'App' | translate}}
+button.btn-primary.btn.btn-space(ng-click="vm.getPopularRecommendationSettingDevice('1')") {{'PC' | translate}}
+button.btn-primary.btn.btn-space(ng-click="vm.getPopularRecommendationSettingDevice('2')") {{'H5' | translate}}
+button.btn-primary.btn.btn-space(ng-click="vm.getPopularRecommendationSettingDevice('4')") {{'App' | translate}}
 
 
-div(style="background: #d3d3d34d; padding: 10px; margin-top: 10px; margin-bottom: 30px; position:relative;")
+div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
     div(style="display: inline;")
         label {{'Setting For First Page' | translate}}
         br
         label.text-danger {{'Note: only allow to add, delete, move, double click to edit' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.initPopularRecommendationSetting()")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
-div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.frontEndDeletedList=[]; vm.getPopularRecommendationSettingDevice(vm.popularRecommendationSettingDevice);") {{'CANCEL' | translate}}
-    button#testSave.btn-primary.btn.btn-space(ng-click="vm.updatePopularRecommendationSetting()") {{'SAVE' | translate}}
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'Navigation_Bar' | translate}}
     ul.connected-sortable.droppable-area1
-        li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1", id="{{one._id}}")
-            div.detailDivLeft
-                span.detailDivSpan {{ one.displayTitle }}
-                <br/>
-                span {{ one.onClickAction$ | translate}}
-                <br/>
-                span {{ one.displayRoute$ }}
-            div.detailDivRight
-                .tab-btngroup
-                    button.btn.btn-success(style="width: 90px;" ng-if="one.isVisible" ng-click="one.isVisible = false") on
-                    button.btn.btn-danger(style="width: 90px;" ng-if="!one.isVisible", ng-click="one.isVisible = true") off
-                .tab-btngroup
-                    button.btn.btn-primary.btn-delete(ng-click="vm.editPopularRecommendationSetting(one._id)")
-                        span.fa.fa-pencil
-                    button.btn.btn-danger.btn-delete(id="{{one._id}}")
-                        span.fa.fa-trash-o
+        li.draggable-item(ng-repeat="one in vm.frontEndPopularRecommendationData", ng-if="one.category == 1 && one.device == vm.popularDevice", ng-dblclick="vm.editPopularRecommendationSetting(one._id)", id="{{one._id}}")
+            img(ng-src="{{one.imageUrl}}" width="100%" height="80px")
+            .tab-btngroup
+                button.btn.btn-primary(ng-if="one.isVisible" ng-click="one.isVisible = false") on
+                button.btn.btn-success(ng-if="!one.isVisible", ng-click="one.isVisible = true") off
+                button.btn.btn-danger.btn-delete(id="{{one._id}}")
+                    span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'Body' | translate}}
     ul.connected-sortable.droppable-area2
-        li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2", ng-dblclick="vm.editPopularRecommendationSetting(two._id)" id="{{two._id}}")
-            div.detailDivLeft
-                span.detailDivSpan {{ two.displayTitle }}
-                <br/>
-                span {{ two.onClickAction$ | translate}}
-                <br/>
-                span {{ two.displayRoute$ }}
-            div.detailDivRight
-                .tab-btngroup
-                    button.btn.btn-success(style="width: 90px;" ng-if="two.isVisible" ng-click="two.isVisible = false") on
-                    button.btn.btn-danger(style="width: 90px;" ng-if="!two.isVisible", ng-click="two.isVisible = true") off
-                .tab-btngroup
-                    button.btn.btn-primary.btn-delete(ng-click="vm.editPopularRecommendationSetting(two._id)")
-                        span.fa.fa-pencil
-                    button.btn.btn-danger.btn-delete(id="{{two._id}}")
-                        span.fa.fa-trash-o
+        li.draggable-item(ng-repeat="two in vm.frontEndPopularRecommendationData", ng-if="two.category == 2 && two.device == vm.popularDevice", ng-dblclick="vm.editPopularRecommendationSetting(two._id)" id="{{two._id}}")
+            img(ng-src="{{two.imageUrl}}" width="100%" height="80px")
+            .tab-btngroup
+                button.btn.btn-primary(ng-if="two.isVisible" ng-click="two.isVisible = false") on
+                button.btn.btn-success(ng-if="!two.isVisible", ng-click="two.isVisible = true") off
+                button.btn.btn-danger.btn-delete(id="{{two._id}}")
+                    span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv
     span(style='font-weight: bold;') {{'Bottom_Banner' | translate}}
     ul.connected-sortable.droppable-area3
-        li.draggable-item(ng-repeat="three in vm.frontEndPopularRecommendationData", ng-if="three.category == 3", ng-dblclick="vm.editPopularRecommendationSetting(three._id)" id="{{three._id}}")
-            div.detailDivLeft
-                span.detailDivSpan {{ three.displayTitle }}
-                <br/>
-                span {{ three.onClickAction$ | translate}}
-                <br/>
-                span {{ three.displayRoute$ }}
-            div.detailDivRight
-                .tab-btngroup
-                    button.btn.btn-success(style="width: 90px;" ng-if="three.isVisible" ng-click="three.isVisible = false") on
-                    button.btn.btn-danger(style="width: 90px;" ng-if="!three.isVisible", ng-click="three.isVisible = true") off
-                .tab-btngroup
-                    button.btn.btn-primary.btn-delete(ng-click="vm.editPopularRecommendationSetting(three._id)")
-                        span.fa.fa-pencil
-                    button.btn.btn-danger.btn-delete(id="{{three._id}}")
-                        span.fa.fa-trash-o
+        li.draggable-item(ng-repeat="three in vm.frontEndPopularRecommendationData", ng-if="three.category == 3 && three.device == vm.popularDevice", ng-dblclick="vm.editPopularRecommendationSetting(three._id)" id="{{three._id}}")
+            img(ng-src="{{three.imageUrl}}" width="100%" height="80px")
+            .tab-btngroup
+                button.btn.btn-primary(ng-if="three.isVisible" ng-click="three.isVisible = false") on
+                button.btn.btn-success(ng-if="!three.isVisible", ng-click="three.isVisible = true") off
+                button.btn.btn-danger.btn-delete(id="{{three._id}}")
+                    span.fa.fa-trash-o
+
+div.text-right
+    button.btn-danger.btn.btn-space(ng-click="vm.frontEndDeletedList=[];vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button#testSave.btn-primary.btn.btn-space(ng-click="vm.updatePopularRecommendationSetting()") {{'SAVE' | translate}}

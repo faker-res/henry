@@ -1902,38 +1902,6 @@ img.img-platform {
     width: 100%;
 }
 
-.btn.btn-primary.common-button.frontEndConfigTabActive {
-    background-color: #0a1e2f;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft{
-    text-align: left;
-    width: 60%;
-    display: inline-block;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivRight,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivRight{
-    text-align: right;
-    width: 40%;
-    display: inline-block;
-}
-
-ul.connected-sortable.droppable-area > li.draggable-item > div.detailDivLeft  > span.detailDivSpan,
-ul.connected-sortable.droppable-area1 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
-ul.connected-sortable.droppable-area2 > li.draggable-item > div.detailDivLeft > span.detailDivSpan,
-ul.connected-sortable.droppable-area3 > li.draggable-item > div.detailDivLeft > span.detailDivSpan {
-    font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 10px;
-    display: inline-block;
-}
-
 .label-select-inline label {
     width: 50%;
     word-wrap: break-word;

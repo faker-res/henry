@@ -75,36 +75,6 @@ define([], function () {
             return result;
         }
 
-        this.getFrontEndSettingRoute = (item) => {
-            let displayRoute = "";
-            if (item && item.hasOwnProperty("onClickAction")){
-
-                switch (item.onClickAction){
-                    case '1':
-                    case 1:
-                        displayRoute = item.newPageUrl ? item.newPageUrl : "";
-                        break;
-                    case '2':
-                    case 2:
-                        displayRoute = item.activityUrl ? item.activityUrl : "";
-                        break;
-                    case '4':
-                    case 4:
-                        displayRoute = item.route ? item.route : "";
-                        break;
-                    case '5':
-                    case 5:
-                        displayRoute = item.gameCode ? item.gameCode : "";
-                        break;
-                    default:
-                        displayRoute = "";
-                        break;
-                }
-            }
-
-            return displayRoute;
-        }
-
         this.determineRegistrationDevice = function (data){
           if (data && data.guestDeviceId){
               data.registrationInterface$ = "APP"
