@@ -5,8 +5,8 @@
 
 */
 
-let login = {
-    name: "登入",
+let loginLogout = {
+    name: "登入/登出",
     func: {
         login: {
             title: "登录",
@@ -151,4 +151,4 @@ let login = {
     }
 }
 
-export default login;
+export default loginLogout;
