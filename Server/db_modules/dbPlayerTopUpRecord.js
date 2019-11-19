@@ -449,6 +449,7 @@ var dbPlayerTopUpRecord = {
                             console.log("LH check player report 5------", consumptionDetails.length);
                             consumptionDetails.forEach(
                                 consumption => {
+                                    console.log("debug #C8AD00 grouped consumption", consumption)
                                     if(consumption && consumption._id && consumption._id.playerId){
                                         let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
                                         let providerDetail = {};
@@ -781,6 +782,7 @@ var dbPlayerTopUpRecord = {
                     playerReportDaySummary => {
                         console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
+                        console.log("debug #C8AD01 recalculate result", JSON.stringify(playerReportSummary, null, 2))
                         let platformFeeProm = [];
                         if(consumptionDetailArr  && consumptionDetailArr.length > 0){
                             consumptionDetailArr .forEach(
