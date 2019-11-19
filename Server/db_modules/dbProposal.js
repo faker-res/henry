@@ -628,15 +628,40 @@ var proposal = {
                             }
                         }
 
-                        return dbconfig.collection_proposal.findOne({
+                        let bank1prom = dbconfig.collection_proposal.findOne({
                             type: proposalTypeData._id,
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                             'data.platformId': proposalData.data.platformId,
                             'data.playerId': proposalData.data.playerId,
-                            'data.playerName': proposalData.data.playerName
-                        }).lean().then(bankInfoProposal => {
-                            if (!bankInfoProposal) {
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '1'
+                        }).lean();
+                        let bank2prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.playerId': proposalData.data.playerId,
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '2'
+                        }).lean();
+                        let bank3prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.playerId': proposalData.data.playerId,
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '3'
+                        }).lean();
+
+                        return Promise.all([bank1prom, bank2prom, bank3prom]).then(bankInfoProposal => {
+                            if (!bankInfoProposal[0]) {
                                 return {isFirstBankInfo: true};
+                            }
+                            if (!bankInfoProposal[1]) {
+                                return {isFirstBankInfo2: true};
+                            }
+                            if (!bankInfoProposal[2]) {
+                                return {isFirstBankInfo3: true};
                             }
                         });
 
@@ -646,15 +671,40 @@ var proposal = {
                         && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO
                         && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId
                     ) {
-                        return dbconfig.collection_proposal.findOne({
+                        let bank1prom = dbconfig.collection_proposal.findOne({
                             type: proposalTypeData._id,
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                             'data.platformId': proposalData.data.platformId,
                             'data.partnerId': proposalData.data.partnerId,
-                            'data.partnerName': proposalData.data.partnerName
-                        }).lean().then(bankInfoProposal => {
-                            if (!bankInfoProposal) {
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '1'
+                        }).lean();
+                        let bank2prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.partnerId': proposalData.data.partnerId,
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '2'
+                        }).lean();
+                        let bank3prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.partnerId': proposalData.data.partnerId,
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '3'
+                        }).lean();
+
+                        return Promise.all([bank1prom, bank2prom, bank3prom]).then(bankInfoProposal => {
+                            if (!bankInfoProposal[0]) {
                                 return {isFirstBankInfo: true};
+                            }
+                            if (!bankInfoProposal[1]) {
+                                return {isFirstBankInfo2: true};
+                            }
+                            if (!bankInfoProposal[2]) {
+                                return {isFirstBankInfo3: true};
                             }
                         });
                     }
@@ -665,11 +715,21 @@ var proposal = {
                 // add remark if first time bound to the bank info
                 if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                } else if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo2') && bankInfoProposal.isFirstBankInfo2) {
+                    proposalData.data.remark = localization.localization.translate("First time bound to the bank info 2");
+                } else if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo3') && bankInfoProposal.isFirstBankInfo3) {
+                    proposalData.data.remark = localization.localization.translate("First time bound to the bank info 3");
                 } else if (proposalData && proposalData.data && proposalData.mainType
                     && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO)
                     || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO))) {
 
-                    proposalData.data.remark = localization.localization.translate("Amend Bank Info");
+                    if (proposalData.data.bankAccount && proposalData.data.bankName && proposalData.data.bankChoice === '1') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info");
+                    } else if (proposalData.data.bankAccount2 && proposalData.data.bankName2 && proposalData.data.bankChoice === '2') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info 2");
+                    } else if (proposalData.data.bankAccount3 && proposalData.data.bankName3 && proposalData.data.bankChoice === '3') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info 3");
+                    }
                 }
 
                 //for online top up and player consumption return, there can be multiple pending proposals
