@@ -1758,6 +1758,7 @@
   "LIVE_COMMENTING_COLOR": "弹幕颜色",
   "XBET_PLAYER_LEVEL_CONFIG": "XBET玩家等级设置",
   "DISABLE_AUTO_LEVEL_UP_REWARD": "禁止自动派发升级优惠",
+  "TOTAL_CONSECUTIVE_LOGIN": "总登入人数（去重）",
 
   "PlayerRetentionRewardGroup": "提升留存（组）",
   "Check if this IP address has received the reward": "（领优惠前）检查该IP是否曾经领过",
