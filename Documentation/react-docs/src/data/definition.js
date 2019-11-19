@@ -155,21 +155,21 @@ const amountVariety = {
 
 //在线支付用途: （有些平台要求玩家开户时给账号充值 ）
 const onlinePayment = {
-    title: "在线支付用途",
+    title: "在线支付用途（有些平台要求玩家开户时给账号充值）",
     fields: {
         name: "名称",
         value: "值",
+        desc: "说明"
     },
     definitionData:[
-        {name:'普通充值(Normal)', value:'1'},
+        {name:'普通充值(Normal)', value:'1', desc:'此为默认值'},
         {name:'开户充值(CreateAccount)', value:'2'},
-
     ]
 };
 
 //客户端类型：
 const clientType = {
-    title: "客户端类型",
+    title: "客户端类型（DepositMethod）",
     fields: {
         name: "名称",
         value: "值",
