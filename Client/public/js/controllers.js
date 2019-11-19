@@ -140,14 +140,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             authService.updateRoleDataFromServer($scope, $cookies, $state);
         });
 
-        // 6 seconds interval to poll server status and ping
-        setInterval(() => {
-            $scope.AppSocket.emit('getAPIServerStatus', {});
-
-            for (let server in WSCONFIG) {
-                pingServer(server);
-            }
-        }, 30000);
+        // Ping connections
+        for (let server in WSCONFIG) {
+            pingServer(server);
+        }
 
         // internal function to ping server
         function pingServer(server) {
@@ -157,25 +153,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 urlToPing = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
             }
 
-            return new Promise((resolve, reject) => {
-                let serverPing = io.connect(urlToPing, {
-                    query: 'token=' + authService.token,
-                    timeout: 50000,
-                    reconnection: false,
-                    "transports": ["websocket"]
-                });
+            let serverPing = io.connect(urlToPing, {
+                query: 'token=' + authService.token,
+                timeout: 50000,
+                reconnection: false,
+                "transports": ["websocket"]
+            });
 
-                serverPing.on('pong', (latency) => {
-                    WSCONFIG[server].latency = latency * 2;
+            serverPing.on('pong', (latency) => {
+                WSCONFIG[server].latency = latency * 2;
+            });
 
-                    setTimeout(() => {
-                        serverPing.disconnect();
-                        resolve(serverPing.close());
-                    }, 30000);
-                });
-
-                serverPing.emit('ping');
-            })
+            serverPing.emit('ping');
         }
     };
 
