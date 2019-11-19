@@ -7747,7 +7747,7 @@ define(['js/app'], function (myApp) {
                     };
 
                     // for 2nd and 3rd bank info
-                    if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                    // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                         if (vm.selectedSinglePlayer.multipleBankDetailInfo) {
                             let bankDetails = vm.selectedSinglePlayer.multipleBankDetailInfo;
 
@@ -7758,7 +7758,7 @@ define(['js/app'], function (myApp) {
                             sendData.city3 = bankDetails.bankAccountCity3 ? bankDetails.bankAccountCity3 : null;
                             sendData.district3 = bankDetails.bankAccountDistrict3 ? bankDetails.bankAccountDistrict3 : null;
                         }
-                    }
+                    // }
 
                     socketService.$socket($scope.AppSocket, 'getBankZoneData', sendData, function (retData) {
                         $scope.$evalAsync(() => {
@@ -13637,7 +13637,7 @@ define(['js/app'], function (myApp) {
                 vm.drawPaymentHistory(drawData);
                 let drawData2 = [];
                 let drawData3 = [];
-                if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                     drawData2 = data.data.filter(item => {
                         return item.bankName2 || item.bankAccount2 || item.bankAccountName2;
                     }).map(item => {
@@ -13672,7 +13672,7 @@ define(['js/app'], function (myApp) {
                     vm.paymetHistoryCount3 = drawData3.length;
                     vm.drawPaymentHistory2(drawData2);
                     vm.drawPaymentHistory3(drawData3);
-                }
+                // }
 
             }, null, true);
             $('#modalPlayerPaymentHistory').modal();
@@ -15655,9 +15655,9 @@ define(['js/app'], function (myApp) {
             vm.playerBankList = [];
             let isMultipleBank = false;
 
-            if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+            // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                 isMultipleBank = true;
-            }
+            // }
 
             let sendQuery = {
                 playerObjId: vm.selectedSinglePlayer._id,
