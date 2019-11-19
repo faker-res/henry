@@ -15299,6 +15299,7 @@ let dbPlayerInfo = {
                                             ximaWithdrawUsed: ximaWithdrawUsed,
                                             isAutoApproval: player.platform.enableAutoApplyBonus,
                                             bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
+                                            decodedBankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? withdrawalBank.bankAccount : "",
                                             bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
                                             bankAccountNameWhenSubmit: withdrawalBank && withdrawalBank.bankAccountName ? withdrawalBank.bankAccountName : "",
                                             changeCredit: changeCredit

@@ -2308,6 +2308,17 @@ var proposalExecutor = {
                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
                                            };
+
+                                           if (proposalData && proposalData.data &&
+                                               !proposalData.data.bankAccountWhenApprove && !proposalData.data.bankNameWhenApprove &&
+                                               proposalData.data.decodedBankAccountWhenSubmit && proposalData.data.bankNameWhenSubmit &&
+                                               bankDetail && bankDetail.bankName && bankDetail.bankAccount &&
+                                               (bankDetail.bankName === proposalData.data.bankNameWhenSubmit) &&
+                                               (bankDetail.bankAccount === proposalData.data.decodedBankAccountWhenSubmit)) {
+                                               dataToUpdate["data.bankAccountWhenApprove"] = dbUtil.encodeBankAcc(bankDetail.bankAccount);
+                                               dataToUpdate["data.bankNameWhenApprove"] = bankDetail.bankName;
+                                           }
+
                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                                            return bonusData;
                                        });
@@ -2370,10 +2381,11 @@ var proposalExecutor = {
                         && multipleBankDetailInfo.bankName2
                         && multipleBankDetailInfo.bankAccountName2
                         && proposalData
-                        && proposalData.data.bankAccountWhenSubmit
+                        && proposalData.data.decodedBankAccountWhenSubmit
                         && proposalData.data.bankNameWhenSubmit
-                        && ((proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount2) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 && proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)
-                            || (proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount2) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2))) {
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount2 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)) {
                         bankInfo = {};
                         bankInfo = {
                             bankAccountName: multipleBankDetailInfo.bankAccountName2,
@@ -2388,10 +2400,11 @@ var proposalExecutor = {
                         && multipleBankDetailInfo.bankName3
                         && multipleBankDetailInfo.bankAccountName3
                         && proposalData
-                        && proposalData.data.bankAccountWhenSubmit
+                        && proposalData.data.decodedBankAccountWhenSubmit
                         && proposalData.data.bankNameWhenSubmit
-                        && ((proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount3) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 && proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)
-                            || (proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount3) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3))) {
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount3 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)) {
                         bankInfo = {};
                         bankInfo = {
                             bankAccountName: multipleBankDetailInfo.bankAccountName3,
