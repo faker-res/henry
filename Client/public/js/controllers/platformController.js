@@ -25617,6 +25617,7 @@ define(['js/app'], function (myApp) {
                             web: {},
                             pc: {},
                         };
+                        vm.newFrontEndSkinSetting = {};
                         vm.urlConfigShowMessage = '';
                         if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
                             vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, true);
@@ -25684,8 +25685,10 @@ define(['js/app'], function (myApp) {
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.isPartnerForUrlConfiguration = false;
+                        vm.isPartnerForSkinManagement = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
+                            vm.isPartnerForSkinManagement = true;
                         }
                         break;
                     case 'skinManagement':
@@ -26590,6 +26593,20 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initSkinManagement = (deviceType) => {
+                vm.skinSettingShowMessage="";
+                if (deviceType){
+                    vm.frontEndSkinSettingDeviceType = deviceType.toString();
+                    vm.newFrontEndSkinSetting.device = deviceType.toString();
+
+                    $('#modalSkinManagement').modal();
+                }
+            };
+
+            vm.closeSkinSetting = () => {
+                $('#modalSkinManagement').modal('hide');
+            };
+
             //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function (isPartner, subPlatformId = null) {
                 let sendData = {
@@ -26607,6 +26624,10 @@ define(['js/app'], function (myApp) {
                     return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
                         console.log("savePartnerSkinSetting success:", data);
                         vm.newFrontEndSkinSetting = {};
+
+                        if (vm.frontEndSkinSettingDeviceType) {
+                            vm.newFrontEndSkinSetting.device = vm.frontEndSkinSettingDeviceType;
+                        }
                         vm.skinSettingShowMessage = "SUCCESS";
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, isPartner);
                         $scope.$evalAsync();
@@ -26619,6 +26640,9 @@ define(['js/app'], function (myApp) {
                     return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
                         console.log("saveSkinSetting success:", data);
                         vm.newFrontEndSkinSetting = {};
+                        if (vm.frontEndSkinSettingDeviceType) {
+                            vm.newFrontEndSkinSetting.device = vm.frontEndSkinSettingDeviceType;
+                        }
                         vm.skinSettingShowMessage = "SUCCESS";
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         $scope.$evalAsync();
