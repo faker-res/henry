@@ -1676,6 +1676,7 @@ define([], () => {
                 }
                 proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["BANK_ACCOUNT_NAME"] = vm.selectedProposal.data.bankAccountNameWhenSubmit;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
                 proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;

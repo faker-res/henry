@@ -7,13 +7,13 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
     tbody
         tr(ng-repeat='setting in vm.topUpAmountBasic.topUpAmountRange')
             td(style='width:250px;')
-                select.form-control.spicker(ng-model='setting.device', ng-options='i as v | translate for (i,v) in vm.topUpAmountConfigDevice', ng-disabled='!vm.configTableEdit', ng-change='vm.editingTopUpAmountConfig("topUpAmountConfig", $index, setting)', multiple, bsp, data-actions-box='true', ng-init='$last && vm.refreshSPicker()')
+                select.form-control.spicker(ng-model='setting.device', ng-options='i as v | translate for (i,v) in vm.topUpAmountConfigDevice', ng-disabled='!vm.configTableEdit', multiple, bsp, data-actions-box='true', ng-init='$last && vm.refreshSPicker()')
             td
                 input.form-control(type='number', ng-model='setting.minAmount', ng-disabled='!vm.configTableEdit')
             td
                 input.form-control(type='number', ng-model='setting.maxAmount', ng-disabled='!vm.configTableEdit')
             td(ng-if='vm.configTableEdit')
-                i.fa.fa-minus(ng-click='vm.updateTopUpAmountRangeConfigInEdit("remove", $index)')
+                i.fa.fa-minus(ng-click='vm.updateTopUpAmountRangeConfigInEdit("remove", $index);')
 
         //Placeholder for new entry
         tr(ng-if='vm.configTableEdit')
@@ -39,15 +39,15 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
     tbody
         tr(ng-repeat='setting in vm.topUpAmountBasic.topUpCountAmountRange')
             td(style='width:250px;')
-                select.form-control.spicker(ng-model='setting.device', ng-options='i as v | translate for (i,v) in vm.topUpAmountConfigDevice', ng-disabled='!vm.configTableEdit', ng-change='vm.editingTopUpAmountConfig("topUpCountAmountConfig", $index, setting)', multiple, bsp, data-actions-box='true', ng-init='$last && vm.refreshSPicker()')
+                select.form-control.spicker(ng-model='setting.device', ng-options='i as v | translate for (i,v) in vm.topUpAmountConfigDevice', ng-disabled='!vm.configTableEdit', multiple, bsp, data-actions-box='true', ng-init='$last && vm.refreshSPicker()')
             td
-                input.form-control(type='number', ng-model='setting.topUpCount', ng-change='vm.editingTopUpAmountConfig("topUpCountAmountConfig", $index, setting)', ng-disabled='!vm.configTableEdit')
+                input.form-control(type='number', ng-model='setting.topUpCount', ng-disabled='!vm.configTableEdit')
             td
                 input.form-control(type='number', ng-model='setting.minAmount', ng-disabled='!vm.configTableEdit')
             td
                 input.form-control(type='number', ng-model='setting.maxAmount', ng-disabled='!vm.configTableEdit')
             td(ng-if='vm.configTableEdit')
-                i.fa.fa-minus(ng-click='vm.updateTopUpCountAmountRangeConfigInEdit("remove", $index)')
+                i.fa.fa-minus(ng-click='vm.updateTopUpCountAmountRangeConfigInEdit("remove", $index);')
 
         //Placeholder for new entry
         tr(ng-if='vm.configTableEdit')
@@ -65,7 +65,7 @@ table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                 i.fa.fa-plus(ng-click='vm.updateTopUpCountAmountRangeConfigInEdit("add", vm.tempNewTopUpCountAmountRange);vm.tempNewTopUpCountAmountRange={}')
 
 br
-button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'TopUpAmountConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.isProceed=true;vm.refreshSPicker()')
+button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'TopUpAmountConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit;vm.refreshSPicker()')
     text {{'EDIT' | translate}}
     img.img-edit
 button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("topUpAmountConfig")') {{"CANCEL" | translate}}

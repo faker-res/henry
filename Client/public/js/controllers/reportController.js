@@ -986,13 +986,14 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.playerLoginMode[val]);
             } else if (fieldName === 'rewardInterval') {
                 result = $translate($scope.rewardInterval[val]);
-            }
-            else if (fieldName === 'gameProviderInEvent') {
+            } else if (fieldName === 'gameProviderInEvent') {
                 let gameProviderById = vm.allGameProviderById[val.toString()];
 
                 if(gameProviderById && gameProviderById.name){
                     result =  gameProviderById.name;
                 }
+            } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             }
             return $sce.trustAsHtml(result);
         };
