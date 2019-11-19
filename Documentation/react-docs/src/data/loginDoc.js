@@ -5,8 +5,8 @@
 
 */
 
-let login = {
-    name: "登入",
+let loginLogout = {
+    name: "登入/登出",
     func: {
         login: {
             title: "登录",
@@ -122,8 +122,33 @@ let login = {
                 status: '40x',
                 data: "null",
             },
-        }
+        },
+        createGuestPlayer: {
+            title: "生成游客账号",
+            serviceName: "player",
+            functionName: "createGuestPlayer",
+            desc: "",
+            requestContent: [
+                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
+                { param: "guestDeviceId", mandatory: "是", type: 'String', content: '设备ID' },
+                { param: "phoneNumber", mandatory: "否", type: 'String', content: '填写则绑定电话号码+设备ID' },
+                { param: "accountPrefix", mandatory: "否", type: 'String', content: '账号名字前缀 默认 "g"' },
+                { param: "referralId", mandatory: "否", type: 'String', content: '推荐人邀请码' },
+                { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
+                { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
+
+            ],
+            respondSuccess: {
+                status: 200,
+                data: "玩家对象 (玩家对象(包含token), token–玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）)",
+            },
+            respondFailure: {
+                status: "4xx",
+                data: "null",
+                errorMessage: "",
+            }
+        },
     }
 }
 
-export default login;
+export default loginLogout;
