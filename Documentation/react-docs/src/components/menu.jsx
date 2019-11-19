@@ -1,5 +1,11 @@
 import React, {Component} from 'react';
 
+const categoryTranslate = {
+    player: "玩家",
+    partner: "代理",
+    platform: "平台"
+};
+
 class Menu extends Component{
     state = {
         curNav: this.props.curNav,
@@ -8,15 +14,34 @@ class Menu extends Component{
     drawNav = () => {
         let list = this.props.list;
         let navList = []
-        list.forEach(item => {
-            let className = "nav-item";
-            className += item.key === this.state.curNav ? " active" : "";
-            navList.push(
-                <li className={className} key={item.key} name={item.key} onClick={this.props.onClick}>
-                    {item.name}
-                </li>
-            );
-        })
+        for(let categoryName in list) {
+            let subList = list[categoryName];
+            if(categoryName === "noCat") {
+                subList.forEach(item => {
+                    let className = "nav-item";
+                    className += item.key === this.state.curNav ? " active" : "";
+                    navList.push(
+                        <li className={className} key={item.key} name={item.key} onClick={this.props.onClick}>
+                            {item.name}
+                        </li>
+                    );
+                })
+            } else {
+                navList.push(
+                    <span key={categoryName}>{categoryTranslate[categoryName]}</span>
+                )
+                subList.forEach(item => {
+                    let className = "nav-item";
+                    className += item.key === this.state.curNav ? " active" : "";
+                    let childKey = (categoryName || '') + item.key;
+                    navList.push(
+                        <li className={className} key={childKey} name={item.key} category={categoryName} onClick={this.props.onClick}>
+                            {item.name}
+                        </li>
+                    );
+                })
+            }
+        }
         return navList
     }
 

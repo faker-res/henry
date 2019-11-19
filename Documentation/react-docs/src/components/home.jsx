@@ -3,7 +3,7 @@ import Menu from './menu';
 import Content from './content';
 import apiData from '../data/apiDocumentation';
 
-// const antiPatternContentKeys = ["guide","definition"];
+const antiPatternContentKeys = ["guide","definition"];
 
 class Home extends Component {
     constructor(props) {
@@ -11,7 +11,7 @@ class Home extends Component {
         const landingPage = "reward";
         this.state = {
             curNav: landingPage,
-            displayList: apiData[landingPage].func || apiData[landingPage].def || apiData[landingPage]
+            displayList: apiData.player[landingPage].func || apiData.player[landingPage].def || apiData.player[landingPage]
         };
     };
 
@@ -21,40 +21,60 @@ class Home extends Component {
             arr[i].className = arr[i].className.replace("active","").trim();
         }
         event.target.className += " active";
-        for(let key in apiData){
-            if(key === event.target.getAttribute('name')){
-                this.setState({curNav: key});
-                if(key === "guide") {
-                    this.setState({displayList: apiData.guide});
-                } else if (key === "definition") {
-                    this.setState({displayList: apiData[key].def});
-                } else {
-                    this.setState({displayList: apiData[key].func});
+        
+        if(event.target.getAttribute('name') === "guide" && event.target.getAttribute('category') == null) {
+            this.setState({displayList: apiData.guide});
+            this.setState({curNav: "guide"});
+        } else if (event.target.getAttribute('name') === "definition" && event.target.getAttribute('category') == null) {
+            this.setState({displayList: apiData.definition.def});
+            this.setState({curNav: "definition"});
+        } else {
+            for(let categoryName in apiData){
+                if(categoryName === event.target.getAttribute('category')){
+                    let category = apiData[categoryName];
+                    for(let key in category){
+                        if(key === event.target.getAttribute('name')){
+                            this.setState({curNav: key});
+                            this.setState({displayList: apiData[categoryName][key].func});
+                        }
+                    }
                 }
             }
         }
     };
 
     buildMenuList = () => {
-        let menuList = [];
-        for(let key in apiData){
-            let subList = [];
-            if(apiData[key].hasOwnProperty('func')) {
-                for(let funcName in apiData[key].func) {
-                    subList.push({
-                        title: apiData[key].func[funcName].title,
-                        funcKey: funcName
-                    })
+        let menuList = {noCat:[]};
+        for(let categoryName in apiData) {
+            if(antiPatternContentKeys.includes(categoryName)) {
+                menuList.noCat.push({
+                    name: apiData[categoryName].name,
+                    key: categoryName,
+                });
+            } else {
+                menuList[categoryName] = [];
+                let category = apiData[categoryName];
+                for(let key in category){
+                    let subList = [];
+                    if(category[key].hasOwnProperty('func')) {
+                        for(let funcName in category[key].func) {
+                            subList.push({
+                                title: category[key].func[funcName].title,
+                                funcKey: funcName
+                            })
+                        }
+                    }
+                    menuList[categoryName].push({
+                        name: category[key].name,
+                        key: key,
+                        subList
+                    });
                 }
             }
-            menuList.push({
-                name: apiData[key].name,
-                key: key,
-                subList
-            });
         }
         return menuList;
     };
+
     drawContents = () => {
         let contents = [];
         let curTab = this.state.curNav;
