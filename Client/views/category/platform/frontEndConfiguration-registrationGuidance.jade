@@ -25,6 +25,10 @@ div(style="margin: 10px; padding: 10px; display:inline-block; width: 100%;")
             option(ng-init='$last && vm.refreshSPicker()' ng-repeat='item in vm.allRegistrationCategory', value='{{item._id}}') {{item.categoryName}}
     button.btn.btn-primary(style="margin-left: 5px;", ng-click ="vm.filterDisplayRegistrationCategory(vm.displayRegistrationCategory); vm.enableSortableCategoryChange(vm.registrationCategory);") {{'SUBMIT' | translate}}
 
+div.text-right
+    button.btn-danger.btn.btn-space(style="margin-top: 15px;" ng-click="vm.rewardCategoryDeletedList=[];vm.rewardDeletedList=[];vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform); vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
+    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateRegistrationGuidanceSetting()") {{'SAVE' | translate}}
+
 div.col-xs-12.row(style="padding-right: 0;")
     div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
         div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
@@ -49,17 +53,22 @@ div.col-xs-12.row(style="padding-right: 0;")
             hr
             div(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;" id="{{data._id}}")
                 ul.connected-sortable.droppable-area(style="min-height: 90%;")
-                    li.draggable-item(ng-repeat="event in vm.registrationSettingData" ng-if="event.categoryObjId == data._id" ng-dblclick="vm.addNewRegistrationGuidance(false, event._id)" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
-                        span {{event.title}}
-                        .tab-btngroup
-                            button.btn.btn-primary(ng-if="event.isVisible" ng-click="event.isVisible = false") on
-                            button.btn.btn-success(ng-if="!event.isVisible", ng-click="event.isVisible = true") off
-                            button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'registrationSettingData', 'allRegistrationSettingData')")
-                                span.fa.fa-trash-o
-
-div.text-right
-    button.btn-danger.btn.btn-space(style="margin-top: 15px;" ng-click="vm.rewardCategoryDeletedList=[];vm.rewardDeletedList=[];vm.loadRegistrationGuidanceCategory(vm.filterFrontEndSettingPlatform); vm.loadRegistrationGuidance(vm.filterFrontEndSettingPlatform);") {{'CANCEL' | translate}}
-    button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateRegistrationGuidanceSetting()") {{'SAVE' | translate}}
+                    li.draggable-item(ng-repeat="event in vm.registrationSettingData" ng-if="event.categoryObjId == data._id" id="{{event._id}}")
+                        div.detailDivLeft
+                            span.detailDivSpan {{ event.title }}
+                            <br/>
+                            span {{ event.onClickAction$ | translate}}
+                            <br/>
+                            span {{ event.displayRoute$ }}
+                        div.detailDivRight
+                            .tab-btngroup
+                                button.btn.btn-success(style="width: 90px;" ng-if="event.isVisible" ng-click="event.isVisible = false") on
+                                button.btn.btn-danger(style="width: 90px;" ng-if="!event.isVisible", ng-click="event.isVisible = true") off
+                            .tab-btngroup
+                                button.btn.btn-primary.btn-delete(ng-click="vm.addNewRegistrationGuidance(false, event._id)")
+                                    span.fa.fa-pencil
+                                button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'registrationSettingData', 'allRegistrationSettingData')")
+                                    span.fa.fa-trash-o
 
 #registrationGuidanceCategoryModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

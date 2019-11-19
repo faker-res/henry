@@ -25597,9 +25597,11 @@ define(['js/app'], function (myApp) {
                         vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'popularRecommendation':
+                        vm.popularRecommendationSettingDevice = 'pc';
+                        vm.frontEndFirstPageSelectedSubTab = 1;
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
-                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, 1);
                         break;
                     case 'carouselConfiguration':
                     case 'partnerCarouselConfiguration':
@@ -25662,6 +25664,7 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointClarification':
                         break;
                     case 'popularRecommendation':
+                        vm.popularRecommendationSettingDevice = 'pc';
                         break;
                     case 'carouselConfiguration':
                         vm.isPartnerForCarouselConfiguration = false;
@@ -26058,14 +26061,25 @@ define(['js/app'], function (myApp) {
                 $('#gameSettingModal').modal();
             };
 
-            vm.loadPopularRecommendationSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+            vm.loadPopularRecommendationSetting = function (platformObjId, deviceType) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId, deviceType}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
                             vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
+                            if (vm.frontEndPopularRecommendationData && vm.frontEndPopularRecommendationData.length) {
+                                vm.frontEndPopularRecommendationData.forEach(
+                                    rowData => {
+                                        if (rowData.hasOwnProperty("onClickAction")){
+                                            rowData.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === rowData.onClickAction)
+                                            rowData.displayRoute$ = utilService.getFrontEndSettingRoute(rowData);
+                                        }
+                                        return rowData
+                                    }
+                                )
+                            }
                         }
                     })
                 }, function (err) {
@@ -26228,6 +26242,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
                       $scope.$evalAsync( () => {
                           console.log('getFrontEndRewardSetting', data.data);
+                          let frontEndRewardSettingOnClickAction = Object.assign({}, vm.frontEndSettingOnClickAction);
+                          frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data;
@@ -26252,6 +26268,19 @@ define(['js/app'], function (myApp) {
                                           }
                                           if (object && object.app && object.app.hasOwnProperty('onClickAction')){
                                               object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.pc.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                          }
+                                          else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.h5.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                          }
+                                          else if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.app.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
                                           }
 
                                           return object;
@@ -26955,6 +26984,11 @@ define(['js/app'], function (myApp) {
                             vm.frontEndDeletedList = [];
                             vm.frontEndCarouselSetting = data.data.map(item => {
                                 item.device = item.device.toString();
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
+                                }
+
                                 return item;
                             });
 
@@ -43626,18 +43660,37 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.getPopularRecommendationSettingDevice = function(device){
-                vm.popularDevice = device;
+            vm.getPopularRecommendationSettingDevice = function(type){
+                let deviceConst = null;
+                switch (type) {
+                    case 'pc':
+                        deviceConst = 1;
+                        break;
+                    case 'h5':
+                        deviceConst = 2;
+                        break;
+                    case 'app':
+                        deviceConst = 4;
+                        break;
+                    default:
+                        deviceConst = 1;
+                        break;
+                }
+                vm.frontEndFirstPageSelectedSubTab = deviceConst;
+                if (vm.filterFrontEndSettingPlatform && deviceConst){
+                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, deviceConst)
+                }
+
             };
 
             vm.initPopularRecommendationSetting = function() {
-                if(!vm.popularDevice){
-                    vm.popularDevice = "1";
+                if(!vm.frontEndFirstPageSelectedSubTab){
+                    vm.frontEndFirstPageSelectedSubTab = "1";
                 }
                 vm.newPopularRecommendationSetting = {
                     isPlayerVisible: true,
                     isPlayerWithRegisteredHpNoVisible: true,
-                    device: vm.popularDevice
+                    device: vm.frontEndFirstPageSelectedSubTab
                 };
 
                 vm.addNewPopularRecommendationSetting();
@@ -43768,7 +43821,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.refreshSPicker();
-                $('#popularRecommendationSetting').modal();
+                // $('#popularRecommendationSetting').modal();
                 $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.popularRecommendationImageFile);});
@@ -43926,19 +43979,19 @@ define(['js/app'], function (myApp) {
                 // await vm.updatePopularRecommendationSetting();
                 let promArr;
 
-                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '1') {
                     promArr = [
                         "pcImage",
                         "pcNewPage",
                         "pcPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '4') {
                     promArr = [
                         "appImage",
                         "appNewPage",
                         "appPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '2') {
                     promArr = [
                         "H5Image",
                         "H5NewPage",
@@ -44002,7 +44055,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#popularRecommendationSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                                 }, function (err) {
                                     console.log("saveFrontEndPopularRecommendationSetting err", err);
                                 });
@@ -44091,7 +44144,7 @@ define(['js/app'], function (myApp) {
                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
-                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                         })
                     }, function (err) {
                         console.log('err', err);
@@ -44258,6 +44311,10 @@ define(['js/app'], function (myApp) {
                             vm.popUpAdvertisementData = data.data.map(item => {
                                 if (item && item.device){
                                     item.device = item.device.toString();
+                                }
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
                                 }
                                 return item;
                             });
@@ -44742,6 +44799,44 @@ define(['js/app'], function (myApp) {
                             if (data && data.data) {
                                 vm.registrationSettingData = data.data;
                                 vm.allRegistrationSettingData = data.data;
+                            }
+
+                            if (vm.registrationSettingData && vm.registrationSettingData.length) {
+                                vm.registrationSettingData.map(
+                                    object => {
+                                        if (object && object.pc && object.pc.hasOwnProperty('displayFormat')) {
+                                            object.pc.displayFormat = object.pc.displayFormat.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')) {
+                                            object.h5.displayFormat = object.h5.displayFormat.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('displayFormat')) {
+                                            object.app.displayFormat = object.app.displayFormat.toString();
+                                        }
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.pc.onClickAction = object.pc.onClickAction.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.h5.onClickAction = object.h5.onClickAction.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.app.onClickAction = object.app.onClickAction.toString();
+                                        }
+
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.pc.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                        } else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.h5.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                        } else if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.app.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
+                                        }
+
+                                        return object;
+                                    }
+                                )
                             }
 
                             let tempId = vm.registrationCategory && vm.registrationCategory.length? vm.registrationCategory[vm.registrationCategory.length -1]._id : "";
