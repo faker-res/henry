@@ -5409,10 +5409,10 @@ let dbPlayerInfo = {
                                 if (proposalData.data.bonusCode) {
                                     let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
                                     if (isOpenPromoCode) {
-                                        dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
+                                        dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, proposalData.data.userAgent, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
                                     }
                                     else {
-                                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
+                                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, proposalData.data.userAgent).catch(errorUtils.reportError);
                                     }
 
                                 }
