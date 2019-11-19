@@ -897,6 +897,10 @@ var proposal = {
                         proposalData.data.bankAccount = dbutility.encodeBankAcc(proposalData.data.bankAccount);
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.bankBranch) {
+                        delete proposalData.data.bankBranch;
+                    }
+
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
                         return proposalData;
                     } else {
@@ -2320,6 +2324,11 @@ var proposal = {
                                     && item.data && item.data.bankAccount) {
                                     item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
                                 }
+
+                                if (item && item.data && item.data.bankBranch) {
+                                    delete item.data.bankBranch;
+                                }
+
                                 return item;
                             }
 
@@ -2561,6 +2570,10 @@ var proposal = {
                                                 }
                                             }
 
+                                            if (item && item.data && item.data.bankBranch) {
+                                                delete item.data.bankBranch;
+                                            }
+
                                             return item
                                         })
 
@@ -2612,6 +2625,10 @@ var proposal = {
                                                     (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
                                                     item.data && item.data.bankAccount) {
                                                     item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                                }
+
+                                                if (item && item.data && item.data.bankBranch) {
+                                                    delete item.data.bankBranch;
                                                 }
                                                 return item
                                             });
