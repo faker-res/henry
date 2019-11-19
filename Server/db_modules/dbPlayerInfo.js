@@ -15300,6 +15300,7 @@ let dbPlayerInfo = {
                                             isAutoApproval: player.platform.enableAutoApplyBonus,
                                             bankAccountWhenSubmit: withdrawalBank && withdrawalBank.bankAccount ? dbUtil.encodeBankAcc(withdrawalBank.bankAccount) : "",
                                             bankNameWhenSubmit: withdrawalBank && withdrawalBank.bankName ? withdrawalBank.bankName : "",
+                                            bankAccountNameWhenSubmit: withdrawalBank && withdrawalBank.bankAccountName ? withdrawalBank.bankAccountName : "",
                                             changeCredit: changeCredit
                                         };
                                         if (!player.permission.applyBonus) {

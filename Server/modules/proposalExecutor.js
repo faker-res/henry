@@ -2233,7 +2233,8 @@ var proposalExecutor = {
                     }
                 }
                 dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
-                    .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    .populate({path: "platform", model: dbconfig.collection_platform})
+                    .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                     player => {
                         if (!player) {
                             return Q.reject({
@@ -2263,19 +2264,21 @@ var proposalExecutor = {
                         //     }
                         // }
 
+                       let bankDetail = getWithdrawalBankInfo(player, player.multipleBankDetailInfo, proposalData);
+                        console.log('bankDetail ==>', bankDetail);
                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                        let message = {
                            proposalId: proposalData.proposalId,
                            platformId: player.platform.platformId,
                            amount: proposalData.data.amount,
-                           bankTypeId: player.bankName || "",
-                           accountName: player.bankAccountName || "",
-                           accountCity: player.bankAccountCity || "",
-                           accountProvince: player.bankAccountProvince || "",
-                           accountNo: player.bankAccount ? player.bankAccount.replace(/\s/g, '') : "",
-                           bankAddress: player.bankAddress || "",
-                           bankName: player.bankName || "",
+                           bankTypeId: (bankDetail && bankDetail.bankName) || player.bankName || "",
+                           accountName: (bankDetail && bankDetail.bankAccountName) || player.bankAccountName || "",
+                           accountCity: (bankDetail && bankDetail.bankAccountCity) || player.bankAccountCity || "",
+                           accountProvince: (bankDetail && bankDetail.bankAccountProvince) || player.bankAccountProvince || "",
+                           accountNo: (bankDetail && bankDetail.bankAccount) || (player.bankAccount ? player.bankAccount.replace(/\s/g, '') : ""),
+                           bankAddress: (bankDetail && bankDetail.bankAddress) || player.bankAddress || "",
+                           bankName: (bankDetail && bankDetail.bankName) || player.bankName || "",
                            loginName: player.name || "",
                            applyTime: cTimeString,
                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
@@ -2352,6 +2355,56 @@ var proposalExecutor = {
                        // }
                     }
                 ).then(deferred.resolve, deferred.reject);
+
+                function getWithdrawalBankInfo (player, multipleBankDetailInfo, proposalData) {
+                    let bankInfo = {
+                        bankAccountName: player.bankAccountName,
+                        bankAccountCity: player.bankAccountCity,
+                        bankAccountProvince: player.bankAccountProvince,
+                        bankAccount: player.bankAccount,
+                        bankAddress: player.bankAddress,
+                        bankName: player.bankName
+                    };
+
+                    if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount2
+                        && multipleBankDetailInfo.bankName2
+                        && multipleBankDetailInfo.bankAccountName2
+                        && proposalData
+                        && proposalData.data.bankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && ((proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount2) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 && proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)
+                            || (proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount2) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2))) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName2,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity2,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince2,
+                            bankAccount: multipleBankDetailInfo.bankAccount2,
+                            bankAddress: multipleBankDetailInfo.bankAddress2,
+                            bankName: multipleBankDetailInfo.bankName2
+                        };
+
+                    } else if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount3
+                        && multipleBankDetailInfo.bankName3
+                        && multipleBankDetailInfo.bankAccountName3
+                        && proposalData
+                        && proposalData.data.bankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && ((proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount3) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 && proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)
+                            || (proposalData.data.bankAccountWhenSubmit === dbUtil.encodeBankAcc(multipleBankDetailInfo.bankAccount3) && proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3))) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName3,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity3,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince3,
+                            bankAccount: multipleBankDetailInfo.bankAccount3,
+                            bankAddress: multipleBankDetailInfo.bankAddress3,
+                            bankName: multipleBankDetailInfo.bankName3
+                        };
+                    }
+
+                    return bankInfo;
+                };
             },
 
             executePartnerBonus: function (proposalData, deferred) {
