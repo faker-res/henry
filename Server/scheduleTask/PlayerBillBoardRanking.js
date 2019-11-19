@@ -9,8 +9,9 @@ var playerBillBoardranking ={
         var deferred = Q.defer();
 
         let totalRecord = 10;
-        let recordDate = new Date();
+        let recordDate;
         recordDate = dbUtility.getCurrentWeekSGTime();
+        console.log('record Date...', recordDate);
         let matchQuery = {
             $match: {
                 // createTime: {$gte: recordDate},
@@ -150,7 +151,7 @@ var playerBillBoardranking ={
                                     var obj = returnData.allWin.boardRanking[key];
                                     // save to topuphoursummary
                                     let updateTime = new Date();
-                                    updateTime.setHours(recordDate.getHours());
+                                    updateTime.setHours(updateTime.getHours());
                                     console.log('LK checking cal rank updateTime', updateTime);
                                     // type = ranking mode
                                     obj.type = "5";
