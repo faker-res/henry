@@ -35,8 +35,6 @@ var playerBillBoardranking ={
                 consumptionRecord => {
                 console.log('consumption sort..', consumptionRecord);
                 function sortRankingRecord(a,b) {
-                    console.log('a sort..', a);
-                    console.log('b sort..', b);
                     if (a.amount < b.amount)
                         return 1;
                     if (a.amount > b.amount)
@@ -150,7 +148,6 @@ var playerBillBoardranking ={
                                     // save to topuphoursummary
                                     let updateTime = new Date();
                                     updateTime.setHours(updateTime.getHours());
-                                    console.log('LK checking cal rank updateTime', updateTime);
                                     // type = ranking mode
                                     obj.type = "5";
                                     obj.updateTime = updateTime;
