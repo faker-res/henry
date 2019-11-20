@@ -5113,6 +5113,10 @@ let dbPlayerInfo = {
                                         && (proposal.status === "Rejected" || proposal.status === "Cancel")
                                         && creditChangeLog.operationTime >= proposal.createTime;
                                 }
+                                // if unlock from free provider, it must be related to the most recent top-up record
+                                else if (creditChangeLog && creditChangeLog.operationType && creditChangeLog.operationType == 'Free amount:unlock' && !creditChangeLog.data.providerGroup) {
+                                    return proposal.mainType && proposal.mainType == 'TopUp' && creditChangeLog.operationTime >= proposal.createTime
+                                }
                                 else {
                                     return proposal.data.requestId === creditChangeLog.data.requestId
                                         && creditChangeLog.operationTime >= proposal.createTime;
