@@ -8,7 +8,6 @@ var playerBillBoardranking ={
 
         var deferred = Q.defer();
 
-        let totalRecord = 10;
         let recordDate;
         recordDate = dbUtility.getCurrentWeekSGTime();
         console.log('record Date...', recordDate);
@@ -36,6 +35,8 @@ var playerBillBoardranking ={
                 consumptionRecord => {
                 console.log('consumption sort..', consumptionRecord);
                 function sortRankingRecord(a,b) {
+                    console.log('a sort..', a);
+                    console.log('b sort..', b);
                     if (a.amount < b.amount)
                         return 1;
                     if (a.amount > b.amount)
@@ -69,9 +70,6 @@ var playerBillBoardranking ={
                     if (sortedData[i].createTime) {
                         delete sortedData[i].createTime;
                     }
-                }
-                if (sortedData.length > totalRecord) {
-                    sortedData.length = totalRecord;
                 }
                 if (playerRanking) {
                     sortedData.push(playerRanking);
