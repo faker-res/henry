@@ -7452,7 +7452,7 @@ let dbPlayerInfo = {
                                 if (player) {
                                     let thisPlayer;
 
-                                    if (!player.permission.forbidPlayerFromLogin) {
+                                    if (!(player.permission && player.permission.forbidPlayerFromLogin)) {
                                         thisPlayer = player;
                                     }
 
@@ -7463,7 +7463,7 @@ let dbPlayerInfo = {
                                             code: constServerCode.PLAYER_IS_FORBIDDEN,
                                             player: player.name,
                                             playerId: player.playerId,
-                                            sRegisterError: true
+                                            isRegisterError: true
                                         });
                                         // return Promise.reject({
                                         //     name: "DataError",

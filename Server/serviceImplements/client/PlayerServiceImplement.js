@@ -1657,14 +1657,14 @@ let PlayerServiceImplement = function () {
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                         }, data);
+                    } else if (error.code && error.code == constServerCode.PLAYER_IS_FORBIDDEN) {
+                        wsFunc.response(conn, error, data);
                     } else if (error && error.isRegisterError) {
                         wsFunc.response(conn, {
                             status: constServerCode.DEVICE_ID_ERROR,
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate(error.message),
                         }, data);
-                    } else if (error.code && error.code == constServerCode.PLAYER_IS_FORBIDDEN) {
-                        wsFunc.response(conn, error, data);
                     } else {
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_USER_PASSWORD,
