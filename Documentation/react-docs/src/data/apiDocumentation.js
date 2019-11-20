@@ -11,6 +11,7 @@ import information from './player/informationDoc.js';
 import withdraw from './player/withdrawDoc.js';
 import level from './player/levelDoc.js';
 import rewardPoint from './player/rewardPointDoc.js';
+import partnerInformation from './partner/informationDoc.js';
 
 let apiDoc = {
     guide,
@@ -28,6 +29,7 @@ let apiDoc = {
         consumption,
     },
     partner: {
+        partnerInformation,
     },
     platform: {
     }
