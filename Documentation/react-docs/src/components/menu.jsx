@@ -28,7 +28,7 @@ class Menu extends Component{
                 })
             } else {
                 navList.push(
-                    <span key={categoryName}>{categoryTranslate[categoryName]}</span>
+                    <span style={{fontSize:'24px'}} key={categoryName}><b><u>{categoryTranslate[categoryName]}: </u></b></span>
                 )
                 subList.forEach(item => {
                     let className = "nav-item";

@@ -6,26 +6,26 @@ import topup from './player/topupDoc.js';
 import reward from './player/rewardDoc.js';
 import consumption from './player/consumptionDoc.js';
 import register from './player/registerDoc.js';
-import level from './player/levelDoc.js';
-import rewardPoint from './player/rewardPointDoc.js';
 import smsCode from './player/smsCodeDoc.js';
 import information from './player/informationDoc.js';
 import withdraw from './player/withdrawDoc.js';
+import level from './player/levelDoc.js';
+import rewardPoint from './player/rewardPointDoc.js';
 
 let apiDoc = {
     guide,
     definition,
     player: {
-        loginLogout,
-        topup,
-        reward,
-        consumption,
-        register,
-        level,
-        rewardPoint,
         smsCode,
         information,
+        level,
+        register,
+        reward,
+        rewardPoint,
         withdraw,
+        topup,
+        loginLogout,
+        consumption,
     },
     partner: {
     },
