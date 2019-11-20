@@ -114,6 +114,22 @@ let register = {
                 errorMessage: "",
             }
         },
+        captcha: {
+            title: "玩家开户",
+            serviceName: "player",
+            functionName: "captcha",
+            desc: "从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来。",
+            requestContent: [],
+            respondSuccess: {
+                status: 200,
+                data: "验证码base64字符串",
+            },
+            respondFailure: {
+                status: "40x",
+                data: "null",
+                errorMessage: "",
+            }
+        },
     }
 };
 

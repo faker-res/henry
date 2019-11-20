@@ -148,6 +148,24 @@ let loginLogout = {
                 errorMessage: "",
             }
         },
+        logout: {
+            title: "注销",
+            serviceName: "player",
+            functionName: "logout",
+            desc: "",
+            requestContent: [
+                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
+            ],
+            respondSuccess: {
+                status: 200,
+                data: "",
+            },
+            respondFailure: {
+                status: "40x",
+                data: "-",
+                errorMessage: "错误信息",
+            }
+        },
     }
 }
 
