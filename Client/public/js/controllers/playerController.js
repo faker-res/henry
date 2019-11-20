@@ -9411,6 +9411,7 @@ define(['js/app'], function (myApp) {
                             for (let j = 0; j < vm.credibilityRemarks.length; j++) {
                                 if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
                                     vm.credibilityRemarks[j].selected = true;
+                                    vm.credibilityRemarks[j].isUsed = true; // indicate this remark is originally from player db
                                 }
                             }
                         }
@@ -9438,9 +9439,14 @@ define(['js/app'], function (myApp) {
 
         vm.submitRemarkUpdate = () => {
             let selectedRemarks = [];
+            let changedRemarks = [];
             for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                 if (vm.credibilityRemarks[i].selected === true) {
                     selectedRemarks.push(vm.credibilityRemarks[i]._id);
+                }
+                // newly selected remarks or newly removed remarks
+                if ((!vm.credibilityRemarks[i].isUsed && vm.credibilityRemarks[i].selected === true) || (vm.credibilityRemarks[i].isUsed === true && vm.credibilityRemarks[i].selected === false)) {
+                    changedRemarks.push(vm.credibilityRemarks[i]._id);
                 }
             }
 
@@ -9449,6 +9455,7 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedSinglePlayer.platform,
                 playerObjId: vm.selectedSinglePlayer._id,
                 remarks: selectedRemarks,
+                changedRemarks: changedRemarks,
                 comment: vm.credibilityRemarkComment
             };
 

@@ -19711,7 +19711,7 @@ let dbPlayerInfo = {
         );
     },
 
-    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment, changedRemarks) => {
         // Avoid assigning empty remarks
         if (!remarks) {
             return;
@@ -19727,7 +19727,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
-                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, changedRemarks, comment);
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
