@@ -1476,6 +1476,11 @@ let dbPlayerInfo = {
                         if (data) {
                             inputData.csOfficer = data.admin;
                             inputData.promoteWay = data.way
+
+                            console.log('JY checking deviceId guestDeviceId domain-->', inputData.deviceId, inputData.guestDeviceId, data.domain)
+                            if ((inputData.deviceId || inputData.guestDeviceId) && data && data.domain) {
+                                inputData.sourceUrl = data.domain;
+                            }
                         }
                         return inputData
                     });
@@ -1508,13 +1513,19 @@ let dbPlayerInfo = {
                             return dbconfig.collection_csOfficerUrl.findOne({
                                 domain: data.domain,
                                 platform: platformObjId
-                            }, 'admin way').lean();
+                            }, 'admin way domain').lean();
                         }
                     ).then(
                         csUrl => {
                             if (csUrl && csUrl.admin && csUrl.way) {
                                 inputData.csOfficer = csUrl.admin;
                                 inputData.promoteWay = csUrl.way;
+
+                                console.log('JY checking deviceId guestDeviceId domain 2-->', inputData.deviceId, inputData.guestDeviceId, csUrl.domain)
+                                if ((inputData.deviceId || inputData.guestDeviceId) && csUrl && csUrl.domain) {
+                                    inputData.sourceUrl = csUrl.domain;
+                                }
+
                                 return inputData
                             }
                             return inputData
@@ -2155,7 +2166,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl, partner, partnerId, promoteWayDomain;
         let credibilityRemarkObjIdArr = [];
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -2528,6 +2539,11 @@ let dbPlayerInfo = {
                                 if (data) {
                                     csOfficer = data.admin;
                                     promoteWay = data.way;
+
+                                    console.log('JY checking deviceId guestDeviceId domain 3-->', playerdata.deviceId, playerdata.guestDeviceId, data.domain)
+                                    if ((playerdata.deviceId || playerdata.guestDeviceId) && data && data.domain) {
+                                        promoteWayDomain = data.domain;
+                                    }
                                 }
                             });
 
@@ -2588,12 +2604,17 @@ let dbPlayerInfo = {
                                 let csOfficerUrlData = await dbconfig.collection_csOfficerUrl.findOne({
                                     domain: ipDomain,
                                     platform: playerdata.platform
-                                }, 'admin way').lean();
+                                }, 'admin way domain').lean();
 
                                 if (csOfficerUrlData && csOfficerUrlData.admin && csOfficerUrlData.way){
                                     console.log("checking url from ipDomainLog", [playerData.name, csOfficerUrlData])
                                     csOfficer = csOfficerUrlData.admin;
                                     promoteWay = csOfficerUrlData.way;
+
+                                    console.log('JY checking deviceId guestDeviceId domain 4-->', playerdata.deviceId, playerdata.guestDeviceId, csOfficerUrlData.domain)
+                                    if ((playerdata.deviceId || playerdata.guestDeviceId) && csOfficerUrlData && csOfficerUrlData.domain) {
+                                        promoteWayDomain = csOfficerUrlData.domain;
+                                    }
                                 }
 
                                 console.log("checking partnerId", [playerData.name, partnerId])
@@ -2690,6 +2711,11 @@ let dbPlayerInfo = {
                         }
 
                         playerUpdateData.promoteWay = promoteWay;
+
+                        console.log('JY checking promoteWayDomain-->', promoteWayDomain)
+                        if (promoteWayDomain) {
+                            playerUpdateData.sourceUrl = promoteWayDomain;
+                        }
                     }
 
                     if (partner){
