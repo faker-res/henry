@@ -7460,7 +7460,6 @@ let dbPlayerInfo = {
                                         return Promise.reject({
                                             name: "DataError",
                                             message: "Player is forbidden to login",
-                                            code: constServerCode.PLAYER_IS_FORBIDDEN,
                                             player: player.name,
                                             playerId: player.playerId,
                                             isRegisterError: true
