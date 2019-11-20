@@ -16,16 +16,16 @@ let apiDoc = {
     guide,
     definition,
     player: {
-        loginLogout,
-        topup,
-        reward,
-        consumption,
-        register,
         smsCode,
         information,
-        withdraw,
         level,
-        rewardPoint
+        register,
+        reward,
+        rewardPoint,
+        withdraw,
+        topup,
+        loginLogout,
+        consumption,
     },
     partner: {
     },
