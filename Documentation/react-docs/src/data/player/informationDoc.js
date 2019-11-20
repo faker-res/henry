@@ -208,7 +208,7 @@ let information = {
             functionName: "updatePlayerEmail",
             desc: "",
             requestContent: [
-                {param: "wechat", mandatory: "否", type: 'String', content: '(第一次绑定可选择不填写,第二次修改必填)'},
+                {param: "email", mandatory: "否", type: 'String', content: '(第一次绑定可选择不填写,第二次修改必填)'},
             ],
             respondSuccess: {
                 status: 200,
@@ -263,7 +263,7 @@ let information = {
             functionName: "updatePasswordByPhoneNumber",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "否", type: 'String', content: '平台ID'},
+                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码'},
                 {param: "newPassword", mandatory: "是", type: 'String', content: '新密码'},
                 {param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码'},

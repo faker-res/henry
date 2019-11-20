@@ -136,7 +136,7 @@ let loginLogout = {
                 { param: "referralId", mandatory: "否", type: 'String', content: '推荐人邀请码' },
                 { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
                 { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
-
+                { param: "domain", mandatory: "否", type: 'Int', content: '当下注册域名' },
             ],
             respondSuccess: {
                 status: 200,

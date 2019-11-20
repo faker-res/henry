@@ -19,7 +19,7 @@ let register = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象 (包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）)",
+                data: "玩家对象 // (包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）)",
             },
             respondFailure: {
                 status: "4xx",
@@ -64,7 +64,7 @@ let register = {
                 { param: "referralId", mandatory: "否", type: 'String', content: '推荐人邀请码' },
                 { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
                 { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
-
+                { param: "domain", mandatory: "否", type: 'Int', content: '当下注册域名' },
             ],
             respondSuccess: {
                 status: 200,
@@ -80,7 +80,7 @@ let register = {
             title: "玩家开户",
             serviceName: "player",
             functionName: "create",
-            desc: "",
+            desc: "向服务端提交开户申请，开户成功需通过短信验证(1分钟后才能重发，5分钟短信失效).",
             requestContent: [
                 { param: "name", mandatory: "是", type: 'String', content: '玩家注册的用户名.(需验证用户是否被占用)' },
                 { param: "realName", mandatory: "否", type: 'String', content: '真实姓名' },
@@ -115,7 +115,7 @@ let register = {
             }
         },
         captcha: {
-            title: "玩家开户",
+            title: "获取图形验证码",
             serviceName: "player",
             functionName: "captcha",
             desc: "从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来。",
