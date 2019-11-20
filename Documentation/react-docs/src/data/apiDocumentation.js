@@ -6,6 +6,8 @@ import topup from './player/topupDoc.js';
 import reward from './player/rewardDoc.js';
 import consumption from './player/consumptionDoc.js';
 import register from './player/registerDoc.js';
+import level from './player/levelDoc.js';
+import rewardPoint from './player/rewardPointDoc.js';
 
 let apiDoc = {
     guide,
@@ -16,6 +18,8 @@ let apiDoc = {
         reward,
         consumption,
         register,
+        level,
+        rewardPoint
     },
     partner: {
     },
