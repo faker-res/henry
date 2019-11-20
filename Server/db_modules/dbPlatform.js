@@ -4820,7 +4820,7 @@ var dbPlatform = {
                     return Promise.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DBError",
-                        message: "Error finding db data"
+                        message: "Please fill in the call request url in the platform configuration"
                     });
                 }
 

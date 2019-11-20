@@ -188,6 +188,7 @@ var simplifiedChinese = {
     "Error finding player platform reward event data": "错误查找平台奖励活动数据",
     "Error creating player first top up proposal": "错误创建玩家首冲奖励提案",
     "Error finding db data": "发现错误DB数据",
+    "Please fill in the call request url in the platform configuration": "请填上请求回电域名配置",
     "Error searching consumption records": "错误搜索投注记录",
 
     "No consumption records found": "没有投注记录",
