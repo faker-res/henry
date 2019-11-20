@@ -8717,7 +8717,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.partner}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 console.log('getPartner sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'getPartner', sendData, function (retData) {
                     console.log('getPartner', retData)
