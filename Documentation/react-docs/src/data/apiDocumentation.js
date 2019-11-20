@@ -9,6 +9,8 @@ import register from './player/registerDoc.js';
 import smsCode from './player/smsCodeDoc.js';
 import information from './player/informationDoc.js';
 import withdraw from './player/withdrawDoc.js';
+import level from './player/levelDoc.js';
+import rewardPoint from './player/rewardPointDoc.js';
 
 let apiDoc = {
     guide,
@@ -22,6 +24,8 @@ let apiDoc = {
         smsCode,
         information,
         withdraw,
+        level,
+        rewardPoint
     },
     partner: {
     },
