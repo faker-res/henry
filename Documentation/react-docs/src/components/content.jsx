@@ -150,7 +150,22 @@ class Content extends Component{
                 listKeyProperty = listKeyProperty || Object.keys(item)[0];
 
                 let cells = fields.map(field => {
-                    return (<td key={field}>{item[field]}</td>)
+                    if(item[field]) {
+                        let inCell = [];
+                        let lines = item[field].split(/\r?\n/);
+                        lines.forEach((line, index) => {
+                            inCell.push(
+                                <div key={index}>{line}</div>
+                            )
+                        });
+                        return (
+                            <td key={field}>{inCell}</td>
+                        )
+                    } else {
+                        return (
+                            <td key={field}></td>
+                        )
+                    }
                 })
 
                 return (

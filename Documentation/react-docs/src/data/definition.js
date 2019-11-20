@@ -247,6 +247,36 @@ const subPlatform = {
     ]
 };
 
+//手机验证码 验证用途：
+const smsCodePurpose = {
+    title:"手机验证码 验证用途",
+    fields: {
+        name: "名称",
+        value: "值",
+    },
+    definitionData:[
+        {name:'重置密码', value:'resetPassword'},
+        {name:'找回账号', value:'inquireAccount'},
+        {name:'玩家登入', value:' playerLogin'},
+        {name:'玩家APP登入（专为现金网APP需求而客制化）', value:'playerAppLogin'},
+        {name:'初次设置手机号', value:'setPhoneNumber'},
+        {name:'注册', value:'registration'},
+        {name:'修改电话时的电话验证（旧号码）', value:'oldPhoneNumber'},
+        {name:'修改电话时的电话验证（新号码）*用此一步修改电话', value:'newPhoneNumber'},
+        {name:'更新密码', value:'updatePassword'},
+        {name:'更新支付信息', value:'updateBankInfo'},
+        {name:'首次设置支付信息', value:'updateBankInfoFirst'},
+        {name:'免费体验金', value:'freeTrialReward'},
+        {name:'试玩帐号', value:'demoPlayer'},
+        {name:'代理注册', value:'Partner_registration'},
+        {name:'代理电话号码（旧）', value:'Partner_oldPhoneNumber'},
+        {name:'代理电话号码（新）', value:'Partner_newPhoneNumber'},
+        {name:'代理更新密码', value:'Partner_updatePassword'},
+        {name:'代理银行卡（首次）', value:'Partner_updateBankInfoFirst'},
+        {name:'代理银行卡（更换）', value:'Partner_updateBankInfo'},
+    ]
+}
+
 
 let definition = {
     name: "定义",
@@ -261,7 +291,8 @@ let definition = {
         depositMethod,
         topupProposalStatus,
         deviceType,
-        subPlatform
+        subPlatform,
+        smsCodePurpose
     }
 };
 

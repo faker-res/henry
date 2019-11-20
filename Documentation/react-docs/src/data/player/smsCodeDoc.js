@@ -11,7 +11,7 @@ let smsCode = {
                 {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "phoneNumber", mandatory: "是", type: 'String', content: '发送短信验证的号码'},
                 {param: "oldPhoneNumber", mandatory: "否", type: 'String', content: '玩家旧的电话号码，当purpose是 "newPhoneNumber" ，而且为一步修改电话时，需传送旧的号码核对是否匹配（注意 2 步修改不需要）。'},
-                {param: "purpose", mandatory: "否", type: 'String', content: 'purpose table'},
+                {param: "purpose", mandatory: "否", type: 'String', content: '请参考 【定义】-->【手机验证码 验证用途】列表'},
                 {param: "name", mandatory: "否", type: 'String', content: '玩家帐号，请注意只有『注册』、『重置密码』才可以发'},
                 {param: "captcha", mandatory: "否", type: 'String', content: '图片验证码'},
                 {param: "playerId", mandatory: "否", type: 'String', content: '玩家ID，登入的情况发送'},
@@ -36,10 +36,10 @@ let smsCode = {
                 {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "useVoiceCode", mandatory: "否", type: 'Boolean', content: '是否使用语音验证码'},
                 {param: "purpose", mandatory: "否", type: 'String', content: `验证用途，可收入内容如下: 
-                                                                              “registration” - 注册 |  
-		                                                                      “oldPhoneNumber” - 修改电话时的电话验证（旧号码) | 
-		                                                                      ”updatePassword” - 更新密码 | 
-		                                                                      “updateBankInfo” - 更新支付信息`},
+                                                                              "registration" - 注册
+		                                                                      "oldPhoneNumber" - 修改电话时的电话验证（旧号码)
+		                                                                      "updatePassword" - 更新密码
+		                                                                      "updateBankInfo" - 更新支付信息`},
             ],
             respondSuccess: {
                 status: 200,
