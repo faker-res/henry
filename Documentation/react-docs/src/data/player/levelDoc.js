@@ -1,39 +1,34 @@
 const sampleData = {
     manualPlayerLevelUp: `{
-        message: 恭喜您从 (当前等级) 升级到(当前等级),获得 xx元、xx元共x个礼包
-    }`,
+    message: 恭喜您从 (当前等级) 升级到(当前等级),获得 xx元、xx元共x个礼包
+}`,
+
     getAllLevel: `{
-        status: 200/4xx,
-        "data": {
-            [{
-                levelUpConfig: [ //升级设定{
-                    andConditions: true, //true =>AND, false =>OR// 玩家最小充值额
-                    topupLimit: 2000,//玩家最小消费额
-                    topupPeriod: “WEEK”, //值可以是“DAY”, “WEEK”, “NONE”
-                    consumptionLimit: 20000,
-                    consumptionPeriod: “WEEK”,//值可以是“DAY”, “WEEK”, “NONE”//本例说明玩家在一个星期内必须同时充值2000以上以及消费20000以上才能达到下一个等级
-                    consumptionSourceProviderId: [“16”] 游戏提供商ID,用来检测投注额。 [ ]空 代表全部提供商
-                },...],
-                Name: “Normal”, //等级名
-                Value: 0, //等级值
-                Reward: [{
-                    bonusCredit: 20 //奖励额
-                }],
-                list:[{
-                    displayTextContent: "内文",
-                    displayTitle: "标题",
-                    displayId: "0",
-                    playerLevel:xxx
-                }]
-            },...]
-        ｝
+        [{
+            levelUpConfig: [ //升级设定{
+                andConditions: true, //true =>AND, false =>OR// 玩家最小充值额
+                topupLimit: 2000,//玩家最小消费额
+                topupPeriod: “WEEK”, //值可以是“DAY”, “WEEK”, “NONE”
+                consumptionLimit: 20000,
+                consumptionPeriod: “WEEK”,//值可以是“DAY”, “WEEK”, “NONE”//本例说明玩家在一个星期内必须同时充值2000以上以及消费20000以上才能达到下一个等级
+                consumptionSourceProviderId: [“16”] 游戏提供商ID,用来检测投注额。 [ ]空 代表全部提供商
+            },...],
+            Name: “Normal”, //等级名
+            Value: 0, //等级值
+            Reward: [{
+                bonusCredit: 20 //奖励额
+            }],
+            list:[{
+                displayTextContent: "内文",
+                displayTitle: "标题",
+                displayId: "0",
+                playerLevel:xxx
+            }]
+        },...]
     }`,
     upgrade: `{
-        "status": 200,
-        "data": {
-            "message": "恭喜您从 普通会员 升级到 高级,获得30元共1个礼包"
-        }
-    }`,
+    "message": "恭喜您从 普通会员 升级到 高级,获得30元共1个礼包"
+}`,
 }
 
 let level = {
@@ -101,7 +96,7 @@ let level = {
                 data: sampleData.getAllLevel
             },
             respondFailure: {
-                status: "40x",
+                status: "4xx",
                 data: "null"
             }
         },
