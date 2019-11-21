@@ -13,6 +13,7 @@ import level from './player/levelDoc.js';
 import rewardPoint from './player/rewardPointDoc.js';
 import loginLogoutPartner from './partner/loginDoc.js';
 import commission from './partner/comissionDoc.js';
+import partnerInformation from './partner/informationDoc.js';
 
 let apiDoc = {
     guide,
@@ -31,7 +32,8 @@ let apiDoc = {
     },
     partner: {
         loginLogoutPartner,
-        commission
+        commission,
+        partnerInformation,
     },
     platform: {
     }
