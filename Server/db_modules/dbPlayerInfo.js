@@ -7422,9 +7422,14 @@ let dbPlayerInfo = {
         let isSMSVerified = false;
         let isRegister = false;
         let rejectMsg = {
-            status: constServerCode.VALIDATION_CODE_INVALID,
+            status: constServerCode.VALIDATION_CODE_EXPIRED,
             name: "ValidationError",
             message: "Invalid SMS Validation Code"
+        };
+        let rejectMsg2 = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Incorrect SMS Validation Code"
         };
 
         // Check matched verification code
@@ -7686,7 +7691,7 @@ let dbPlayerInfo = {
                                 {_id: verificationSMS._id},
                                 {$inc: {loginAttempts: 1}}
                             ).then(() => {
-                                return Q.reject(rejectMsg);
+                                return Q.reject(rejectMsg2);
                             });
                         }
                     }
