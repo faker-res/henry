@@ -15,6 +15,10 @@ import loginLogoutPartner from './partner/loginDoc.js';
 import commission from './partner/comissionDoc.js';
 import partnerInformation from './partner/informationDoc.js';
 import withdrawPartner from './partner/withdrawDoc.js';
+import smsCodePartner from './partner/smsDoc.js';
+import registerPartner from './partner/registerDoc.js';
+
+
 
 let apiDoc = {
     guide,
@@ -35,7 +39,9 @@ let apiDoc = {
         loginLogoutPartner,
         commission,
         partnerInformation,
-        withdrawPartner
+        withdrawPartner,
+        smsCodePartner,
+        registerPartner
     },
     platform: {
     }
