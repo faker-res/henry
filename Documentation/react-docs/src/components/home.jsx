@@ -148,11 +148,11 @@ class Home extends Component {
                 </div>
                 <div className="row">
                     <div className="col-4 col-lg-3 pt-2 pl-5 pr-3">
-                    <Menu
-                        curNav = {this.state.curNav}
-                        list = {this.buildMenuList()}
-                        onClick = {this.navClickHandler}
-                    />
+                        <Menu
+                            curNav = {this.state.curNav}
+                            list = {this.buildMenuList()}
+                            onClick = {this.navClickHandler}
+                        />
                     </div>
                     <div className="col-8 col-lg-9 mainContent">
                         {this.drawContentDescription()}

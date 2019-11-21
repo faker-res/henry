@@ -205,7 +205,7 @@ class Content extends Component{
         return (
             <div id={this.props.functionName} className="mb-5 p-2 ">
                 <div className="mt-3">
-                    <h2><b>{this.props.title}</b></h2>
+                    <h3><b>{this.props.title}</b></h3>
                 </div>
 
                 <div className="mt-3">
