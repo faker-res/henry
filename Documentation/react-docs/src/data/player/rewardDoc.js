@@ -878,7 +878,7 @@ let reward = {
             title: "秒杀礼包列表",
             serviceName: "reward",
             functionName: "getLimitedOffers",
-            desc:"秒杀礼包列表",
+            desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "优惠活动代码" },
                 { param: "status", mandatory: "是", type: "String", content: "0:初始状态, 1:可以秒杀, 2:秒杀成功, 3:付款成功, 4:已售完, 5:已弃标" }
@@ -897,7 +897,7 @@ let reward = {
             title: "申请秒杀礼包（意向）",
             serviceName: "reward",
             functionName: "applyLimitedOffers",
-            desc:"申请秒杀礼包（意向）",
+            desc:"",
             requestContent:[
                 { param: "limitedOfferObjId", mandatory: "是", type: "String", content: "秒杀礼包ID" }
             ],
@@ -915,7 +915,7 @@ let reward = {
             title: "获取时间内产生秒杀礼包的优惠",
             serviceName: "reward",
             functionName: "getLimitedOfferBonus",
-            desc:"获取时间内产生秒杀礼包的优惠",
+            desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "period", mandatory: "否", type: "int", content: "小时（几个小时内的产生的秒杀礼包优惠）" }
@@ -934,7 +934,7 @@ let reward = {
             title: "设置秒杀礼包对玩家的显示",
             serviceName: "reward",
             functionName: "setLimitedOfferShowInfo",
-            desc:"设置秒杀礼包对玩家的显示",
+            desc:"",
             requestContent:[
                 { param: "showInfo", mandatory: "是", type: "int", content: "0:不显示,1:显示" }
             ],
@@ -948,10 +948,10 @@ let reward = {
         },
 
         getSignInfo:{
-            title: "设置秒杀礼包对玩家的显示",
+            title: "获取签到信息",
             serviceName: "reward",
             functionName: "getSignInfo",
-            desc:"设置秒杀礼包对玩家的显示",
+            desc:"当有签到奖励时，显示每一阶的领取状态",
             requestContent:[
                 { param: "code", mandatory: "否", type: "String", content: "优惠系统代码，选填，不填则获取最新签到优惠" },
                 { param: "platformId", mandatory: "否", type: "int", content: "优惠系统代码，选填，不填则获取最新签到优惠" }
@@ -1063,7 +1063,7 @@ let reward = {
             title: "设置优惠代码显示",
             serviceName: "reward",
             functionName: "setBonusShowInfo",
-            desc:"设置优惠代码显示",
+            desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "showInfo", mandatory: "是", type: "int", content: "0:不显示,1:显示" }
@@ -1081,7 +1081,7 @@ let reward = {
             title: "获取优惠代码",
             serviceName: "reward",
             functionName: "getPromoCode",
-            desc:"获取优惠代码",
+            desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "status", mandatory: "是", type: "String", content: "1 未领取 AVAILABLE, 2 已领取 ACCEPTED, 3 已过期 EXPIRED" }
@@ -1097,10 +1097,10 @@ let reward = {
         },
 
         applyPromoCode:{
-            title: "获取优惠代码",
+            title: "申请优惠代码",
             serviceName: "reward",
             functionName: "applyPromoCode",
-            desc:"获取优惠代码",
+            desc:"",
             requestContent:[
                 { param: "promoCode", mandatory: "是", type: "String", content: "优惠代码" }
             ],
@@ -1133,10 +1133,10 @@ let reward = {
         },
 
         getOpenPromoCode:{
-            title: "标记优惠代码已读",
+            title: "获取开放式优惠代码",
             serviceName: "reward",
             functionName: "getOpenPromoCode",
-            desc:"标记优惠代码已读",
+            desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "status", mandatory: "否", type: "String", content: "1 未领取 AVAILABLE, 2 已领取 ACCEPTED, 3 已过期 EXPIRED" }
@@ -1174,7 +1174,7 @@ let reward = {
             title: "获取符合首冲条件的充值记录",
             serviceName: "payment",
             functionName: "getValidFirstTopUpRecordList",
-            desc:"获取符合首冲条件的充值记录",
+            desc:"",
             requestContent:[
                 { param: "period", mandatory: "是", type: "int", content: "1:首冲 2:周首冲 3:月首冲" },
                 { param: "startIndex", mandatory: "否", type: "int", content: "记录开始index， 用于分页" },
@@ -1215,7 +1215,7 @@ let reward = {
             title: "获取符合充值奖励的充值记录",
             serviceName: "payment",
             functionName: "getValidTopUpReturnRecordList",
-            desc:"获取符合充值奖励的充值记录",
+            desc:"",
             requestContent:[
                 { param: "startIndex", mandatory: "否", type: "int", content: "记录开始index， 用于分页" },
                 { param: "requestCount", mandatory: "否", type: "int", content: "请求记录数量，用于分页" },

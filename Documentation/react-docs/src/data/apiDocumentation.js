@@ -14,6 +14,7 @@ import rewardPoint from './player/rewardPointDoc.js';
 import loginLogoutPartner from './partner/loginDoc.js';
 import commission from './partner/comissionDoc.js';
 import partnerInformation from './partner/informationDoc.js';
+import withdrawPartner from './partner/withdrawDoc.js';
 
 let apiDoc = {
     guide,
@@ -34,6 +35,7 @@ let apiDoc = {
         loginLogoutPartner,
         commission,
         partnerInformation,
+        withdrawPartner
     },
     platform: {
     }
