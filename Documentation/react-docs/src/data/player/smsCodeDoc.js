@@ -5,8 +5,7 @@ let smsCode = {
             title: "获取手机验证码",
             serviceName: "player",
             functionName: "getSMSCode",
-            desc: `玩家输入有效的手机号之后，点击获取验证码. 获取之后，需1分钟之后才能点击重发。当验证用途是注册时，手机号码超出使用限制便会报错。
-                 Purpose:`,
+            desc: `玩家输入有效的手机号之后，点击获取验证码. 获取之后，需1分钟之后才能点击重发。当验证用途是注册时，手机号码超出使用限制便会报错。`,
             requestContent: [
                 {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "phoneNumber", mandatory: "是", type: 'String', content: '发送短信验证的号码'},
