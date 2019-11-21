@@ -62,163 +62,151 @@ const sampleData = {
     
 }`,
     getRewardTask:`{
-        "status": 200,
-        "data": {
-            "_id": "5801d011696f0b3448da40bd",
-            "playerId": "57bbb966e2d544e224d6f11c",
-            "type": "FirstTopUp",  任务类型
-            "rewardType": "FirstTopUp",  奖励类型
-            "platformId": "5733e26ef8c8a9355caf49d8",
+    "_id": "5801d011696f0b3448da40bd",
+    "playerId": "57bbb966e2d544e224d6f11c",
+    "type": "FirstTopUp",  任务类型
+    "rewardType": "FirstTopUp",  奖励类型
+    "platformId": "5733e26ef8c8a9355caf49d8",
+    "__v": 0,
+    "useConsumption": true,  是否占用消费记录
+    "isUnlock": false,  是否已解锁
+    "initAmount": 103,  初始值
+    "currentAmount": 103,  当前值，奖励额度
+    "_inputCredit": 0,  转入值
+    "unlockedAmount": 0,  已解锁额度
+    "requiredUnlockAmount": 2060,  要求解锁额度
+    "inProvider": false,  是否转入提供商
+    "createTime": "2016-10-15T06:43:29.640Z",  创建时间
+    "data": null,
+    "targetGames": [],
+    "targetProviders": [  
+        目标提供商{
+            "_id": "57985b83611cd9d838274d9a",
+            "providerId": "18",
+            "name": "腾讯游戏",
+            "code": "PTOTHS",
+            "description": "中国游戏界的巨无霸，无人挑战",
             "__v": 0,
-            "useConsumption": true,  是否占用消费记录
-            "isUnlock": false,  是否已解锁
-            "initAmount": 103,  初始值
-            "currentAmount": 103,  当前值，奖励额度
-            "_inputCredit": 0,  转入值
-            "unlockedAmount": 0,  已解锁额度
-            "requiredUnlockAmount": 2060,  要求解锁额度
-            "inProvider": false,  是否转入提供商
-            "createTime": "2016-10-15T06:43:29.640Z",  创建时间
-            "data": null,
-            "targetGames": [],
-            "targetProviders": [  
-                目标提供商{
-                    "_id": "57985b83611cd9d838274d9a",
-                    "providerId": "18",
-                    "name": "腾讯游戏",
-                    "code": "PTOTHS",
-                    "description": "中国游戏界的巨无霸，无人挑战",
-                    "__v": 0,
-                    "interfaceType": 2,
-                    "canChangePassword": 1,
-                    "settlementStatus": "DailySettlement",
-                    "dailySettlementMinute": 0,
-                    "dailySettlementHour": 21,
-                    "runTimeStatus": 1,
-                    "status": 1,
-                    "prefix": ""
-                }
-            ],
-            "status": "Started"
+            "interfaceType": 2,
+            "canChangePassword": 1,
+            "settlementStatus": "DailySettlement",
+            "dailySettlementMinute": 0,
+            "dailySettlementHour": 21,
+            "runTimeStatus": 1,
+            "status": 1,
+            "prefix": ""
         }
-    }`,
+    ],
+    "status": "Started"
+}`,
 
     getPlayerRewardList:`{
-        status: 200/4xx,
-        "data": {
-            "stats": {
-                "totalCount": 1,  //查询记录总数量，用于分页
-                "startIndex": 0  //查询结果记录开始index
-            },
-            "records": [
-                {
-                    “playerId”: //玩家id
-                    “playerName”: //玩家名
-                    “createTime”: //生成时间
-                    “rewardType”: //优惠类型
-                    "rewardAmount”: //优惠金额
-                    "eventName”: //优惠名
-                    “eventCode”: //优惠识别码
-                    “status”: //优惠领取状态
-                    "promoCodeName”: //优惠代码名, 只有优惠代码优惠会显示
-                }
-            ]  //查询列表
+    "stats": {
+        "totalCount": 1,  //查询记录总数量，用于分页
+        "startIndex": 0  //查询结果记录开始index
+    },
+    "records": [
+        {
+            “playerId”: //玩家id
+            “playerName”: //玩家名
+            “createTime”: //生成时间
+            “rewardType”: //优惠类型
+            "rewardAmount”: //优惠金额
+            "eventName”: //优惠名
+            “eventCode”: //优惠识别码
+            “status”: //优惠领取状态
+            "promoCodeName”: //优惠代码名, 只有优惠代码优惠会显示
         }
-    }`,
+    ]  //查询列表
+}`,
 
     getRewardApplicationData:`{
-        status: 200,  
-        data: {
-            code: 优惠唯一代码
-            eventName: 优惠名称
-            rewardType：优惠类型
-            status: 优惠条件是否满足, 1: 满足, 2: 不满足, 3: 已达到领取上限
-            condition: {  如果有存款要求返回此数据  
-                deposit: {  
-                    status: 1: 满足, 2: 不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
-                    allAmount: 如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
-                    times: 如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
-                    details:[{  符合申请的存款列表
-                        id: 存款唯一ID
-                        amount: 存款金额  
-                    }],
-                    list: [{    （幸运注单）有存款要求的中单号  
-                        id: 中单id  
-                        no: 中单单号  
-                        time: 下注时间  
-                        betAmount: 下注金额  
-                        winAmount: 彩金  
-                        rewardAmount: 优惠金额  
-                        spendingTimes: 提款流水倍数  
-                        depositAmount: 周期内需要完成的存款金额  
-                        status: 1 满足 2 不满足  
-                    }]  
-                },  
-                bet: {  //如果有投注要求返回此数据  
-                    status: 1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注）
-                    needBet: 需要投注金额  
-                    alreadyBet: 已投注金额  
-                    gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
-                    list: [{    （幸运注单） // 有存款要求的中单号  
-                        id: 中单id  
-                        no: 中单单号  
-                        time: 下注时间  
-                        betAmount: 下注金额  
-                        winAmount: 彩金  
-                        rewardAmount: 优惠金额  
-                        spendingTimes: 提款流水倍数  
-                        status: 1 满足 2 不满足  
-                    }]  
-                },  
-                ximaRatios: [{   如果是洗码，享受洗码比例，如不是不返回  
-                    gameType: 游戏类型名称
-                    ratio: 洗码比率
-                    amountBet: 已投注金额
-                }],  
-                telephone: { 如果有电话限制返回此数据  
-                    status: 1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
-                },   
-                ip: {   如果有ip限制返回此数据
-                    status: 1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
-                },    
-                SMSCode: {  如果有SMSCode限制返回此数据
-                    status: 1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
-                },
-                device: {   如果有设备限制
-                    status: 1 可领取 2 已领取  
-                }  
-            },  
-            result: {  
-                rewardAmount: 优惠金额
-                winTimes: 盈利倍数（盈利翻倍组）  
-                totalBetAmount: 总投注金额 （盈利翻倍组）  
-                totalWinAmount: 总盈利金额 （盈利翻倍组）  
-                betAmount: 如果有，投注额要求  
-                betTimes: 如果有，投注额倍数  
-                xima: 此优惠是否享受洗码1享受，2不享受  
-                providerGroup: 如果有大厅组限制列出大厅组，没有不返回
-                topUpAmountInterval：本周期现在的存款金额总数 （幸运注单）  
-                quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-                appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
-                quantityLimitInInterval: 周期内放出总数量 (提升存留)  
-                totalValidConsumptionAmount: 总有效投注额（推荐人优惠组 - 投注条件模式）
-                totalDepositAmount: 总存款金额（推荐人优惠组 - 存款条件模式）
-                depositPlayerCount: 周期内符合条件的存款人数（推荐人优惠组 - 存款条件模式）
-                recommendFriendCount: 推荐人有效期内总绑定人数（推荐人优惠组）
-            }  
-        }
-    }`,
+    code: 优惠唯一代码
+    eventName: 优惠名称
+    rewardType：优惠类型
+    status: 优惠条件是否满足, 1: 满足, 2: 不满足, 3: 已达到领取上限
+    condition: {  如果有存款要求返回此数据  
+        deposit: {  
+            status: 1: 满足, 2: 不满足==》（如果有存款需求，但是状态为2，前端需引导去存款）  
+            allAmount: 如果有金额限制则显示限制的总金额，当满足条件后返回此数据  
+            times: 如果有存款次数限制则显示限制的次数，当满足条件后不再限制 则不用返回此数据  
+            details:[{  符合申请的存款列表
+                id: 存款唯一ID
+                amount: 存款金额  
+            }],
+            list: [{    （幸运注单）有存款要求的中单号  
+                id: 中单id  
+                no: 中单单号  
+                time: 下注时间  
+                betAmount: 下注金额  
+                winAmount: 彩金  
+                rewardAmount: 优惠金额  
+                spendingTimes: 提款流水倍数  
+                depositAmount: 周期内需要完成的存款金额  
+                status: 1 满足 2 不满足  
+            }]  
+        },  
+        bet: {  //如果有投注要求返回此数据  
+            status: 1满足,2不满足==》（如果有投注需求，但是状态为2，前端需引导去投注）
+            needBet: 需要投注金额  
+            alreadyBet: 已投注金额  
+            gameGroup：[{}] //如果有游戏组限制列出游戏组，没有不返回
+            list: [{    （幸运注单） // 有存款要求的中单号  
+                id: 中单id  
+                no: 中单单号  
+                time: 下注时间  
+                betAmount: 下注金额  
+                winAmount: 彩金  
+                rewardAmount: 优惠金额  
+                spendingTimes: 提款流水倍数  
+                status: 1 满足 2 不满足  
+            }]  
+        },  
+        ximaRatios: [{   如果是洗码，享受洗码比例，如不是不返回  
+            gameType: 游戏类型名称
+            ratio: 洗码比率
+            amountBet: 已投注金额
+        }],  
+        telephone: { 如果有电话限制返回此数据  
+            status: 1满足,2不满足==》（如果有电话，但是状态为2，前端需提示）  
+        },   
+        ip: {   如果有ip限制返回此数据
+            status: 1满足,2不满足==》（如果有ip限制，但是状态为2，前端需提示）  
+        },    
+        SMSCode: {  如果有SMSCode限制返回此数据
+            status: 1限制,2异常==》（如果有此优惠需短信验证，前端需做短信验证处理）  
+        },
+        device: {   如果有设备限制
+            status: 1 可领取 2 已领取  
+        }  
+    },  
+    result: {  
+        rewardAmount: 优惠金额
+        winTimes: 盈利倍数（盈利翻倍组）  
+        totalBetAmount: 总投注金额 （盈利翻倍组）  
+        totalWinAmount: 总盈利金额 （盈利翻倍组）  
+        betAmount: 如果有，投注额要求  
+        betTimes: 如果有，投注额倍数  
+        xima: 此优惠是否享受洗码1享受，2不享受  
+        providerGroup: 如果有大厅组限制列出大厅组，没有不返回
+        topUpAmountInterval：本周期现在的存款金额总数 （幸运注单）  
+        quantityLimit：可以申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+        appliedCount：已经申请的次数 （幸运注单、提升存留、盈利翻倍组）  
+        quantityLimitInInterval: 周期内放出总数量 (提升存留)  
+        totalValidConsumptionAmount: 总有效投注额（推荐人优惠组 - 投注条件模式）
+        totalDepositAmount: 总存款金额（推荐人优惠组 - 存款条件模式）
+        depositPlayerCount: 周期内符合条件的存款人数（推荐人优惠组 - 存款条件模式）
+        recommendFriendCount: 推荐人有效期内总绑定人数（推荐人优惠组）
+    }  
+}`,
 
     applyRewardEvent:`{
-        status: 200
-        data: {
-            rewardAmount: 优惠额度
-            selectedReward: {
-                //随机抽奖组优惠
-                rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
-            }
-        }
-    }`,
+    rewardAmount: 优惠额度
+    selectedReward: {
+        //随机抽奖组优惠
+        rewardType: 1 - 现金; 2 - 优惠代码-B(需存款)；3-优惠代码-B（不存款）；4- 优惠代码 C; 5- 积分； 6- 实物奖励
+    }
+}`,
 
     getRewardRanking:`{
         "status": 200,
@@ -283,59 +271,56 @@ const sampleData = {
     }`,
 
     getConsumeRebateDetail:`{
-       "status": 200／4xx,  //状态
-       "data": {
-           "totalAmount": 1.5, //总返点额度
-           "totalConsumptionAmount": 150,
-           "startTime": "2019-02-25T04:00:00.000Z", //周期开始时间
-           "endTime": "2019-03-04T04:00:00.000Z" //周期结束时间
-           "event": {
-               "_id": "5a52f16878041f09a9083182",
-               "name": "XIMA",
-               "code": "ximacode",
-               "validStartTime": "2017-12-01T04:18:51.000Z",
-               "validEndTime": "2019-07-11T04:18:51.000Z",
-               "platform": "5733e26ef8c8a9355caf49d8",
-               "type": "5732da364382378f5e90d37d",
-               "executeProposal": "57b6c9ef26ed84ff58279f41",
-               "__v": 0,
-               "display": [],
-               "settlementPeriod": "2",
-               "needSettlement": false,
-               "param": {
-                   "reward": [],
-                   "ratio": {
-                       "0": {
-                           "5": 0.01,
-                           "6": 0.01,
-                           "7": 0.01,
-                           "8": 0.01,
-                           "9": 0.01
-                        }
-                    },
-                   "consumptionTimesRequired": 2,
-                   "earlyXimaMinAmount": 1,
-                   "imageUrl": [
-                   ""
-                   ]
-                },
-               "showInRealServer": true,
-               "canApplyFromClient": true,
-               "needApply": true,
-               "priority": 0
-           },
-           “list”: [{
-               "providerList": [{
-                   "providerId": "18",
-                   "nickName": "腾讯游戏12"
-                }], //玩家没投注返回 []
-               “nonXIMAAmt”: 0 //不可惜吗额度
-               "consumptionAmount": 1000,  //消费额度
-               "returnAmount": 50,  //返点额度
-               "ratio": 0.05  //返点比例
-               “gameType”: “老虎机” //游戏类型，对应获取游戏类型接口
-            }]
-       }
+   "totalAmount": 1.5, //总返点额度
+   "totalConsumptionAmount": 150,
+   "startTime": "2019-02-25T04:00:00.000Z", //周期开始时间
+   "endTime": "2019-03-04T04:00:00.000Z" //周期结束时间
+   "event": {
+       "_id": "5a52f16878041f09a9083182",
+       "name": "XIMA",
+       "code": "ximacode",
+       "validStartTime": "2017-12-01T04:18:51.000Z",
+       "validEndTime": "2019-07-11T04:18:51.000Z",
+       "platform": "5733e26ef8c8a9355caf49d8",
+       "type": "5732da364382378f5e90d37d",
+       "executeProposal": "57b6c9ef26ed84ff58279f41",
+       "__v": 0,
+       "display": [],
+       "settlementPeriod": "2",
+       "needSettlement": false,
+       "param": {
+           "reward": [],
+           "ratio": {
+               "0": {
+                   "5": 0.01,
+                   "6": 0.01,
+                   "7": 0.01,
+                   "8": 0.01,
+                   "9": 0.01
+                }
+            },
+           "consumptionTimesRequired": 2,
+           "earlyXimaMinAmount": 1,
+           "imageUrl": [
+           ""
+           ]
+        },
+       "showInRealServer": true,
+       "canApplyFromClient": true,
+       "needApply": true,
+       "priority": 0
+   },
+   “list”: [{
+       "providerList": [{
+           "providerId": "18",
+           "nickName": "腾讯游戏12"
+        }], //玩家没投注返回 []
+       “nonXIMAAmt”: 0 //不可惜吗额度
+       "consumptionAmount": 1000,  //消费额度
+       "returnAmount": 50,  //返点额度
+       "ratio": 0.05  //返点比例
+       “gameType”: “老虎机” //游戏类型，对应获取游戏类型接口
+    }]
     }`,
 
     getPlayerReferralList:`{
@@ -817,7 +802,7 @@ let reward = {
                 data: sampleData.getRewardRanking
             },
             respondFailure: {
-                status: "40x",
+                status: "4xx",
             }
         },
 
@@ -834,7 +819,7 @@ let reward = {
                 status: 200
             },
             respondFailure: {
-                status: "40x"
+                status: "4xx"
             }
         },
 
@@ -851,7 +836,7 @@ let reward = {
                 data: sampleData.getConsumeRebateAmount
             },
             respondFailure: {
-                status: "40x",
+                status: "4xx",
                 error: "错误对象"
             }
         },
