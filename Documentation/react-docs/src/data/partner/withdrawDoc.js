@@ -1,22 +1,17 @@
 const SampleData = {
     applyBonus: `{
-        proposalId: “000123”, // 提案Id
-        proposalType: “003”, // 提案类型
-        status: “001”, // 提案状态
-        requestDetail: { // 兑奖明细, 包含申请兑奖的明细信息
-            bonusId: “001”,
-            amount: 1,
-            honoreeDetail: {
-                mobile: 13500101111
-            }
-        },
-        createTime: “2016-08-15 12:00:00”,... // 创建时间
-        errorMessage: “xxxxxx” // 详细错误信息
-    }`,
-
-    cancelBonusRequest: `{
-        proposalId: 提款提案号
-    }`,
+    proposalId: “000123”, // 提案Id
+    proposalType: “003”, // 提案类型
+    status: “001”, // 提案状态
+    requestDetail: { // 兑奖明细, 包含申请兑奖的明细信息
+        bonusId: “001”,
+        amount: 1,
+        honoreeDetail: {
+            mobile: 13500101111
+        }
+    },
+    createTime: “2016-08-15 12:00:00”,... // 创建时间
+}`,
 
     getBonusRequestList: `{
         stats: {
@@ -30,7 +25,8 @@ const SampleData = {
             proposalId:”002”,
             proposalType: “002”
         ...}]
-    }`,
+    }
+    // 申请兑奖提案列表，提案详细信息参见上面的兑奖申请`,
 
     partnerCreditToPlayer: `{
         amount: 2000，//返回转账金额,
@@ -48,14 +44,15 @@ let withdraw = {
             requestContent:[
                 { param: "bonusId", mandatory: "是", type: "String", content: "奖品Id" },
                 { param: "amount", mandatory: "是", type: "int", content: "兑奖数量" },
-                { param: "honoreeDetail", mandatory: "是", type: "String", content: "领奖人明细信息，里面的内容会根据奖品的信息变化" },
+                { param: "honoreeDetail", mandatory: "否", type: "String", content: "领奖人明细信息，里面的内容会根据奖品的信息变化" },
             ],
             respondSuccess:{
                 status: 200,
                 data: SampleData.applyBonus
             },
             respondFailure: {
-                status: "4xx"
+                status: "4xx",
+                errorMessage: "xxxxxx"
 
             }
         },
@@ -70,7 +67,6 @@ let withdraw = {
             ],
             respondSuccess:{
                 status: 200,
-                data: SampleData.cancelBonusRequest
             },
             respondFailure: {
                 status: "4xx",
@@ -82,8 +78,8 @@ let withdraw = {
         getBonusRequestList:{
             title: " 获取兑奖列表",
             serviceName: "partner",
-            functionName: "cancelBonusRequest",
-            desc: "",
+            functionName: "getBonusRequestList",
+            desc: "获取代理所提交的兑奖申请单列表",
             requestContent:[
                 { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间" },
                 { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间" },
@@ -95,7 +91,7 @@ let withdraw = {
             },
             respondFailure: {
                 status: "4xx",
-                errorMessage: "错误信息"
+                errorMessage: "xxxxxxxx"
             }
         },
 
@@ -108,13 +104,16 @@ let withdraw = {
                 { param: "platformId", mandatory: "是", type: "Date Time", content: "开始时间" },
                 { param: "partnerId", mandatory: "是", type: "Date Time", content: "结束时间" },
                 { param: "targetList", mandatory: "否", type: "String", content: `转账明细数组
-                                                                                        {
-                                                                                          username: 'String' | 玩家账号 - 必填
-                                                                                          amount: int
-                                                                                          providerGroupId: int | 锁大厅ID(当不填该字段，代表转入自由额度（
-                                                                                          此处的锁大厅ID 是 后台基础设置 -> 锁大厅设置的id）)
-                                                                                          spendingTimes: int | 流水倍数(providerGroupId字段填写后，该字段必填)
-                                                                                        }` },
+                                                                                        [{
+                                                                                            username: 'String' | 玩家账号 - 必填
+                                                                                            amount: int
+                                                                                            providerGroupId: int | 锁大厅ID(当不填该字段，代表转入自由额度（
+                                                                                            此处的锁大厅ID 是 后台基础设置 -> 锁大厅设置的id）)
+                                                                                            spendingTimes: int | 流水倍数(providerGroupId字段填写后，该字段必填)
+                                                                                        },{
+                                                                                            username: ‘test02’,
+                                                                                            amount: 10
+                                                                                        }]` },
             ],
             respondSuccess:{
                 status: 200,
@@ -123,7 +122,7 @@ let withdraw = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
     }

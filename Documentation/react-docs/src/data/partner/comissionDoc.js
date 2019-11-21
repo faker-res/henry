@@ -181,9 +181,9 @@ let commission = {
             serviceName: "partner",
             functionName: "getPartnerCommission",
             requestContent:[
-                { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "开始时间" },
                 { param: "endTime", mandatory: "否", type: "Date Time", content: "结束时间" },
-                { param: "startIndex", mandatory: "是", type: "int", content: "-" },
+                { param: "startIndex", mandatory: "否", type: "int", content: "-" },
                 { param: "requestCount", mandatory: "否", type: "int", content: "-" }
             ],
             respondSuccess:{
@@ -223,12 +223,12 @@ let commission = {
             ],
             respondSuccess:{
                 status: 200,
-                data: SampleData.getPartnerCommissionValue
+                data: SampleData.getPartnerCommissionRate
             },
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
 
@@ -251,7 +251,7 @@ let commission = {
             respondFailure: {
                 status: "4xx",
                 data: "-",
-                errorMessage: ""
+                errorMessage: "xxxxx"
             }
         },
 
@@ -276,7 +276,7 @@ let commission = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
 
@@ -296,7 +296,7 @@ let commission = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
 
@@ -308,7 +308,7 @@ let commission = {
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间（与 searchProposalCounts 二选一）" },
-                { param: "endTime", mandatory: "否", type: "Date Time", content: "结束时间（与 searchProposalCounts 二选一）" },
+                { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间（与 searchProposalCounts 二选一）" },
                 { param: "status", mandatory: "否", type: "String", content: "请参考提案状态表, 不填代表全部" },
                 { param: "searchProposalCounts", mandatory: "否", type: "int", content: "往前搜寻提案数量（与查询时间二选一）" },
             ],
@@ -319,7 +319,7 @@ let commission = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
 
@@ -347,7 +347,7 @@ let commission = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: ""
+                errorMessage: '""'
             }
         },
     }
