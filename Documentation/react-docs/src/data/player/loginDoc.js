@@ -1,4 +1,4 @@
-
+import loginFlow from './../../img/login.jpg';
 /*
     func.*.desc:
     for description of each function, it takes a string and convert '\n' to line break.
@@ -7,6 +7,7 @@
 
 let loginLogout = {
     name: "登入/登出",
+    desc:`<img src=${loginFlow} />`,
     func: {
         login: {
             title: "登录",

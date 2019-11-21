@@ -1,3 +1,4 @@
+import rewardFlow from './../../img/reward.png';
 const sampleData = {
     getRewardList: `{
         name: String|优惠名称
@@ -689,6 +690,7 @@ const sampleData = {
 
 let reward = {
     name:"优惠",
+    desc:`<img src=${rewardFlow} />`,
     func: {
         getRewardList:{
             title: "获取奖励活动列表",

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Menu from './menu';
+import ContentDescription from './contentDescription';
 import Content from './content';
 import apiData from '../data/apiDocumentation';
 
@@ -11,6 +12,7 @@ class Home extends Component {
         const landingPage = "reward";
         this.state = {
             curNav: landingPage,
+            curCategory: "player",
             displayList: apiData.player[landingPage].func || apiData.player[landingPage].def || apiData.player[landingPage]
         };
     };
@@ -25,9 +27,11 @@ class Home extends Component {
         if(event.target.getAttribute('name') === "guide" && event.target.getAttribute('category') == null) {
             this.setState({displayList: apiData.guide});
             this.setState({curNav: "guide"});
+            this.setState({curCategory: null});
         } else if (event.target.getAttribute('name') === "definition" && event.target.getAttribute('category') == null) {
             this.setState({displayList: apiData.definition.def});
             this.setState({curNav: "definition"});
+            this.setState({curCategory: null});
         } else {
             for(let categoryName in apiData){
                 if(categoryName === event.target.getAttribute('category')){
@@ -35,6 +39,7 @@ class Home extends Component {
                     for(let key in category){
                         if(key === event.target.getAttribute('name')){
                             this.setState({curNav: key});
+                            this.setState({curCategory: categoryName});
                             this.setState({displayList: apiData[categoryName][key].func});
                         }
                     }
@@ -73,6 +78,17 @@ class Home extends Component {
             }
         }
         return menuList;
+    };
+
+    drawContentDescription = () => {
+        if(this.state.curCategory) {
+            return(
+                <ContentDescription
+                    title = {apiData[this.state.curCategory][this.state.curNav].name}
+                    desc = {apiData[this.state.curCategory][this.state.curNav].desc}
+                />
+            )
+        }
     };
 
     drawContents = () => {
@@ -135,6 +151,7 @@ class Home extends Component {
                     />
                     </div>
                     <div className="col-8 col-lg-10 mainContent">
+                        {this.drawContentDescription()}
                         {this.drawContents()}
                     </div>
                 </div>

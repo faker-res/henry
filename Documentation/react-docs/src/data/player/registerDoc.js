@@ -1,6 +1,8 @@
+import registerFlow from './../../img/register.jpg';
 
 let register = {
     name: "注册",
+    desc:`<img src=${registerFlow} />`,
     func: {
         playerLoginOrRegisterWithSMS: {
             title: "电话号码注册与登陆",
