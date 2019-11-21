@@ -1093,7 +1093,9 @@ var proposalExecutor = {
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
                                         console.log('##han-prod proposal===', proposal);
-                                        if (proposal && proposal.length > 1) {
+                                        console.log('##han-prod proposal.length===', proposal.length);
+
+                                        if (proposal && proposal.length > 0) {
                                             if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
                                                 console.log('##han-prod DELETE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
@@ -1103,6 +1105,7 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
+                                                console.log('##han-prod TRUE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
@@ -1131,7 +1134,9 @@ var proposalExecutor = {
                                                     {returnNewDocument: true}
                                                 ).lean();
                                             }
-                                        } else {
+                                        }
+
+                                        if (proposal && proposal.length === 0) {
                                             console.log('##han-prod HERE===22');
                                             if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
