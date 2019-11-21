@@ -5139,6 +5139,10 @@ let dbPlayerInfo = {
                                         && (proposal.status === "Rejected" || proposal.status === "Cancel")
                                         && creditChangeLog.operationTime >= proposal.createTime;
                                 }
+                                // if unlock from free provider, it must be related to the most recent top-up record
+                                else if (creditChangeLog && creditChangeLog.operationType && creditChangeLog.operationType == 'Free amount:unlock' && !creditChangeLog.data.providerGroup) {
+                                    return proposal.mainType && proposal.mainType == 'TopUp' && creditChangeLog.operationTime >= proposal.createTime
+                                }
                                 else {
                                     return proposal.data.requestId === creditChangeLog.data.requestId
                                         && creditChangeLog.operationTime >= proposal.createTime;
@@ -19761,7 +19765,7 @@ let dbPlayerInfo = {
         );
     },
 
-    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment, changedRemarks) => {
         // Avoid assigning empty remarks
         if (!remarks) {
             return;
@@ -19777,7 +19781,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
-                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, changedRemarks, comment);
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
