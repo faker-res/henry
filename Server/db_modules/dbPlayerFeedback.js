@@ -441,6 +441,7 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackReportAdvance: async function (platform, query, index, limit, sortCol) {
+        console.log('start getPlayerFeedbackReportAdvance');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
