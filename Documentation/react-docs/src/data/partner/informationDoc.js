@@ -745,6 +745,27 @@ let information = {
                 status: "4xx",
             }
         },
+        updatePhoneNumberWithSMS: {
+            title: "通过短信验证码修改代理手机号",
+            serviceName: "partner",
+            functionName: "updatePhoneNumberWithSMS",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
+                { param: "phoneNumber", mandatory: "是", type: "String", content: "新手机号" },
+                { param: "smsCode", mandatory: "是", type: "String", content: "短信验证码" },
+                { param: "captcha", mandatory: "否", type: "String", content: "图片验证码" }
+            ],
+            respondSuccess:{
+                status: 200,
+                data: `{}`
+            },
+            respondFailure: {
+                status: "4xx",
+                errorMessage: ""
+
+            }
+        },
         getCrewActiveInfo: {
             title: "获取下线玩家活跃信息",
             serviceName: "partner",
