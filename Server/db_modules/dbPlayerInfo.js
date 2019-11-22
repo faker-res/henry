@@ -24309,7 +24309,7 @@ let dbPlayerInfo = {
                                 providerDetail[provider].amount += gameRecord.amount;
                                 providerDetail[provider].validAmount += gameRecord.validAmount;
                                 providerDetail[provider].bonusAmount += gameRecord.bonusAmount;
-                                providerDetail[provider].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
+                                providerDetail[provider].bonusRatio = (providerDetail[provider].bonusAmount / providerDetail[provider].validAmount);
                             }
                         }
 
