@@ -24294,6 +24294,7 @@ let dbPlayerInfo = {
                                     // } else {
                                     //     providerNames += gameRecord.providerId.name;
                                     // }
+                                    providerNames += provider + '\n';
                                 }
 
                                 if (!providerDetail.hasOwnProperty(provider)) {
@@ -24305,10 +24306,10 @@ let dbPlayerInfo = {
                                     };
                                 }
 
-                                providerDetail[provider].count += gameRecord.count;
-                                providerDetail[provider].amount += gameRecord.amount;
-                                providerDetail[provider].validAmount += gameRecord.validAmount;
-                                providerDetail[provider].bonusAmount += gameRecord.bonusAmount;
+                                providerDetail[provider].count += gameRecord.providerDetail[provider].count;
+                                providerDetail[provider].amount += gameRecord.providerDetail[provider].amount;
+                                providerDetail[provider].validAmount += gameRecord.providerDetail[provider].validAmount;
+                                providerDetail[provider].bonusAmount += gameRecord.providerDetail[provider].bonusAmount;
                                 providerDetail[provider].bonusRatio = (providerDetail[provider].bonusAmount / providerDetail[provider].validAmount);
                             }
                         }
