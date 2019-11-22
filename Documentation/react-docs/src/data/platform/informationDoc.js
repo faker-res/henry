@@ -326,6 +326,39 @@ const sampleData = {
         }
     ]
 }`,
+
+    getPlatformSetting: `{
+    "platformId": "1",
+    "platformName": "xxxx",// 平台名称
+    "playerAccountPrefix": "xxxx",// 玩家帐号字首
+    "partnerAccountPrefix": "xxxx"// 代理帐号字首
+}`,
+
+    getTemplateSetting: `[{
+    "templateId": "5b3f27e0de418654ca5f1cbe", // 模版ID
+    "functionList": [{
+        "displayStatus": 1, //展示状态（0-否/1-是）
+        "functionId": 10, //功能ID
+        "functionName": "Test10" //功能名称
+        },{
+        "displayStatus": 1,
+        "functionId": 11,
+        "functionName": "Test11"
+    }]
+}]`,
+
+    getLockedLobbyConfig: `[{
+    nickName: '真人游戏', //锁大厅名称(无名称是 为 '' 例如：nickName： ‘’ )  
+    id: 1, //锁大厅ID(该id为后台设置锁大厅配置时候填入的id（注意：不是游戏平台id）)
+}]`,
+
+    saveFrontEndData: `{
+   "_id": "5bc59fb8aed7af825a9e0248",
+   "page": 1,
+   "platform": "5733e26ef8c8a9355caf49d8",
+   "__v": 0,
+   "data": "abc"
+}`,
 }
 let information = {
     name:"平台设置/信息",
@@ -385,6 +418,123 @@ let information = {
                 status: 400,
                 errorMessage: "No platform exists with id: xx",
                 data: "null"
+            }
+        },
+
+        getPlatformSetting:{
+            title: " 获取平台设置",
+            serviceName: "platform",
+            functionName: "getPlatformSetting",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.getPlatformSetting
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        getTemplateSetting:{
+            title: " 获取模板设置",
+            serviceName: "platform",
+            functionName: "getPlatformSetting",
+            desc: "请对应FPMS 功能（前端功能模版配置）",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "url", mandatory: "否", type: "String", content: "当下域名（非必填），无填入则返回预设模版配置。有域名则查询是否在特殊模版中，返回特殊模版的配置。" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.getTemplateSetting
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        getLockedLobbyConfig:{
+            title: " 获取平台锁大厅配置",
+            serviceName: "platform",
+            functionName: "getLockedLobbyConfig",
+            desc: "无配置时候，返回[] 即空数组",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID. 该接口获取的是平台的锁大厅配置，不需要登陆状态" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.getLockedLobbyConfig
+            },
+            respondFailure: {
+                status: "4xx",
+                data: "null",
+                errorMessage: '""'
+            }
+        },
+
+        saveFrontEndData:{
+            title: " 前端保存数据接口",
+            serviceName: "platform",
+            functionName: "saveFrontEndData",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "token", mandatory: "是", type: "String", content: "FPMS用户验证token" },
+                { param: "page", mandatory: "是", type: "int", content: "请求页面" },
+                { param: "data", mandatory: "是", type: "String", content: "保存的数据" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.saveFrontEndData
+            },
+            respondFailure: {
+                status: "4xx",
+                data: "null",
+                errorMessage: '""'
+            }
+        },
+
+        getFrontEndData:{
+            title: " 前端获取数据接口",
+            serviceName: "platform",
+            functionName: "saveFrontEndData",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "page", mandatory: "是", type: "int", content: "请求页面" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: "abc"
+            },
+            respondFailure: {
+                status: "4xx",
+                data: "null",
+                errorMessage: '""'
+            }
+        },
+
+        getFrontEndConfig:{
+            title: " 获取前端設置数据接口",
+            serviceName: "platform",
+            functionName: "getFrontEndConfig",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "code", mandatory: "是", type: "int", content: "设置的code" },
+                { param: "clientType", mandatory: "是", type: "int", content: "设备" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: "[{}]"
+            },
+            respondFailure: {
+                status: "4xx",
+                data: "null",
+                errorMessage: '""'
             }
         },
     }
