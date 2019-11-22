@@ -103,7 +103,7 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.authenticate.expectsData = 'partnerId: String, token: String';
@@ -188,8 +188,7 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler)
-            .done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.captcha.expectsData = '';
@@ -210,7 +209,7 @@ var PartnerServiceImplement = function () {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
 
-            }).catch(WebSocketUtil.errorHandler).done();
+            }).catch(WebSocketUtil.errorHandler);
     };
 
     //player get api handler
@@ -230,7 +229,7 @@ var PartnerServiceImplement = function () {
                 }, data);
                 //SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.updatePartnerCommissionType.expectsData = 'partnerId: String, token: String';
@@ -260,7 +259,7 @@ var PartnerServiceImplement = function () {
                     }, data);
                 }
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getPlayerSimpleList.expectsData = 'partnerId: String';
@@ -531,7 +530,7 @@ var PartnerServiceImplement = function () {
 
     this.createDownLinePartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.account && data.password && data.commissionRate && data.phoneNumber);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate, data.phoneNumber], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.createDownLinePartner, [conn.partnerId, data.account, data.password, data.commissionRate, data.phoneNumber, data], isValidData);
     };
 
     this.getPartnerCommissionInfo.onRequest = function (wsFunc, conn, data) {
@@ -570,8 +569,8 @@ var PartnerServiceImplement = function () {
     };
 
     this.getPartnerPoster.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.platformId && data.url);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production], isValidData);
+        let isValidData = Boolean(data && data.hasOwnProperty('platformId') && data.url);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartnerPoster.getPartnerPoster, [data.platformId, data.url, data.device, data.production, data.subPlatformId], isValidData);
     };
 
     this.getPartnerCommissionRate.onRequest = function (wsFunc, conn, data) {

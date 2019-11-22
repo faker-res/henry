@@ -440,7 +440,7 @@ var dbPlayerFeedback = {
         )
     },
 
-    getPlayerFeedbackReportAdvance: function (platform, query, index, limit, sortCol) {
+    getPlayerFeedbackReportAdvance: async function (platform, query, index, limit, sortCol) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -488,6 +488,15 @@ var dbPlayerFeedback = {
             query.admins = query.admins.map(e => ObjectId(e));
             console.log('query.admins', query.admins);
             matchObjFeedback.adminId = {$in: query.admins}
+        }
+        if(query.registrationDevice && query.registrationDevice.length > 0) {
+            let playerObjIds = await dbconfig.collection_players.find({
+                registrationDevice: {$in: query.registrationDevice}
+            },{_id:1}).lean();
+            let playerObjIds2 = playerObjIds.map((item) => {
+                return item._id;
+            });
+            matchObjFeedback.playerId = {$in: playerObjIds2}
         }
         let stream = dbconfig.collection_playerFeedback.aggregate([
             {
@@ -822,16 +831,20 @@ var dbPlayerFeedback = {
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
         let isBothFilter = false;
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length) {
             isBothFilter = true;
-            let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
-            let filteredPlayer = await dbconfig.collection_playerFeedback.find({
-                createTime: {$gte: new Date(feedbackTimes)},
+            let feedbackQuery = {
                 platform: query.selectedPlatform,
-                topic: query.filterFeedbackTopic,
-            }).lean();
+                topic: {$in: query.filterFeedbackTopic},
+            }
+            if (query.filterFeedback) {
+                let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
+                feedbackQuery.createTime = {$gte: new Date(feedbackTimes)};
+            }
+
+            let filteredPlayer = await dbconfig.collection_playerFeedback.find(feedbackQuery).lean();
             let filteredUniquePlayersObjId = [];
-            console.log('Filter Feedback', filteredPlayer);
+            console.log('Filter Feedback', filteredPlayer, feedbackQuery);
             for(i =0; i < filteredPlayer.length; i++){
                 filteredUniquePlayersObjId.push(filteredPlayer[i].playerId);
             }

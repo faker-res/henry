@@ -878,6 +878,9 @@ define([], () => {
                 if (vm.selectedProposal.data.hasOwnProperty("topUpSystemName")) {
                     proposalDetail["topUpSystemName"] = vm.selectedProposal.data.topUpSystemName;
                 }
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.parentProposalId) {
+                    proposalDetail["Parent Proposal ID"] = vm.selectedProposal.data.parentProposalId;
+                }
             }
             // endregion
 
@@ -1043,7 +1046,11 @@ define([], () => {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                if (inputDevice) {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[inputDevice] || "BACKSTAGE");
+                } else {
+                    proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
+                }
             }
             //#endregion
 
@@ -1669,6 +1676,7 @@ define([], () => {
                 }
                 proposalDetail["PRODUCT_NAME"] = vm.selectedProposal.data.platformId.name;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["BANK_ACCOUNT_NAME"] = vm.selectedProposal.data.bankAccountNameWhenSubmit;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
                 proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;

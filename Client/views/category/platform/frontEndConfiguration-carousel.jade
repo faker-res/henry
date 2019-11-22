@@ -1,4 +1,4 @@
-div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative;")
+div(style="background: #d3d3d34d; padding: 10px; margin-top: 10px; margin-bottom: 30px; position:relative;")
     div(style="display: inline;")
         label(ng-if="!vm.isPartnerForCarouselConfiguration") {{'CAROUSEL_CONFIGURATION' | translate}}
         label(ng-if="vm.isPartnerForCarouselConfiguration") {{'PARTNER_CAROUSEL_CONFIGURATION' | translate}}
@@ -6,42 +6,69 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
         label.text-danger {{'CAROUSEL_CONFIGURATION_NOTE' | translate}}
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);", ng-click="vm.initCarouselSetting()")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
+div.text-right
+    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform, vm.filterFrontEndSettingSubPlatformId)") {{'CANCEL' | translate}}
+    button#carouselSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndCarouselSetting()") {{'SAVE' | translate}}
 div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'PC' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area1
-            li.draggable-item(ng-repeat="pc in vm.frontEndCarouselSetting", ng-if="pc.device == 1", ng-dblclick="vm.editCarouselSetting(pc._id)", id="{{pc._id}}")
-                img(ng-src="{{pc.imageUrl}}" width="100%" height="80px")
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="pc.isVisible" ng-click="pc.isVisible = false") on
-                    button.btn.btn-success(ng-if="!pc.isVisible", ng-click="pc.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.frontEndCarouselSetting)")
-                        span.fa.fa-trash-o
+            li.draggable-item(ng-repeat="pc in vm.frontEndCarouselSetting", ng-if="pc.device == 1", id="{{pc._id}}")
+                div.detailDivLeft
+                    span.detailDivSpan {{ pc.name }}
+                    <br/>
+                    span {{ pc.onClickAction$ | translate}}
+                    <br/>
+                    span {{ pc.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="pc.isVisible" ng-click="pc.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!pc.isVisible", ng-click="pc.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editCarouselSetting(pc._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.frontEndCarouselSetting)")
+                            span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'H5' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area2
             li.draggable-item(ng-repeat="h5 in vm.frontEndCarouselSetting", ng-if="h5.device == 2", ng-dblclick="vm.editCarouselSetting(h5._id)", id="{{h5._id}}")
-                img(ng-src="{{h5.imageUrl}}" width="100%" height="80px")
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="h5.isVisible" ng-click="h5.isVisible = false") on
-                    button.btn.btn-success(ng-if="!h5.isVisible", ng-click="h5.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.frontEndCarouselSetting)")
-                        span.fa.fa-trash-o
+                div.detailDivLeft
+                    span.detailDivSpan {{ h5.name }}
+                    <br/>
+                    span {{ h5.onClickAction$ | translate}}
+                    <br/>
+                    span {{ h5.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="h5.isVisible" ng-click="h5.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!h5.isVisible", ng-click="h5.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editCarouselSetting(h5._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.frontEndCarouselSetting)")
+                            span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'App' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area3
             li.draggable-item(ng-repeat="app in vm.frontEndCarouselSetting", ng-if="app.device == 4", ng-dblclick="vm.editCarouselSetting(app._id)", id="{{app._id}}")
-                img(ng-src="{{app.imageUrl}}" width="100%" height="80px")
-                .tab-btngroup
-                    button.btn.btn-primary(ng-if="app.isVisible" ng-click="app.isVisible = false") on
-                    button.btn.btn-success(ng-if="!app.isVisible", ng-click="app.isVisible = true") off
-                    button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.frontEndCarouselSetting)")
-                        span.fa.fa-trash-o
+                div.detailDivLeft
+                    span.detailDivSpan {{ app.name }}
+                    <br/>
+                    span {{ app.onClickAction$ | translate}}
+                    <br/>
+                    span {{ app.displayRoute$ }}
+                div.detailDivRight
+                    .tab-btngroup
+                        button.btn.btn-success(style="width: 90px;" ng-if="app.isVisible" ng-click="app.isVisible = false") on
+                        button.btn.btn-danger(style="width: 90px;" ng-if="!app.isVisible", ng-click="app.isVisible = true") off
+                    .tab-btngroup
+                        button.btn.btn-primary.btn-delete(ng-click="vm.editCarouselSetting(app._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.frontEndCarouselSetting)")
+                            span.fa.fa-trash-o
 
-div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.getFrontEndCarouselSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
-    button#carouselSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndCarouselSetting()") {{'SAVE' | translate}}

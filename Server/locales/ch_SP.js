@@ -9,6 +9,7 @@ var simplifiedChinese = {
     "Please improve your hand speed": "优惠剩余0个，手速慢了一点哦",
     "Captcha code invalid": "图形验证码无效",
     "Phone number already exists": "此手机号已被注册，请联系客服人员",
+    "Please contact CS for latest app": "版本已更新，请联系客服索取最新版本",
     "The player name to be registered is different from the one in SMS log. Please get a new one.": "新开户名字与SMS记录里的名字不符，请重新获取验证码，谢谢。",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
@@ -34,6 +35,8 @@ var simplifiedChinese = {
     "Unable to update bank account, condition unfulfilled, Please contact our cs.": "您尚未满足修改银行卡条件，详情咨询客服",
     "Multiple binding detected. Please contact CS.": "银行信息重复绑定，请联系客服，谢谢！",
     "Amend Bank Info": "修改银行卡",
+    "Amend Bank Info 2": "修改银行卡2",
+    "Amend Bank Info 3": "修改银行卡3",
     "Exceeded available application quantity": "超过申请次数",
     "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
@@ -187,6 +190,7 @@ var simplifiedChinese = {
     "Error finding player platform reward event data": "错误查找平台奖励活动数据",
     "Error creating player first top up proposal": "错误创建玩家首冲奖励提案",
     "Error finding db data": "发现错误DB数据",
+    "Please fill in the call request url in the platform configuration": "请填上请求回电域名配置",
     "Error searching consumption records": "错误搜索投注记录",
 
     "No consumption records found": "没有投注记录",
@@ -218,6 +222,7 @@ var simplifiedChinese = {
     "Top up count does not meet period condition, fail to claim reward": "周期内存款笔数不符，无法同时领取优惠",
     "Claimed reward reach daily max amount, fail to claim reward": "超出单日可领取最高优惠金额，无法同时领取优惠",
     "Insufficient top up amount, fail to claim reward": "存款金额不足，无法同时领取优惠",
+    "Sub top up amount has not met the reward condition": "拆分后的存款提案额度未达到优惠申请条件",
     "Cannot apply 2 reward in 1 top up": "同一笔存款无法同时申请两种以上优惠",
 
     "Incorrect reward event data": "不正确的奖励活动数据",
@@ -514,6 +519,8 @@ var simplifiedChinese = {
     "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
+    "First time bound to the bank info 2": "首次绑定提款卡2",
+    "First time bound to the bank info 3": "首次绑定提款卡3",
     "allTopUp": "所有存款",
     "Player does not have matching bank info": "玩家没有匹配的银行信息",
     "Please complete the phone number, thank you": "请完善手机号，谢谢",
@@ -571,6 +578,7 @@ var simplifiedChinese = {
     "Phone number and password don't match": "手机号码和密码不匹配",
     "Password is mandatory": "密码必填",
     "Please fill in correct amount": "请填写正确金额",
+    "Unable to find player": "找不到玩家",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

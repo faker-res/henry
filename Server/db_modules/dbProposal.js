@@ -43,6 +43,7 @@ const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTrans
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 const constProposalEntryType = require("./../const/constProposalEntryType");
 const constProposalUserType = require('./../const/constProposalUserType');
+const constDevice = require('./../const/constDevice');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbGameProvider = require('./../db_modules/dbGameProvider');
@@ -89,14 +90,14 @@ var proposal = {
             let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
             // query related partner info
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             let playerId = proposalData.data.playerObjId ? proposalData.data.playerObjId : proposalData.data._id;
-            proposalData.data.playerName = proposalData.data.name ? proposalData.data.name : "";
+            proposalData.data.playerName = proposalData.data.name || proposalData.data.playerName || "";
             // query related player info
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         //get proposal type id
@@ -402,11 +403,11 @@ var proposal = {
         let ptpProm = dbProposalProcess.createProposalProcessWithTypeId(typeId, propAmount);
         if (proposalData.isPartner) {
             plyProm = dbconfig.collection_partner.findOne({_id: partnerId})
-                .populate({path: 'level', model: dbconfig.collection_partnerLevel});
+                .populate({path: 'level', model: dbconfig.collection_partnerLevel}).lean();
         }
         else {
             plyProm = dbconfig.collection_players.findOne({_id: playerId})
-                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel});
+                .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel}).lean();
         }
 
         return proposal.createProposalDataHandler(ptProm, ptpProm, plyProm, proposalData);
@@ -476,13 +477,21 @@ var proposal = {
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
+                    if (proposalData && proposalData.data && proposalData.data.isFromPMSTopUp && (proposalData.data.isFromPMSTopUp.toString() === 'true') &&
+                        (data[0].name == constProposalType.PLAYER_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP)) {
+                        proposalData.status = constProposalStatus.PENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
                         "data.platformId": data[0].platformId,
                         status: {$in: [constProposalStatus.CSPENDING, constProposalStatus.PENDING, constProposalStatus.PROCESSING, constProposalStatus.AUTOAUDIT]}
                     };
-                    let queryParam = ["playerObjId", "playerId", "_id", "partnerName", "partnerId"];
+                    let queryParam = ["playerObjId", "playerObjIds", "playerId", "_id", "partnerName", "partnerId"];
                     queryParam.forEach(
                         param => {
                             if (proposalData.data && proposalData.data[param]) {
@@ -493,6 +502,12 @@ var proposal = {
 
                     if (queryObj['data.playerObjId']) {
                         queryObj['data.playerObjId'] = ObjectId(queryObj['data.playerObjId']);
+                    }
+
+                    if (queryObj['data.playerObjIds']) {
+                        queryObj['data.playerObjIds'] = queryObj['data.playerObjIds'].map(objId => ObjectId(objId))
+                        queryObj['data.playerObjIds'] = {$in: queryObj['data.playerObjIds']};
+                        queryObj['data.playerObjId'] = queryObj['data.playerObjIds']
                     }
 
                     // Player modify payment info
@@ -510,6 +525,12 @@ var proposal = {
 
                     // attach player info if available
                     if (data[2]) {
+                        if (data[0].name == constProposalType.PLAYER_REGISTRATION_INTENTION && data[2].registrationDevice) {
+                            proposalData.device = data[2].registrationDevice;
+                        } else if (data[2].loginDevice) {
+                            proposalData.device = data[2].loginDevice;
+                        }
+
                         if (proposalData.isPartner) {
                             proposalData.data.partnerName = data[2].partnerName;
                             if (data[2].level) {
@@ -522,6 +543,16 @@ var proposal = {
                                 proposalData.data.proposalPlayerLevelValue = data[2].playerLevel.value;
                                 proposalData.data.playerLevelName = data[2].playerLevel.name;
                                 proposalData.data.proposalPlayerLevel = data[2].playerLevel.name;
+                            }
+                        }
+                    } else {
+                        if (proposalData.data && proposalData.data.partnerName) {
+                            let partnerId = proposalData.data.partnerObjId ? proposalData.data.partnerObjId : proposalData.data._id;
+                            let partner = await dbconfig.collection_partner.findOne({_id: partnerId}).lean();
+                            if(partner && partner.loginDevice) {
+                                proposalData.device = partner.loginDevice;
+                            } else {
+                                console.log("no partner or no partner loginDevice", partner);
                             }
                         }
                     }
@@ -597,15 +628,40 @@ var proposal = {
                             }
                         }
 
-                        return dbconfig.collection_proposal.findOne({
+                        let bank1prom = dbconfig.collection_proposal.findOne({
                             type: proposalTypeData._id,
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                             'data.platformId': proposalData.data.platformId,
                             'data.playerId': proposalData.data.playerId,
-                            'data.playerName': proposalData.data.playerName
-                        }).lean().then(bankInfoProposal => {
-                            if (!bankInfoProposal) {
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '1'
+                        }).lean();
+                        let bank2prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.playerId': proposalData.data.playerId,
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '2'
+                        }).lean();
+                        let bank3prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.playerId': proposalData.data.playerId,
+                            'data.playerName': proposalData.data.playerName,
+                            'data.bankChoice': '3'
+                        }).lean();
+
+                        return Promise.all([bank1prom, bank2prom, bank3prom]).then(bankInfoProposal => {
+                            if (!bankInfoProposal[0]) {
                                 return {isFirstBankInfo: true};
+                            }
+                            if (!bankInfoProposal[1]) {
+                                return {isFirstBankInfo2: true};
+                            }
+                            if (!bankInfoProposal[2]) {
+                                return {isFirstBankInfo3: true};
                             }
                         });
 
@@ -615,15 +671,40 @@ var proposal = {
                         && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO
                         && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId
                     ) {
-                        return dbconfig.collection_proposal.findOne({
+                        let bank1prom = dbconfig.collection_proposal.findOne({
                             type: proposalTypeData._id,
                             status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                             'data.platformId': proposalData.data.platformId,
                             'data.partnerId': proposalData.data.partnerId,
-                            'data.partnerName': proposalData.data.partnerName
-                        }).lean().then(bankInfoProposal => {
-                            if (!bankInfoProposal) {
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '1'
+                        }).lean();
+                        let bank2prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.partnerId': proposalData.data.partnerId,
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '2'
+                        }).lean();
+                        let bank3prom = dbconfig.collection_proposal.findOne({
+                            type: proposalTypeData._id,
+                            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                            'data.platformId': proposalData.data.platformId,
+                            'data.partnerId': proposalData.data.partnerId,
+                            'data.partnerName': proposalData.data.partnerName,
+                            'data.bankChoice': '3'
+                        }).lean();
+
+                        return Promise.all([bank1prom, bank2prom, bank3prom]).then(bankInfoProposal => {
+                            if (!bankInfoProposal[0]) {
                                 return {isFirstBankInfo: true};
+                            }
+                            if (!bankInfoProposal[1]) {
+                                return {isFirstBankInfo2: true};
+                            }
+                            if (!bankInfoProposal[2]) {
+                                return {isFirstBankInfo3: true};
                             }
                         });
                     }
@@ -634,11 +715,21 @@ var proposal = {
                 // add remark if first time bound to the bank info
                 if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                     proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                } else if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo2') && bankInfoProposal.isFirstBankInfo2) {
+                    proposalData.data.remark = localization.localization.translate("First time bound to the bank info 2");
+                } else if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo3') && bankInfoProposal.isFirstBankInfo3) {
+                    proposalData.data.remark = localization.localization.translate("First time bound to the bank info 3");
                 } else if (proposalData && proposalData.data && proposalData.mainType
                     && ((proposalData.mainType === "UpdatePlayer" && proposalTypeData.name === constProposalType.UPDATE_PLAYER_BANK_INFO)
                     || (proposalData.mainType === "UpdatePartner" && proposalTypeData.name === constProposalType.UPDATE_PARTNER_BANK_INFO))) {
 
-                    proposalData.data.remark = localization.localization.translate("Amend Bank Info");
+                    if (proposalData.data.bankAccount && proposalData.data.bankName && proposalData.data.bankChoice === '1') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info");
+                    } else if (proposalData.data.bankAccount2 && proposalData.data.bankName2 && proposalData.data.bankChoice === '2') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info 2");
+                    } else if (proposalData.data.bankAccount3 && proposalData.data.bankName3 && proposalData.data.bankChoice === '3') {
+                        proposalData.data.remark = localization.localization.translate("Amend Bank Info 3");
+                    }
                 }
 
                 //for online top up and player consumption return, there can be multiple pending proposals
@@ -656,7 +747,11 @@ var proposal = {
                     && proposalTypeData.name !== constProposalType.AUCTION_OPEN_PROMO_CODE
                     && proposalTypeData.name !== constProposalType.AUCTION_REWARD_PROMOTION
                     && proposalTypeData.name !== constProposalType.AUCTION_REAL_PRIZE
-                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE) {
+                    && proposalTypeData.name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
+                    && !(proposalTypeData.name === constProposalType.PLAYER_MANUAL_TOP_UP && proposalData && proposalData.data
+                        && (proposalData.data.depositMethod == 1) && proposalData.data.parentTopUpAmount
+                        && (proposalData.data.parentTopUpAmount > 50000)) //allow creating multiple proposals when parent proposal is manual top up , deposit method is 网银 and 50k amount which is fixed from pms
+                ) {
 
                     return Promise.reject({
                         name: "DBError",
@@ -860,6 +955,10 @@ var proposal = {
                         (proposalData.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || proposalData.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
                         proposalData.data && proposalData.data.bankAccount) {
                         proposalData.data.bankAccount = dbutility.encodeBankAcc(proposalData.data.bankAccount);
+                    }
+
+                    if (proposalData && proposalData.data && proposalData.data.bankBranch) {
+                        delete proposalData.data.bankBranch;
                     }
 
                     if (proposalData && proposalData.type && platform.indexOf(proposalData.type.platformId.toString()) > -1) {
@@ -1380,6 +1479,8 @@ var proposal = {
         let proposalProcessData;
         let isProcessedBefore = false;
         let proposalTypeName = "";
+        let firstBankInfo = {};
+        let multilpleBankInfo = {};
 
         let adminInfo = await dbconfig.collection_admin.findById(adminId).lean();
 
@@ -1400,13 +1501,44 @@ var proposal = {
                 select: "financialPoints financialSettlement",
                 model: dbconfig.collection_platform
             }
-        ).populate(
-            {
-                path: "data.playerObjId",
-                select: "bankAccount bankName",
-                model: dbconfig.collection_players
-            }
         ).lean().then(
+            function (data) {
+                if (data && data.data && data.data.playerObjId) {
+                    return dbconfig.collection_players.findOne({_id: data.data.playerObjId}, {bankAccount: 1, bankName: 1, bankAccountName: 1, multipleBankDetailInfo: 1}).populate(
+                        {
+                            path: "multipleBankDetailInfo",
+                            model: dbconfig.collection_playerMultipleBankDetailInfo
+                        }
+                    ).lean().then(
+                        playerBankInfoData => {
+                            if (playerBankInfoData) {
+                                firstBankInfo.bankName = playerBankInfoData.bankName;
+                                firstBankInfo.bankAccount = playerBankInfoData.bankAccount;
+                                firstBankInfo.bankAccountName = playerBankInfoData.bankAccountName;
+
+                                if (playerBankInfoData.multipleBankDetailInfo) {
+                                    return dbconfig.collection_playerMultipleBankDetailInfo.findOne({_id: playerBankInfoData.multipleBankDetailInfo}).lean().then(
+                                        multipleBankData => {
+                                            multilpleBankInfo = multipleBankData || {};
+
+                                            return data;
+                                        }, err => {
+                                            return data;
+                                        })
+                                }
+                            }
+
+                            return data;
+                        }, err => {
+                            return data;
+                        });
+                }
+                return data;
+            },
+            function (err) {
+                deferred.reject({name: "DBError", message: "Error finding proposal", error: err});
+            }
+        ).then(
             function (data) {
                 console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
@@ -1421,10 +1553,45 @@ var proposal = {
                 }
 
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
-                if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
-                    data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
-                    data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
-                    data.data.playerObjId = data.data.playerObjId._id;
+                if (data && data.data && data.data.playerObjId) {
+                    let dataSubmitted = data.data;
+
+                    if(firstBankInfo.bankAccount
+                        && firstBankInfo.bankName
+                        && firstBankInfo.bankAccountName
+                        && dataSubmitted.decodedBankAccountWhenSubmit
+                        && dataSubmitted.bankNameWhenSubmit
+                        && (dataSubmitted.decodedBankAccountWhenSubmit === firstBankInfo.bankAccount &&
+                            dataSubmitted.bankNameWhenSubmit === firstBankInfo.bankName &&
+                            dataSubmitted.bankAccountNameWhenSubmit === firstBankInfo.bankAccountName)){
+
+                        data.data.bankAccountWhenApprove = dbutility.encodeBankAcc(firstBankInfo.bankAccount);
+                        data.data.bankNameWhenApprove = firstBankInfo.bankName;
+
+                    } else if (multilpleBankInfo && multilpleBankInfo.bankAccount2
+                        && multilpleBankInfo.bankName2
+                        && multilpleBankInfo.bankAccountName2
+                        && dataSubmitted.decodedBankAccountWhenSubmit
+                        && dataSubmitted.bankNameWhenSubmit
+                        && (dataSubmitted.decodedBankAccountWhenSubmit === multilpleBankInfo.bankAccount2 &&
+                            dataSubmitted.bankNameWhenSubmit === multilpleBankInfo.bankName2 &&
+                            dataSubmitted.bankAccountNameWhenSubmit === multilpleBankInfo.bankAccountName2)) {
+
+                        data.data.bankAccountWhenApprove = dbutility.encodeBankAcc(multilpleBankInfo.bankAccount2);
+                        data.data.bankNameWhenApprove = multilpleBankInfo.bankName2;
+
+                    } else if (multilpleBankInfo && multilpleBankInfo.bankAccount3
+                        && multilpleBankInfo.bankName3
+                        && multilpleBankInfo.bankAccountName3
+                        && dataSubmitted.decodedBankAccountWhenSubmit
+                        && dataSubmitted.bankNameWhenSubmit
+                        && (dataSubmitted.decodedBankAccountWhenSubmit === multilpleBankInfo.bankAccount3 &&
+                            dataSubmitted.bankNameWhenSubmit === multilpleBankInfo.bankName3 &&
+                            dataSubmitted.bankAccountNameWhenSubmit === multilpleBankInfo.bankAccountName3)) {
+
+                        data.data.bankAccountWhenApprove = dbutility.encodeBankAcc(multilpleBankInfo.bankAccount3);
+                        data.data.bankNameWhenApprove = multilpleBankInfo.bankName3;
+                    }
                 }
 
                 if (bApprove && data.type && (data.type.name ==  constProposalType.PLAYER_BONUS || data.type.name == constProposalType.PARTNER_BONUS)) {
@@ -2233,6 +2400,11 @@ var proposal = {
                                     && item.data && item.data.bankAccount) {
                                     item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
                                 }
+
+                                if (item && item.data && item.data.bankBranch) {
+                                    delete item.data.bankBranch;
+                                }
+
                                 return item;
                             }
 
@@ -2373,7 +2545,8 @@ var proposal = {
                         if (playerId) {
                             queryObj["$or"] = [
                                 {"data._id": {$in: [playerId, ObjectId(playerId)]}},
-                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}}
+                                {"data.playerObjId": {$in: [playerId, ObjectId(playerId)]}},
+                                {"data.playerObjIds": {$in: [playerId, ObjectId(playerId)]}},
                             ];
                         }
 
@@ -2473,6 +2646,10 @@ var proposal = {
                                                 }
                                             }
 
+                                            if (item && item.data && item.data.bankBranch) {
+                                                delete item.data.bankBranch;
+                                            }
+
                                             return item
                                         })
 
@@ -2524,6 +2701,10 @@ var proposal = {
                                                     (item.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO || item.type.name == constProposalType.UPDATE_PARTNER_BANK_INFO) &&
                                                     item.data && item.data.bankAccount) {
                                                     item.data.bankAccount = dbutility.encodeBankAcc(item.data.bankAccount);
+                                                }
+
+                                                if (item && item.data && item.data.bankBranch) {
+                                                    delete item.data.bankBranch;
                                                 }
                                                 return item
                                             });
@@ -3685,6 +3866,10 @@ var proposal = {
                 reqData.inputDevice = Number(reqData.inputDevice);
                 queryData.inputDevice = Number(queryData.inputDevice);
             }
+        }
+
+        if (reqData.device && reqData.device.length){
+            queryData.device = {$in: reqData.device};
         }
 
         if (reqData.status) {
@@ -10554,8 +10739,9 @@ function isBankInfoMatched(proposalData, playerId){
 
                 let allProposalQuery = {
                     'data.platformId': ObjectId(player.platform._id),
-                    // createTime: {$lt: proposalData.createTime},
-                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
+                    $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}],
+                    'status': constProposalStatus.APPROVED,
+                    createTime: {$gte: new Date(player.registrationTime)},
                 };
 
                 if (proposalData.data.playerId) {
@@ -10565,10 +10751,20 @@ function isBankInfoMatched(proposalData, playerId){
                     allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
                 }
 
-                return dbconfig.collection_proposal.find(allProposalQuery)
-                    .populate({path: "type", model: dbconfig.collection_proposalType})
-                    .sort({createTime: -1}).lean();
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: ObjectId(player.platform._id),
+                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
+                }).lean().then(
+                    proposalTypeData => {
+                        if (proposalTypeData && proposalTypeData._id) {
+                            allProposalQuery.type = proposalTypeData._id;
 
+                            return dbconfig.collection_proposal.find(allProposalQuery)
+                                .populate({path: "type", model: dbconfig.collection_proposalType})
+                                .sort({createTime: -1}).lean();
+                        }
+                    }
+                );
             },
             error => {
                 return;

@@ -225,7 +225,7 @@ const messageDispatcher = {
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
 
-    sendMessage: function (format, metaData, renderedContent, renderedSubject, contentIsHTML) {
+    sendMessage: async (format, metaData, renderedContent, renderedSubject, contentIsHTML) => {
         if (format === 'email') {
             const recipientEmail = metaData.player.email;
             assert(metaData.platform || metaData.platformId);
@@ -268,10 +268,13 @@ const messageDispatcher = {
                     return data;
                 }
             );
-        }
-        // @todo SMS format
-        else {
-            // return Q.reject("I do not know how to dispatch a message with format '" + format + "'.");
+        } else if (format === 'creditUpdate') {
+            let wsMessageClient = serverInstance.getWebSocketMessageClient();
+            if (wsMessageClient) {
+                let playerCreditInfo = await dbPlayerInfo.getCreditDetail(metaData.recipientId);
+                let result = Object.assign({}, metaData, playerCreditInfo);
+                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "notifyCreditChange", result);
+            }
         }
     }
 

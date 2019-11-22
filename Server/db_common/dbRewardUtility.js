@@ -192,7 +192,7 @@ const dbRewardUtility = {
         );
     },
 
-    checkApplyTopUpReturn: (player, topUpReturnCode, userAgentStr, inputData, topUpMethod) => {
+    checkApplyTopUpReturn: (player, topUpReturnCode, userAgentStr, inputData, topUpMethod, isSplitTopUp) => {
         let rewardEvent;
         let intervalTime;
         let applyAmount = inputData.amount? inputData.amount: 0;
@@ -395,11 +395,19 @@ const dbRewardUtility = {
                             }
 
                             if (applyAmount < selectedRewardParam.minTopUpAmount) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Insufficient top up amount, fail to claim reward"
-                                });
+                                if (isSplitTopUp) {
+                                    return Promise.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: localization.localization.translate("Sub top up amount has not met the reward condition")
+                                    });
+                                } else {
+                                    return Promise.reject({
+                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                        name: "DataError",
+                                        message: "Insufficient top up amount, fail to claim reward"
+                                    });
+                                }
                             }
 
                             if (rewardEvent.condition.isDynamicRewardAmount) {
@@ -1320,6 +1328,7 @@ const dbRewardUtility = {
     // endregion
 
     checkForbidReward: (eventData, intervalTime, playerData) => {
+        console.log('JY check checkForbidReward intervalTime ==>', intervalTime);
         let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
 
         // check during this period interval

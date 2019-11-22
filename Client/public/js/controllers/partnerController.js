@@ -46,6 +46,12 @@ define(['js/app'], function (myApp) {
             WEEKLY_CONSUMPTION: 5,
             DAILY_CONSUMPTION: 7
         };
+
+        vm.subPlatformType = [
+            "CHESS",
+            "V68"
+        ];
+
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -186,6 +192,14 @@ define(['js/app'], function (myApp) {
             SUCCESS: 3,
             FAIL: 4,
             MANUAL: 5,
+        };
+
+        vm.constPartnerBillBoardPeriod = {
+            DAILY: "1",
+            WEEKLY: "2",
+            BIWEEKLY: "3",
+            MONTHLY: "4",
+            NO_PERIOD: "5"
         };
 
 
@@ -5930,7 +5944,7 @@ define(['js/app'], function (myApp) {
             })
         }
 
-        vm.getChildrenDetails = function (partnerId, skipDownline) {
+        vm.getChildrenDetails = function (partnerId, skipDownline, skipModalShow) {
             let sendQuery = {
                 partnerId: partnerId,
                 platform: vm.selectedPlatform.id
@@ -6000,11 +6014,15 @@ define(['js/app'], function (myApp) {
             })
 
             if (skipDownline) {
-                $('#modalPlayerDetailsSummaryTable').modal().show();
+                if (!skipModalShow) {
+                    $('#modalPlayerDetailsSummaryTable').modal().show();
+                }
             } else {
-                vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
                 vm.getAllDownlinePartner();
-                $('#modalPlayerDetailsSummaryTableMulti').modal().show();
+                if (!skipModalShow) {
+                    vm.selectedDownlineTab = 'MULTI_LEVEL_PARTNER';
+                    $('#modalPlayerDetailsSummaryTableMulti').modal().show();
+                }
             }
             $scope.$evalAsync()
         };
@@ -7765,6 +7783,7 @@ define(['js/app'], function (myApp) {
                         platformPageName: vm.platformPageName,
                         prepareEditCritical: vm.prepareEditCritical,
                         submitCriticalUpdate: vm.submitCriticalUpdate,
+                        isEditingPartnerBankAccountName: vm.isEditingPartnerBankAccountName,
                         isEditingPartnerPayment: vm.isEditingPartnerPayment,
                         checkPartnerField: vm.checkPartnerField,
                         partnerValidity: vm.partnerValidity,
@@ -7817,6 +7836,7 @@ define(['js/app'], function (myApp) {
                         today: new Date().toISOString(),
                         commissionType: vm.constPartnerCommisionType,
                         partnerId: selectedPartner._id,
+                        partnerRealName: selectedPartner.realName,
                         isIdInList: commonService.isIdInList,
                         partnerBeforeEditing: _.clone(editPartner),
                         newPartner: _.clone(editPartner),
@@ -7876,6 +7896,7 @@ define(['js/app'], function (myApp) {
                 option.childScope.prepareEditPartnerPayment = function () {
                     vm.prepareEditPartnerPayment();
                     this.isEditingPartnerPayment = vm.isEditingPartnerPayment;
+                    this.isEditingPartnerBankAccountName = vm.isEditingPartnerBankAccountName;
                     this.partnerPayment = vm.partnerPayment;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
@@ -7964,6 +7985,7 @@ define(['js/app'], function (myApp) {
                 }
                 vm.isEditingPartnerPayment = false;
                 vm.isEditingPartnerPaymentShowVerify = false;
+                vm.isEditingPartnerBankAccountName = false;
                 vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
                 vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
                 vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
@@ -16355,6 +16377,10 @@ define(['js/app'], function (myApp) {
                 targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
             };
 
+            if (vm.subPlatformId && vm.subPlatformId != ""){
+                sendData.subPlatformId = vm.subPlatformId;
+            }
+
             socketService.$socket($scope.AppSocket, 'getPartnerPosterAdsList', sendData, function (data) {
                 console.log("partner poster ads list", data);
                 if (data && data.data) {
@@ -16440,6 +16466,9 @@ define(['js/app'], function (myApp) {
                     targetDevice: vm.partnerPosterAdsWebDevice ? vm.partnerPosterAdsTargetDevice.WEB : vm.partnerPosterAdsTargetDevice.H5
                 }
 
+                if (vm.subPlatformId && vm.subPlatformId != ''){
+                    sendData.subPlatformId = vm.subPlatformId;
+                }
                 socketService.$socket($scope.AppSocket, 'addNewPartnerPosterAdsRecord', sendData, function (data) {
                     if (data) {
                         vm.resetPartnerAddPosterAdsTable();
@@ -17384,6 +17413,33 @@ define(['js/app'], function (myApp) {
                 });
                 vm.platformInSetting = selectedPlatform.data;
 
+                if (vm.selectedConfigTab && vm.selectedConfigTab === 'partnerPosterAds') {
+                    vm.platformName =  vm.platformInSetting.name;
+                    vm.platformId =  vm.platformInSetting.platformId;
+
+                    if (vm.platformName && vm.subPlatformType && vm.subPlatformType.length) {
+                        vm.subPlatformIdList = {};
+
+                        for (let i = 1; i <= vm.subPlatformType.length; i++) {
+                            let counter = i.toString();
+                            if (i < 10) {
+                                counter = "0" + i;
+                            }
+                            let text = vm.platformName + '_' + vm.subPlatformType[i - 1] + " (" + vm.platformId + counter + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + counter;
+                        }
+
+                        // hardcode 10 as the product itself
+                        if (vm.subPlatformIdList) {
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
+                        }
+                    }
+                }
+
+                if (vm.selectedConfigTab && vm.selectedConfigTab != 'partnerPosterAds'){
+                    vm.subPlatformId = null;
+                }
                 vm.getConfigData();
             }
         };
@@ -17446,11 +17502,323 @@ define(['js/app'], function (myApp) {
                     vm.resetPartnerAddPosterAdsTable();
                     vm.getPartnerPosterAdsList();
                     break;
+                case 'commissionBillboard':
+                    vm.commissionBillboardPeriod = vm.constPartnerBillBoardPeriod.DAILY;
+                    vm.commissionBillboardQuery = {
+                        period: vm.constPartnerBillBoardPeriod.DAILY,
+                        limit: 10,
+                        index: 0
+                    };
+
+                    vm.commissionFakeBillboardQuery = {
+                        period: vm.constPartnerBillBoardPeriod.DAILY,
+                        limit: 10,
+                        index: 0
+                    };
+                    vm.cBBLastCalculate = "-";
+                    vm.disableForceRecalculateCBB = false;
+
+                    vm.fakeRecordQuery = {fluctuationType: 0};
+
+                    utilService.actionAfterLoaded("#partnerCBillBoardTablePage", function () {
+                        vm.commissionBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                            commonPageChangeHandler(curP, pageSize, "commissionBillboardQuery", vm.getPartnerCommissionBillBoard);
+                        });
+                        $scope.$evalAsync();
+                    });
+                    utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
+                        vm.commissionFakeBillboardQuery.pageObj = utilService.createPageForPagingTable("#partnerFakeCBillBoardTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                            commonPageChangeHandler(curP, pageSize, "commissionFakeBillboardQuery", vm.getPartnerFakeCommissionBillBoard);
+                        });
+                        $scope.$evalAsync();
+                    });
+                    vm.getPartnerCommissionBillBoard(true);
+                    vm.getPartnerFakeCommissionBillBoard(true);
+                    break;
 
             }
 
             $scope.$evalAsync();
         };
+
+        vm.changePeriod = () => {
+            vm.commissionBillboardQuery.period = vm.commissionBillboardPeriod;
+            vm.commissionFakeBillboardQuery.period = vm.commissionBillboardPeriod;
+            vm.getPartnerCommissionBillBoard(true);
+            vm.getPartnerFakeCommissionBillBoard(true);
+        }
+
+        vm.generateFakeRecord = (isConfirm) => {
+            // validations
+            let validationFailed = false;
+            if (vm.fakeRecordQuery.nameLengthMax < vm.fakeRecordQuery.nameLengthMin) {
+                socketService.showErrorMessage($translate("Fake CBB Name Length Error"));
+                validationFailed = true;
+            }
+
+            if (!$('#fakeCommUseAlphabet').prop('checked') && !$('#fakeCommUseDigit').prop('checked')) {
+                socketService.showErrorMessage($translate("Fake CBB Name Combination Error"));
+                validationFailed = true;
+            }
+
+            if (vm.fakeRecordQuery.commissionMin > vm.fakeRecordQuery.commissionMax) {
+                socketService.showErrorMessage($translate("Commission Range Error"));
+                validationFailed = true;
+            }
+
+            if ( vm.fakeRecordQuery.fluctuationLow > vm.fakeRecordQuery.fluctuationHigh ) {
+                let valHolder = vm.fakeRecordQuery.fluctuationHigh;
+                vm.fakeRecordQuery.fluctuationHigh = vm.fakeRecordQuery.fluctuationLow;
+                vm.fakeRecordQuery.fluctuationLow = valHolder;
+            }
+
+            let query = {
+                platform: vm.platformInSetting._id,
+                period: vm.commissionBillboardPeriod,
+                recordAmount: vm.fakeRecordQuery.recordAmount,
+                prefix: vm.fakeRecordQuery.prefix,
+                nameLengthMin: vm.fakeRecordQuery.nameLengthMin,
+                nameLengthMax: vm.fakeRecordQuery.nameLengthMax,
+                useAlphabet: $('#fakeCommUseAlphabet').prop('checked'),
+                useNumber: $('#fakeCommUseDigit').prop('checked'),
+                commissionMin: vm.fakeRecordQuery.commissionMin,
+                commissionMax: vm.fakeRecordQuery.commissionMax,
+                useFluctuation: $('#fakeCommUseFluctuation').prop('checked'),
+                fluctuationType: vm.fakeRecordQuery.fluctuationType,
+                fluctuationLow: vm.fakeRecordQuery.fluctuationLow,
+                fluctuationHigh: vm.fakeRecordQuery.fluctuationHigh,
+                flucOnSunday: $('#fakeCommChangeOnSunday').prop('checked'),
+                flucOnMonday: $('#fakeCommChangeOnMonday').prop('checked'),
+                flucOnTuesday: $('#fakeCommChangeOnTuesday').prop('checked'),
+                flucOnWednesday: $('#fakeCommChangeOnWednesday').prop('checked'),
+                flucOnThursday: $('#fakeCommChangeOnThursday').prop('checked'),
+                flucOnFriday: $('#fakeCommChangeOnFriday').prop('checked'),
+                flucOnSaturday: $('#fakeCommChangeOnSaturday').prop('checked')
+            };
+
+            if (query.useFluctuation && !(
+                query.flucOnSunday ||
+                query.flucOnMonday ||
+                query.flucOnTuesday ||
+                query.flucOnWednesday ||
+                query.flucOnThursday ||
+                query.flucOnFriday ||
+                query.flucOnSaturday
+            )) {
+                socketService.showErrorMessage($translate("useFluctuation have to at least trigger a day"));
+                validationFailed = true;
+            }
+
+            if (validationFailed) {
+                return;
+            }
+
+            // implementations
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
+            $scope.$socketPromise('createFakeCommissionBBRecord', query).then(
+                data => {
+                    console.log('createFakeCommissionBBRecord data', data)
+                    socketService.showConfirmMessage($translate("Created successfully"), 3000);
+                }
+            );
+        }
+
+        vm.getPartnerCommissionBillBoard = function (newSearch) {
+            if (!vm.platformInSetting) {
+                return;
+            }
+            console.log("vm.commissionBillboardQuery", vm.commissionBillboardQuery)
+            let query = {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionBillboardQuery.period,
+                count: newSearch ? 10 : vm.commissionBillboardQuery.limit || 10,
+                index: vm.commissionBillboardQuery.index
+            };
+            console.log('getPartnerCommissionBillBoardquery', query)
+            $scope.$socketPromise('getPartnerCommissionBillBoard', query).then(
+                data => {
+                    console.log("getPartnerCommissionBillBoard", data);
+                    if (data && data.data && data.data.data) {
+                        vm.cBBLastCalculate = data.data.lastCalculate;
+                        vm.drawPartnerCommissionBillBoard(data.data.data.map(row => {
+                            row.amount = $noRoundTwoDecimalPlaces(row.amount);
+                            return row;
+                        }), data.data.total, newSearch)
+                    }
+                }
+            );
+        };
+
+        vm.drawPartnerCommissionBillBoard = function(tableData, size, newSearch) {
+            let tableOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: 0, bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Commission_Rank'), data: "rank", bSortable: false},
+                    {title: $translate('partnerName'), data: "name", bSortable: false},
+                    {title: $translate('AccumulatedCommission'), data: "amount", sClass: "alignRight", bSortable: false},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                // no special html, so probably no need row callback
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+
+            vm.commissionBillboardTable = utilService.createDatatableWithFooter('#partnerCBillBoardTable', tableOptions, {}, true);
+            vm.commissionBillboardQuery.pageObj.init({maxCount: size}, newSearch);
+            // since backend sorting this should not be needed
+            // $('#commissionBillboardTable').off('order.dt');
+            // $('#commissionBillboardTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'partnerProfitQuery', vm.searchPartnerProfitReport);
+            // });
+            setTimeout(function () {
+                $('#partnerCBillBoardTable_wrapper').resize();
+            }, 500);
+        }
+
+        vm.getPartnerFakeCommissionBillBoard = function (newSearch) {
+            if (!vm.platformInSetting) {
+                return;
+            }
+            console.log("vm.commissionBillboardQuery", vm.commissionBillboardQuery)
+            let query = {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionFakeBillboardQuery.period,
+                count: newSearch ? 10 : vm.commissionFakeBillboardQuery.limit || 10,
+                index: vm.commissionFakeBillboardQuery.index,
+                containFakeRecord: $('#cBBOnlyFakeRecord').prop('checked') ? 2 : 1,
+            };
+            console.log('getPartnerFakeCommissionBillBoard q', query)
+            $scope.$socketPromise('getPartnerFakeCommissionBillBoard', query).then(
+                data => {
+                    console.log("getPartnerFakeCommissionBillBoard with fake data", data);
+                    if (data && data.data && data.data.data) {
+                        vm.drawPartnerFakeCommissionBillBoard(data.data.data.map(row => {
+                            row.amount = $noRoundTwoDecimalPlaces(row.amount);
+                            return row;
+                        }), data.data.total, newSearch)
+                    }
+                }
+            );
+        };
+
+        vm.forceRecalculateCBB = function () {
+            vm.disableForceRecalculateCBB = true;
+            $scope.$socketPromise('forceRecalculateCBB', {
+                platformObjId: vm.platformInSetting._id,
+                period: vm.commissionBillboardQuery.period
+            }).then(
+                data => {
+                    vm.getPartnerCommissionBillBoard(true);
+                    vm.getPartnerFakeCommissionBillBoard(true);
+                    socketService.showConfirmMessage($translate("Recalculated successfully"), 3000);
+                    vm.disableForceRecalculateCBB = false;
+                }
+            );
+        };
+
+        vm.drawPartnerFakeCommissionBillBoard = function(tableData, size, newSearch) {
+            let tableOptions = {
+                data: tableData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: 0, bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('Commission_Rank'), data: "rank", bSortable: false},
+                    {title: $translate('partnerName'), data: "name", bSortable: false},
+                    {title: $translate('AccumulatedCommission'), data: "amount", sClass: "alignRight", bSortable: false},
+                    {
+                        title: $translate('ACTION_BUTTON'),
+                        bSortable: false,
+                        data: "fakeSource",
+                        render: function (data, type, row, dataIndex) {
+                            if (!data) {
+                                return '';
+                            }
+
+                            let linkEdit = $('<a>', {
+                                'ng-click': `vm.editFakeCBBRecord('${data}', '${row.name}', '${row.amount}')`,
+                            }).text($translate("EDIT"));
+
+                            let linkDelete = $('<a>', {
+                                'ng-click': `vm.deleteFakeCBBRecord('${data}', '${row.name}')`,
+                            }).text($translate("DELETE"));
+
+                            return linkEdit.prop('outerHTML') + " / " + linkDelete.prop('outerHTML');
+                        }
+                    },
+                    {title: $translate('REMARKS'), data: "remarks", bSortable: false},
+                ],
+                "bAutoWidth": true,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            };
+
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+
+            utilService.actionAfterLoaded("#partnerFakeCBillBoardTablePage", function () {
+                vm.commissionFakeBillboardTable = utilService.createDatatableWithFooter('#partnerFakeCBillBoardTable', tableOptions, {}, true);
+                vm.commissionFakeBillboardQuery.pageObj.init({maxCount: size}, newSearch);
+            });
+            // since backend sorting this should not be needed
+            // $('#commissionBillboardTable').off('order.dt');
+            // $('#commissionBillboardTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'partnerProfitQuery', vm.searchPartnerProfitReport);
+            // });
+            setTimeout(function () {
+                $('#partnerFakeCBillBoardTable_wrapper').resize();
+            }, 500);
+        }
+
+        vm.editFakeCBBRecord = (fakeSource, name, commissionAmount) => {
+            commissionAmount = Number(commissionAmount) || 0;
+            vm.updatingFakeRecord = {
+                fakeSource,
+                name,
+                commissionAmount,
+                originalName: name
+            };
+            $("#modalUpdateFakeCommRecord").modal();
+        }
+
+        vm.updateFakeCBBRecord = () => {
+            $scope.$socketPromise('updateFakeCBBRecord', vm.updatingFakeRecord).then(data => {
+                socketService.showConfirmMessage($translate("Update Successfully! Your changes will be reflected on next ranking calculation."), 3000);
+            });
+        }
+
+        vm.deleteFakeCBBRecord = (fakeSource, name, isConfirm) => {
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("DELETE") + name + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.deleteFakeCBBRecord(fakeSource, name, true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
+            $scope.$socketPromise('removeFakeCBBRecord', {fakeSource}).then(data => {
+                socketService.showConfirmMessage($translate("Delete Successfully! Your changes will be reflected on next ranking calculation."), 3000);
+            });
+        }
 
         vm.getPartnerBasic = function () {
             vm.partnerBasic = vm.partnerBasic || {};
@@ -17494,6 +17862,7 @@ define(['js/app'], function (myApp) {
             vm.autoApprovalBasic.consecutiveTransferInOut = vm.platformInSetting.consecutiveTransferInOut;
 
             vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.platformInSetting.partnerEnableAutoApplyBonus;
+            vm.autoApprovalBasic.partnerForbidApplyBonusNeedCsApproval = vm.platformInSetting.partnerForbidApplyBonusNeedCsApproval;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleBonusApplyLessThan;
             vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.platformInSetting.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan;
             vm.autoApprovalBasic.partnerWithdrawalCommissionDifference = vm.platformInSetting.partnerWithdrawalCommissionDifference;
@@ -17836,7 +18205,7 @@ define(['js/app'], function (myApp) {
             });
         }
 
-         vm.updatePlatformsActiveConfig = function () {
+        vm.updatePlatformsActiveConfig = function () {
             var sendData = {
                 query: {platform: vm.bulkActiveConfigPlatforms},
                 updateData: vm.bulkActiveConfig
@@ -17885,6 +18254,7 @@ define(['js/app'], function (myApp) {
                 query: {_id: vm.platformInSetting._id},
                 updateData: {
                     partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                    partnerForbidApplyBonusNeedCsApproval: srcData.partnerForbidApplyBonusNeedCsApproval,
                     partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                     partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
                     partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference
@@ -18479,6 +18849,7 @@ define(['js/app'], function (myApp) {
             });
         };
         vm.drawPartnerSettlementHistoryTable = function (tableData, size, newSearch, isExport) {
+            console.log('tableData',tableData)
             let tableOptions = {
                 data: tableData,
                 "order": vm.partnerSettlementQuery.aaSorting || [],

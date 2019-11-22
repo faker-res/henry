@@ -94,6 +94,9 @@ let RewardServiceImplement = function () {
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
         data.data.isFrontEnd = true;
+        if (data && data.data && !data.data.topUpRecordId && data.topUpRecordId) {
+            data.data.topUpRecordId = data.topUpRecordId;
+        }
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data, null, null, null, data.appliedObjIdList, data.type, data.forceSettled], isValidData, true, false, false).then(
@@ -104,7 +107,7 @@ let RewardServiceImplement = function () {
                 }, data);
                 //SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.APPLY_REWARD);
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.getPlayerReferralList.expectsData = '[startIndex]: Number, [requestCount]: Number';

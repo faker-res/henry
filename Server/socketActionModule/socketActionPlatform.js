@@ -75,9 +75,9 @@ function socketActionPlatform(socketIO, socket) {
 
         getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty('deviceType') );
 
-            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId, data.deviceType], actionName, isValidData);
         },
 
         updateRewardPointClarification: function updateRewardPointClarification (data) {
@@ -102,6 +102,16 @@ function socketActionPlatform(socketIO, socket) {
          * @param {json} data - Query data. It has to contain platformName or _id
          */
         getPlatform: function getPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id));
+            socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
+        },
+        /**
+         * Get a platform by platformName or _id
+         * It is intentionally duplicating getPlatform, used to prevent websocket response interception - Huat
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getPlatformDetail: function getPlatformDetail(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && (data.name || data._id));
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
@@ -598,8 +608,8 @@ function socketActionPlatform(socketIO, socket) {
 
         updatePlatformProviderGroup: function updatePlatformProviderGroup(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup);
-            socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformObjId && data.gameProviderGroup && data.socketActionLog);
+            socketUtil.emitter(self.socket, dbGameProvider.updatePlatformProviderGroup, [data.platformObjId, data.gameProviderGroup, data.socketActionLog], actionName, isValidData);
         },
 
         batchCreditTransferOut: function batchCreditTransferOut(data) {
@@ -697,13 +707,13 @@ function socketActionPlatform(socketIO, socket) {
         getPartnerPosterAdsList: function getPartnerPosterAdsList(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getPartnerPosterAdsList, [data.platformObjId, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         addNewPartnerPosterAdsRecord: function addNewPartnerPosterAdsRecord(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty("orderNo") && data.title && data.posterImage && data.targetDevice);
-            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.addNewPartnerPosterAdsRecord, [data.platformObjId, data.orderNo, data.title, data.showInRealServer, data.posterImage, data.targetDevice, data.subPlatformId], actionName, isValidData);
         },
 
         deletePartnerPosterAdsRecord: function deletePartnerPosterAdsRecord(data){

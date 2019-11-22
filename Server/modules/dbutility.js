@@ -4,6 +4,7 @@ module.exports = new dbUtilityFunc();
 
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 const constPMSClientType = require("../const/constPMSClientType");
+const constVoiceCodeProvider = require("../const/constVoiceCodeProvider");
 const uaParser = require('ua-parser-js');
 const rsaCrypto = require('../modules/rsaCrypto');
 var Q = require("q");
@@ -19,6 +20,7 @@ const env = require('./../config/env').config();
 const rp = require('request-promise');
 const sha1 = require('sha1')
 const QcloudSms = require('qcloudsms_js');
+const constDevice = require('./../const/constDevice');
 
 var dbUtility = {
 
@@ -88,139 +90,143 @@ var dbUtility = {
 
     //region Time
 
-    sendVoiceCode: async function (phoneNumber, smsCode) {
-        // 语音消息应用 SDK AppID
-        var appid = env.voiceCodeSecret;  // SDK AppID 以1400开头
-        // 语音消息应用 App Key
-        var appkey = env.voiceCodeKEY;
-        // 需要发送语音消息的手机号码
-        // var phoneNumbers = phoneNumber;
-        // 语音模板 ID，需要在语音消息控制台中申请
-        // var templateId = 7839;  // NOTE: 这里的模板 ID`7839`只是示例，真实的模板 ID 需要在语音消息控制台中申请
-        // 实例化 QcloudSms
-        var qcloudSms = QcloudSms(appid, appkey);
-
-        // return Promise.resolve({haha:"walao"})
-        let cvsender = qcloudSms.CodeVoiceSender();
-        // cvsender.send("86", phoneNumber, String(smsCode), 2, "", callback);
-        let prom = new Promise((resolve, reject) => {
-            cvsender.send("86", phoneNumber, String(smsCode), 2, "", (err, res, resData) => {
-                if (err) {
-                    console.log("send voice code failed", err)
-                    reject({
-                        name: "DataError",
-                        message: "Voice code failed to send, please contact customer service"
-                    });
-                } else {
-                    if (resData && resData.result == 0) {
-                        resolve(resData);
-                    } else {
-                        console.log("send voice code failed", resData)
+    sendVoiceCode: async function (phoneNumber, smsCode, voiceCodeProvider) {
+        voiceCodeProvider = voiceCodeProvider || constVoiceCodeProvider.TENCENT_CLOUD;
+        if (voiceCodeProvider == constVoiceCodeProvider.TENCENT_CLOUD) {
+            // 语音消息应用 SDK AppID
+            var appid = env.voiceCodeSecret;  // SDK AppID 以1400开头
+            // 语音消息应用 App Key
+            var appkey = env.voiceCodeKEY;
+            // 需要发送语音消息的手机号码
+            // var phoneNumbers = phoneNumber;
+            // 语音模板 ID，需要在语音消息控制台中申请
+            // var templateId = 7839;  // NOTE: 这里的模板 ID`7839`只是示例，真实的模板 ID 需要在语音消息控制台中申请
+            // 实例化 QcloudSms
+            var qcloudSms = QcloudSms(appid, appkey);
+            let cvsender = qcloudSms.CodeVoiceSender();
+            // cvsender.send("86", phoneNumber, String(smsCode), 2, "", callback);
+            let prom = new Promise((resolve, reject) => {
+                cvsender.send("86", phoneNumber, String(smsCode), 2, "", (err, res, resData) => {
+                    if (err) {
+                        console.log("send voice code failed", err)
                         reject({
                             name: "DataError",
                             message: "Voice code failed to send, please contact customer service"
                         });
+                    } else {
+                        if (resData && resData.result == 0) {
+                            resolve(resData);
+                        } else {
+                            console.log("send voice code failed", resData)
+                            reject({
+                                name: "DataError",
+                                message: "Voice code failed to send, please contact customer service"
+                            });
+                        }
+                        // console.log("request data: ", res.req);
+                        // console.log("response data: ", resData);
                     }
-                    // console.log("request data: ", res.req);
-                    // console.log("response data: ", resData);
+                });
+            })
+
+            // 指定模板
+            // var templateId = 12345;
+            // var params = ["5678"];
+            // var tvsender = qcloudsms.TtsVoiceSender();
+            // tvsender.send("86", phoneNumbers[0], templateId, params, 2, "", callback);
+
+            return prom;
+        } else if (voiceCodeProvider == constVoiceCodeProvider.NETEASE) {
+
+
+            let nonce = "";
+            let curTime = new Date().getTime();
+            const HEX_DIGITS = "0123456789abcdef";
+
+            function checkSumBuilder(randomStr) {
+                let maxRand = randomStr.length - 1;
+                let minRand = 0;
+                for (let i = 0; i < 20; i++) {            //随机字符串最大128个字符，也可以小于该数
+                    nonce += randomStr.charAt(Math.floor(Math.random() * (maxRand - minRand + 1)) + minRand);
                 }
-            });
-        })
 
-        return prom;
+                let joinString = env.voiceCodeSecret_NE + nonce + String(curTime);
+                return sha1(joinString);
+            }
 
-        // 指定模板
-        // var templateId = 12345;
-        // var params = ["5678"];
-        // var tvsender = qcloudsms.TtsVoiceSender();
-        // tvsender.send("86", phoneNumbers[0], templateId, params, 2, "", callback);
+            let options = {
+                method: "POST",
+                uri: env.voiceCodeUrl_NE,
+                headers: {
+                    AppKey: env.voiceCodeKEY_NE,
+                    CurTime: String(curTime),
+                    CheckSum: checkSumBuilder(HEX_DIGITS),
+                    Nonce: nonce,
+                    'Content-Type': "application/x-www-form-urlencoded"
+                },
+                form: {
+                    mobile: phoneNumber,
+                    authCode: Number(smsCode),
+                    templateid: 14794553 // yun xin setting
+                },
+                json: true // Automatically stringifies the body to JSON
+            };
 
-        // let nonce = "";
-        // let curTime = new Date().getTime();
-        // const HEX_DIGITS = "0123456789abcdef";
-        //
-        // function checkSumBuilder(randomStr) {
-        //     let maxRand = randomStr.length - 1;
-        //     let minRand = 0;
-        //     for (let i = 0; i < 20; i++) {            //随机字符串最大128个字符，也可以小于该数
-        //         nonce += randomStr.charAt(Math.floor(Math.random() * (maxRand - minRand + 1)) + minRand);
-        //     }
-        //
-        //     let joinString = env.voiceCodeSecret + nonce + String(curTime);
-        //     return sha1(joinString);
-        // }
-        //
-        // let options = {
-        //     method: "POST",
-        //     uri: env.voiceCodeUrl,
-        //     headers: {
-        //         AppKey: env.voiceCodeKEY,
-        //         CurTime: String(curTime),
-        //         CheckSum: checkSumBuilder(HEX_DIGITS),
-        //         Nonce: nonce,
-        //         'Content-Type': "application/x-www-form-urlencoded"
-        //     },
-        //     form: {
-        //         mobile: phoneNumber,
-        //         authCode: Number(smsCode),
-        //         templateid: 14794553 // yun xin setting
-        //     },
-        //     json: true // Automatically stringifies the body to JSON
-        // };
-        //
-        // return rp(options).then(
-        //     data => {
-        //         if (!(data && data.code && data.code == 200)) {
-        //             //315	IP限制
-        //             //403	非法操作或没有权限
-        //             //414	参数错误
-        //             //416	频率控制
-        //             //500	服务器内部错误
-        //             console.log("send voice code error",data)
-        //             return Promise.reject({
-        //                 name: "DataError",
-        //                 message: "Voice code failed to send, please contact customer service"
-        //             });
-        //         }
-        //         return data;
-        //     },
-        //     err => {
-        //         console.log("send voice code failed",err)
-        //         return Promise.reject({
-        //             name: "DataError",
-        //             message: "Voice code failed to send, please contact customer service"
-        //         });
-        //     }
-        // )
+            return rp(options).then(
+                data => {
+                    if (!(data && data.code && data.code == 200)) {
+                        //315	IP限制
+                        //403	非法操作或没有权限
+                        //414	参数错误
+                        //416	频率控制
+                        //500	服务器内部错误
+                        console.log("send voice code error", data)
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Voice code failed to send, please contact customer service"
+                        });
+                    }
+                    return data;
+                },
+                err => {
+                    console.log("send voice code failed", err)
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Voice code failed to send, please contact customer service"
+                    });
+                }
+            )
+        } else if (voiceCodeProvider == constVoiceCodeProvider.YUNPIAN) {
 
-        // let options = {
-        //     method: "POST",
-        //     uri: env.voiceCodeUrl,
-        //     headers: {
-        //         'Accept': "application/json;charset=utf-8;",
-        //         'Content-Type': "application/x-www-form-urlencoded;charset=utf-8;"
-        //     },
-        //     form: {
-        //         apikey: env.voiceCodeKEY,
-        //         mobile: phoneNumber,
-        //         code: String(smsCode)
-        //     },
-        //     json: true // Automatically stringifies the body to JSON
-        // };
-        //
-        // return rp(options).then(
-        //     data => {
-        //         console.log("check send voice code", data);
-        //         return data;
-        //     },
-        //     err => {
-        //         console.log("send voice code failed",err)
-        //         return Promise.reject({
-        //             name: "DataError",
-        //             message: err
-        //         });
-        //     }
-        // )
+            let options = {
+                method: "POST",
+                uri: env.voiceCodeUrl_YP,
+                headers: {
+                    'Accept': "application/json;charset=utf-8;",
+                    'Content-Type': "application/x-www-form-urlencoded;charset=utf-8;"
+                },
+                form: {
+                    apikey: env.voiceCodeKEY_YP,
+                    mobile: phoneNumber,
+                    code: String(smsCode)
+                },
+                json: true // Automatically stringifies the body to JSON
+            };
+
+            return rp(options).then(
+                data => {
+                    console.log("check send voice code", data);
+                    return data;
+                },
+                err => {
+                    console.log("send voice code failed", err)
+                    return Promise.reject({
+                        name: "DataError",
+                        message: err
+                    });
+                }
+            )
+        }
 
     },
 
@@ -1142,6 +1148,16 @@ var dbUtility = {
         return num;
     },
 
+    generateRandomNumberBetweenRange(min, max, decimal = 0) {
+        let randomNumber = Math.random() * (max - min + 1) + min;
+        if (decimal === 0) {
+            return Math.floor(randomNumber);
+        }
+        else {
+            return Number(randomNumber).toFixed(decimal);
+        }
+    },
+
     /**
      * Find one and update for query without shardkey
      * @param {Object} model
@@ -1198,7 +1214,7 @@ var dbUtility = {
                         shardKeys.forEach((shardKey) => {
                             shardQuery[shardKey] = data[shardKey]
                         });
-                        return model.findOneAndUpdate(shardQuery, updateData);
+                        return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                     }
                     else {
                         var newModel = new model(query);
@@ -1208,7 +1224,7 @@ var dbUtility = {
                                 shardKeys.forEach((shardKey) => {
                                     shardQuery[shardKey] = newData[shardKey]
                                 });
-                                return model.findOneAndUpdate(shardQuery, updateData, {new: true});
+                                return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                             },
                             function (error) {
                                 return Q.reject({name: "DBError", message: "Error creating db data", error: error});
@@ -1462,9 +1478,9 @@ var dbUtility = {
         }
 
         let userAgentInput = [{
-            browser: ua.browser.name || '',
-            device: ua.device.name || '',
-            os: ua.os.name || ''
+            browser: (ua && ua.browser && ua.browser.name) || '',
+            device: (ua && ua.device && ua.device.name) || '',
+            os: (ua && ua.os && ua.os.name) || ''
         }];
 
         let inputDevice="";
@@ -1477,7 +1493,7 @@ var dbUtility = {
             return true;
         }
 
-        if (userAgentInput && userAgentInput[0]) {
+        if (userAgentInput && userAgentInput[0] && isEmpty(adminInfo)) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
@@ -1538,24 +1554,20 @@ var dbUtility = {
             os: ua.os || ''
         }];
         let inputDevice="";
+        console.log('JY check input device 5=====:', inputUserAgent, data.osType, data.deviceId, data.guestDeviceId);
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
-            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
-                // android-apps / ios apps
-                // if (userAgent.os.indexOf("iOS") !== -1){
-                //     inputDevice = 4;
-                // }else if(userAgent.os.indexOf("ndroid") !== -1){
-                //     inputDevice = 3;
-                // }
 
+            if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
                 // 原生APP才算APP，其余的不计算为APP（包壳APP算H5）
                 inputDevice = 2; // H5
             }
             else if (userAgent.os.indexOf("iOS") !== -1 || userAgent.os.indexOf("ndroid") !== -1 || userAgent.browser.indexOf("obile") !== -1) {
-                    // H5
-                    inputDevice = 2;
+                // H5
+                inputDevice = 2;
             }
-            else if (userAgent.os === "" && userAgent.browser === "" && userAgent.device ==="") {
+            else if ((userAgent.os === "" && userAgent.browser === "" && userAgent.device === "") ||
+                (userAgent.os === "" && userAgent.browser === "" && userAgent.device === "PC") || data.deviceId || data.guestDeviceId) {
                 // android-apps / ios apps
                 let osType = data && data.osType && data.osType.toLowerCase();
                 if (osType && (osType === 'ios')){
@@ -2101,6 +2113,29 @@ var dbUtility = {
         return intervalTime;
     },
 
+    getDeviceValue: (data, isPartner) => {
+        let deviceString;
+        let deviceCode = data && data.deviceType && data.subPlatformId ? data.deviceType.toString() + data.subPlatformId.toString() : data.deviceType;
+        let isValidDeviceCode = false;
+
+        if (deviceCode && isPartner) {
+            let value = "P" + String(deviceCode);
+
+            for (let key in constDevice) {
+                if (value && constDevice[key] && (constDevice[key] === value)) {
+                    isValidDeviceCode = true;
+                    break;
+                }
+            }
+
+            if (isValidDeviceCode) {
+                deviceString = value;
+            }
+        }
+
+        return deviceString;
+    },
+
     queryPhoneLocation: (phoneNumber) => {
         let retObj = {};
         let queryRes = queryPhoneLocationFromPackage(phoneNumber);
@@ -2120,6 +2155,19 @@ var dbUtility = {
         delete entry.updateTime;
         delete entry.settlementPeriod;
         delete entry.needSettlement;
+
+        if (entry && entry.condition) {
+            delete entry.condition.userAgent;
+            delete entry.condition.consumptionProvider;
+            delete entry.condition.topupType;
+            delete entry.condition.onlineTopUpType;
+            delete entry.condition.bankCardType;
+            delete entry.condition.depositMethod;
+            delete entry.condition.forbidApplyReward;
+            delete entry.condition.ignoreTopUpDirtyCheckForReward;
+            delete entry.condition.ignoreAllTopUpDirtyCheckForReward;
+        }
+
         return entry;
     }
 };

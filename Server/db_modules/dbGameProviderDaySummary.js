@@ -63,6 +63,9 @@ var dbGameProviderDaySummary = {
         if (platformId) {
             matchObj.platformId = {$in: platformId};
         }
+
+        console.log('JY check==calculateProviderDaySummaryForTimeFrame==matchObj==>', matchObj);
+
         //because this aggregate will not have too many records, so no stream for this
         dbconfig.collection_playerConsumptionRecord.aggregate(
             [
@@ -86,6 +89,7 @@ var dbGameProviderDaySummary = {
             ]
         ).read("secondaryPreferred").exec().then(
             function (data) {
+                console.log('JY check==calculateProviderDaySummaryForTimeFrame==data');
                 if (data && data.length > 0) {
                     var prom = [];
                     for (var i = 0; i < data.length; i++) {
@@ -114,6 +118,7 @@ var dbGameProviderDaySummary = {
             }
         ).then(
             function (data) {
+                console.log('JY check==calculateProviderDaySummaryForTimeFrame==data 11');
                 deferred.resolve(data);
             },
             function (error) {

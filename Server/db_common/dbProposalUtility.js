@@ -184,6 +184,7 @@ const dbProposalUtility = {
 
     // check reward apply restriction on ip, phone and IMEI
     checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent, retentionApplicationDate) => {
+        console.log('JY check checkRestrictionOnDeviceForApplyReward intervalTime ==>', intervalTime);
         let intervalTimeForLoginMode3 = null;
 
         let orArray = [{'data.playerObjId': player._id}];
@@ -210,7 +211,9 @@ const dbProposalUtility = {
         }
 
         if(rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP ){
-            matchQuery['data.retentionApplicationDate'] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            if (intervalTime) {
+                matchQuery['data.retentionApplicationDate'] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
             if (rewardEvent.condition && rewardEvent.condition.definePlayerLoginMode && rewardEvent.condition.definePlayerLoginMode == 3 && retentionApplicationDate &&
                 intervalTimeForLoginMode3 && intervalTimeForLoginMode3.endTime > new Date()) {
                 matchQuery['data.retentionApplicationDate'] = {
@@ -220,7 +223,9 @@ const dbProposalUtility = {
             }
         }
         else{
-            matchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            if (intervalTime) {
+                matchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+            }
         }
 
         console.log('checking matchQuery', matchQuery)

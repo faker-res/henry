@@ -423,7 +423,7 @@ var dbPlayerConsumptionRecord = {
                 record = data;
                 if (record) {
                     //update player consumption sum
-                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
                         console.error('update hour summary failed', err);
                     });
                     var playerProm = dbconfig.collection_players.findOneAndUpdate(
@@ -440,7 +440,7 @@ var dbPlayerConsumptionRecord = {
                                 weeklyBonusAmountSum: record.bonusAmount,
                                 pastMonthBonusAmountSum: record.bonusAmount,
                                 creditBalance: -record.validAmount
-                            }
+                            },
                         }
                     ).exec();
                     return playerProm;
@@ -603,10 +603,7 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-
-
     /**
-     * TODO:: WORK IN PROGRESS
      * @param data
      * @param platformObj
      */
@@ -623,7 +620,7 @@ var dbPlayerConsumptionRecord = {
 
                 if (record) {
                     // Update player consumption sum
-                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1).catch(err => {
+                    dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
                         console.error('update hour summary failed', err);
                     });
                     return dbconfig.collection_players.findOneAndUpdate(
@@ -667,11 +664,8 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             returnableAmt => {
-                console.log("checking the last outer returnableAmt", returnableAmt)
                 let readyXIMAAmt = returnableAmt ? returnableAmt : 0;
                 let nonXIMAAmt = record.validAmount - readyXIMAAmt;
-                console.log("checking the last outer record.validAmount", record.validAmount)
-                console.log("checking the last outer nonXIMAAmt", nonXIMAAmt)
 
                 return updateConsumptionSumamry(record, readyXIMAAmt, nonXIMAAmt);
             },
@@ -987,7 +981,7 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
-                                dbPlayerConsumptionHourSummary.updateSummary(newRecord.platformId, newRecord.playerId, newRecord.providerId, newRecord.createTime, amount, validAmount, bonusAmount, 0).catch(err => {
+                                dbPlayerConsumptionHourSummary.updateSummary(newRecord.platformId, newRecord.playerId, newRecord.providerId, newRecord.createTime, amount, validAmount, bonusAmount, 0, newRecord.loginDevice).catch(err => {
                                     console.error('update hour summary failed', err);
                                 });
                             }else{
@@ -2372,7 +2366,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         const matchObj = {
@@ -2391,14 +2385,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         if (listAll) {
@@ -2534,7 +2521,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => {return Number(item)})};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         const matchObj = {
@@ -2556,15 +2543,12 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
+
+        console.log('JY checking winrate==platformQuery==>', platformQuery);
+        console.log('JY checking winrate==matchObj==>', matchObj);
+        console.log('JY checking winrate==listAll==>', listAll);
 
         let groupById = null;
         if (listAll) {
@@ -2620,6 +2604,11 @@ var dbPlayerConsumptionRecord = {
                 let participantData = data[0] ? data[0] : [];
                 let allPlatformGameProviders = data[3];
 
+                console.log('JY checking winrate==participantData==>', data[0]);
+                console.log('JY checking winrate==totalSumData==>', data[1]);
+                console.log('JY checking winrate==gameProviders==>', data[2]);
+                console.log('JY checking winrate==allPlatformGameProviders==>', data[3]);
+
                 if (!listAll && data && data[0] && data[1] && data[1][0]) {
                     participantNumber = data[0].length;
                     consumptionTimes = data[1][0].consumptionTimes;
@@ -2627,11 +2616,22 @@ var dbPlayerConsumptionRecord = {
                     validAmount = data[1][0].validAmount;
                     bonusAmount = data[1][0].bonusAmount;
                     // return sum of "all" provider winrate data
+
+                    console.log('JY checking winrate==providerId==>', providerId);
+                    console.log('JY checking winrate==participantNumber==>', participantNumber);
+                    console.log('JY checking winrate==consumptionTimes==>', consumptionTimes);
+                    console.log('JY checking winrate==totalAmount==>', totalAmount);
+                    console.log('JY checking winrate==validAmount==>', validAmount);
+                    console.log('JY checking winrate==bonusAmount==>', bonusAmount);
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
+                    console.log('JY checking winrate==returnData=111==>', returnData);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
                     // return  detail of each provider's winrate data
                     returnData = dbPlayerConsumptionRecord.getProvidersWinRate(allPlatformGameProviders, participantData, totalSumData);
+                    console.log('JY checking winrate==returnData=222==>', returnData);
                 }
+
+                console.log('JY checking winrate==returnData=333==>', returnData);
                 return returnData;
             }
         );
@@ -2678,6 +2678,7 @@ var dbPlayerConsumptionRecord = {
                 let participantNumber = 0;
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(item => {
+                        console.log('JY checking winrate==item==>', item);
                         return item._id.providerId.equals(provider._id) && item._id.platformId.equals(provider.platformObjId);
                     })
                     participant = (participant && participant[0]) ? participant[0] : null;
@@ -2685,6 +2686,7 @@ var dbPlayerConsumptionRecord = {
                 }
                 //pair the provider - dump aggregate data into that provider object
                 let sumData = totalSumData.filter(sum => {
+                    console.log('JY checking winrate==sum==>', sum);
                     if (sum._id.providerId.equals(provider._id) && sum._id.platformId.equals(provider.platformObjId)) {
                         return sum;
                     }
@@ -2706,6 +2708,7 @@ var dbPlayerConsumptionRecord = {
                 result.push(providerSum);
             })
         }
+        console.log('JY checking winrate==result==>', result);
         return result;
 
     },
@@ -2724,25 +2727,26 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
         let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         // the player are non-repeatable
         let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
                 $match: matchObj
+            },
+            {
+                $project: {
+                    'loginDevice': {$substr:["$loginDevice",0,4]},
+                    'providerId' : 1,
+                    'cpGameType': 1,
+                    'playerId': 1
+                }
             },
             {
                 $group: {
@@ -2757,6 +2761,16 @@ var dbPlayerConsumptionRecord = {
         let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: matchObj
+            },
+            {
+                $project: {
+                    'loginDevice': {$substr:["$loginDevice",0,4]},
+                    'cpGameType': 1,
+                    'amount': 1,
+                    'validAmount': 1,
+                    'count': 1,
+                    'bonusAmount': 1
+                }
             },
             {
                 $group: {
@@ -2795,20 +2809,13 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            loginDeviceQuery = {$in: loginDevice};
         }
 
         let groupData = {"providerId": "$providerId", "cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
         let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
         if (loginDeviceQuery) {
-            if (loginDevice.length == 4) {
-                matchObj['$or'] = [
-                    {loginDevice: loginDeviceQuery},
-                    {loginDevice: {$exists: false}}
-                ]
-            } else {
-                matchObj.loginDevice = loginDeviceQuery;
-            }
+            matchObj.loginDevice = loginDeviceQuery;
         }
 
         // the player are non-repeatable
@@ -2935,13 +2942,30 @@ var dbPlayerConsumptionRecord = {
                 // calculate the non-repeat player number
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(party => {
-                        if(party._id && party._id.cpGameType && item._id && item._id.cpGameType && item._id.loginDevice
+                        if (party._id && party._id.cpGameType && party._id.loginDevice
+                            && item._id && item._id.cpGameType && item._id.loginDevice
                             && (party._id.cpGameType == item._id.cpGameType)
-                            && party._id.loginDevice && (party._id.loginDevice == item._id.loginDevice)){
+                            && (String(party._id.loginDevice) === String(item._id.loginDevice))){
+                            // meet cpGameType and loginDevice requirement
                             return item;
-                        } else if (party._id && party._id.cpGameType && !party._id.loginDevice && item._id && item._id.cpGameType && !item._id.loginDevice && (party._id.cpGameType == item._id.cpGameType)) {
+                        } else if (
+                            party._id && party._id.cpGameType && !party._id.loginDevice
+                            && item._id && item._id.cpGameType && !item._id.loginDevice
+                            && (party._id.cpGameType == item._id.cpGameType)) {
+                            // meet only cpGameType requirement but not loginDevice
                             return item;
-                        } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id.cpGameType && (party._id.providerId == providerId)) {
+                        } else if (
+                            party._id && !party._id.cpGameType && party._id.providerId && party._id.loginDevice
+                            && item._id && !item._id.cpGameType && item._id.loginDevice
+                            && (party._id.providerId == providerId)
+                            && (String(party._id.loginDevice) === String(item._id.loginDevice))) {
+                            // meet only loginDevice requirement but not cpGameType
+                            return item;
+                        } else if (
+                            party._id && !party._id.cpGameType && !party._id.loginDevice && party._id.providerId
+                            && !item._id.cpGameType && !item._id.loginDevice
+                            && (party._id.providerId == providerId)) {
+                            // meet only providerId requirement but not cpGameType and loginDevice
                             return item;
                         }
                     })
@@ -3001,7 +3025,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.loginDevice = loginDevice;
         }
 
-        if (cpGameType && providerId && !loginDevice){
+        if (providerId && !loginDevice){
             matchObj.loginDevice = { $exists: false }
         }
 
@@ -3081,7 +3105,7 @@ var dbPlayerConsumptionRecord = {
             matchObj.loginDevice = loginDevice;
         }
 
-        if (cpGameType && providerId && !loginDevice){
+        if (providerId && !loginDevice){
             matchObj.loginDevice = { $exists: false }
         }
 
@@ -3369,6 +3393,8 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         new: true
     }).populate({path: "providerGroup", model: dbconfig.collection_gameProviderGroup}).lean().then(
         updatedRTG => {
+
+            console.log('LK checking RTG before status update-- 2', updatedRTG.curConsumption + "/" + updatedRTG.targetConsumption);
             let rewardTaskUnlockedProgress = Promise.resolve();
 
             // Debug negative RTG curConsumption
@@ -3440,6 +3466,7 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                             statusUpdObj.status = constRewardTaskStatus.ACHIEVED;
                         }
 
+                        console.log('LK checking RTG update status obj--', statusUpdObj);
                         if (statusUpdObj.status) {
                             let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                 {_id: updatedRTG._id},
@@ -3492,7 +3519,7 @@ function findRTGToUpdate (oldData, newData) {
             console.log("checking for negative consumption (newValidAmount, oldValidAmount, incValidAmt, playerObjId)", newData.validAmount, oldData.validAmount, incValidAmt, oldData.playerId)
             incValidAmt = 0
         }
-
+        console.log('LK checking update RTG playerId--', oldData.playerId);
         return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}, newData.updateTime).then(
             RTGs => {
                 if (RTGs && RTGs.length) {
@@ -3504,6 +3531,7 @@ function findRTGToUpdate (oldData, newData) {
                     // Filter RTGs
                     RTGs.filter(RTG => {
                         if (RTG) {
+                            console.log('LK checking get RTG detail--', RTG.curConsumption);
                             if (RTG.providerGroup && RTG.providerGroup.providers && RTG.providerGroup.providers.length) {
                                 RTG.providerGroup.providers.forEach(provider => {
                                     if (String(provider) === String(oldData.providerId)) {

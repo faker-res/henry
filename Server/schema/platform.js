@@ -236,6 +236,8 @@ var platformSchema = new Schema({
     blackListingPhoneNumbers: [{type: String}],
     // Partner auto approve bonus proposal platform switch
     partnerEnableAutoApplyBonus: {type: Boolean, default: false},
+    // Partner forbid apply bonus, apply bonus proposal need cs approval
+    partnerForbidApplyBonusNeedCsApproval: {type: Boolean, default: false},
     // Partner auto approve single withdrawal limit
     partnerAutoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
     // Partner auto approve daily total withdrawal limit
@@ -582,8 +584,12 @@ var platformSchema = new Schema({
     appDataVer: {type: String},
     // is use voice code verification
     useVoiceCode: {type: Boolean, default: false},
+    // select which voice code provider to use - constVoiceCodeProvider
+    voiceCodeProvider: {type: Number, default: 1},
     // display front end reward points ranking data
     displayFrontEndRewardPointsRankingData: {type: Boolean, default: true},
+    // Use transfer from last provider to apply reward
+    useTransferFromLastProvider: {type: Boolean, default: false}
 });
 
 //add platform id before save

@@ -612,11 +612,47 @@ function sendToApprovePartner (proposalObjId, createTime, remark, remarkChinese)
 function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg, withdrawalBank) {
     processRemark = processRemark ? processRemark : "";
     let proposalObj;
+    let firstBankInfo = {};
+    let multilpleBankInfo = {};
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
         path: "type",
         model: dbconfig.collection_proposalType
     }).lean().then(
+        data => {
+            if (data && data.data && data.data.playerObjId) {
+                return dbconfig.collection_players.findOne({_id: data.data.playerObjId}, {bankAccount: 1, bankName: 1, bankAccountName: 1, multipleBankDetailInfo: 1}).populate(
+                    {
+                        path: "multipleBankDetailInfo",
+                        model: dbconfig.collection_playerMultipleBankDetailInfo
+                    }
+                ).lean().then(
+                    playerBankInfoData => {
+                        if (playerBankInfoData) {
+                            firstBankInfo.bankName = playerBankInfoData.bankName;
+                            firstBankInfo.bankAccount = playerBankInfoData.bankAccount;
+                            firstBankInfo.bankAccountName = playerBankInfoData.bankAccountName;
+
+                            if (playerBankInfoData.multipleBankDetailInfo) {
+                                return dbconfig.collection_playerMultipleBankDetailInfo.findOne({_id: playerBankInfoData.multipleBankDetailInfo}).lean().then(
+                                    multipleBankData => {
+                                        multilpleBankInfo = multipleBankData || {};
+
+                                        return data;
+                                    }, err => {
+                                        return data;
+                                    })
+                            }
+                        }
+
+                        return data;
+                    }, err => {
+                        return data;
+                    });
+            }
+            return data;
+        }
+    ).then(
         proposalData => {
             if (proposalData) {
                 return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, true, proposalData, true).then(
@@ -636,12 +672,18 @@ function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChin
                             'data.devCheckMsg': devCheckMsg
                         }
 
-                        if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                            if(withdrawalBank.bankAccount){
-                                dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
-                            }
-                            if(withdrawalBank.bankName){
-                                dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
+                        if(proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                            if (proposalData && proposalData.data && proposalData.data.playerObjId) {
+                                let dataSubmitted = proposalData.data;
+                                let bankInfo = getWithdrawalBankInfo(dataSubmitted, firstBankInfo, multilpleBankInfo);
+
+                                if(bankInfo && bankInfo[0]){
+                                    dataToUpdate["data.bankAccountWhenApprove"] = bankInfo[0];
+                                }
+
+                                if(bankInfo && bankInfo[1]){
+                                    dataToUpdate["data.bankNameWhenApprove"] = bankInfo[1];
+                                }
                             }
                         }
 
@@ -743,11 +785,48 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
 
 function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg, withdrawalBank) {
     processRemark = processRemark ? processRemark : "";
+    let firstBankInfo = {};
+    let multilpleBankInfo = {};
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
         path: "type",
         model: dbconfig.collection_proposalType
-    }).lean().then(
+        }
+    ).lean().then(
+        data => {
+            if (data && data.data && data.data.playerObjId) {
+                return dbconfig.collection_players.findOne({_id: data.data.playerObjId}, {bankAccount: 1, bankName: 1, bankAccountName: 1, multipleBankDetailInfo: 1}).populate(
+                    {
+                        path: "multipleBankDetailInfo",
+                        model: dbconfig.collection_playerMultipleBankDetailInfo
+                    }
+                ).lean().then(
+                    playerBankInfoData => {
+                        if (playerBankInfoData) {
+                            firstBankInfo.bankName = playerBankInfoData.bankName;
+                            firstBankInfo.bankAccount = playerBankInfoData.bankAccount;
+                            firstBankInfo.bankAccountName = playerBankInfoData.bankAccountName;
+
+                            if (playerBankInfoData.multipleBankDetailInfo) {
+                                return dbconfig.collection_playerMultipleBankDetailInfo.findOne({_id: playerBankInfoData.multipleBankDetailInfo}).lean().then(
+                                    multipleBankData => {
+                                        multilpleBankInfo = multipleBankData || {};
+
+                                        return data;
+                                    }, err => {
+                                        return data;
+                                    })
+                            }
+                        }
+
+                        return data;
+                    }, err => {
+                        return data;
+                    });
+            }
+            return data;
+        }
+    ).then(
         proposalData => {
             //add status check
             if (proposalData && proposalData.status == constProposalStatus.AUTOAUDIT) {
@@ -766,13 +845,18 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
                         'data.devCheckMsg': devCheckMsg
                     };
 
-                    if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                        if(withdrawalBank.bankAccount){
-                            dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
-                        }
+                    if(proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                        if (proposalData && proposalData.data && proposalData.data.playerObjId) {
+                            let dataSubmitted = proposalData.data;
+                            let bankInfo = getWithdrawalBankInfo(dataSubmitted, firstBankInfo, multilpleBankInfo);
 
-                        if(withdrawalBank.bankName){
-                            dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
+                            if(bankInfo && bankInfo[0]){
+                                dataToUpdate["data.bankAccountWhenApprove"] = bankInfo[0];
+                            }
+
+                            if(bankInfo && bankInfo[1]){
+                                dataToUpdate["data.bankNameWhenApprove"] = bankInfo[1];
+                            }
                         }
                     }
 
@@ -796,13 +880,18 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
                                 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
                             };
 
-                            if(withdrawalBank && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
-                                if(withdrawalBank.bankAccount){
-                                    dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(withdrawalBank.bankAccount);
-                                }
+                            if(proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                                if (proposalData && proposalData.data && proposalData.data.playerObjId) {
+                                    let dataSubmitted = proposalData.data;
+                                    let bankInfo = getWithdrawalBankInfo(dataSubmitted, firstBankInfo, multilpleBankInfo);
 
-                                if(withdrawalBank.bankName){
-                                    dataToUpdate["data.bankNameWhenApprove"] = withdrawalBank.bankName;
+                                    if(bankInfo && bankInfo[0]){
+                                        dataToUpdate["data.bankAccountWhenApprove"] = bankInfo[0];
+                                    }
+
+                                    if(bankInfo && bankInfo[1]){
+                                        dataToUpdate["data.bankNameWhenApprove"] = bankInfo[1];
+                                    }
                                 }
                             }
 
@@ -816,6 +905,50 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
             }
         }
     );
+}
+
+function getWithdrawalBankInfo(dataSubmitted, firstBankInfo, multilpleBankInfo) {
+    let bankAccountWhenApprove;
+    let bankNameWhenApprove;
+
+    if(firstBankInfo.bankAccount
+        && firstBankInfo.bankName
+        && firstBankInfo.bankAccountName
+        && dataSubmitted.decodedBankAccountWhenSubmit
+        && dataSubmitted.bankNameWhenSubmit
+        && (dataSubmitted.decodedBankAccountWhenSubmit === firstBankInfo.bankAccount &&
+            dataSubmitted.bankNameWhenSubmit === firstBankInfo.bankName &&
+            dataSubmitted.bankAccountNameWhenSubmit === firstBankInfo.bankAccountName)){
+
+        bankAccountWhenApprove = dbUtility.encodeBankAcc(firstBankInfo.bankAccount);
+        bankNameWhenApprove = firstBankInfo.bankName;
+
+    } else if (multilpleBankInfo && multilpleBankInfo.bankAccount2
+        && multilpleBankInfo.bankName2
+        && multilpleBankInfo.bankAccountName2
+        && dataSubmitted.decodedBankAccountWhenSubmit
+        && dataSubmitted.bankNameWhenSubmit
+        && (dataSubmitted.decodedBankAccountWhenSubmit === multilpleBankInfo.bankAccount2 &&
+            dataSubmitted.bankNameWhenSubmit === multilpleBankInfo.bankName2 &&
+            dataSubmitted.bankAccountNameWhenSubmit === multilpleBankInfo.bankAccountName2)) {
+
+        bankAccountWhenApprove = dbUtility.encodeBankAcc(multilpleBankInfo.bankAccount2);
+        bankNameWhenApprove = multilpleBankInfo.bankName2;
+
+    } else if (multilpleBankInfo && multilpleBankInfo.bankAccount3
+        && multilpleBankInfo.bankName3
+        && multilpleBankInfo.bankAccountName3
+        && dataSubmitted.decodedBankAccountWhenSubmit
+        && dataSubmitted.bankNameWhenSubmit
+        && (dataSubmitted.decodedBankAccountWhenSubmit === multilpleBankInfo.bankAccount3 &&
+            dataSubmitted.bankNameWhenSubmit === multilpleBankInfo.bankName3 &&
+            dataSubmitted.bankAccountNameWhenSubmit === multilpleBankInfo.bankAccountName3)) {
+
+        bankAccountWhenApprove = dbUtility.encodeBankAcc(multilpleBankInfo.bankAccount3);
+        bankNameWhenApprove = multilpleBankInfo.bankName3;
+    }
+
+    return [bankAccountWhenApprove, bankNameWhenApprove];
 }
 
 function getBonusRecordsOfPlayer(player, proposalTypeObjId) {

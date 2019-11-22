@@ -42,7 +42,7 @@ var WebSocketUtility = {
 
         if (!limitCall || conn.thisSecondAPICall < constSystemParam.MAX_API_CALL_PER_SEC) {
             await WebSocketUtility.responsePromise(
-                conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth
+                conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, startTime
             ).catch(
                 function (error) {
                     // Do not log authentication failures or invalid requests.
@@ -56,20 +56,7 @@ var WebSocketUtility = {
                         WebSocketUtility.errorHandler(error);
                     }
                 }
-            ).done();
-
-            let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
-            let functionName = wsFunc && wsFunc.name;
-            let totalSecond = (new Date().getTime() - startTime) / 1000;
-            if (totalSecond > 1) {
-                dbconfig.collection_apiResponseLog({
-                    serviceName: serviceName,
-                    functionName: functionName,
-                    totalSecond: totalSecond
-                }).save().catch(errorUtils.reportError);
-
-                console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
-            }
+            );
         }
     },
 
@@ -97,14 +84,14 @@ var WebSocketUtility = {
      * @param {function} dbCall - Function for db operation
      * @param {json} reqData - request data sent from client
      * @param {array} args - array for dbCall function arguments
-     * @param {WebSocketFunction} wsFunc - websocketfunction used to respond
+     * @param {WebSocketFunction} wsFunc - websocket function used to respond
      * @param {Boolean} isValidData - flag for data validation
      * @param {Boolean} customResultHandler - if handle error status after promise
      * @param {Boolean} customErrorHandler - if handle result status after promise
      * @param {Boolean} noAuth - no need auth check
+     * @param {number} callTime - the time when this is called
      */
-    responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth) {
-        var $translate = text => localization.translate(text, conn.lang, conn.platformId);
+    responsePromise: function (conn, wsFunc, reqData, dbCall, args, isValidData, customResultHandler, customErrorHandler, noAuth, callTime = new Date().getTime()) {
 
         //todo::need to update expacts data properly for each service function first then enable the check below
         // if (wsFunc && wsFunc.expectsData) {
@@ -117,86 +104,100 @@ var WebSocketUtility = {
         //     }
         // }
 
-        var deferred = Q.defer();
-        var isValid = typeof isValidData === "undefined" ? true : isValidData;
+        let $translate = text => localization.translate(text, conn.lang, conn.platformId);
+        let isValid = typeof isValidData === "undefined" ? true : isValidData;
+
         if (!noAuth && conn && !conn.isAuth) {
-            var errorCode = constServerCode.INVALID_API_USER;
+            let errorCode = constServerCode.INVALID_API_USER;
 
             // Hard code return message
-            let returnMsg = args[1] == "hby" ? "Please login to get packet rain reward" : "Authentication Fails";
+            let returnMsg = "Authentication Fails";
 
             wsFunc.response(conn, {
                 status: errorCode,
-                errorMessage: localization.translate(returnMsg, conn.lang, conn.platformId),
-                data: serverInstance.getServerType() == "dataMigration" ? reqData : null
+                errorMessage: $translate(returnMsg),
+                data: serverInstance.getServerType() === "dataMigration" ? reqData : null
             }, reqData);
-            deferred.reject(false);
-            return deferred.promise;
+
+            return Promise.reject(false);
         }
+
         if (conn && wsFunc && dbCall && args && isValid) {
-            dbCall.apply(null, args).then(
-                function (result) {
+            return dbCall.apply(null, args).then(
+                result => {
+                    // Log this call
+                    let apiToLog = [
+                        'login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS',
+                        'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'
+                    ];
+
+                    if (
+                        (apiToLog.includes(wsFunc.name) && wsFunc._service.name === 'player')
+                        || conn.playerId && wsFunc.name !== 'getCredit'
+                    ) {
+                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
+                    }
+
+                    // Benchmark time needed for this call
+                    let totalSecond = (new Date().getTime() - callTime) / 1000;
+                    if (totalSecond > 1) {
+                        let serviceName = wsFunc && wsFunc._service && wsFunc._service.name;
+                        let functionName = wsFunc && wsFunc.name;
+
+                        dbconfig.collection_apiResponseLog({
+                            serviceName: serviceName,
+                            functionName: functionName,
+                            totalSecond: totalSecond
+                        }).save().catch(errorUtils.reportError);
+
+                        console.log("Slow response time from service " + serviceName + ", function " + String(functionName) + ": " + totalSecond + " sec");
+                    }
+
                     //send result as response
                     if (!customResultHandler) {
-                        var resObj = {status: constServerCode.SUCCESS, data: result};
+                        let resObj = {status: constServerCode.SUCCESS, data: result};
                         //for cp api response
-                        if (serverInstance.getServerType() == constMessageClientTypes.PROVIDER && result && result.code) {
+                        if (serverInstance.getServerType() === constMessageClientTypes.PROVIDER && result && result.code) {
                             resObj.code = result.code;
                         }
                         wsFunc.response(conn, resObj, reqData);
-                        deferred.resolve(true);
+                        return Promise.resolve(true);
                     }
                     else {
-                        deferred.resolve(result);
-                    }
-                    //todo:: add system log here
-                    //var logData = {
-                    //    adminName: socket.decoded_token.adminName,
-                    //    action: event,data: args,
-                    //    level: constSystemLogLevel.ACTION };
-                    //dblog.createSystemLog(logData);
-
-                    if ((['login','create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS', 'registerByPhoneNumberAndPassword', 'loginByPhoneNumberAndPassword'].includes(wsFunc.name) &&  wsFunc._service.name === 'player') || conn.playerId && wsFunc.name !== 'getCredit') {
-                        dbApiLog.createApiLog(conn, wsFunc, result, reqData);
+                        return Promise.resolve(result);
                     }
                 },
-                function (err) {
-                    console.error(err);
+                err => {
+                    console.error(`responsePromise error: ${err}`);
                     if (!customErrorHandler) {
                         if (err && err.status) {
                             if (err.errorMessage || err.message) {
-                                var msg = err.errorMessage || err.message;
-                                err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
+                                let msg = err.errorMessage || err.message;
+                                err.errorMessage = $translate(msg);
                             }
                             wsFunc.response(conn, err, reqData);
                         }
                         else {
-                            var errorCode = err && err.code || constServerCode.COMMON_ERROR;
-                            var resObj = {
+                            let errorCode = err && err.code || constServerCode.COMMON_ERROR;
+                            let resObj = {
                                 status: errorCode,
-                                errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
-                                data: serverInstance.getServerType() == "dataMigration" ? reqData : null
+                                errorMessage: $translate(err.message || err.errorMessage),
+                                data: serverInstance.getServerType() === "dataMigration" ? reqData : null
                             };
                             resObj.errorMessage = err.errMessage || resObj.errorMessage;
                             wsFunc.response(conn, resObj, reqData);
                         }
                     }
-                    deferred.reject(err);
-                    //todo:: add system log here
-                    //var logData = {
-                    //    adminName: socket.decoded_token.adminName,
-                    //    action: event,
-                    //    data: args,
-                    //    level: constSystemLogLevel.ERROR };
-                    //dblog.createSystemLog(logData);
+                    return Promise.reject(err);
                 }
             );
         }
         else {
             WebSocketUtility.invalidDataResponse(conn, wsFunc, reqData);
-            deferred.reject(localization.translate("INVALID_DATA", conn.lang, conn.platformId));
+            return Promise.reject($translate("INVALID_DATA"));
         }
-        return deferred.promise;
+
+
     },
 
     /*
@@ -365,7 +366,7 @@ var WebSocketUtility = {
                     code: data.code
                 }, reqData);
             }
-        ).catch(WebSocketUtility.errorHandler).done();
+        ).catch(WebSocketUtility.errorHandler);
     },
 
     notifyEBETLuZhuClient: function (service, functionName, data, clientAPIServerNo) {

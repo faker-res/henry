@@ -1253,6 +1253,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
 
+                            tr
+                                td {{'Transfer from last provider to apply reward' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useTransferFromLastProvider', ng-disabled='!vm.configTableEdit')
+
                         tr
                             td {{'Ebet4.0 User (Create CPMS User When User is Create)' | translate}}
                             td
@@ -1264,6 +1269,7 @@
                             tr
                                 td {{'VOICE_VERIFICATION_CODE' | translate}}
                                 td
+                                    select(ng-model='vm.platformBasic.voiceCodeProvider' ng-options='v as i | translate for (i,v) in vm.constVoiceCodeProvider', ng-disabled='!vm.configTableEdit')
                                     input(type='checkbox', ng-model='vm.platformBasic.useVoiceCode', ng-disabled='!vm.configTableEdit')
 
                             br
@@ -1652,7 +1658,7 @@
 
 
                     br
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    //table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th {{'PARTNER_WITHDRAWAL_AUTO_APPROVAL' | translate}}

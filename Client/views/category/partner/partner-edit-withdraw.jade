@@ -1,15 +1,15 @@
 form(name='form_partnerPaymentInfo')
         div.col-sm-12
             label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-            input.form-control(ng-model='partnerPayment.bankAccountName', ng-disabled='!isEditingPartnerPayment')
+            input.form-control(ng-model='partnerPayment.bankAccountName', ng-disabled='!isEditingPartnerBankAccountName')
         div.col-sm-12.margin-top-10
             label.control-label *{{'BANK_NAME' | translate}}
             select.form-control(ng-model='partnerPayment.bankName', ng-show='!isEditingPartnerPayment', disabled)
                 option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
         div.col-md-6(ng-show='isEditingPartnerPayment')
-                select.form-control(ng-model='partnerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
+            select.form-control(ng-model='partnerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
         div.col-md-6(ng-show='isEditingPartnerPayment')
-                input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("partnerPayment")')
+            input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("partnerPayment")')
         div.control-label
             div.col-sm-12.margin-top-10
                 label {{'BANK_ACCOUNT' | translate}}
@@ -64,7 +64,7 @@ form(name='form_partnerPaymentInfo')
             label.control-label {{'Account Branch' | translate}}
             input.form-control(ng-model='partnerPayment.bankAddress', ng-disabled='!isEditingPartnerPayment')
         div.col-sm-12.margin-top-10
-            button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPartnerPayment', ng-click="isEditingPartnerPayment=true") {{"EDIT" | translate}}
+            button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPartnerPayment', ng-click="isEditingPartnerPayment=true;(partnerPayment.bankAccountName&&partnerRealName?isEditingPartnerBankAccountName=false:isEditingPartnerBankAccountName=true)") {{"EDIT" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPartnerPayment', ng-click="prepareEditPartnerPayment()") {{"CANCEL" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPartnerPayment', ng-disabled='form_partnerPaymentInfo.$invalid || form_partnerPaymentInfo.$pristine || partnerPayment.invalid', ng-click="updatePartnerPayment();") {{"UPDATE" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}

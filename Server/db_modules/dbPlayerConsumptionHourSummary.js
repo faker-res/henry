@@ -10,7 +10,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
 const dbPlayerConsumptionHourSummary = {
-    updateSummary: (platformObjId, playerObjId, providerObjId, createTime, amount, validAmount, bonusAmount, times) => {
+    updateSummary: (platformObjId, playerObjId, providerObjId, createTime, amount, validAmount, bonusAmount, times, loginDevice) => {
         let startTime = new Date(createTime);
         startTime.setMinutes(0);
         startTime.setSeconds(0);
@@ -32,7 +32,7 @@ const dbPlayerConsumptionHourSummary = {
         return providerObjIdProm.then(
             () => {
                 return dbconfig.collection_playerConsumptionHourSummary.findOneAndUpdate(
-                    {platform: platformObjId, player: playerObjId, provider: providerObjId, startTime: startTime},
+                    {platform: platformObjId, player: playerObjId, provider: providerObjId, startTime: startTime, loginDevice: loginDevice},
                     {$inc: {consumptionAmount: amount, consumptionValidAmount: validAmount, consumptionBonusAmount: bonusAmount, consumptionTimes: times}},
                     {upsert: true, new: true}
                 ).lean();

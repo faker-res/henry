@@ -574,6 +574,8 @@ var proposalExecutor = {
                                     changeType, player.validCredit, player.lockedAmount, proposalData.data.changedLockedAmount, null, proposalData.data);
                             }
 
+                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                             return player;
                         },
                         error => {
@@ -760,6 +762,28 @@ var proposalExecutor = {
                         }
                     );
                 }
+                else if (proposalData && proposalData.data && proposalData.data.playerObjIds && proposalData.data.playerObjIds.length && proposalData.data.newLevelObjId) {
+                    let proms = [];
+                    for (let i = 0; i < proposalData.data.playerObjIds.length; i++) {
+                        let _id = proposalData.data.playerObjIds[i];
+                        let prom = dbUtil.findOneAndUpdateForShard(
+                            dbconfig.collection_players,
+                            {_id: _id},
+                            {playerLevel: proposalData.data.newLevelObjId},
+                            constShardKeys.collection_players
+                        );
+                        proms.push(prom);
+                    }
+
+                    Promise.all(proms).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player level", error: err});
+                        }
+                    );
+                }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player level proposal data"});
                 }
@@ -837,7 +861,7 @@ var proposalExecutor = {
                     createPhoneNumberBindingRecord({
                         platform: proposalData.data.platformId,
                         _id: proposalData.data.playerObjId,
-                        phoneNumber: rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber)
+                        phoneNumber: rsaCrypto.legacyEncrypt(proposalData.data.updateData.phoneNumber)
                     });
                 }
                 else {
@@ -1037,6 +1061,7 @@ var proposalExecutor = {
                 //valid data
                 let updateMultipleBankInfo = false;
                 let playerData;
+                console.log('##han-prod proposalData===', proposalData);
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
@@ -1048,7 +1073,7 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
-                                if(playerUpdate.bankName && playerUpdate.bankAccountName){
+                                if (playerUpdate.bankName && playerUpdate.bankAccountName) {
                                     playerUpdate.realName = playerUpdate.bankAccountName;
                                 }
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
@@ -1061,11 +1086,18 @@ var proposalExecutor = {
                                     'data.playerName': proposalData.data.playerName,
                                     'data.playerId': proposalData.data.playerId,
                                 };
+                                console.log('##han-prod propQuery===', propQuery);
+                                console.log('##han-prod playerUpdate===', playerUpdate);
+                                console.log('##han-prod updateMultipleBankInfo===', updateMultipleBankInfo);
 
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
-                                        if (proposal && proposal.length > 1) {
+                                        console.log('##han-prod proposal===', proposal);
+                                        console.log('##han-prod proposal.length===', proposal.length);
+
+                                        if (proposal && proposal.length > 0) {
                                             if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
+                                                console.log('##han-prod DELETE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
@@ -1073,13 +1105,16 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
+                                                console.log('##han-prod TRUE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
                                                 ).lean().then(
                                                     bankData => {
+                                                        console.log('##han-prod bankData===', bankData);
                                                         if (bankData && bankData._id) {
+                                                            console.log('##han-prod UPDATE===');
                                                             return dbconfig.collection_players.findOneAndUpdate(
                                                                 {_id: data._id, platform: data.platform},
                                                                 {multipleBankDetailInfo: bankData._id},
@@ -1092,13 +1127,17 @@ var proposalExecutor = {
                                                     }
                                                 );
                                             } else {
+                                                console.log('##han-prod HERE===11');
                                                 return dbconfig.collection_players.findOneAndUpdate(
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
                                                     {returnNewDocument: true}
                                                 ).lean();
                                             }
-                                        } else {
+                                        }
+
+                                        if (proposal && proposal.length === 0) {
+                                            console.log('##han-prod HERE===22');
                                             if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
                                             }
@@ -1131,6 +1170,7 @@ var proposalExecutor = {
                         });
                     }).then(
                         function (data) {
+                            console.log('##han-prod data===', data);
                             let loggerInfo = {};
                             if (proposalData.data.bankName) {
                                 loggerInfo = {
@@ -1176,6 +1216,7 @@ var proposalExecutor = {
                             loggerInfo.creatorType = constProposalUserType.SYSTEM_USERS;
                             loggerInfo.creatorObjId = proposalData.creator ? proposalData.creator.id : null;
 
+                            console.log('##han-prod loggerInfo===', loggerInfo);
                             // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
@@ -1537,7 +1578,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_partner.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit}
+                                    {realName: proposalData.data.realNameAfterEdit, bankAccountName: proposalData.data.realNameAfterEdit}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect partner data", error: Error()});
@@ -1712,6 +1753,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => {
@@ -1728,6 +1770,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1740,6 +1783,7 @@ var proposalExecutor = {
             executePlayerQuickpayTopUp: function (proposalData) {
                 return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
                     data => {
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1754,6 +1798,7 @@ var proposalExecutor = {
                     data => {
                         dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                         return proposalData;
                     },
                     error => Promise.reject(error)
@@ -1771,6 +1816,7 @@ var proposalExecutor = {
                         data => {
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                             return proposalData;
                         },
                         error => Promise.reject(error)
@@ -2204,7 +2250,8 @@ var proposalExecutor = {
                     }
                 }
                 dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
-                    .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    .populate({path: "platform", model: dbconfig.collection_platform})
+                    .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                     player => {
                         if (!player) {
                             return Q.reject({
@@ -2234,23 +2281,26 @@ var proposalExecutor = {
                         //     }
                         // }
 
+                       let bankDetail = getWithdrawalBankInfo(player, player.multipleBankDetailInfo, proposalData);
+                        console.log('bankDetail ==>', bankDetail);
                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                        let message = {
                            proposalId: proposalData.proposalId,
                            platformId: player.platform.platformId,
                            amount: proposalData.data.amount,
-                           bankTypeId: player.bankName || "",
-                           accountName: player.bankAccountName || "",
-                           accountCity: player.bankAccountCity || "",
-                           accountProvince: player.bankAccountProvince || "",
-                           accountNo: player.bankAccount ? player.bankAccount.replace(/\s/g, '') : "",
-                           bankAddress: player.bankAddress || "",
-                           bankName: player.bankName || "",
+                           bankTypeId: (bankDetail && bankDetail.bankName) || player.bankName || "",
+                           accountName: (bankDetail && bankDetail.bankAccountName) || player.bankAccountName || "",
+                           accountCity: (bankDetail && bankDetail.bankAccountCity) || player.bankAccountCity || "",
+                           accountProvince: (bankDetail && bankDetail.bankAccountProvince) || player.bankAccountProvince || "",
+                           accountNo: (bankDetail && bankDetail.bankAccount) || (player.bankAccount ? player.bankAccount.replace(/\s/g, '') : ""),
+                           bankAddress: (bankDetail && bankDetail.bankAddress) || player.bankAddress || "",
+                           bankName: (bankDetail && bankDetail.bankName) || player.bankName || "",
                            loginName: player.name || "",
                            applyTime: cTimeString,
                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                           entryType: proposalData.entryType
+                           entryType: proposalData.entryType,
+                           remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                        console.log('check status before postWithdraw player:', proposalData.status);
@@ -2275,6 +2325,17 @@ var proposalExecutor = {
                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
                                            };
+
+                                           if (proposalData && proposalData.data &&
+                                               !proposalData.data.bankAccountWhenApprove && !proposalData.data.bankNameWhenApprove &&
+                                               proposalData.data.decodedBankAccountWhenSubmit && proposalData.data.bankNameWhenSubmit &&
+                                               bankDetail && bankDetail.bankName && bankDetail.bankAccount &&
+                                               (bankDetail.bankName === proposalData.data.bankNameWhenSubmit) &&
+                                               (bankDetail.bankAccount === proposalData.data.decodedBankAccountWhenSubmit)) {
+                                               dataToUpdate["data.bankAccountWhenApprove"] = dbUtil.encodeBankAcc(bankDetail.bankAccount);
+                                               dataToUpdate["data.bankNameWhenApprove"] = bankDetail.bankName;
+                                           }
+
                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                                            return bonusData;
                                        });
@@ -2322,6 +2383,58 @@ var proposalExecutor = {
                        // }
                     }
                 ).then(deferred.resolve, deferred.reject);
+
+                function getWithdrawalBankInfo (player, multipleBankDetailInfo, proposalData) {
+                    let bankInfo = {
+                        bankAccountName: player.bankAccountName,
+                        bankAccountCity: player.bankAccountCity,
+                        bankAccountProvince: player.bankAccountProvince,
+                        bankAccount: player.bankAccount,
+                        bankAddress: player.bankAddress,
+                        bankName: player.bankName
+                    };
+
+                    if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount2
+                        && multipleBankDetailInfo.bankName2
+                        && multipleBankDetailInfo.bankAccountName2
+                        && proposalData
+                        && proposalData.data.decodedBankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount2 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName2,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity2,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince2,
+                            bankAccount: multipleBankDetailInfo.bankAccount2,
+                            bankAddress: multipleBankDetailInfo.bankAddress2,
+                            bankName: multipleBankDetailInfo.bankName2
+                        };
+
+                    } else if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount3
+                        && multipleBankDetailInfo.bankName3
+                        && multipleBankDetailInfo.bankAccountName3
+                        && proposalData
+                        && proposalData.data.decodedBankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount3 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName3,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity3,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince3,
+                            bankAccount: multipleBankDetailInfo.bankAccount3,
+                            bankAddress: multipleBankDetailInfo.bankAddress3,
+                            bankName: multipleBankDetailInfo.bankName3
+                        };
+                    }
+
+                    return bankInfo;
+                };
             },
 
             executePartnerBonus: function (proposalData, deferred) {
@@ -2363,7 +2476,8 @@ var proposalExecutor = {
                             loginName: partner.partnerName || "",
                             applyTime: cTimeString,
                             clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                            entryType: proposalData.entryType
+                            entryType: proposalData.entryType,
+                            remark: proposalData.data && proposalData.data.honoreeDetail
                         };
 
                         console.log('withdrawAPIAddr partner req:', message);
@@ -3423,6 +3537,8 @@ var proposalExecutor = {
                                             else if (retData[1].data.rewardType && retData[1].data.rewardType == constRandomRewardType.PROMOCODE_C){
                                                 sendMessageToPlayer(retData[1], constMessageType.RANDOM_REWARD_PROMO_CODE_C_SUCCESS, {});
                                             }
+
+                                            messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                                             dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
                                             return retData[1]
                                         }
@@ -5587,6 +5703,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                         return deferred.resolve(resolveValue || taskData);
                     },
                     error => {
@@ -5605,6 +5723,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                         rewardTask = data;
                         dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                         sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                        messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
+
                         return deferred.resolve(resolveValue || taskData);
                     }
                 ).catch(
@@ -5660,6 +5780,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             ).then(
                 //() => createRewardLogForProposal(taskData.rewardType, proposalData)
                 () => {
+                    messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                     sendMessageToPlayer(proposalData,rewardType,{rewardTask: taskData});
                 }
             ).then(
@@ -5835,6 +5956,7 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
                     rewardTask = data;
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
                     sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                    messageDispatcher.sendMessage('creditUpdate', {recipientId: proposalData.data.playerObjId});
                     return resolveValue || taskData;
                 }
             ).catch(

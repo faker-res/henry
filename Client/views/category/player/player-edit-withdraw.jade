@@ -1,7 +1,7 @@
 form(name='form_playerPaymentInfo')
         div.col-sm-12
             label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-            input.form-control(ng-model='playerPayment.bankAccountName', ng-disabled='!isEditingPlayerPayment')
+            input.form-control(ng-model='playerPayment.bankAccountName', ng-disabled='!isEditingBankAccountName')
         div.col-sm-12.margin-top-10
             label.control-label *{{'BANK_NAME' | translate}}
             select.form-control(ng-model='playerPayment.bankName', ng-show='!isEditingPlayerPayment', disabled)
@@ -59,7 +59,7 @@ form(name='form_playerPaymentInfo')
             label.control-label {{'Account Branch' | translate}}
             input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment')
         div.col-sm-12.margin-top-10
-            button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true") {{"EDIT" | translate}}
+            button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true;(playerPayment.bankAccountName&&playerRealName?isEditingBankAccountName=false:isEditingBankAccountName=true)") {{"EDIT" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo.$invalid || form_playerPaymentInfo.$pristine || playerPayment.invalid', ng-click="updatePlayerPayment('bank1');") {{"UPDATE" | translate}}
             button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}

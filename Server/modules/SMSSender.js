@@ -130,7 +130,7 @@ const SMSSender = {
         ).then().catch(errorUtils.reportError);
     },
 
-    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel) {
+    sendPromoCodeSMSByPlayerId(playerObjId, promoData, adminObjId, adminName, channel, platformObjId) {
         // var defaultChannel = null;
         var platformId = null;
         var phoneNumber = null;
@@ -166,7 +166,7 @@ const SMSSender = {
                                     channel: channel,
                                     platformId: platformId,
                                     tel: playerData.phoneNumber,
-                                    message: messageContent
+                                    message: messageContent,
                                 };
 
                                 let adminObjId$ = adminObjId ? adminObjId : null;
@@ -174,10 +174,10 @@ const SMSSender = {
 
                                 return smsAPI.sending_sendMessage(messageData).then(
                                     () => {
-                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'success');
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, platformObjId, 'success');
                                     },
                                     error => {
-                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, null, 'failure');
+                                        dbLogger.createSMSLog(adminObjId$, adminName$, playerData.name, logData, {tel: playerData.phoneNumber}, platformObjId, 'failure');
                                     }
                                 );
                             }

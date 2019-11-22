@@ -14,6 +14,11 @@ div.margin-top-5
                         input(type='checkbox', ng-model='vm.autoApprovalBasic.partnerEnableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
                     td
                 tr
+                    td {{'MANUAL_AUDIT_BAN_WITHDRAWAL' | translate}}
+                    td
+                        input(type='checkbox', ng-model='vm.autoApprovalBasic.partnerForbidApplyBonusNeedCsApproval', ng-disabled='!vm.configTableEdit')
+                    td
+                tr
                     td {{'Partner single Withdrawal Limit' | translate}}
                     td
                         text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan}}

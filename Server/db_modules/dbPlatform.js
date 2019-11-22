@@ -2353,7 +2353,8 @@ var dbPlatform = {
                             // $unset: {phoneStatus: ''}
                         }
                     ).exec();
-                    //no match found, return without encode
+                    //no match found, has to encode too
+                    sms.tel = dbUtility.encodePhoneNum(sms.tel);
                     return sms.tel;
                 }
             }
@@ -2521,9 +2522,30 @@ var dbPlatform = {
         type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
         provider ? queryObject.providerId = provider : '';
 
+        let gameProviderProm = dbconfig.collection_platform.distinct('gameProviders', {_id: platformObjId}).lean().then(
+            providerObjIds => {
+                if (providerObjIds && providerObjIds.length > 0) {
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerObjIds}}).lean();
+                } else
+                    return [];
+            }
+        );
         let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").count();
-        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
-        return Q.all([countProm, recordProm]).then(data => {
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").lean().sort(sortCol).skip(index).limit(limit);
+        return Promise.all([countProm, recordProm, gameProviderProm]).then(data => {
+            if (data && data[1] && data[1].length > 0 && data[2] && data[2].length > 0) {
+                data[1].map(item => {
+                    if (item && item.providerId) {
+                        let indexNo = data[2].findIndex(x => x && x.providerId && (x.providerId === item.providerId));
+
+                        if (indexNo > -1) {
+                            item.providerText = data[2][indexNo].name;
+                        }
+                    }
+                    return item;
+                });
+            }
+
             return {total: data[0], data: data[1]};
         })
     },
@@ -2842,16 +2864,24 @@ var dbPlatform = {
         );
     },
 
-    getPartnerPosterAdsList: function (platformObjId, targetDevice) {
-        return dbconfig.collection_partnerPosterAdsConfig.find(
-            {
-                platform: platformObjId,
-                targetDevice: targetDevice
-            }
-        ).sort({orderNo: 1}).lean();
+    getPartnerPosterAdsList: function (platformObjId, targetDevice, subPlatformId) {
+
+        let query = {
+            platform: platformObjId,
+            targetDevice: targetDevice
+        };
+
+        if (subPlatformId){
+            query.subPlatformId = Number(subPlatformId);
+        }
+        else{
+            query.subPlatformId = {$exists: false};
+        }
+
+        return dbconfig.collection_partnerPosterAdsConfig.find(query).sort({orderNo: 1}).lean();
     },
 
-    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice) {
+    addNewPartnerPosterAdsRecord: function (platformObjId, orderNo, title, showInRealServer, posterImage, targetDevice, subPlatformId) {
         let saveObj = {
             platform: platformObjId,
             orderNo: orderNo,
@@ -2859,6 +2889,10 @@ var dbPlatform = {
             title: title,
             posterImage: posterImage,
             showInRealServer: showInRealServer
+        }
+
+        if (subPlatformId){
+            saveObj.subPlatformId = subPlatformId;
         }
 
         return dbconfig.collection_partnerPosterAdsConfig(saveObj).save();
@@ -3140,6 +3174,7 @@ var dbPlatform = {
             let themeIdList = [];
             let themeStyleObjId = null;
             let platformTopUpAmountConfig;
+            let topUpAmountRangeConfig = [];
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3213,6 +3248,28 @@ var dbPlatform = {
             ).then(
                 topUpAmountConfig => {
                     platformTopUpAmountConfig = topUpAmountConfig;
+                    let configClientType;
+
+                    switch (Number(inputDevice)) {
+                        case constPlayerRegistrationInterface.WEB_PLAYER:
+                            configClientType = '1';
+                            break;
+                        case constPlayerRegistrationInterface.H5_PLAYER:
+                            configClientType = '2';
+                            break;
+                        case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+                        case constPlayerRegistrationInterface.APP_PLAYER:
+                            configClientType = '3'
+                            break;
+                    }
+
+                    if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpAmountRange && platformTopUpAmountConfig.topUpAmountRange.length > 0 && configClientType) {
+                        platformTopUpAmountConfig.topUpAmountRange.forEach(range => {
+                            if (range && range.device && range.device.includes(String(configClientType))) {
+                                topUpAmountRangeConfig.push(range);
+                            }
+                        });
+                    }
 
                     return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
@@ -3473,7 +3530,10 @@ var dbPlatform = {
                             return appendPartnerConfig(platformData._id, returnedObj);
                         }
 
-                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                        if (topUpAmountRangeConfig && topUpAmountRangeConfig.length > 0 && topUpAmountRangeConfig[0] && topUpAmountRangeConfig[0].minAmount) {
+                            returnedObj.minDepositAmount = topUpAmountRangeConfig[0].minAmount;
+                        } else if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            // deprecated - retrieve this min when not yet set up new requirement's min and max
                             returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
                         } else {
                             returnedObj.minDepositAmount = 10;
@@ -4138,10 +4198,10 @@ var dbPlatform = {
         }
     },
 
-    getFrontEndPopularRecommendationSetting: (platformObjId) => {
+    getFrontEndPopularRecommendationSetting: (platformObjId, deviceType) => {
         let prom =  Promise.resolve();
-        if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
+        if (platformObjId && deviceType){
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: deviceType}).populate({
                 path: "popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
@@ -4781,7 +4841,7 @@ var dbPlatform = {
                     return Promise.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DBError",
-                        message: "Error finding db data"
+                        message: "Please fill in the call request url in the platform configuration"
                     });
                 }
 
@@ -6262,7 +6322,7 @@ var dbPlatform = {
 
     },
 
-    getFrontEndConfig: function (platformId, code, clientType) {
+    getFrontEndConfig: function (platformId, code, clientType, subPlatformId) {
         if (code != 'description' && (!clientType || (clientType && clientType != 1 && clientType != 2 && clientType != 4))){
             return Promise.reject({
                 name: "DataError",
@@ -6301,7 +6361,7 @@ var dbPlatform = {
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerCarousel':
-                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         case 'pageSetting':
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
@@ -6313,13 +6373,13 @@ var dbPlatform = {
                             prom = getFrontEndSettingType1(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerPageSetting':
-                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType1(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         case 'skin':
                             prom = getFrontEndSettingType2(cdnText, platformObjId, clientType, code);
                             break;
                         case 'partnerSkin':
-                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code);
+                            prom = getFrontEndSettingType2(partnerCdnText, platformObjId, clientType, code, subPlatformId);
                             break;
                         default:
                             prom = Promise.reject({
@@ -6333,8 +6393,8 @@ var dbPlatform = {
         );
 
         // for those do not have "device" field
-        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 1, code);
+        function getFrontEndSettingType1 (cdn, platformObjId, clientType, code, subPlatformId) {
+            let query = querySetUp(platformObjId, clientType, 1, code, subPlatformId);
 
             if (!query){
                 return [];
@@ -6470,8 +6530,8 @@ var dbPlatform = {
         }
 
         // for those have "device" field
-        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code) {
-            let query = querySetUp(platformObjId, clientType, 2, code);
+        function getFrontEndSettingType2 (cdnText, platformObjId, clientType, code, subPlatformId) {
+            let query = querySetUp(platformObjId, clientType, 2, code, subPlatformId);
             if (!query) {
                 return [];
             }
@@ -6595,11 +6655,18 @@ var dbPlatform = {
             return checkUrlForCDNPrepend (cdnText, setting)
         }
 
-        function querySetUp (platformObjId, clientType, setUpType, code) {
+        function querySetUp (platformObjId, clientType, setUpType, code, subPlatformId) {
             let query = {
                 platformObjId: ObjectId(platformObjId),
                 status: 1,
             };
+
+            if (subPlatformId){
+                query.subPlatformId = Number(subPlatformId);
+            }
+            else{
+                query.subPlatformId = {$exists: false};
+            }
 
             if (code && (code == 'recommendation' || code == 'carousel' || code == 'advertisement' || code == 'reward')){
                 query.isVisible = true;
@@ -6782,20 +6849,8 @@ var dbPlatform = {
                     setting.voucherClarificationUrl = cdnText + setting.voucherClarificationUrl;
                 }
 
-                if (setting.topButtonRoute && (setting.topButtonRoute.indexOf('http') == -1 && setting.topButtonRoute.indexOf('https') == -1)) {
-                    setting.topButtonRoute = cdnText + setting.topButtonRoute;
-                }
-
-                if (setting.rightButtonRoute && (setting.rightButtonRoute.indexOf('http') == -1 && setting.rightButtonRoute.indexOf('https') == -1)) {
-                    setting.rightButtonRoute = cdnText + setting.rightButtonRoute;
-                }
-
-                if (setting.bottomButtonRoute && (setting.bottomButtonRoute.indexOf('http') == -1 && setting.bottomButtonRoute.indexOf('https') == -1)) {
-                    setting.bottomButtonRoute = cdnText + setting.bottomButtonRoute;
-                }
-
-                if (setting.rewardButtonRoute && (setting.rewardButtonRoute.indexOf('http') == -1 && setting.rewardButtonRoute.indexOf('https') == -1)) {
-                    setting.rewardButtonRoute = cdnText + setting.rewardButtonRoute;
+                if (setting.rewardBannerPicture && (setting.rewardBannerPicture.indexOf('http') == -1 && setting.rewardBannerPicture.indexOf('https') == -1)) {
+                    setting.rewardBannerPicture = cdnText + setting.rewardBannerPicture;
                 }
 
                 return setting
@@ -7333,7 +7388,7 @@ var dbPlatform = {
                 } else {
                     let newSetting = {
                         platformObjId: query.platformObjId,
-                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpAmountRange: updateData.topUpAmountRange,
                         topUpCountAmountRange: updateData.topUpCountAmountRange
                     }
 

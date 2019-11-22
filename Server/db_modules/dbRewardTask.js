@@ -335,6 +335,7 @@ const dbRewardTask = {
 
     deductTargetConsumptionFromFreeAmountProviderGroup: (rewardData, proposalData) => {
         // Search available reward task group for this reward & this player
+        console.log('LK checking deduct free amount data--', rewardData.playerId);
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
             playerId: rewardData.playerId,
@@ -355,12 +356,13 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
-
+                    console.log('LK checking RTG detail--', freeProviderGroup.targetConsumption + "/" + freeProviderGroup.curConsumption);
                     // if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
                     if(freeProviderGroup.targetConsumption && freeProviderGroup.curConsumption >= (freeProviderGroup.targetConsumption + freeProviderGroup.forbidXIMAAmt - rewardData.applyAmount)){
                         updObj.status = constRewardTaskStatus.ACHIEVED;
                     }
 
+                    console.log('LK checking RTG update obj--', updObj);
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: freeProviderGroup._id
@@ -1578,8 +1580,6 @@ const dbRewardTask = {
                         nonDirtyAmount = res.XIMAAmt;
                     }
 
-                    console.log("checking Outer res.XIMAAmt", res.XIMAAmt)
-                    console.log("checking Outer nonDirtyAmount", nonDirtyAmount)
                     return res;
                 }
             },
@@ -2382,6 +2382,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                 console.log("LH Check RTG unlock 0.2-------------", remainBonusAmt);
                 console.log("LH Check RTG unlock 0.3-------------", updObj);
 
+                console.log('LK checking RTG"s player"s id --', consumptionRecord.playerId);
                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                     {_id: rewardTaskGroup._id},
                     updObj,
@@ -2390,6 +2391,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     async updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
+                            console.log('LK checking updatedRTG --', updatedRTG.status);
                             // update the locked reward tasks
                             rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
                                 if (rewards){
@@ -2507,6 +2509,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
+                                console.log('LK checking updated RTG status--', statusUpdObj.status);
                                 // update the rewardTaskGroupUnlockRecord
                                let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                    {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},

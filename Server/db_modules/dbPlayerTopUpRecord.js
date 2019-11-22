@@ -261,7 +261,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "count": {"$sum": 1},
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -293,7 +293,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
                             }
@@ -325,7 +325,7 @@ var dbPlayerTopUpRecord = {
                             },
                             {
                                 "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$data.loginDevice"},
+                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
 
                                     "amount": {"$sum": "$data.rewardAmount"}
                                 }
@@ -360,9 +360,10 @@ var dbPlayerTopUpRecord = {
                                 "$group": {
                                     "_id": {
                                         "playerId": "$data.playerObjId",
+                                        "platformId": "$data.platformId",
                                         "merchantName": "$data.merchantName",
                                         "merchantNo": "$data.merchantNo",
-                                        "loginDevice": "$data.loginDevice"
+                                        "loginDevice": "$device"
                                     },
                                     "amount": {"$sum": "$data.amount"}
                                 }
@@ -371,6 +372,7 @@ var dbPlayerTopUpRecord = {
                                 "$project": {
                                     _id: 0,
                                     playerId: "$_id.playerId",
+                                    platformId: "$_id.platformId",
                                     merchantName: "$_id.merchantName",
                                     merchantNo: "$_id.merchantNo",
                                     loginDevice: "$_id.loginDevice",
@@ -429,13 +431,13 @@ var dbPlayerTopUpRecord = {
                                             playerReportDaySummary[indexNo].topUpTimes += topUp.times;
 
                                             if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].manualTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                playerReportDaySummary[indexNo].onlineTopUpAmount = topUp.oriAmount || topUp.amount;
+                                                playerReportDaySummary[indexNo].onlineTopUpAmount = (topUp.oriAmount || topUp.amount) + (playerReportDaySummary[indexNo].onlineTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].alipayTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].wechatpayTopUpAmount || 0);
                                             }
                                         }
                                     }
@@ -447,6 +449,7 @@ var dbPlayerTopUpRecord = {
                             console.log("LH check player report 5------", consumptionDetails.length);
                             consumptionDetails.forEach(
                                 consumption => {
+                                    console.log("debug #C8AD00 grouped consumption", consumption)
                                     if(consumption && consumption._id && consumption._id.playerId){
                                         let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
                                         let providerDetail = {};
@@ -740,8 +743,8 @@ var dbPlayerTopUpRecord = {
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
-                                                playerId: reward._id.playerId,
-                                                platformId: reward._id.platformId,
+                                                playerId: onlineTopUpByMerchant.playerId,
+                                                platformId: onlineTopUpByMerchant.platformId,
                                                 totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
                                                 onlineTopUpFeeDetail: [onlineTopUpByMerchant],
                                                 loginDevice: onlineTopUpByMerchant.loginDevice || null
@@ -779,6 +782,7 @@ var dbPlayerTopUpRecord = {
                     playerReportDaySummary => {
                         console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
+                        console.log("debug #C8AD01 recalculate result", JSON.stringify(playerReportSummary, null, 2))
                         let platformFeeProm = [];
                         if(consumptionDetailArr  && consumptionDetailArr.length > 0){
                             consumptionDetailArr .forEach(
@@ -990,7 +994,7 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('queryObj', queryObj);
+        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
 
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
@@ -1156,6 +1160,9 @@ var dbPlayerTopUpRecord = {
                 }
             }
 
+            if (query.loginDevice && query.loginDevice.length){
+                queryObj['device'] = {$in: query.loginDevice};
+            }
             return queryObj;
         }
 

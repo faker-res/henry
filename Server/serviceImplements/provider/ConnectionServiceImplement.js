@@ -28,7 +28,7 @@ var ConnectionServiceImplement = function () {
                     data: res
                 });
             }
-        ).catch(WebSocketUtil.errorHandler).done();
+        ).catch(WebSocketUtil.errorHandler);
     };
 
     this.heartBeat.expectsData = 'currentTime: Date';

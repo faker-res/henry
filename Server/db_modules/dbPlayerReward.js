@@ -3555,7 +3555,7 @@ let dbPlayerReward = {
                 console.log('newPromoCode===55', newPromoCode);
                 if (newPromoCode) {
                     if (newPromoCodeEntry.allowedSendSms && player.smsSetting && player.smsSetting.PromoCodeSend) {
-                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName, channel);
+                        SMSSender.sendPromoCodeSMSByPlayerId(newPromoCodeEntry.playerObjId, newPromoCodeEntry, adminObjId, adminName, channel, platformObjId);
                     }
                     messageDispatcher.dispatchMessagesForPromoCode(platformObjId, newPromoCodeEntry, adminName, adminObjId);
                     dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
@@ -5992,6 +5992,7 @@ let dbPlayerReward = {
 
         // reward specific check
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+            console.log('JY check rewardData.selectedTopup==>', rewardData.selectedTopup)
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
                 applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
@@ -7158,7 +7159,7 @@ let dbPlayerReward = {
         }
 
         return Promise.all([Promise.all(promArr), lastConsumptionProm, forbidRewardProm]).then(
-            data => {
+            async data => {
                 eventInPeriodCount = eventInPeriodData.length;
                 let rewardSpecificData = data[0];
                 lastConsumptionRecord = data[1] && data[1][0] ? data[1][0] : {};
@@ -8559,9 +8560,30 @@ let dbPlayerReward = {
                 // Decide whether deduct player credit
                 if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
                     let deductAmount = actualAmount && actualAmount > 0 ? actualAmount : applyAmount;
+                    let lastProviderCredit = 0;
+
+                    // Check the amount in last played provider
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId) {
+                        let creditDetail = await dbPlayerUtil.getProviderCreditByObjId(playerData._id, playerData.lastPlayedProvider.providerId);
+                        lastProviderCredit = creditDetail.credit;
+                        console.log(`${playerData.name} last played provider balance is ${lastProviderCredit}`);
+                    }
+
                     // Decide whether player has enough free amount to apply
                     if (playerData.validCredit >= deductAmount) {
                         // Player has enough amount in validCredit
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                    } else if (
+                        playerData.platform.useTransferFromLastProvider
+                        && lastProviderCredit && lastProviderCredit >= 1
+                        && Math.floor(Number(lastProviderCredit)) >= Math.floor(deductAmount)
+                    ) {
+                        // If the last played provider has credit inside, we transfer out the money
+                        await dbPlayerInfo.transferPlayerCreditFromProvider(
+                            playerData.playerId, playerData.platform._id, playerData.lastPlayedProvider.providerId
+                            , -1, null, true
+                        );
+
                         return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                     } else {
                         // Player doesn't have enough validCredit, proceed to check in game credit
