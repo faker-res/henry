@@ -3,7 +3,7 @@
         .col-md-12.search-filters-container.well
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
-                select.form-control(ng-model='vm.workloadSearch.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllTSPhoneListByPlatform(vm.workloadSearch.platformObjId);vm.getAllDepartment(vm.workloadSearch.platformObjId)')
+                select#platformObjIds.form-control(ng-model='vm.workloadSearch.platformObjIds', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllTSPhoneListByPlatforms(vm.workloadSearch.platformObjIds);vm.getAllDepartment(vm.workloadSearch.platformObjIds)', multiple, bsp, data-actions-box='true')
             .search-filters-item
                 label {{'NAME_LIST_TITLE' | translate}}
                 select.spicker.form-control(ng-model='vm.workloadSearch.phoneLists' bsp multiple data-actions-box='true', ng-options='v._id as v.name for (i,v) in vm.allTsPhoneListByPlatform')
