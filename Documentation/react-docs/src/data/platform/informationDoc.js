@@ -229,7 +229,103 @@ const sampleData = {
     "department": "57b6c8b33d71e6c469f2aa1f",
     "partnerPrefix": "",
     "prefix": "yunvince"
-}`
+}`,
+    getConfig: `{
+    withdrawFeeNoDecimal:1 // 提款手续费无条件减免小数点后金额（少扣玩家金额）0:否 / 1:是
+    accountMaxLength:12 // 会员帐号最大长度  
+    accountMinLength:6 // 会员帐号最低长度  
+    minDepositAmount:100 // 最小充值额  
+    needSMSForTrailAccount:1 // 玩家前端索取试玩帐号需短信验证( 0-否/1-是）  
+    needSMSForRegister:1 // 玩家注册需短信验证(0-否/1-是）  
+    needSMSForModifyPassword:1 // 修改密码需短信验证(0-否/1-是）  
+    needSMSForModifyBankInfo:1 // 修改支付资料需短信验证(0-否/1-是）  
+    needImageCodeForLogin:1 // 登陆时需图片验证码(0-否/1-是）  
+    needImageCodeForSendSMSCode:1 // 发送短信验证码时需图片验证码(0-否/1-是）  
+    twoStepsForModifyPhoneNumber:1 // 更改手机号码2步验证(0-否/1-是）
+    passwordMaxLength:12 // 玩家帐号的密码最大长度
+    passwordMinLength:6 // 玩家帐号的密码最短长度
+    accountPrefix:abc // 玩家帐号前坠（可多位）
+    cdnOrFtpLink // 后台配置的：玩家 CDN/FTP 相对路径配置
+    "callBackToUserLines": [ // 请求回电的可用线路{
+        "lineId": 6898, // 线路ID
+        "status": 1 // 线路状态（开启：1 / 关闭：0）
+        "levelLimit": "" // 等级限制（空：没登入也可以拨打，有值"0.1.2.3"：根据等级的配置）
+    },],
+    themeStyle:精简风格 //主题类型
+    themeID:black //主题ID
+    themeIDList:[ //该网站选中的主题类型中，所有主题ID的List
+        0:{
+            themeID:123 // 主题ID，可能该类型中有多个，从 0 开始列
+            remark:蓝色版 // 该主题的备注
+        }
+        "wechatList": [{
+            "isImg": 0,
+            "content": "yunGamePlatform"
+        },{
+            "isImg": 1,
+            "content": "test"
+        }],
+        "qqList": [{
+            "isImg": 0,
+            "content": "4359374512"
+        }],
+        "telList": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        "live800": "test123",
+        "activityList": [{
+            showInRealServer:1 // 正式站是否展示（0：不展示、1：展示、预设1）
+            "code": "test",
+            "bannerImg":
+            "getHashFile(\\"https://rbftp.kingbaly.net/ruibo/web-slider/wsb-201712-xmas.jpg\\")",
+            "btnList": [{
+                "btn": "activityBtn",
+                "extString": "style(\\"position:absolute; width: 195px; height: 80px; top:150px; left: 500px\\") my_href=\\"\\""
+            },{
+                "btn": "activityBtn2",
+                "extString": "style(\\"position:absolute; width: 195px; height: 80px; top:150px; left: 500px\\") my_href=\\"\\""
+        }]
+        },{
+            "code": "test1",
+            "title": [{
+                "name": "BBB"
+            }],
+            "btnList": [{
+                "btn": "activityBtn1",
+                "extString": "style(\\"position:absolute; width: 195px; height: 80px; top:150px; left: 500px\\") my_href=\\"\\""
+            },{
+                "btn": "activityBtn3",
+                "extString": "style(\\"position:absolute; width: 195px; height: 80px; top:150px; left: 500px\\") my_href=\\"\\""
+            }]
+        }],
+        "platformLogoUrl": [{
+            "isImg": 1,
+            "content": "4008009988"
+        }],
+        "SkypeList": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        "emailList": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        "wechatQRUrl": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        "displayUrl": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        "playerSpreadUrl": [{
+            "isImg": 0,
+            "content": "4008009988"
+        }],
+        }
+    ]
+}`,
 }
 let information = {
     name:"平台设置/信息",
@@ -266,6 +362,28 @@ let information = {
             },
             respondFailure: {
                 status: 200,
+                data: "null"
+            }
+        },
+
+        getConfig:{
+            title: " 获取平台设置",
+            serviceName: "platform",
+            functionName: "getPlatformDetails",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
+                { param: "device", mandatory: "否", type: "int", content: `1: WEB
+                                                                           3: H5
+                                                                           没提供device, 参数的话会根据user agent来判定` },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.getConfig
+            },
+            respondFailure: {
+                status: 400,
+                errorMessage: "No platform exists with id: xx",
                 data: "null"
             }
         },
