@@ -3465,6 +3465,7 @@ let dbPlayerInfo = {
         let isUpdatePMSPermission = false;
         let updateObj = {};
         let pmsUpdateProm = Promise.resolve(true);
+
         if (selected && selected.mainPermission) {
             permission = {};
             permission[selected.mainPermission] = selected.status;
@@ -3484,6 +3485,7 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData && platformData._id) {
                     topUpSystemConfig = extConfig && platformData.topUpSystemType && extConfig[platformData.topUpSystemType];
+
                     if (isUpdatePMSPermission && topUpSystemConfig && topUpSystemConfig.name !== 'FPMS') {
                         pmsUpdateProm = dbPlayerInfo.updatePMSPlayerTopupChannelPermissionTemp(platformData.platformId, query._id, permission, remark, topUpSystemConfig.name, platformData.topUpSystemType);
 
@@ -6449,7 +6451,7 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, playerPermission) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
@@ -6665,7 +6667,7 @@ let dbPlayerInfo = {
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .read("secondaryPreferred")
                     .lean().then(
-                        async playerData => {
+                        playerData => {
                             var players = [];
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
@@ -6706,6 +6708,7 @@ let dbPlayerInfo = {
                                     }
 
                                     newInfo = getRewardGroupData(playerData[ind]);
+
                                     let prom1 = Promise.resolve(newInfo);
                                     players.push(prom1);
 
@@ -6736,7 +6739,6 @@ let dbPlayerInfo = {
                                         dbPlayerInfo.checkPlayerIsBindedToPartner(platformId, playerId);
                                     }
                                 }
-
                             }
                             return Promise.all(players)
                         }
@@ -6784,15 +6786,6 @@ let dbPlayerInfo = {
                     });
                     playerData = data[0];
                 }
-                if(playerPermission){
-                    for(var index = playerData.length - 1; index >=0; index--){
-                    // for (var index in playerData){
-                        if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
-                            playerData.splice(index, 1);
-                        }
-                    }
-                }
-                // console.log('return data...', playerData);
                 return {data: playerData, size: dataSize}
             },
             err => {
@@ -30423,28 +30416,10 @@ let dbPlayerInfo = {
     }
 };
 
-async function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
+function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
     let retObj = {};
+
     if (player && player.permission) {
-        retObj = {
-            username: player.name,
-            platformId: platformId
-        }
-
-        retObj.topupManual = player.permission.topupManual ? 1 : 0;
-        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
-        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
-        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-        if (updateRemark) {
-            retObj.remark = updateRemark;
-        }
-    }else if(player && !player.permission){
-        //In case, permission didn't pass through by player.js
-        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
-            if(permissionData && permissionData.length > 0){
-                player.permission = permissionData.permission;
-            }
-
         retObj = {
             username: player.name,
             platformId: platformId
@@ -30481,9 +30456,7 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
     return pmsUpdateProm.then(
         updatePMSSuccess => {
             if (updatePMSSuccess) {
-                let updateQuery = {_id: query._id};
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
-                // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
                         if (playerData) {
                             return dbconfig.collection_platform.populate(playerData, {
