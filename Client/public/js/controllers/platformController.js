@@ -33504,7 +33504,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
-                vm.newPlayerLvl.platform = vm.selectedPlatform.id;
+                vm.newPlayerLvl.platform = vm.filterConfigPlatform || vm.selectedPlatform.id;
                 let levelUpConfig = vm.newPlayerLvl.levelUpConfig;
                 for (let j = 0; j < levelUpConfig.length; j++) {
                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
@@ -33519,8 +33519,9 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('createPlayerLevel', sendData)
                     .done(function (data) {
                         if (!vm.platformBatchLevelUp) {
+                            let levelPlatformObjId = vm.filterConfigPlatform || vm.selectedPlatform.id;
                             let updateData = {
-                                query: {_id: vm.selectedPlatform.id},
+                                query: {_id: levelPlatformObjId},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
                                     autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
