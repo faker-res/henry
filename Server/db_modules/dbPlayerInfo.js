@@ -23262,7 +23262,7 @@ let dbPlayerInfo = {
                                                 qEndTime = customEndTime;
                                             }
 
-                                            return getPlayerRecordFromSummary([id], qStartTime, qEndTime, playerData.domain, true);
+                                            return getPlayerRecord([id], qStartTime, qEndTime, playerData.domain, true);
                                         }
                                     )
                                 })
@@ -23284,7 +23284,7 @@ let dbPlayerInfo = {
                                         qEndTime = customEndTime;
                                     }
 
-                                    let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
+                                    let retData = await getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
                                     if (retData && retData[0]) {
                                         retData[0].feedback = playerFeedBackData;
                                     }
@@ -23459,7 +23459,7 @@ let dbPlayerInfo = {
                 model: dbconfig.collection_playerCredibilityRemark,
                 select: "_id name"
             }).lean();
-            console.log('player data', playerData);
+
             if (!playerData) {
                 return "";
             }
