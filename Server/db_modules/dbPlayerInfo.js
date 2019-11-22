@@ -2396,9 +2396,7 @@ let dbPlayerInfo = {
                     if (playerdata.deviceId) {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
-
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -2416,8 +2414,51 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         ).then(
+            async saveRc => {
+                console.log('saverc..', saveRc);
+                if(saveRc){
+                    console.log('hello there !');
+                    let permission = {
+                        applyBonus: {type: Boolean, default: true},
+                        transactionReward: {type: Boolean, default: true},
+                        allTopUp: {type: Boolean, default: true},
+                        topupOnline: {type: Boolean, default: true},
+                        topupManual: {type: Boolean, default: true},
+                        topUpCard: {type: Boolean, default: true},
+                        phoneCallFeedback: {type: Boolean, default: true, index: true},
+                        SMSFeedBack: {type: Boolean, default: true},
+                        alipayTransaction: {type: Boolean, default: true},
+                        quickpayTransaction: {type: Boolean, default: true},
+                        banReward: {type: Boolean, default: false},
+                        rewardPointsTask: {type: Boolean, default: true},
+                        disableWechatPay: {type: Boolean, default: false},
+                        forbidPlayerConsumptionReturn: {type: Boolean, default: false},
+                        allowPromoCode: {type: Boolean, default: true, index: true},
+                        forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
+                        PlayerTopUpReturn: {type: Boolean, default: true},
+                        PlayerDoubleTopUpReturn: {type: Boolean, default: true},
+                        forbidPlayerFromLogin: {type: Boolean, default: false},
+                        forbidPlayerFromEnteringGame: {type: Boolean, default: false},
+                        playerConsecutiveConsumptionReward: {type: Boolean, default: true},
+                        PlayerPacketRainReward: {type: Boolean, default: true},
+                        PlayerLimitedOfferReward: {type: Boolean, default: true},
+                        levelChange: {type: Boolean, default: true}
+                    }
+                    let saveObj = {
+                        _id: saveRc._id,
+                        permission: permission
+                    };
+                    let savePermission = await new dbconfig.collection_playerPermission(saveObj).save();
+                    if(!savePermission){
+                        return Promise.reject("Save Permission failed");
+                    }
+                    return saveRc;
+                }
+            }
+        ).then(
             data => {
                 if (data) {
+                    console.log('check pemission 2..', data);
                     playerData = data;
                     console.log("credibilityRemarkObjIdArr.......", credibilityRemarkObjIdArr);
                     console.log("credibilityRemarkObjIdArr.length.......", credibilityRemarkObjIdArr.length);
