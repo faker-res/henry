@@ -24286,6 +24286,7 @@ let dbPlayerInfo = {
                         if (gameRecord && gameRecord.providerDetail) {
                             console.log('gameRecord.providerDetail', gameRecord.providerDetail);
                             for (let provider in Object.keys(gameRecord.providerDetail)) {
+                                provider = String(provider);
                                 if (providerNameArr.findIndex(p => p === provider) === -1) {
                                     providerNameArr.push(provider);
 
