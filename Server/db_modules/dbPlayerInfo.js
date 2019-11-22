@@ -23262,7 +23262,7 @@ let dbPlayerInfo = {
                                                 qEndTime = customEndTime;
                                             }
 
-                                            return getPlayerRecord([id], qStartTime, qEndTime, playerData.domain, true);
+                                            return getPlayerRecordFromSummary([id], qStartTime, qEndTime, playerData.domain, true);
                                         }
                                     )
                                 })
