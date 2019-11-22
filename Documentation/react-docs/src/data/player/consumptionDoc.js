@@ -71,7 +71,7 @@ let consumption = {
             functionName: "getPlayerDayStatus",
             desc: "",
             requestContent: [
-                { param: "providerIds", mandatory: "否", type: 'String', content: '提供商ID' },
+                { param: "providerIds", mandatory: "否", type: 'Array', content: '提供商ID - 只获取指定提供商ID的投注记录，不填则全拿' },
             ],
             respondSuccess: {
                 status: 200,
@@ -80,7 +80,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         getPlayerWeekStatus: {
@@ -89,7 +88,7 @@ let consumption = {
             functionName: "getPlayerWeekStatus",
             desc: "",
             requestContent: [
-                { param: "providerIds", mandatory: "否", type: 'String', content: '提供商ID' },
+                { param: "providerIds", mandatory: "否", type: 'Array', content: '提供商ID - 只获取指定提供商ID的投注记录，不填则全拿' },
             ],
             respondSuccess: {
                 status: 200,
@@ -98,7 +97,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         getPlayerMonthStatus: {
@@ -107,7 +105,7 @@ let consumption = {
             functionName: "getPlayerMonthStatus",
             desc: "",
             requestContent: [
-                { param: "providerIds", mandatory: "否", type: 'String', content: '提供商ID' },
+                { param: "providerIds", mandatory: "否", type: 'Array', content: '提供商ID - 只获取指定提供商ID的投注记录，不填则全拿' },
             ],
             respondSuccess: {
                 status: 200,
@@ -116,7 +114,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         getPlayerAnyDayStatus: {
@@ -125,8 +122,8 @@ let consumption = {
             functionName: "getPlayerAnyDayStatus",
             desc: "获取玩家当天的存款、提款、投注与优惠领取额度。",
             requestContent: [
-                { param: "providerIds", mandatory: "否", type: 'String', content: '提供商ID' },
-                { param: "startTime", mandatory: "否", type: 'Date', content: '选择日期' },
+                { param: "providerIds", mandatory: "否", type: 'Array', content: '提供商ID - 不填时搜索全部' },
+                { param: "startTime", mandatory: "否", type: 'Date Time', content: '选择日期 不填则为当日' },
             ],
             respondSuccess: {
                 status: 200,
@@ -135,7 +132,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         getPlayerConsumptionSum: {
@@ -144,8 +140,8 @@ let consumption = {
             functionName: "getPlayerConsumptionSum",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '1' },
-                { param: "平台IDname", mandatory: "是", type: 'String', content: '会员帐号' },
+                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
+                { param: "name", mandatory: "是", type: 'String', content: '会员帐号' },
             ],
             respondSuccess: {
                 status: 200,
@@ -164,7 +160,7 @@ let consumption = {
             functionName: "getLastConsumptions",
             desc: "获取玩家最近的15条消费记录",
             requestContent: [
-                { param: "playerId", mandatory: "是", type: 'String', content: '' },
+                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
                 { param: "startIndex", mandatory: "否", type: 'Int', content: '查询记录总数量，用于分页' },
                 { param: "requestCount", mandatory: "否", type: 'Int', content: '请求最近的消费记录条数' },
             ],
@@ -175,7 +171,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         search: {
@@ -184,8 +179,8 @@ let consumption = {
             functionName: "search",
             desc: "根据条件查询消费记录信息",
             requestContent: [
-                { param: "startTime", mandatory: "是", type: 'Date', content: '查询消费开始时间' },
-                { param: "endTime", mandatory: "是", type: 'Date', content: '查询消费结束时间 (默认为本周)' },
+                { param: "startTime", mandatory: "否", type: 'Date Time', content: '查询消费开始时间' },
+                { param: "endTime", mandatory: "否", type: 'Date Time', content: '查询消费结束时间 (默认为本周)' },
                 { param: "providerId", mandatory: "否", type: 'String', content: '内容提供商ID ' },
                 { param: "gameId", mandatory: "否", type: 'String', content: '游戏ID' },
                 { param: "startIndex", mandatory: "否", type: 'Int', content: '查询记录总数量，用于分页' },
@@ -198,7 +193,6 @@ let consumption = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         searchConsumptionRecord: {
@@ -207,7 +201,7 @@ let consumption = {
             functionName: "searchConsumptionRecord",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '' },
+                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "startTime", mandatory: "否", type: 'Date', content: '查询消费开始时间' },
                 { param: "endTime", mandatory: "否", type: 'Date', content: '查询消费结束时间 (默认为本周)' },
                 { param: "minBonusAmount", mandatory: "否", type: 'String', content: '最小输赢值（必须大于等于0)' },
@@ -222,8 +216,6 @@ let consumption = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null",
-                errorMessage: "",
             }
         },
     }

@@ -642,12 +642,12 @@ let information = {
             title: "获取代理下线玩家列表",
             serviceName: "partner",
             functionName: "getPlayerSimpleList",
-            desc: "",
+            desc: "获取该代理的下线玩家列表",
             requestContent: [
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理Id" },
                 { param: "queryType", mandatory: "否", type: "String", content: "分两种类型: registrationTime注册时间查询 | lastAccessTime最后登录时间查询" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "记录开始索引， 用于分页" },
                 { param: "requestCount", mandatory: "否", type: "Int", content: "请求记录数量, 用于分页" },
                 { param: "sort", mandatory: "否", type: "Boolean", content: "排序方向 true–正序, false–降序" },
@@ -673,8 +673,8 @@ let information = {
             functionName: "getPartnerChildrenReport",
             desc: "",
             requestContent: [
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "记录开始索引， 用于分页" },
                 { param: "requestCount", mandatory: "否", type: "Int", content: "请求记录数量, 用于分页" },
             ],
@@ -693,8 +693,8 @@ let information = {
             functionName: "getPartnerPlayerPaymentReport",
             desc: "",
             requestContent: [
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "记录开始索引， 用于分页" },
                 { param: "requestCount", mandatory: "否", type: "Int", content: "请求记录数量, 用于分页" },
             ],
@@ -712,8 +712,8 @@ let information = {
             functionName: "getPartnerPlayerRegistrationReport",
             desc: "",
             requestContent: [
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间" },
                 { param: "domain", mandatory: "否", type: "String", content: "域名" },
                 { param: "playerName", mandatory: "否", type: "String", content: "玩家名字" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "记录开始索引， 用于分页" },
@@ -734,8 +734,8 @@ let information = {
             functionName: "getPartnerPlayerRegistrationStats",
             desc: "",
             requestContent: [
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间" },
             ],
             respondSuccess: {
                 status: 200,
@@ -754,8 +754,8 @@ let information = {
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间 （ISO格式：只要日期T）" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
                 { param: "needsDetail", mandatory: "否", type: "Boolean", content: "(查询单一玩家不适用）批量查询时，是否需要每个单一玩家详情，默认需要（TRUE）。" },
                 { param: "detailCircle", mandatory: "否", type: "Int", content: "(查询单一玩家不适用）指定哪个周期需要详情。0 表示最靠近现在的周期（如用 startTime、endTime 则 0 为 endTime），不填则 默认0。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询单一玩家不适用）开始的分页，默认 0" },
@@ -781,8 +781,8 @@ let information = {
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
                 { param: "crewAccount", mandatory: "否", type: "String", content: "玩家帐号，与玩家ID二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间 （ISO格式：只要日期T）" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
                 { param: "needsDetail", mandatory: "否", type: "Boolean", content: "(查询单一玩家不适用）批量查询时，是否需要每个单一玩家详情，默认需要（TRUE）。" },
                 { param: "detailCircle", mandatory: "否", type: "Int", content: "(查询单一玩家不适用）指定哪个周期需要详情。0 表示最靠近现在的周期（如用 startTime、endTime 则 0 为 endTime），不填则 默认0。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询单一玩家不适用）开始的分页，默认 0" },
@@ -808,8 +808,8 @@ let information = {
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
                 { param: "crewAccount", mandatory: "否", type: "String", content: "玩家帐号，与玩家ID二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间 （ISO格式：只要日期T）" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
                 { param: "needsDetail", mandatory: "否", type: "Boolean", content: "(查询单一玩家不适用）批量查询时，是否需要每个单一玩家详情，默认需要（TRUE）。" },
                 { param: "detailCircle", mandatory: "否", type: "Int", content: "(查询单一玩家不适用）指定哪个周期需要详情。0 表示最靠近现在的周期（如用 startTime、endTime 则 0 为 endTime），不填则 默认0。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询单一玩家不适用）开始的分页，默认 0" },
@@ -836,8 +836,8 @@ let information = {
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
                 { param: "crewAccount", mandatory: "否", type: "String", content: "玩家帐号，与玩家ID二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
                 { param: "providerGroupId", mandatory: "否", type: "String", content: "锁大厅组ID" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间 （ISO格式：只要日期T）" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
                 { param: "needsDetail", mandatory: "否", type: "Boolean", content: "(查询单一玩家不适用）批量查询时，是否需要每个单一玩家详情，默认需要（TRUE）。" },
                 { param: "detailCircle", mandatory: "否", type: "Int", content: "(查询单一玩家不适用）指定哪个周期需要详情。0 表示最靠近现在的周期（如用 startTime、endTime 则 0 为 endTime），不填则 默认0。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询单一玩家不适用）开始的分页，默认 0" },
@@ -861,8 +861,8 @@ let information = {
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询起始时间 （ISO格式：只要日期T）" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间 （ISO格式：只要日期T）如果period=1 （日）的时候选择性使用，输入『开始+结 束』时间。（此时可选择不用 circleTimes）" },
                 { param: "needsDetail", mandatory: "否", type: "Boolean", content: "(查询单一玩家不适用）批量查询时，是否需要每个单一玩家详情，默认需要（TRUE）。" },
                 { param: "detailCircle", mandatory: "否", type: "Int", content: "(查询单一玩家不适用）指定哪个周期需要详情。0 表示最靠近现在的周期（如用 startTime、endTime 则 0 为 endTime），不填则 默认0。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询单一玩家不适用）开始的分页，默认 0" },
@@ -892,7 +892,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getPartnerConfig: {
@@ -911,7 +912,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getDownPartnerInfo: {
@@ -932,7 +934,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getDownPartnerContribution: {
@@ -945,8 +948,8 @@ let information = {
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "requestPage", mandatory: "否", type: "String", content: "请求第几页" },
                 { param: "count", mandatory: "否", type: "String", content: "每页数据条数（默认为10条）" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "开始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "开始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "结束时间" },
             ],
             respondSuccess: {
                 status: 200,
@@ -954,7 +957,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getPartnerTransferList: {
@@ -967,8 +971,8 @@ let information = {
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "requestPage", mandatory: "否", type: "String", content: "请求第几页" },
                 { param: "count", mandatory: "否", type: "String", content: "每页数据条数（默认为10条）" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "开始时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "结束时间" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "开始时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "结束时间" },
             ],
             respondSuccess: {
                 status: 200,
@@ -976,7 +980,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         checkAllCrewDetail: {
@@ -990,8 +995,8 @@ let information = {
                 { param: "crewAccount", mandatory: "否", type: "String", content: "玩家账号" },
                 { param: "singleSearchMode", mandatory: "否", type: "String", content: "(单一玩家搜寻模式/给crewAccount用 ）| '0'：精准搜索（默认值/代表只搜索此准确帐号）| '1'：模糊搜索（如搜p1，会出现p12,p13开头帐号）" },
                 { param: "sortMode", mandatory: "是", type: "String", content: "”1“:充值 | ”2“:提款 | “3”:输赢（负）最多 | “4”:有效投注额" },
-                { param: "startTime", mandatory: "否", type: "Date", content: "查询开始时间，没填入默认代理注册时间" },
-                { param: "endTime", mandatory: "否", type: "Date", content: "查询结束时间，没填入默认现在时间。" },
+                { param: "startTime", mandatory: "否", type: "Date Time", content: "查询开始时间，没填入默认代理注册时间" },
+                { param: "endTime", mandatory: "否", type: "Date Time", content: "查询结束时间，没填入默认现在时间。" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "数据请求从第 0 条开始（代表有分页）" },
                 { param: "count", mandatory: "否", type: "Int", content: "默认100条（代表有分页）" },
             ],
@@ -1001,7 +1006,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getPromoShortUrl: {
@@ -1019,7 +1025,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getDownLinePlayerInfo: {
@@ -1044,7 +1051,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getDownLinePartnerInfo: {
@@ -1068,7 +1076,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         getPartnerPoster: {
@@ -1089,7 +1098,8 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                data: "null"
+                data: "null",
+                errorMessage:`""`
             }
         },
         updatePassword: {
@@ -1098,7 +1108,7 @@ let information = {
             functionName: "updatePassword",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID " },
+                { param: "partnerId", mandatory: "是", type: "String", content: "平台ID " },
                 { param: "oldPassword", mandatory: "是", type: "String", content: "旧密码" },
                 { param: "newPassword", mandatory: "是", type: "String", content: "新密码" },
 
@@ -1107,8 +1117,8 @@ let information = {
                 status: 200,
             },
             respondFailure: {
-                status: "4xx",
-                errorMsg: "错误信息",
+                status: "40x",
+                errorMessage: "错误信息",
             }
         },
         fillBankInformation: {
@@ -1122,7 +1132,7 @@ let information = {
                 { param: "bankAccountName", mandatory: "是", type: "String", content: "账号姓名" },
                 { param: "bankAccountCity", mandatory: "是", type: "String", content: "开户城市" },
                 { param: "bankAccountProvince", mandatory: "是", type: "String", content: "开户省份" },
-                { param: "bankName", mandatory: "否", type: "String", content: "银行名称, 请用代号：1,2,3,4" },
+                { param: "bankName", mandatory: "是", type: "String", content: "银行名称, 请用代号：1,2,3,4" },
                 { param: "bankAddress", mandatory: "否", type: "String", content: "账户支行" },
                 { param: "bankAccountType", mandatory: "否", type: "String", content: "账号类型，信用卡： 1 | 借记卡：2 （不需要了）" },
                 { param: "smsCode", mandatory: "否", type: "String", content: "短信验证码 （代理帐号）修改支付资料需短信验证 -没勾选可不填" },
@@ -1132,7 +1142,7 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                errorMsg: "错误信息",
+                errorMessage: "错误信息",
             }
         },
         bindPartnerPlayer: {
@@ -1148,7 +1158,7 @@ let information = {
             },
             respondFailure: {
                 status: "4xx",
-                errorMsg: "xxxxx",
+                errorMessage: "xxxxx",
             }
         },
         getPartnerBillBoard: {
@@ -1170,6 +1180,7 @@ let information = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
+                errorMessage: `""`
             }
         },
     }
