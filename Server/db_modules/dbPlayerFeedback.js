@@ -744,7 +744,7 @@ var dbPlayerFeedback = {
         });
     },
 
-    getPlayerFeedbackQuery: async function (query, index, isMany, startTime, endTime) {
+    getPlayerFeedbackQuery: async function (query, index, isMany, startTime, endTime, playerPermission) {
 
         let searchQuery = await dbPlayerFeedback.getFeedbackSearchQuery(query, index, isMany,startTime, endTime);
         console.log('Search Query', searchQuery);
@@ -784,7 +784,7 @@ var dbPlayerFeedback = {
         }
 
         let total;
-        return Q.all([players, count]).then(data => {
+        return Q.all([players, count]).then(async data => {
             if(isMany.searchType === "one"){
                 total = data[1];
             }else{
@@ -793,7 +793,30 @@ var dbPlayerFeedback = {
                     console.log('=CallOutMission= callout query result', data[0].length);
                 }
             }
-            console.log('return data', data);
+            //In case the permission didn't pass through in player.js,
+            for(var index in data[0]){
+                if(data[0][index] && !data[0][index].permission){
+                    let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
+                    if (permissionData && permissionData.permission) {
+                        data[0][index].permission = permissionData.permission;
+                    }
+                }
+            }
+            if(playerPermission && playerPermission.length > 0){
+                let minus = 0;
+                // for(var i = 0; i < data[0].length; i++){
+                for(var i = data[0].length - 1; i >=0; i--){
+                    for(var k = 0; k < playerPermission.length; k++){
+                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === true){
+                            data[0].splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            console.log('return data', data[0]);
+
             return {
                 backEndQuery: JSON.stringify(searchQuery),
                 data: data[0] ? data[0] : {},

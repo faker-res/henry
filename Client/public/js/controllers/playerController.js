@@ -410,6 +410,25 @@ define(['js/app'], function (myApp) {
             5: 'WEEKLY_CONSUMPTION'
         };
 
+        vm.playerPermission = {
+            applyBonus: "applyBonus",
+            allTopUp: "allTopUp",
+            topupOnline: "topupOnline",
+            topupManual: "topupManual",
+            alipayTransaction: "alipayTransaction",
+            disableWechatPay: "disableWechatPay",
+            topUpCard: "topUpCard",
+            forbidPlayerFromLogin: "forbidPlayerFromLogin",
+            forbidPlayerFromEnteringGame: "forbidPlayerFromEnteringGame",
+            phoneCallFeedback: "phoneCallFeedback",
+            SMSFeedBack: "SMSFeedBack",
+            banReward: "banReward",
+            forbidPlayerConsumptionReturn: "forbidPlayerConsumptionReturn",
+            allowPromoCode: "allowPromoCode",
+            rewardPointsTask: "rewardPointsTask",
+            levelChange: "levelChange"
+        };
+
         vm.partnerCommissionLog= {};
 
         vm.prepareToBeDeletedProviderGroupId = [];
@@ -5086,6 +5105,10 @@ define(['js/app'], function (myApp) {
             if (vm.advancedQueryObj.credibilityRemarks && (vm.advancedQueryObj.credibilityRemarks.constructor !== Array || vm.advancedQueryObj.credibilityRemarks.length === 0)) {
                 delete vm.advancedQueryObj.credibilityRemarks;
             }
+            // if (vm.playerAdvanceSearchQuery.playerPermission) {
+            //     console.log('permission here');
+            //     vm.advancedQueryObj.playerPermission = vm.playerAdvanceSearchQuery.playerPermission;
+            // }
             let platformIdList;
             if(vm.playerAdvanceSearchQuery && vm.playerAdvanceSearchQuery.platformList && vm.playerAdvanceSearchQuery.platformList.length){
                 platformIdList = vm.playerAdvanceSearchQuery.platformList;
@@ -5098,7 +5121,8 @@ define(['js/app'], function (myApp) {
                 query: vm.advancedQueryObj,
                 index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
                 limit: vm.playerTableQuery.limit,
-                sortCol: vm.playerTableQuery.sortCol
+                sortCol: vm.playerTableQuery.sortCol,
+                playerPermission: vm.playerAdvanceSearchQuery.playerPermission
             };
             $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
             $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
@@ -24488,6 +24512,23 @@ define(['js/app'], function (myApp) {
             ];
 
             $scope.safeApply();
+        }
+
+        vm.getPermissionName = function (value) {
+            let name = '';
+            // for (let i = 0; i < Object.keys(vm.allPlayerLevelUpPeriod).length; i++) {
+            //     if (vm.allPlayerLevelUpPeriod[Object.keys(vm.allPlayerLevelUpPeriod)[i]] == value) {
+            //         name = Object.keys(vm.allPlayerLevelUpPeriod)[i];
+            //         break;
+            //     }
+            // }
+            for (let i = 0; i < Object.keys(vm.playerPermission).length; i++) {
+                if (vm.playerPermission[Object.keys(vm.playerPermission)[i]] == value) {
+                    name = Object.keys(vm.playerPermission)[i];
+                    break;
+                }
+            }
+            return name;
         }
 
         vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);

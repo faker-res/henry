@@ -28,6 +28,7 @@ var platformSchema = require('./../schema/platform');
 var themeSettingSchema = require('./../schema/themeSetting');
 var platformGameStatusSchema = require('./../schema/platformGameStatus');
 var playerSchema = require('./../schema/player');
+var playerPermissionSchema = require('./../schema/playerPermission');
 
 var playerLevelSchema = require('./../schema/playerLevel');
 var playerTrustLevelSchema = require('./../schema/playerTrustLevel');
@@ -342,6 +343,7 @@ let platformBlackWhiteListingModel = db_admin.model('platformBlackWhiteListing',
 
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
+var playerPermissionModel = db_player.model('playerPermission', playerPermissionSchema, 'playerPermission');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
 let partnerFeedbackModel = db_player.model('partnerFeedback', partnerFeedbackSchema, 'partnerFeedback');
 var partnerModel = db_player.model('partner', partnerSchema, 'partner');
@@ -745,6 +747,7 @@ var dbProperties = {
     collection_rewardPointsTask: rewardPointsTaskModel,
 
     collection_players: playerModel,
+    collection_playerPermission: playerPermissionModel,
     collection_playerLevel: playerLevelModel,
     collection_playerBadRecord: playerBadRecordModel,
     collection_playerTrustLevel: playerTrustLevelModel,

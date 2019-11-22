@@ -82,6 +82,11 @@
                 input.form-control.threeBoxes(ng-model='vm.playerAdvanceSearchQuery.creditAmountOne', type = 'number', ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
                 div.symbol(ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'") ~
                 input.form-control.threeBoxes(type="number" ng-model="vm.playerAdvanceSearchQuery.creditAmountTwo" ng-if="vm.playerAdvanceSearchQuery.creditOperator === 'range'" ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+        .search-filters-item
+            label {{'PERMISSION' | translate}}
+            //select.form-control#selectCredibilityRemark(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerAdvanceSearchQuery.credibilityRemarks',ng-change='vm.getPlayersByAdvanceQueryDebounced(vm.playerAdvanceSearchQuery)')
+            select.form-control(ng-model='vm.playerAdvanceSearchQuery.playerPermission', ng-options='v as i | translate for (i,v) in vm.playerPermission', ng-change='vm.playerAdvanceSearchQuery.playerPermission = vm.getPermissionName(vm.playerAdvanceSearchQuery.playerPermission)')
+
         .col-xs-12.text-right
             button#searchPlayer.btn.btn-success.margin-right-5(ng-click='vm.advancedPlayerQuery()') {{'SEARCH' | translate}}
             button#resetPlayerQuery.btn.btn-primary {{'Reset' | translate}}
