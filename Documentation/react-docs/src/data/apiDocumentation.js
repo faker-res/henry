@@ -19,6 +19,9 @@ import partnerInformation from './partner/informationDoc.js';
 import commission from './partner/comissionDoc.js';
 import withdrawPartner from './partner/withdrawDoc.js';
 
+import game from './platform/gameDoc.js';
+
+
 
 
 let apiDoc = {
@@ -45,6 +48,7 @@ let apiDoc = {
         withdrawPartner,
     },
     platform: {
+        game,
     }
 };
 
