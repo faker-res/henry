@@ -23,7 +23,7 @@ import InformationPlatform from './platform/informationDoc.js';
 import qqControlGroup from './platform/qqControlGroupDoc.js';
 import wcControlGroup from './platform/wcGroupControl.js';
 import teleSales from './platform/teleSalesDoc.js';
-
+import game from './platform/gameDoc.js';
 
 
 let apiDoc = {
@@ -53,7 +53,8 @@ let apiDoc = {
         InformationPlatform,
         qqControlGroup,
         wcControlGroup,
-        teleSales
+        teleSales,
+        game,
     }
 };
 
