@@ -2415,7 +2415,6 @@ let dbPlayerInfo = {
             }
         ).then(
             async saveRc => {
-                console.log('saverc..', saveRc);
                 if(saveRc){
                     console.log('hello there !');
                     let permission = {
@@ -2458,7 +2457,6 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-                    console.log('check pemission 2..', data);
                     playerData = data;
                     console.log("credibilityRemarkObjIdArr.......", credibilityRemarkObjIdArr);
                     console.log("credibilityRemarkObjIdArr.length.......", credibilityRemarkObjIdArr.length);
