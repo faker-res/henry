@@ -3195,7 +3195,7 @@ define(['js/app'], function (myApp) {
             let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.createTime);
                 item.typeText = $translate(item.type);
-                item.providerText = vm.getProviderText(item.providerId);
+                item.providerText = item.providerText || '';
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
                 item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
                 if (item && item.platformObjId){
