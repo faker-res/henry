@@ -778,9 +778,10 @@ var dbPlayerLoginRecord = {
                                 }
                             };
 
-                            if(inputDeviceTypes) {
-                                matchObj.inputDeviceType = {$in: inputDeviceTypes};
-                            }
+                            // player registered on certain device does not necessary have to login from that particular device.
+                            // if(inputDeviceTypes) {
+                            //     matchObj.inputDeviceType = {$in: inputDeviceTypes};
+                            // }
 
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
