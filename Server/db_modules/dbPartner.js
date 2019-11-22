@@ -1879,17 +1879,7 @@ let dbPartner = {
             }
         });
 
-        return deferred.promise.then(
-            data => {
-                return Promise.resolve(data);
-            },
-            err => {
-                conn.isAuth = false;
-                conn.partnerId = null;
-                conn.partnerObjId = null;
-                return Promise.reject(err);
-            }
-        );
+        return deferred.promise;
     },
 
     partnerLogout: function (partnerData) {
