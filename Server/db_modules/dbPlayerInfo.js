@@ -5139,6 +5139,10 @@ let dbPlayerInfo = {
                                         && (proposal.status === "Rejected" || proposal.status === "Cancel")
                                         && creditChangeLog.operationTime >= proposal.createTime;
                                 }
+                                // if unlock from free provider, it must be related to the most recent top-up record
+                                else if (creditChangeLog && creditChangeLog.operationType && creditChangeLog.operationType == 'Free amount:unlock' && !creditChangeLog.data.providerGroup) {
+                                    return proposal.mainType && proposal.mainType == 'TopUp' && creditChangeLog.operationTime >= proposal.createTime
+                                }
                                 else {
                                     return proposal.data.requestId === creditChangeLog.data.requestId
                                         && creditChangeLog.operationTime >= proposal.createTime;
@@ -7422,9 +7426,14 @@ let dbPlayerInfo = {
         let isSMSVerified = false;
         let isRegister = false;
         let rejectMsg = {
-            status: constServerCode.VALIDATION_CODE_INVALID,
+            status: constServerCode.VALIDATION_CODE_EXPIRED,
             name: "ValidationError",
             message: "Invalid SMS Validation Code"
+        };
+        let rejectMsg2 = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Incorrect SMS Validation Code"
         };
 
         // Check matched verification code
@@ -7686,7 +7695,7 @@ let dbPlayerInfo = {
                                 {_id: verificationSMS._id},
                                 {$inc: {loginAttempts: 1}}
                             ).then(() => {
-                                return Q.reject(rejectMsg);
+                                return Q.reject(rejectMsg2);
                             });
                         }
                     }
@@ -16226,7 +16235,18 @@ let dbPlayerInfo = {
             }
         });
 
-        return deferred.promise;
+        return deferred.promise.then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                conn.isAuth = false;
+                conn.playerId = null;
+                conn.playerObjId = null;
+                conn.platformId = null;
+                return Promise.reject(err);
+            }
+        );
     },
 
     getFavoriteGames: function (playerId, device) {
@@ -19745,7 +19765,7 @@ let dbPlayerInfo = {
         );
     },
 
-    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment, changedRemarks) => {
         // Avoid assigning empty remarks
         if (!remarks) {
             return;
@@ -19761,7 +19781,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
-                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, changedRemarks, comment);
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
@@ -26356,7 +26376,8 @@ let dbPlayerInfo = {
                     }
 
                     console.log('LK checking bill board query', matchQuery);
-                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).then(
+                    // sometimes the sort method won't work, added .sort when find record from db to guarantee the record is sorted by amount in decending ( large to samll )
+                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).sort({amount: -1}).then(
                         summaryRecord => {
                             if(summaryRecord && summaryRecord.length){
                                 console.log('LK checking bill board summary Record', summaryRecord);
