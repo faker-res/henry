@@ -676,25 +676,6 @@ define(['js/app'], function (myApp) {
                 6: '#festivalItemModal'
             };
 
-            vm.playerPermission = {
-                applyBonus: "applyBonus",
-                allTopUp: "allTopUp",
-                topupOnline: "topupOnline",
-                topupManual: "topupManual",
-                alipayTransaction: "alipayTransaction",
-                disableWechatPay: "disableWechatPay",
-                topUpCard: "topUpCard",
-                forbidPlayerFromLogin: "forbidPlayerFromLogin",
-                forbidPlayerFromEnteringGame: "forbidPlayerFromEnteringGame",
-                phoneCallFeedback: "phoneCallFeedback",
-                SMSFeedBack: "SMSFeedBack",
-                banReward: "banReward",
-                forbidPlayerConsumptionReturn: "forbidPlayerConsumptionReturn",
-                allowPromoCode: "allowPromoCode",
-                rewardPointsTask: "rewardPointsTask",
-                levelChange: "levelChange"
-            };
-
             vm.createInnerTable = function (id) {
                 var content = $('<div>', {
                     style: "display:inline-block"
@@ -17300,16 +17281,6 @@ define(['js/app'], function (myApp) {
             vm.feedbackPlatformChanged = ()=>{
                 vm.hasFeedbackPlatformChange = true;
             };
-            vm.getPermissionName = function (value) {
-                let name = '';
-                for (let i = 0; i < Object.keys(vm.playerPermission).length; i++) {
-                    if (vm.playerPermission[Object.keys(vm.playerPermission)[i]] == value) {
-                        name = Object.keys(vm.playerPermission)[i];
-                        break;
-                    }
-                }
-                return name;
-            }
             vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) {
                     return socketService.showErrorMessage($translate('Product Name is Mandatory'));
@@ -17369,8 +17340,7 @@ define(['js/app'], function (myApp) {
                     //new block
                     isMany: isMany,
                     startTime: startTime,
-                    endTime: endTime,
-                    playerPermission: vm.playerFeedbackQuery.playerPermission
+                    endTime: endTime
                     //new Block
                 };
                 let admins = [];
