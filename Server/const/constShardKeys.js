@@ -9,7 +9,6 @@ const constShardKeys = {
     collection_playerFeedback: ["_id", "platform"],
     collection_rewardTask: ["_id", "platformId"],
     collection_playerMail: ["_id", "platformId"],
-    collection_playerPermission: ["_id"],
 
     //logsdb
     collection_creditChangeLog: ["operationTime", "_id"],
