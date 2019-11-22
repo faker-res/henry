@@ -17,6 +17,7 @@ const dbconfig = require("../modules/dbproperties");
                };
                dbconfig.collection_playerPermission(saveObj).save().then();
                i++;
+               console.log('LK checking permission migration', i);
            }
        }
    );
