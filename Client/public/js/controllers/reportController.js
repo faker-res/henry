@@ -10019,7 +10019,7 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
-        vm.commonInitTime = function (obj, queryId, reuseDateTime=false) {
+        vm.commonInitTime = function (obj, queryId, reuseDateTime=false, showDateOnly) {
             if (!obj) return;
 
             let startTime, endTime;
@@ -10033,12 +10033,23 @@ define(['js/app'], function (myApp) {
                     ? utilService.getTodayStartTime() : utilService.getTodayEndTime();
             }
 
-            obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+            if (showDateOnly){
+                obj.startTime = utilService.createDatePickerWithoutTime(queryId + ' .startTime');
+                obj.endTime = utilService.createDatePickerWithoutTime(queryId + ' .endTime', {
+                    language: 'en',
+                    format: 'yyyy/MM/dd'
+                });
+            }
+            else{
+                obj.startTime = utilService.createDatePicker(queryId + ' .startTime');
+                obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
+                    language: 'en',
+                    format: 'yyyy/MM/dd hh:mm:ss'
+                });
+
+            }
+
             obj.startTime.data('datetimepicker').setLocalDate(new Date(startTime));
-            obj.endTime = utilService.createDatePicker(queryId + ' .endTime', {
-                language: 'en',
-                format: 'yyyy/MM/dd hh:mm:ss'
-            });
             obj.endTime.data('datetimepicker').setLocalDate(new Date(endTime));
         };
 
@@ -11014,7 +11025,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     setTimeout(function () {
-                        vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery')
+                        vm.commonInitTime(vm.consumptionModeQuery, '#consumptionModeReportQuery', null, true)
 
                         $('select#selectBetType').multipleSelect({
                             allSelected: $translate("All Selected"),
@@ -11605,7 +11616,7 @@ define(['js/app'], function (myApp) {
                     });
 
                     setTimeout(function () {
-                        vm.commonInitTime(vm.financialQuery, '#financialPointsReportQuery')
+                        vm.commonInitTime(vm.financialQuery, '#financialPointsReportQuery', null, true)
 
                         $('select#selectFinancialPointsType').multipleSelect({
                             allSelected: $translate("All Selected"),
@@ -11686,13 +11697,13 @@ define(['js/app'], function (myApp) {
                         let todayEndTime = utilService.getTodayEndTime();
                         vm.setupMultiInputDXTracking();
                         vm.dxTrackingQuery.totalCount = 0;
-                        vm.dxTrackingQuery.start = utilService.createDatePicker('#dxTrackingReportQuery .startTime');
+                        vm.dxTrackingQuery.start = utilService.createDatePickerWithoutTime('#dxTrackingReportQuery .startTime');
                         vm.dxTrackingQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.dxTrackingQuery.end = utilService.createDatePicker('#dxTrackingReportQuery .endTime');
+                        vm.dxTrackingQuery.end = utilService.createDatePickerWithoutTime('#dxTrackingReportQuery .endTime');
                         vm.dxTrackingQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        vm.dxTrackingQuery.queryStart = utilService.createDatePicker('#dxTrackingReportQuery .queryStartTime');
+                        vm.dxTrackingQuery.queryStart = utilService.createDatePickerWithoutTime('#dxTrackingReportQuery .queryStartTime');
                         vm.dxTrackingQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.dxTrackingQuery.queryEnd = utilService.createDatePicker('#dxTrackingReportQuery .queryEndTime');
+                        vm.dxTrackingQuery.queryEnd = utilService.createDatePickerWithoutTime('#dxTrackingReportQuery .queryEndTime');
                         vm.dxTrackingQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
 
                     });
@@ -11765,13 +11776,13 @@ define(['js/app'], function (myApp) {
                             topUpAmountOperator: ">="
                         };
                         vm.dxNewPlayerQuery.totalCount = 0;
-                        vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
+                        vm.dxNewPlayerQuery.start = utilService.searchDXNewPlayerReport('#dxNewPlayerReportQuery .startTime');
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
+                        vm.dxNewPlayerQuery.end = utilService.searchDXNewPlayerReport('#dxNewPlayerReportQuery .endTime');
                         vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        vm.dxNewPlayerQuery.queryStart = utilService.createDatePicker('#dxNewPlayerReportQuery .queryStartTime');
+                        vm.dxNewPlayerQuery.queryStart = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .queryStartTime');
                         vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.dxNewPlayerQuery.queryEnd = utilService.createDatePicker('#dxNewPlayerReportQuery .queryEndTime');
+                        vm.dxNewPlayerQuery.queryEnd = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .queryEndTime');
                         vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     });
                     break;
@@ -11788,7 +11799,7 @@ define(['js/app'], function (myApp) {
 
                         vm.changePlayerDomainPlatform();
 
-                        vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
+                        vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery', null, true);
                         vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainReport)
                         });
@@ -11874,8 +11885,8 @@ define(['js/app'], function (myApp) {
                     vm.playerAlipayAccReport = {};
                     vm.playerAlipayAccReport.totalCount = 0;
                     vm.reportSearchTime = 0;
-                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime());
-                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime());
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime(), null, null, true);
+                    commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime(), null, null, true);
                     break;
                 case 'FINANCIAL_REPORT':
                     vm.financialReport = {};
@@ -11931,8 +11942,8 @@ define(['js/app'], function (myApp) {
 
                             let today = new Date();
                             let todayEndTime = today.setHours(23, 59, 59, 999);
-                            vm.financialReport.startTime = utilService.createDatePicker('#financialReport .startTime');
-                            vm.financialReport.endTime = utilService.createDatePicker('#financialReport .endTime');
+                            vm.financialReport.startTime = utilService.createDatePickerWithoutTime('#financialReport .startTime');
+                            vm.financialReport.endTime = utilService.createDatePickerWithoutTime('#financialReport .endTime');
                             vm.financialReport.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
                             vm.financialReport.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                             $('#dailyFinancialReport').hide();
@@ -11959,7 +11970,7 @@ define(['js/app'], function (myApp) {
                 vm.queryOperation.providerId = 'all';
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#operationTable", function () {
-                    vm.commonInitTime(vm.queryOperation, '#operationReportQuery')
+                    vm.commonInitTime(vm.queryOperation, '#operationReportQuery', null, true)
                     // vm.queryOperation.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, vm.topupTablePageChange);
                 });
                 $scope.safeApply();
@@ -12008,9 +12019,9 @@ define(['js/app'], function (myApp) {
                     vm.deviceQuery.bonusTimesOperator = ">=";
                     vm.deviceQuery.topUpAmountOperator = ">=";
                     vm.deviceQuery.valueScoreOperator = ">=";
-                    vm.deviceQuery.start = utilService.createDatePicker('#deviceStartingDateTimePicker');
+                    vm.deviceQuery.start = utilService.createDatePickerWithoutTime('#deviceStartingDateTimePicker');
                     vm.deviceQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.deviceQuery.end = utilService.createDatePicker('#deviceEndingEndDateTimePicker');
+                    vm.deviceQuery.end = utilService.createDatePickerWithoutTime('#deviceEndingEndDateTimePicker');
                     vm.deviceQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     vm.deviceQuery.pageObj = utilService.createPageForPagingTable("#deviceReportTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "deviceQuery", vm.searchDeviceReport);
@@ -12105,9 +12116,9 @@ define(['js/app'], function (myApp) {
                     vm.depositAnalysisQuery.sortCol = {};
                     vm.depositAnalysisQuery.limit = 5000;
                     vm.depositAnalysisQuery.valueScoreOperator = ">=";
-                    vm.depositAnalysisQuery.start = utilService.createDatePicker('#startingDateTimePickerDepositAnalysis');
+                    vm.depositAnalysisQuery.start = utilService.createDatePickerWithoutTime('#startingDateTimePickerDepositAnalysis');
                     vm.depositAnalysisQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.depositAnalysisQuery.end = utilService.createDatePicker('#endingEndDateTimePickerDepositAnalysis');
+                    vm.depositAnalysisQuery.end = utilService.createDatePickerWithoutTime('#endingEndDateTimePickerDepositAnalysis');
                     vm.depositAnalysisQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     // vm.depositAnalysisQuery.pageObj = utilService.createPageForPagingTable("#playerDepositAnalysisReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                     //     vm.commonPageChangeHandler(curP, pageSize, "depositAnalysisQuery", vm.searchPlayerDepositAnalysisReport);
@@ -12124,9 +12135,9 @@ define(['js/app'], function (myApp) {
                     vm.depositTrackingQuery = {};
                     vm.depositTrackingQuery.sortCol = {};
                     vm.depositTrackingQuery.limit = 5000;
-                    vm.depositTrackingQuery.loginStartTime = utilService.createDatePicker('#depositTrackingReport .loginStartTime');
+                    vm.depositTrackingQuery.loginStartTime = utilService.createDatePickerWithoutTime('#depositTrackingReport .loginStartTime');
                     vm.depositTrackingQuery.loginStartTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                    vm.depositTrackingQuery.loginEndTime = utilService.createDatePicker('#depositTrackingReport .loginEndTime');
+                    vm.depositTrackingQuery.loginEndTime = utilService.createDatePickerWithoutTime('#depositTrackingReport .loginEndTime');
                     vm.depositTrackingQuery.loginEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                     //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
@@ -12139,7 +12150,7 @@ define(['js/app'], function (myApp) {
                 vm.playerExpenseQuery = {totalCount: 0};
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerExpenseTablePage", function () {
-                    vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
+                    vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery', null, true);
                     vm.playerExpenseQuery.providerId = "all";
                     vm.playerExpenseQuery.pageObj = utilService.createPageForPagingTable("#playerExpenseTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "playerExpenseQuery", vm.searchProviderPlayerRecord)
@@ -12151,7 +12162,7 @@ define(['js/app'], function (myApp) {
                 vm.isShowNewPlayerDeviceRecord = false;
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
-                    vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
+                    vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery', null, true);
                     // vm.searchNewPlayerRecord(true);
                 });
             } else if (choice == "WINRATE_REPORT") {
@@ -12176,7 +12187,7 @@ define(['js/app'], function (myApp) {
                     vm.winRateLayer4 = false;
                     vm.changeWinRatePlatform();
                     utilService.actionAfterLoaded("#winRateTable", function () {
-                        vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+                        vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery', null, true);
                     });
 
                 });
@@ -12242,14 +12253,14 @@ define(['js/app'], function (myApp) {
                             registrationDevice: []
                         };
                         vm.feedbackQuery.totalCount = 0;
-                        vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
+                        vm.feedbackQuery.start = utilService.createDatePickerWithoutTime('#feedbackReportQuery .startTime');
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
+                        vm.feedbackQuery.end = utilService.createDatePickerWithoutTime('#feedbackReportQuery .endTime');
                         vm.feedbackQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
 
-                        vm.feedbackQuery.searchTime = utilService.createDatePicker('#feedbackReportQuery .searchTime');
+                        vm.feedbackQuery.searchTime = utilService.createDatePickerWithoutTime('#feedbackReportQuery .searchTime');
                         vm.feedbackQuery.searchTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.feedbackQuery.searchEndTime = utilService.createDatePicker('#feedbackReportQuery .searchEndTime');
+                        vm.feedbackQuery.searchEndTime = utilService.createDatePickerWithoutTime('#feedbackReportQuery .searchEndTime');
                         vm.feedbackQuery.searchEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         vm.feedbackQuery.limit = 5000;
                         vm.feedbackQuery.index = 0;
@@ -12333,7 +12344,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerQuery.totalCount = 0;
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
-                    vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
+                    vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery', null, true);
                     vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerQuery", vm.searchPlayerPartnerRecord)
                     });
@@ -12428,7 +12439,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerPlayerBonusQuery.proposalTypeId = 'all';
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
-                    vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
+                    vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery', null, true)
                     vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerPlayerBonusQuery", vm.searchPartnerPlayerBonusData)
                     });
@@ -12449,7 +12460,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommissionQuery.proposalTypeId = 'all';
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerCommissionTablePage", function () {
-                    vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery')
+                    vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery', null, true)
                     vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerCommissionQuery", vm.searchPartnerCommissionData)
                     });
@@ -12526,7 +12537,7 @@ define(['js/app'], function (myApp) {
                 };
 
                 utilService.actionAfterLoaded("#partnerSettlementTablePage", function () {
-                    vm.commonInitTime(vm.partnerSettlementQuery, '#partnerSettlementQuery');
+                    vm.commonInitTime(vm.partnerSettlementQuery, '#partnerSettlementQuery', null, true);
                     vm.partnerSettlementQuery.pageObj = utilService.createPageForPagingTable("#partnerSettlementTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "partnerSettlementQuery", vm.searchPartnerSettlementHistory)
                     });
