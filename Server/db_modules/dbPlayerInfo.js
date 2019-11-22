@@ -24282,34 +24282,39 @@ let dbPlayerInfo = {
 
                     for (let i = 0, len = result.gameDetail.length; i < len; i++) {
                         let gameRecord = result.gameDetail[i];
-                        let providerId = gameRecord.providerId._id.toString();
 
-                        if (providerNameArr.findIndex(p => p === providerId) === -1) {
-                            providerNameArr.push(providerId);
+                        if (gameRecord && gameRecord.providerDetail) {
+                            console.log('gameRecord.providerDetail', gameRecord.providerDetail);
+                            for (let provider in Object.keys(gameRecord.providerDetail)) {
+                                if (providerNameArr.findIndex(p => p === provider) === -1) {
+                                    providerNameArr.push(provider);
 
-                            if (len > i + 1) {
-                                providerNames += gameRecord.providerId.name + '\n';
-                            } else {
-                                providerNames += gameRecord.providerId.name;
+                                    // if (len > i + 1) {
+                                    //     providerNames += gameRecord.providerId.name + '\n';
+                                    // } else {
+                                    //     providerNames += gameRecord.providerId.name;
+                                    // }
+                                }
+
+                                if (!providerDetail.hasOwnProperty(provider)) {
+                                    providerDetail[provider] = {
+                                        count: 0,
+                                        amount: 0,
+                                        validAmount: 0,
+                                        bonusAmount: 0
+                                    };
+                                }
+
+                                providerDetail[provider].count += gameRecord.count;
+                                providerDetail[provider].amount += gameRecord.amount;
+                                providerDetail[provider].validAmount += gameRecord.validAmount;
+                                providerDetail[provider].bonusAmount += gameRecord.bonusAmount;
+                                providerDetail[provider].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
                             }
                         }
 
-                        result.gameDetail[i].bonusRatio = (result.gameDetail[i].bonusAmount / result.gameDetail[i].validAmount);
+                        gameRecord.bonusRatio = (gameRecord.consumptionBonusAmount / gameRecord.consumptionValidAmount);
 
-                        if (!providerDetail.hasOwnProperty(providerId)) {
-                            providerDetail[providerId] = {
-                                count: 0,
-                                amount: 0,
-                                validAmount: 0,
-                                bonusAmount: 0
-                            };
-                        }
-
-                        providerDetail[providerId].count += gameRecord.count;
-                        providerDetail[providerId].amount += gameRecord.amount;
-                        providerDetail[providerId].validAmount += gameRecord.validAmount;
-                        providerDetail[providerId].bonusAmount += gameRecord.bonusAmount;
-                        providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
                         result.consumptionTimes += gameRecord.consumptionTimes;
                         result.consumptionAmount += gameRecord.consumptionAmount;
                         result.validConsumptionAmount += gameRecord.consumptionValidAmount;
