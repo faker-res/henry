@@ -11776,9 +11776,9 @@ define(['js/app'], function (myApp) {
                             topUpAmountOperator: ">="
                         };
                         vm.dxNewPlayerQuery.totalCount = 0;
-                        vm.dxNewPlayerQuery.start = utilService.searchDXNewPlayerReport('#dxNewPlayerReportQuery .startTime');
+                        vm.dxNewPlayerQuery.start = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .startTime');
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
-                        vm.dxNewPlayerQuery.end = utilService.searchDXNewPlayerReport('#dxNewPlayerReportQuery .endTime');
+                        vm.dxNewPlayerQuery.end = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .endTime');
                         vm.dxNewPlayerQuery.end.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                         vm.dxNewPlayerQuery.queryStart = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .queryStartTime');
                         vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
