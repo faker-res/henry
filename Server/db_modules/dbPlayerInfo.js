@@ -24270,7 +24270,7 @@ let dbPlayerInfo = {
                     result.lastAccessTime = playerDetail.lastAccessTime;
                     result.realName = playerDetail.realName;
 
-                    result.gameDetail = summaryDetail.filter(e => String(e._id.playerObjId) === String(playerDetail._id));
+                    result.gameDetail = summaryDetail.filter(e => String(e.playerId) === String(playerDetail._id));
                     result.consumptionTimes = 0;
                     result.consumptionAmount = 0;
                     result.validConsumptionAmount = 0;
