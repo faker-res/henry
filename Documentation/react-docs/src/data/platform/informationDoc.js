@@ -359,6 +359,10 @@ const sampleData = {
    "__v": 0,
    "data": "abc"
 }`,
+
+    turnUrlToQr: `{
+    // Base64编码的QR图像
+}`,
 }
 let information = {
     name:"平台设置/信息",
@@ -524,8 +528,24 @@ let information = {
             desc: "",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-                { param: "code", mandatory: "是", type: "int", content: "设置的code" },
-                { param: "clientType", mandatory: "是", type: "int", content: "设备" },
+                { param: "code", mandatory: "是", type: "int", content: `设置的code:
+                                                                         recommendation - 热门推荐
+                                                                         rewardPoint - 积分说明
+                                                                         game - 游戏配置
+                                                                         carousel - 轮播配置
+                                                                         advertisement - 弹窗广告
+                                                                         pageSetting - 网站配置
+                                                                         skin - 皮肤管理
+                                                                         reward - 优惠配置 (新增全部分类组: 排序号 orderNumber)
+                                                                         description - 文本说明
+                                                                         registrationGuidance - 注册引导
+                                                                         partnerCarousel - 代理轮播配置
+                                                                         partnerPageSetting - 代理网站配置
+                                                                         partnerSkin - 代理皮肤管理` },
+                { param: "clientType", mandatory: "是", type: "int", content: `设备:
+                                                                               1 - PC
+                                                                               2- H5
+                                                                               4- APP` },
             ],
             respondSuccess:{
                 status: 200,
@@ -535,6 +555,120 @@ let information = {
                 status: "4xx",
                 data: "null",
                 errorMessage: '""'
+            }
+        },
+
+        clickCount:{
+            title: " 埋点",
+            serviceName: "platform",
+            functionName: "clickCount",
+            desc: "",
+            requestContent:[
+                { param: "platform", mandatory: "是", type: "int", content: "平台ID" },
+                { param: "device", mandatory: "是", type: "String", content: "设备" },
+                { param: "pageName", mandatory: "是", type: "String", content: "页面" },
+                { param: "buttonName", mandatory: "是", type: "String", content: "按键" },
+                { param: "domain", mandatory: "否", type: "String", content: "域名" },
+                { param: "registerClickApp", mandatory: "否", type: "Boolean", content: "(任一或非强制） 添加到注册按钮" },
+                { param: "registerClickWeb", mandatory: "否", type: "Boolean", content: "(任一或非强制） 添加到注册按钮" },
+                { param: "registerClickH5", mandatory: "否", type: "Boolean", content: "(任一或非强制） 添加到注册按钮" },
+            ],
+            respondSuccess:{
+                status: 200,
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        getClientData:{
+            title: " 获取平台客户端数据",
+            serviceName: "platform",
+            functionName: "getClientData",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: "test:!"
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        saveClientData:{
+            title: " 保存平台客户端数据",
+            serviceName: "platform",
+            functionName: "saveClientData",
+            desc: "",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
+                { param: "clientData", mandatory: "是", type: "String", content: "客户端数据" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: "test:!"
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        turnUrlToQr:{
+            title: " 获取QR CODE",
+            serviceName: "platform",
+            functionName: "turnUrlToQr",
+            desc: "",
+            requestContent:[
+                { param: "targetUrl", mandatory: "是", type: "String", content: "目标链接" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: sampleData.turnUrlToQr
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        addIpDomainLog:{
+            title: "IP + 域名log",
+            serviceName: "platform",
+            functionName: "addIpDomainLog",
+            desc: "統計域名瀏覽次數、IP瀏覽次數、以及APP開戶可根據IP抓到來源",
+            requestContent:[
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "domain", mandatory: "是", type: "String", content: "域名，(不要http, www, 和开户网址配置的相同)" },
+                { param: "sourceUrl", mandatory: "否", type: "String", content: "跳转至官网网址, 用户来源" },
+                { param: "partnerId", mandatory: "否", type: "String", content: "代理ID" },
+            ],
+            respondSuccess:{
+                status: 200,
+            },
+            respondFailure: {
+                status: "4xx",
+            }
+        },
+
+        playerPhoneChat:{
+            title: "请求客服会电",
+            serviceName: "platform",
+            functionName: "playerPhoneChat",
+            desc: "",
+            requestContent:[
+                { param: "platform", mandatory: "是", type: "int", content: "平台ID" },
+                { param: "phone", mandatory: "是", type: "int", content: "电话号码" },
+                { param: "captcha", mandatory: "是", type: "String", content: "验证码" },
+                { param: "random", mandatory: "是", type: "String", content: "随机" },
+            ],
+            respondSuccess:{
+                status: 200,
+                data: "{}"
+            },
+            respondFailure: {
+                status: "4xx",
             }
         },
     }

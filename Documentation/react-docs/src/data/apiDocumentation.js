@@ -20,6 +20,9 @@ import commission from './partner/comissionDoc.js';
 import withdrawPartner from './partner/withdrawDoc.js';
 
 import InformationPlatform from './platform/informationDoc.js';
+import qqControlGroup from './platform/qqControlGroupDoc.js';
+import wcControlGroup from './platform/wcGroupControl.js';
+import teleSales from './platform/teleSalesDoc.js';
 
 
 
@@ -48,6 +51,9 @@ let apiDoc = {
     },
     platform: {
         InformationPlatform,
+        qqControlGroup,
+        wcControlGroup,
+        teleSales
     }
 };
 
