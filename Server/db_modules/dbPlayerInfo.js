@@ -24145,7 +24145,7 @@ let dbPlayerInfo = {
             let summaryProm = dbconfig.collection_playerReportDataDaySummary.find({
                 playerId: {$in: playerObjIds},
                 date: {$gte: startTime, $lt: endTime}
-            });
+            }).lean();
 
             let topupAndBonusPromMatchObj = {
                 "data.playerObjId": {$in: playerObjIds},
@@ -24229,7 +24229,6 @@ let dbPlayerInfo = {
                 Promise.resolve(playerData), summaryProm, topupAndBonusProm, rewardProm, promoteWayProm, feeProm]);
 
             console.log('getConsumptionDetailOfPlayers getPlayerRecord - all promise done', players && players.length);
-            console.log('got summary detail', summaryDetail);
 
             if (players && players.length) {
                 let retArr = [];
@@ -24273,6 +24272,10 @@ let dbPlayerInfo = {
                     result.consumptionAmount = 0;
                     result.validConsumptionAmount = 0;
                     result.consumptionBonusAmount = 0;
+
+                    if (result.gameDetail && result.gameDetail.length) {
+                        console.log('result.gameDetail', result.gameDetail);
+                    }
 
                     let providerDetail = {};
                     let providerNameArr = [];
