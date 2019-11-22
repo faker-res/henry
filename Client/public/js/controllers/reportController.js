@@ -1904,10 +1904,36 @@ define(['js/app'], function (myApp) {
 
         vm.getRewardList = function (callback) {
             vm.rewardList = [];
-            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: vm.selectedPlatform._id}, function (data) {
+            let platformQuery = vm.selectedPlatform._id;
+            if (vm.proposalQuery && vm.proposalQuery.platformList && vm.proposalQuery.platformList.length > 0) {
+                platformQuery = {$in: vm.proposalQuery.platformList};
+            }
+
+            socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: platformQuery}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.rewardList = data.data;
                     console.log('vm.rewardList', vm.rewardList);
+
+                    utilService.actionAfterLoaded("#proposalTablePage", function () {
+                        setTimeout(()=>{
+                            endLoadMultipleSelect('.spicker');
+                            $('select#selectRewardType').multipleSelect({
+                                allSelected: $translate("All Selected"),
+                                selectAllText: $translate("Select All"),
+                                displayValues: true,
+                                countSelected: $translate('# of % selected'),
+                            });
+
+                            var $multiReward = ($('select#selectRewardType').next().find('.ms-choice'))[0];
+                            $('select#selectRewardType').next().on('click', 'li input[type=checkbox]', function () {
+                                var upText = $($multiReward).text().split(',').map(item => {
+                                    return $translate(item);
+                                }).join(',');
+                                $($multiReward).find('span').text(upText)
+                            });
+                            $("select#selectRewardType").multipleSelect("checkAll");
+                        },100);
+                    });
                 });
                 if (callback) {
                     callback();

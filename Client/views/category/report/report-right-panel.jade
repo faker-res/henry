@@ -86,7 +86,7 @@
             #proposalReportQuery.block-query.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', ng-change='vm.getRewardList()', multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"REGISTRATION_AGENT"|translate}} {{"Old" | translate}}
                     select.form-control(ng-model="vm.proposalQuery.inputDevice")
