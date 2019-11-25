@@ -510,7 +510,7 @@ const dbRewardTask = {
                 result[0].map(item => {
                     if (rewardTaskGroup) {
                         item.data['createTime$'] = item.createTime;
-                        item.data.useConsumption = rewardTaskGroup.useConsumption;
+                        // item.data.useConsumption = rewardTaskGroup.useConsumption;
                         if(!item.data.topUpProposal) {
                             item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
                         }
