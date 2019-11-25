@@ -20,10 +20,10 @@ import commission from './partner/comissionDoc.js';
 import withdrawPartner from './partner/withdrawDoc.js';
 
 import InformationPlatform from './platform/informationDoc.js';
+import game from './platform/gameDoc.js';
 import qqControlGroup from './platform/qqControlGroupDoc.js';
 import wcControlGroup from './platform/wcGroupControl.js';
 import teleSales from './platform/teleSalesDoc.js';
-import game from './platform/gameDoc.js';
 
 
 let apiDoc = {
@@ -51,10 +51,10 @@ let apiDoc = {
     },
     platform: {
         InformationPlatform,
+        game,
         qqControlGroup,
         wcControlGroup,
         teleSales,
-        game,
     }
 };
 
