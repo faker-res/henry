@@ -23287,9 +23287,9 @@ let dbPlayerInfo = {
                                         qEndTime = customEndTime;
                                     }
 
-                                    let retData = await query.isUseSummary
-                                        ? getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
-                                        : getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+                                    let retData = query.isUseSummary
+                                        ? await getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+                                        : await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
 
                                     if (retData && retData[0]) {
                                         retData[0].feedback = playerFeedBackData;
