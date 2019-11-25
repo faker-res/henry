@@ -4183,7 +4183,7 @@ define(['js/app'], function (myApp) {
             $('#feedbackReportTableSpin').show();
 
             let admins = [];
-            let query = {};
+            let query = {isUseSummary: isUseSummary};
 
             // if (vm.feedbackQuery.departments) {
             //     if (vm.feedbackQuery.roles) {
@@ -4259,8 +4259,7 @@ define(['js/app'], function (myApp) {
                 query: query,
                 index: 0,
                 limit: 5000,
-                sortCol: vm.feedbackQuery.sortCol,
-                isUseSummary: isUseSummary
+                sortCol: vm.feedbackQuery.sortCol
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
