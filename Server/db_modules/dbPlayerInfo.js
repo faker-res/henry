@@ -23262,7 +23262,9 @@ let dbPlayerInfo = {
                                                 qEndTime = customEndTime;
                                             }
 
-                                            return getPlayerRecord([id], qStartTime, qEndTime, playerData.domain, true);
+                                            return query.isUseSummary
+                                                ? getPlayerRecordFromSummary([id], qStartTime, qEndTime, null, true)
+                                                : getPlayerRecord([id], qStartTime, qEndTime, null, true)
                                         }
                                     )
                                 })
@@ -23279,23 +23281,25 @@ let dbPlayerInfo = {
                                         }).lean();
                                     let qStartTime = new Date(playerFeedBackData.createTime);
                                     let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
+
                                     if (customStartTime && customEndTime) {
                                         qStartTime = customStartTime;
                                         qEndTime = customEndTime;
                                     }
 
-                                    let retData = await getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
+                                    let retData = await query.isUseSummary
+                                        ? getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+                                        : getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+
                                     if (retData && retData[0]) {
                                         retData[0].feedback = playerFeedBackData;
                                     }
 
                                     return retData;
-                                    // return [];
                                 })
                             );
                         }
                         else {
-
                             return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime), option, true);
                         }
                     },

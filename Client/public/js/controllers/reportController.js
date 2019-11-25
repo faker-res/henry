@@ -4178,7 +4178,7 @@ define(['js/app'], function (myApp) {
         };
 
         ////////////////////FEEDBACK REPORT//////////////////////
-        vm.searchFeedbackReport = function (newSearch, isExport = false) {
+        vm.searchFeedbackReport = function (newSearch, isExport = false, isUseSummary = false) {
             vm.reportSearchTimeStart = new Date().getTime();
             $('#feedbackReportTableSpin').show();
 
@@ -4214,9 +4214,7 @@ define(['js/app'], function (myApp) {
             if(vm.feedbackQuery.userType && vm.feedbackQuery.userType!=null) {
                 query.playerType = vm.feedbackQuery.userType;
             }
-            // if(vm.feedbackQuery.days && vm.feedbackQuery.days!=null) {
-            //     query.days = vm.feedbackQuery.days;
-            // }
+
             if(vm.feedbackQuery.result && vm.feedbackQuery.result.length > 0) {
                 query.result = {$in: vm.feedbackQuery.result};
             }
@@ -4262,6 +4260,7 @@ define(['js/app'], function (myApp) {
                 index: 0,
                 limit: 5000,
                 sortCol: vm.feedbackQuery.sortCol,
+                isUseSummary: isUseSummary
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
@@ -6581,7 +6580,7 @@ define(['js/app'], function (myApp) {
 
 
         /////////////////telemarketing new account report/////////////////////////////
-        vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
+        vm.searchDXNewPlayerReport = function (newSearch, isExport = false, isUseSummary = false) {
             if (!vm.dxNewPlayerQuery || !vm.dxNewPlayerQuery.platformId) {
                 return socketService.showErrorMessage($translate('Product Name is Mandatory'));
             }
@@ -6611,6 +6610,7 @@ define(['js/app'], function (myApp) {
             let sendquery = {
                 platformId: vm.dxNewPlayerQuery.platformId,
                 query: {
+                    isUseSummary: isUseSummary,
                     credibilityRemarks: vm.dxNewPlayerQuery.credibilityRemarks,
                     start: vm.dxNewPlayerQuery.start.data('datetimepicker').getLocalDate(),
                     end: vm.dxNewPlayerQuery.end.data('datetimepicker').getLocalDate(),
@@ -6635,7 +6635,7 @@ define(['js/app'], function (myApp) {
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0)),
                 limit: isExport ? 5000 : (vm.dxNewPlayerQuery.limit || null),
-                sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1},
+                sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1}
             };
 
             if (vm.registrationDeviceList && vm.dxNewPlayerQuery && vm.dxNewPlayerQuery.registrationDevice && vm.dxNewPlayerQuery.registrationDevice.length != Object.keys(vm.registrationDeviceList).length ) {
