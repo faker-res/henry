@@ -731,6 +731,12 @@ var dbPlayerLoginRecord = {
                     
                     queryObj = Object.assign({}, queryObj, playerFilter);
 
+                    // todo :: remove when not use
+                    console.log('#348DD0', queryObj)
+                    dbconfig.collection_players.find(queryObj, {name: 1}).lean().then(d => {
+                        console.log('#348DD1', JSON.stringify(d, null, 2))
+                    }).catch(e => console.log('#348DD1 log err', e))
+
                     var temp = dbconfig.collection_players.aggregate(
                         [{
                             $match: queryObj
