@@ -15015,6 +15015,13 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('IsConsumption'), data: "useConsumption",
                         render: function (data, type, row) {
+                            if (data){
+                                // useConsumption true means cannot XIMA
+                                data = false;
+                            }
+                            else{
+                                data = true;
+                            }
                             var text = $translate(data);
                             return "<div>" + text + "</div>";
                         }
