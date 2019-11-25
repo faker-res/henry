@@ -404,6 +404,17 @@ define([], () => {
             return lineAcc;
         };
 
+        self.redefineInputDevice = function (inputDevice) {
+            if (inputDevice && inputDevice == 5){
+                // 5: 玩家包壳APP 已归类为 H5
+                return 3
+            }
+            else if (inputDevice && inputDevice == 6){
+                // 6: 代理包壳APP 已归类为 H5
+                return 4
+            }
+        };
+
         self.convertClientTypeToInputDevice = function (clientType, userAgent) {
             let inputDevice;
 
@@ -832,8 +843,7 @@ define([], () => {
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
             proposalDetail.platformId = proposalDetail.platformId._id;
 
-            let inputDevice = vm.selectedProposal && vm.selectedProposal.inputDevice ? vm.selectedProposal.inputDevice :
-                proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType, proposalDetail.userAgent) : null;
+            let inputDevice = vm.selectedProposal && vm.selectedProposal.inputDevice ?  this.redefineInputDevice(vm.selectedProposal.inputDevice) : null;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
