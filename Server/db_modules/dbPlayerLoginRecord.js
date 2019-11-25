@@ -784,13 +784,6 @@ var dbPlayerLoginRecord = {
                                 }
                             };
 
-                            // todo :: remove when not use
-                            dbconfig.collection_playerLoginRecord.find(matchObj, {player: 1}).lean().then(d => {
-                                console.log('#348DD2', day, matchObj)
-                                d = [...new Set(d.map(f => String(f.player)))];
-                                console.log('#348DD3', d.length, JSON.stringify(d,null,2))
-                            }).catch(e => console.log('#348DD3 log err', e))
-
                             // player registered on certain device does not necessary have to login from that particular device.
                             // if(inputDeviceTypes) {
                             //     matchObj.inputDeviceType = {$in: inputDeviceTypes};
@@ -822,6 +815,7 @@ var dbPlayerLoginRecord = {
                         return Q.all(loginDataArrayProm).then(
                             data => {
                                 for (var i in data) {
+                                    console.log('#348DD4', i, JSON.stringify(data, null, 2))
                                     if (data[i].length > 0) {
                                         dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
                                             .map(a => a.toString())
