@@ -1499,6 +1499,7 @@
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.credibilityRemarks', bsp, multiple, data-actions-box='true', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks',)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true, false, true)') {{'SEARCH_BY_SUMMARY' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1931,6 +1932,7 @@
                     select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.registrationDeviceList', bsp)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true, false, true)') {{'SEARCH_BY_SUMMARY' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
