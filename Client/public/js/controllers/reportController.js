@@ -2190,8 +2190,9 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
-                            let text = $translate(inputDevice ? vm.reportInputDevice[inputDevice] : data ? vm.reportInputDevice[data] : vm.reportInputDevice['0']);
+                            // let inputDevice = row && row.data && row.data.clientType ? commonService.convertClientTypeToInputDevice(row.data.clientType, row.data.userAgent) : null;
+                            // let text = $translate(inputDevice ? vm.reportInputDevice[inputDevice] : data ? vm.reportInputDevice[data] : vm.reportInputDevice['0']);
+                            let text = $translate(data ? vm.reportInputDevice[data] : vm.reportInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
