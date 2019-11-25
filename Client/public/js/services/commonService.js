@@ -826,7 +826,8 @@ define([], () => {
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
             proposalDetail.platformId = proposalDetail.platformId._id;
 
-            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType, proposalDetail.userAgent) : null;
+            let inputDevice = vm.selectedProposal && vm.selectedProposal.inputDevice ? vm.selectedProposal.inputDevice :
+                proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType, proposalDetail.userAgent) : null;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {
