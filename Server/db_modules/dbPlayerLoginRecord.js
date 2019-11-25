@@ -815,7 +815,7 @@ var dbPlayerLoginRecord = {
                         return Q.all(loginDataArrayProm).then(
                             data => {
                                 for (var i in data) {
-                                    console.log('#348DD4', i, JSON.stringify(data, null, 2))
+                                    console.log('#348DD4', i, JSON.stringify(data[i], null, 2))
                                     if (data[i].length > 0) {
                                         dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
                                             .map(a => a.toString())
@@ -849,6 +849,7 @@ var dbPlayerLoginRecord = {
                                             var count = 0;
                                             for (var e in num) {
                                                 if (baseArr.indexOf(num[e]) != -1) {
+                                                    console.log('#348DD5', time, num[e])
                                                     count++;
                                                 }
                                             }
