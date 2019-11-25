@@ -2,7 +2,7 @@ const sampleData = {
     getPlatformAnnouncements: `{
     "list":[{
         "_id":"588567aa725d17143a4c9435",
-        "reach":1,
+        "reach":1, // 返回请求公告类型
         "title":"testAnnoucement", //公告标题
         "content"::"test annoucement message", //公告内容
         "date": "2017-01-31 22:10:10:00", //创建日期
@@ -406,7 +406,7 @@ let information = {
         getConfig:{
             title: " 获取平台设置",
             serviceName: "platform",
-            functionName: "getPlatformDetails",
+            functionName: "getConfig",
             desc: "",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
@@ -445,7 +445,7 @@ let information = {
         getTemplateSetting:{
             title: " 获取模板设置",
             serviceName: "platform",
-            functionName: "getPlatformSetting",
+            functionName: "getTemplateSetting",
             desc: "请对应FPMS 功能（前端功能模版配置）",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
@@ -504,7 +504,7 @@ let information = {
         getFrontEndData:{
             title: " 前端获取数据接口",
             serviceName: "platform",
-            functionName: "saveFrontEndData",
+            functionName: "getFrontEndData",
             desc: "",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
@@ -585,7 +585,7 @@ let information = {
             title: " 获取平台客户端数据",
             serviceName: "platform",
             functionName: "getClientData",
-            desc: "",
+            desc: "需要登录",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
             ],
@@ -602,7 +602,7 @@ let information = {
             title: " 保存平台客户端数据",
             serviceName: "platform",
             functionName: "saveClientData",
-            desc: "",
+            desc: "需要登录",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "clientData", mandatory: "是", type: "String", content: "客户端数据" },
@@ -623,6 +623,7 @@ let information = {
             desc: "",
             requestContent:[
                 { param: "targetUrl", mandatory: "是", type: "String", content: "目标链接" },
+                { param: "service", mandatory: "否", type: "String", content: "相关服务" },
             ],
             respondSuccess:{
                 status: 200,
