@@ -586,7 +586,7 @@ define([], function () {
             let $id = $(id);
             let comp_i = $('<i>', {
                 class: "fa fa-calendar",
-                "data-time-icon": "fa fa-clock-o",
+                // "data-time-icon": "fa fa-clock-o",
                 "data-date-icon": "fa fa-calendar"
             })
             let comp_span = $('<span>', {class: "add-on"}).append(comp_i);

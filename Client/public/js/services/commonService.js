@@ -671,12 +671,18 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs, options) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs, options, showDateOnly) => {
             vm[model] = vm[model] || {};
             options = options || null;
 
             utilService.actionAfterLoaded(queryId, () => {
-                vm[model][field] = utilService.createDatePicker(queryId, options);
+                if (showDateOnly){
+                    vm[model][field] = utilService.createDatePickerWithoutTime(queryId, options);
+                }
+                else{
+                    vm[model][field] = utilService.createDatePicker(queryId, options);
+                }
+
                 if(defTimeAsIs) {
                     $(queryId).data('datetimepicker').setDate(new Date(defTime));
                 } else {
