@@ -24285,7 +24285,8 @@ let dbPlayerInfo = {
 
                         if (gameRecord && gameRecord.providerDetail) {
                             console.log('gameRecord.providerDetail', gameRecord.providerDetail);
-                            for (let provider in Object.keys(gameRecord.providerDetail)) {
+                            console.log('Object.keys(gameRecord.providerDetail)', Object.keys(gameRecord.providerDetail));
+                            Object.keys(gameRecord.providerDetail).forEach(provider => {
                                 if (providerNameArr.findIndex(p => p === provider) === -1) {
                                     providerNameArr.push(provider);
 
@@ -24314,7 +24315,7 @@ let dbPlayerInfo = {
                                 providerDetail[provider].validAmount += gameRecord.providerDetail[provider].validAmount;
                                 providerDetail[provider].bonusAmount += gameRecord.providerDetail[provider].bonusAmount;
                                 providerDetail[provider].bonusRatio = (providerDetail[provider].bonusAmount / providerDetail[provider].validAmount);
-                            }
+                            })
                         }
 
                         gameRecord.bonusRatio = (gameRecord.consumptionBonusAmount / gameRecord.consumptionValidAmount);
