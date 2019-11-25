@@ -119,8 +119,8 @@ define(['js/app'], function (myApp) {
         vm.topUpReportInputDevice = {
             0: 'BACKSTAGE',
             1: 'WEB_PLAYER',
-            3: 'H5_PLAYER',
-            5: 'APP_PLAYER',
+            3: 'H5_PLAYER', // 5: 包壳 APP 已经归类为 h5
+            7: 'APP_PLAYER',
         };
 
         vm.propsosalDeviceList = {
@@ -2003,11 +2003,8 @@ define(['js/app'], function (myApp) {
 
             let topUpRecordInputDevice = vm.queryTopup.userAgent;
             if(vm.queryTopup && vm.queryTopup.userAgent){
-                if(vm.queryTopup.userAgent.indexOf("5") !== -1 && vm.queryTopup.userAgent.indexOf("7") === -1){
-                    topUpRecordInputDevice.push("7");
-                }
-                if(vm.queryTopup.userAgent.indexOf("6") !== -1 && vm.queryTopup.userAgent.indexOf("8") === -1){
-                    topUpRecordInputDevice.push("8");
+                if(vm.queryTopup.userAgent.indexOf("3") !== -1){
+                    topUpRecordInputDevice.push("5");
                 }
             }
             
