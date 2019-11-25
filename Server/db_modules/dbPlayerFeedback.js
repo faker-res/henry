@@ -516,8 +516,6 @@ var dbPlayerFeedback = {
                         stream: stream,
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
-
-                            console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
