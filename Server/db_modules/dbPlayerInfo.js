@@ -12483,7 +12483,7 @@ let dbPlayerInfo = {
                                             let promResolve = Promise.resolve();
 
                                             if (!userAgent && playerObj && playerObj.loginDevice) {
-                                                let device = playerObj.loginDevice.substring(0,1);
+                                                let device = String(playerObj.loginDevice).substring(0,1);
 
                                                 if (device) {
                                                     switch (Number(device)) {
