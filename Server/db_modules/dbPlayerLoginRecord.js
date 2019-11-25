@@ -787,7 +787,7 @@ var dbPlayerLoginRecord = {
                             // todo :: remove when not use
                             dbconfig.collection_playerLoginRecord.find(matchObj, {player: 1}).lean().then(d => {
                                 console.log('#348DD2', day, matchObj)
-                                d = [...new Set(...d.map(f => String(f.player)))];
+                                d = [...new Set(d.map(f => String(f.player)))];
                                 console.log('#348DD3', d.length, JSON.stringify(d,null,2))
                             }).catch(e => console.log('#348DD3 log err', e))
 
