@@ -74,7 +74,7 @@ class Content extends Component{
             return (
                 <div>
                     <h5><b>操作成功:</b></h5>
-                    <div className="bg-light p-1 pl-2 mb-1">
+                    <div className="respond-area bg-light p-1 pl-2 mb-1">
                         {this.drawRespondArea(this.props.respondSuccess)}
                     </div>
                 </div>

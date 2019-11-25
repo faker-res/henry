@@ -90,3 +90,7 @@ img {
 .navBar li.active > .functions > a.active {
   color: rgb(16, 142, 233);
 }
+
+.respond-area {
+  word-wrap: break-word;
+}
