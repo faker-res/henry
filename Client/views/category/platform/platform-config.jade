@@ -2029,7 +2029,7 @@
                                 td
                                     input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.name')
                                 td
-                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providers', multiple data-width="600px")
+                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providers', multiple data-width="600px" data-size="15", data-dropup-auto='false')
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
                                     select.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.ebetWallet' ng-options="+(i) as v | translate for (i,v) in vm.ebetWalletList")
