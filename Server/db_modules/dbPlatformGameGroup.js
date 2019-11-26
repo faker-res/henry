@@ -348,6 +348,7 @@ var dbPlatformGameGroup = {
                             //     }
                             // )
                         }
+                        console.log("checking ---- games 6", [gameGroup && gameGroup.games && gameGroup.games.gameList? gameGroup.games.gameList.length: 0, query.code ])
                         return gameGroup;
                     }
                 );
@@ -430,7 +431,9 @@ var dbPlatformGameGroup = {
                         }
                     );
                     if (code) {
+                        console.log("checking --- code", code )
                         var resGroup = groups.find(group => group.code == code);
+                        console.log("checking --- resGroup",resGroup)
                         return {
                             stats: {
                                 totalCount: resGroup ? 1 : 0,
