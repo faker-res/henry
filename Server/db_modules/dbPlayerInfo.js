@@ -23985,7 +23985,10 @@ let dbPlayerInfo = {
 
             // Get summary start and end time
             startTime = dbUtil.getDayStartTime(startTime);
-            endTime = dbUtil.getDayEndTime(endTime);
+
+            if (!dbUtil.isSharpTime(endTime)) {
+                endTime = dbUtil.getDayEndTime(endTime);
+            }
 
             let playerQuery = {_id: {$in: playerObjId}};
             if (query.playerLevel) {
