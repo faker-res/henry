@@ -11796,7 +11796,7 @@ define(['js/app'], function (myApp) {
 
                         vm.changePlayerDomainPlatform();
 
-                        vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery', null, true);
+                        vm.commonInitTime(vm.playerDomain, '#playerDomainReportQuery');
                         vm.playerDomain.pageObj = utilService.createPageForPagingTable("#playerDomainReportTablePage", {pageSize: 30}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "playerDomain", vm.searchPlayerDomainReport)
                         });
@@ -12184,7 +12184,7 @@ define(['js/app'], function (myApp) {
                     vm.winRateLayer4 = false;
                     vm.changeWinRatePlatform();
                     utilService.actionAfterLoaded("#winRateTable", function () {
-                        vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery', null, true);
+                        vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                     });
 
                 });

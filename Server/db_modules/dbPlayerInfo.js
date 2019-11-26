@@ -23985,7 +23985,10 @@ let dbPlayerInfo = {
 
             // Get summary start and end time
             startTime = dbUtil.getDayStartTime(startTime);
-            endTime = dbUtil.getDayEndTime(endTime);
+
+            if (!dbUtil.isSharpTime(endTime)) {
+                endTime = dbUtil.getDayEndTime(endTime);
+            }
 
             let playerQuery = {_id: {$in: playerObjId}};
             if (query.playerLevel) {
@@ -24146,68 +24149,6 @@ let dbPlayerInfo = {
                 date: {$gte: startTime, $lt: endTime}
             }).lean();
 
-            let topupAndBonusPromMatchObj = {
-                "data.playerObjId": {$in: playerObjIds},
-                "createTime": {
-                    "$gte": new Date(startTime),
-                    "$lte": new Date(endTime)
-                },
-                "mainType": {$in: ["TopUp", "PlayerBonus"]},
-                "status": option && option.isDepositReport ? constProposalStatus.SUCCESS : {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-            }
-
-            if (query.loginDevice && query.loginDevice.length) {
-                topupAndBonusPromMatchObj.device = {$in: query.loginDevice};
-            }
-
-            let topupAndBonusProm = dbconfig.collection_proposal.aggregate([
-                {
-                    "$match": topupAndBonusPromMatchObj
-                },
-                {
-                    $group: {
-                        _id: {
-                            playerObjId: "$data.playerObjId",
-                            mainType: "$mainType",
-                            typeId: "$type",
-                            merchantName: "$data.merchantName",
-                            merchantNo: "$data.merchantNo"
-                        },
-                        count: {"$sum": 1},
-                        amount: {"$sum": "$data.amount"}
-                    }
-                }
-            ]).allowDiskUse(true).read("secondaryPreferred");
-
-            let rewardPromMatchObj = {
-                "data.playerObjId": {$in: playerObjIds},
-                "createTime": {
-                    "$gte": new Date(startTime),
-                    "$lte": new Date(endTime)
-                },
-                "mainType": "Reward",
-                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            }
-
-            if (query.loginDevice && query.loginDevice.length) {
-                rewardPromMatchObj.device = {$in: query.loginDevice};
-            }
-
-            let rewardProm = dbconfig.collection_proposal.aggregate([
-                {
-                    "$match": rewardPromMatchObj
-                },
-                {
-                    "$group": {
-                        "_id": {
-                            playerObjId: "$data.playerObjId",
-                            type: "$type"
-                        },
-                        "amount": {"$sum": "$data.rewardAmount"}
-                    }
-                }
-            ]).allowDiskUse(true).read("secondaryPreferred");
-
             // Promise domain CS and promote way
             let filteredDomain = dbUtility.filterDomainName(playerData.domain);
             let promoteWayProm = filteredDomain ?
@@ -24348,8 +24289,8 @@ let dbPlayerInfo = {
                         result.bonusTimes += gameRecord.bonusTimes || 0;
 
                         // reward detail
-                        result.consumptionReturnAmount = gameRecord.consumptionReturnAmount || 0;
-                        result.rewardAmount = gameRecord.rewardAmount || 0;
+                        result.consumptionReturnAmount += gameRecord.consumptionReturnAmount || 0;
+                        result.rewardAmount += gameRecord.rewardAmount || 0;
 
                         // platform fee detail
                         if (showPlatformFeeEstimate) {
