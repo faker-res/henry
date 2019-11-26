@@ -542,9 +542,9 @@ let game = {
             functionName: "getLiveGameInfo",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "平台Id" },
-                { param: "count", mandatory: "是", type: "String", content: "新密碼" },
-                { param: "switchNotify", mandatory: "是", type: "Boolean", content: `otifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
+                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
+                { param: "count", mandatory: "否", type: "String", content: "新密碼" },
+                { param: "switchNotify", mandatory: "否", type: "Boolean", content: `otifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
 ],
             respondSuccess:{
                 status: 200,
