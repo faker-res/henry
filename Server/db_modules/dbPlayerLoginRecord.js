@@ -7,6 +7,8 @@ var dbUtil = require("./../modules/dbutility");
 var constShardKeys = require("../const/constShardKeys.js");
 var Q = require('q');
 const ObjectId = mongoose.Types.ObjectId;
+const constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
+const constDevice = require ("../const/constDevice");
 
 var dbPlayerLoginRecord = {
 
@@ -637,7 +639,7 @@ var dbPlayerLoginRecord = {
         )
     },
 
-    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, tsPhoneListObjId, inputDeviceTypes) {
+    getPlayerRetention: async function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, tsPhoneListObjId, inputDeviceTypes) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -647,223 +649,297 @@ var dbPlayerLoginRecord = {
         var lastDay = new Date(time1);
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
         let playerFilter = {};
-        let validPlayerProm = Promise.resolve(false);
+        let validPlayerProm = function () {};
         let tsPhoneObjIds = [];
-        if (playerType) {
-            switch(playerType) {
-                case "2":
-                    playerFilter = {topUpTimes: {$gte: 1}};
-                    break;
-                case "3":
-                    playerFilter = {topUpTimes: {$gte: 2}};
-                    break;
-                case "4":
-                    validPlayerProm = dbconfig.collection_partnerLevelConfig.findOne({platform:platform}).lean();
-                    break;
-                default:
-                    break;
-            }
+
+        switch(playerType) {
+            case "2":
+                playerFilter = {topUpTimes: {$gte: 1}};
+                break;
+            case "3":
+                playerFilter = {topUpTimes: {$gte: 2}};
+                break;
+            case "4":
+                validPlayerProm = async function () {
+                    let config = await dbconfig.collection_partnerLevelConfig.findOne({platform:platform}).lean();
+                    if (!config) {
+                        return;
+                    }
+                    playerFilter = {
+                        topUpSum: {$gte: config.validPlayerTopUpAmount},
+                        consumptionTimes: {$gte: config.validPlayerConsumptionTimes},
+                        consumptionSum: {$gte: config.validPlayerConsumptionAmount},
+                        topUpTimes: {$gte: config.validPlayerTopUpTimes}
+                    }
+                };
+                break;
         }
+
         if(tsPhoneListObjId) {
-            validPlayerProm = dbconfig.collection_tsPhone.find({tsPhoneList:tsPhoneListObjId}).then(phones => {
+            validPlayerProm = async function () {
+                let phones = await dbconfig.collection_tsPhone.find({tsPhoneList:tsPhoneListObjId}).lean();
                 if(phones && phones.length > 0) {
                     phones.forEach(phone => {
                         tsPhoneObjIds.push(phone._id);
                     });
                     playerFilter = {tsPhone: {$in: tsPhoneObjIds}};
                 }
-                return playerFilter;
-            })
+            };
         }
 
-        return validPlayerProm.then(
-            validPlayerProm => {
-                if (validPlayerProm && playerType == "4" && validPlayerProm.hasOwnProperty("validPlayerTopUpAmount") &&
-                    validPlayerProm.hasOwnProperty("validPlayerConsumptionTimes") && validPlayerProm.hasOwnProperty("validPlayerTopUpTimes")) {
-                    playerFilter = {
-                        topUpSum: {$gte: validPlayerProm.validPlayerTopUpAmount},
-                        consumptionTimes: {$gte: validPlayerProm.validPlayerConsumptionTimes},
-                        consumptionSum: {$gte: validPlayerProm.validPlayerConsumptionAmount},
-                        topUpTimes: {$gte: validPlayerProm.validPlayerTopUpTimes}
+        await validPlayerProm();
+
+        for (var day = 0; day <= dayCount; day++) {
+            let queryObj = {
+                platform: platform,
+                registrationTime: {
+                    $gte: new Date(time0),
+                    $lt: new Date(time1)
+                },
+                isRealPlayer: isRealPlayer,
+                isTestPlayer: isTestPlayer
+            };
+
+            let qDevice = [];
+            if(Number.isInteger(inputDeviceTypes)) {
+                console.log('here', inputDeviceTypes)
+                switch (inputDeviceTypes) {
+                    case constPlayerRegistrationInterface.BACKSTAGE:
+                        queryObj["$or"] = [
+                            {
+                                // registrationDevice: {
+                                //     $in: [
+                                //         constDevice.BACKSTAGE
+                                //     ]
+                                // }
+                                registrationDevice: constDevice.BACKSTAGE
+                            },
+                            {
+                                registrationDevice: null,
+                                registrationInterface: constPlayerRegistrationInterface.BACKSTAGE
+                            }
+                        ]
+                        break;
+                    case constPlayerRegistrationInterface.WEB_PLAYER:
+                        for (let key in constDevice) {
+                            if (key.startsWith("WEB")) {
+                                qDevice.push(constDevice[key]);
+                            }
+                        }
+
+                        queryObj["$or"] = [
+                            {
+                                registrationDevice: {
+                                    $in: qDevice
+                                }
+                            },
+                            {
+                                registrationDevice: null,
+                                registrationInterface: constPlayerRegistrationInterface.WEB_PLAYER
+                            }
+                        ]
+                        break;
+                    case constPlayerRegistrationInterface.H5_PLAYER:
+                        for (let key in constDevice) {
+                            if (key.startsWith("H5")) {
+                                qDevice.push(constDevice[key]);
+                            }
+                        }
+
+                        queryObj["$or"] = [
+                            {
+                                registrationDevice: {
+                                    $in: qDevice
+                                }
+                            },
+                            {
+                                registrationDevice: null,
+                                registrationInterface: constPlayerRegistrationInterface.H5_PLAYER
+                            }
+                        ]
+                        break;
+                    case constPlayerRegistrationInterface.APP_PLAYER:
+                        for (let key in constDevice) {
+                            if (key.startsWith("APP")) {
+                                qDevice.push(constDevice[key]);
+                            }
+                        }
+
+                        queryObj["$or"] = [
+                            {
+                                registrationDevice: {
+                                    $in: qDevice
+                                }
+                            },
+                            {
+                                registrationDevice: null,
+                                registrationInterface: {$in : [constPlayerRegistrationInterface.APP_PLAYER, constPlayerRegistrationInterface.APP_NATIVE_PLAYER]}
+                            }
+                        ]
+                        break;
+                }
+            }
+
+            if (domainList){
+                if (domainList.indexOf("") != -1){
+                    queryObj['$and'] = [
+                        {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
+                    ]
+                }
+                else{
+                    queryObj.domain = {$in: domainList};
+                }
+            }
+
+            if (hasPartner !== null){
+                if (hasPartner == true){
+                    queryObj.partner = {$type: "objectId"};
+                }else {
+                    if (queryObj.hasOwnProperty("$and")){
+                        queryObj['$and'].push({$or: [ {partner: null}, {partner: {$exists: false}} ]})
+                    }
+                    else{
+                        queryObj['$or'] = [
+                            {partner: null},
+                            {partner: {$exists: false}}
+                        ]
                     }
                 }
-                for (var day = 0; day <= dayCount; day++) {
-                    let queryObj = {
-                        platform: platform,
-                        registrationTime: {
-                            $gte: new Date(time0),
-                            $lt: new Date(time1)
-                        },
-                        isRealPlayer: isRealPlayer,
-                        isTestPlayer: isTestPlayer
-                    };
+            }
 
-                    if(inputDeviceTypes) {
-                        queryObj.registrationInterface = {$in: inputDeviceTypes};
-                    }
+            queryObj = Object.assign({}, queryObj, playerFilter);
 
-                    if (domainList){
-                        if (domainList.indexOf("") != -1){
-                            queryObj['$and'] = [
-                                {$or: [{domain: {$exists: false}}, {domain: {$in: domainList}}]}
-                            ]
-                        }
-                        else{
-                            queryObj.domain = {$in: domainList};
-                        }
-                    }
+            let prom = async function () {
+                let players = await dbconfig.collection_players.find(queryObj, {_id: 1}).read("secondaryPreferred").lean();
+                let outputFormat = {
+                    _id: time0.toString(),
+                    playerId: []
+                };
 
-                    if (hasPartner !== null){
-                        if (hasPartner == true){
-                            queryObj.partner = {$type: "objectId"};
-                        }else {
-                            if (queryObj.hasOwnProperty("$and")){
-                                queryObj['$and'].push({$or: [ {partner: null}, {partner: {$exists: false}} ]})
-                            }
-                            else{
-                                queryObj['$or'] = [
-                                    {partner: null},
-                                    {partner: {$exists: false}}
-                                ]
-                            }
-                        }
-                    }
-                    
-                    queryObj = Object.assign({}, queryObj, playerFilter);
-
-                    // todo :: remove when not use
-                    console.log('#348DD0', queryObj)
-                    dbconfig.collection_players.find(queryObj, {name: 1}).lean().then(d => {
-                        console.log('#348DD1', JSON.stringify(d, null, 2))
-                    }).catch(e => console.log('#348DD1 log err', e))
-
-                    var temp = dbconfig.collection_players.aggregate(
-                        [{
-                            $match: queryObj
-                        }, {
-                            $group: {
-                                _id: {
-                                    playerId: "$_id",
-                                }
-                            }
-                        }, {
-                            $group: {
-                                _id: time0.toString(),
-                                playerId: {
-                                    "$addToSet": "$_id.playerId"
-                                }
-                            }
-                        }]
-                    ).read("secondaryPreferred").exec();
-                    day0PlayerArrayProm.push(temp);
-                    time0.setDate(time0.getDate() + 1);
-                    time1.setDate(time1.getDate() + 1);
-
+                if (!players) {
+                    return outputFormat;
                 }
-                return Q.all(day0PlayerArrayProm).then(
-                    data => {
-                        //containing new player data on each 'day 0'
-                        for (var i in data) {
-                            if (data[i].length > 0) {
-                                day0PlayerObj[data[i][0]._id] = data[i][0].playerId
-                                    .map(a => a.toString())
-                                    .sort((a, b) => a < b ? -1 : 1);
-                            }
+
+                for (let i = 0; i < players.length; i++) {
+                    outputFormat.playerId.push(players[i]._id);
+                }
+
+                return outputFormat;
+            };
+
+            day0PlayerArrayProm.push(prom);
+            time0.setDate(time0.getDate() + 1);
+            time1.setDate(time1.getDate() + 1);
+        }
+
+        let day0Players = await Promise.all(day0PlayerArrayProm);
+
+        // registerDateIndex = index of day in date search period (e.g. in a search of 3 Jul to 7 Jul, 4th Jul is index 1, which 5th Jul is index 2)
+        // dayNo = number of day after the player had registered (e.g. a player registered at 4 Jul, the No1 will be 5Jul and No2 will be 6Jul,
+        // meanwhile player registered at 5 Jul will be 7Jul and 8Jul for their No1 and No2 respectively)
+        for (let registerDateNo in day0Players) {
+            if (day0Players[registerDateNo].length > 0) {
+                day0PlayerObj[(day0Players[registerDateNo]._id)] = day0Players[registerDateNo].playerId
+                    .map(a => a.toString())
+                    .sort((a, b) => a < b ? -1 : 1);
+            }
+        }
+
+        let dayStart = new Date(startTime);
+        let dayEnd = new Date(startTime);
+        dayEnd.setHours(23, 59, 59, 999);
+        let loginDataArrayProm = [];
+
+        for (let day = 0; day <= dayCount + days[days.length - 1]; day++) {
+            let matchObj = {
+                platform: platform,
+                loginTime: {
+                    $gte: new Date(dayStart),
+                    $lte: new Date(dayEnd)
+                }
+            };
+
+            // player registered on certain device does not necessary have to login from that particular device.
+            // if(inputDeviceTypes) {
+            //     matchObj.inputDeviceType = {$in: inputDeviceTypes};
+            // }
+
+            let prom = dbconfig.collection_playerLoginRecord.aggregate(
+                [{
+                    $match: matchObj
+                }, {
+                    $group: {
+                        _id: {
+                            playerId: "$player",
                         }
-                        var time0 = new Date(startTime);
-                        var time1 = new Date(startTime);
-                        time1.setHours(23, 59, 59, 999);
-                        var loginDataArrayProm = [];
-                        for (var day = 0; day <= dayCount + days[days.length - 1]; day++) {
-
-                            let matchObj = {
-                                platform: platform,
-                                loginTime: {
-                                    $gte: new Date(time0),
-                                    $lt: new Date(time1)
-                                }
-                            };
-
-                            // player registered on certain device does not necessary have to login from that particular device.
-                            // if(inputDeviceTypes) {
-                            //     matchObj.inputDeviceType = {$in: inputDeviceTypes};
-                            // }
-
-                            var temp = dbconfig.collection_playerLoginRecord.aggregate(
-                                [{
-                                    $match: matchObj
-
-                                }, {
-                                    $group: {
-                                        _id: {
-                                            playerId: "$player",
-                                        }
-                                    }
-                                }, {
-                                    $group: {
-                                        _id: time0.toString(),
-                                        playerId: {
-                                            "$addToSet": "$_id.playerId"
-                                        }
-                                    }
-                                }]
-                            ).read("secondaryPreferred").exec();
-                            loginDataArrayProm.push(temp);
-                            time0.setDate(time0.getDate() + 1);
-                            time1.setDate(time1.getDate() + 1);
-                        }
-                        return Q.all(loginDataArrayProm).then(
-                            data => {
-                                for (var i in data) {
-                                    console.log('#348DD4', i, JSON.stringify(data[i], null, 2))
-                                    if (data[i].length > 0) {
-                                        dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
-                                            .map(a => a.toString())
-                                            .sort((a, b) => a < b ? -1 : 1);
-                                    }
-                                }
-                                // console.log('dayNPlayerObj', dayNPlayerObj);
-                                //now computing result array
-                                var resultArr = [];
-                                for (var i = 1; i <= dayCount; i++) {
-                                    var date = new Date(startTime);
-                                    date.setDate(date.getDate() + i - 1);
-                                    // var showDate = new Date(startTime);
-                                    // showDate.setDate(showDate.getDate() + i);
-                                    var row = {date: date};
-                                    var baseArr = [];
-
-                                    if (day0PlayerObj[date]) {
-                                        row.day0 = day0PlayerObj[date].length;
-                                        baseArr = day0PlayerObj[date];
-                                    } else {
-                                        row.day0 = 0;
-                                    }
-                                    for (var day in days) {
-                                        var time = new Date(date);
-                                        time.setDate(time.getDate() + days[day]);
-                                        var num = dayNPlayerObj[time];
-                                        if (!num || (row.day0 == 0)) {
-                                            row[days[day]] = 0;
-                                        } else {
-                                            var count = 0;
-                                            for (var e in num) {
-                                                if (baseArr.indexOf(num[e]) != -1) {
-                                                    console.log('#348DD5', time, num[e])
-                                                    count++;
-                                                }
-                                            }
-                                            row[days[day]] = count;
-                                        }
-                                    }
-                                    resultArr.push(row);
-                                }
-                                return resultArr;
-                            }
-                        );
                     }
-                )
-            });
+                }, {
+                    $group: {
+                        _id: dayStart.toString(),
+                        playerId: {
+                            "$addToSet": "$_id.playerId"
+                        }
+                    }
+                }]
+            ).read("secondaryPreferred").exec();
+            loginDataArrayProm.push(prom);
+            dayStart.setDate(dayStart.getDate() + 1);
+            dayEnd.setDate(dayEnd.getDate() + 1);
+        }
+
+        let loginPlayerObjIdByDate = await Promise.all(loginDataArrayProm);
+
+        for (searchedDayNo in loginPlayerObjIdByDate) {
+            if (loginPlayerObjIdByDate[searchedDayNo].length > 0) {
+                dayNPlayerObj[loginPlayerObjIdByDate[searchedDayNo][0]._id] = loginPlayerObjIdByDate[searchedDayNo][0].playerId
+                    .map(a => a.toString())
+                    .sort((a, b) => a < b ? -1 : 1);
+            }
+        }
+
+        let resultArr = [];
+
+        // every row in the report
+        for (let i = 1; i <= dayCount; i++) {
+            let date = new Date(startTime);
+
+            date.setDate(date.getDate() + i - 1);
+
+            let row = {date: date};
+
+            let baseArr = [];
+
+            if (day0PlayerObj[date]) {
+                row.day0 = day0PlayerObj[date].length;
+                baseArr = day0PlayerObj[date];
+            } else {
+                row.day0 = 0;
+            }
+
+            // every column in the report
+            for (let day in days) {
+                let time = new Date(date);
+                time.setDate(time.getDate() + days[day]);
+
+                let num = dayNPlayerObj[time.toString()];
+
+                if (!num || (row.day0 == 0)) {
+                    row[days[day]] = 0;
+                } else {
+                    let count = 0;
+                    for (let e in num) {
+                        if (baseArr.indexOf(num[e]) != -1) {
+                            count++;
+                        }
+                    }
+                    row[days[day]] = count;
+                }
+            }
+
+            resultArr.push(row);
+
+        }
+        return resultArr;
     },
 
     getClientSourceQuery: function (data, isRealPlayer, isTestPlayer, hasPartner) {
