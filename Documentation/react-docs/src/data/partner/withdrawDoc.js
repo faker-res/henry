@@ -101,9 +101,9 @@ let withdraw = {
             functionName: "partnerCreditToPlayer",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "Date Time", content: "开始时间" },
-                { param: "partnerId", mandatory: "是", type: "Date Time", content: "结束时间" },
-                { param: "targetList", mandatory: "否", type: "String", content: `转账明细数组
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
+                { param: "targetList", mandatory: "否", type: "Array Object", content: `转账明细数组
                                                                                         [{
                                                                                             username: 'String' | 玩家账号 - 必填
                                                                                             amount: int

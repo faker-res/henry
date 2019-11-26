@@ -360,9 +360,6 @@ const sampleData = {
    "data": "abc"
 }`,
 
-    turnUrlToQr: `{
-    // Base64编码的QR图像
-}`,
 }
 let information = {
     name:"平台设置/信息",
@@ -374,7 +371,7 @@ let information = {
             desc: "备注: 调用结果以json格式返回",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
-                { param: "reach", mandatory: "否", type: "String", content: "返回对应类型的公告，默认返回所有, players：玩家 partner：代理，conditional：定制" }
+                { param: "reach", mandatory: "否", type: "String", content: "返回对应类型的公告，默认返回所有。\nplayers：玩家 partner：代理，conditional：定制" }
             ],
             respondSuccess:{
                 status: 200,
@@ -398,7 +395,7 @@ let information = {
                 data: sampleData.getPlatformDetails
             },
             respondFailure: {
-                status: 200,
+                status: '40x',
                 data: "null"
             }
         },
@@ -627,7 +624,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: sampleData.turnUrlToQr
+                data: `"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIQAAACECAYAAABRR..."  // Base64编码的QR图像`
             },
             respondFailure: {
                 status: "4xx",
