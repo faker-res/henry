@@ -190,7 +190,6 @@ var dbPlatformGameGroup = {
                     var pltGameStatusArr = pltGameStatusData;
 
                     //remove all null games and filter game by providerId
-                    console.log("checking ---- gameGroup.games.length 1", [gameGroup && gameGroup.games ? gameGroup.games.length : 0, query.code])
                     gameGroup.games = gameGroup.games.filter(game => {
                         if (!game.game) {
                             return false;
@@ -203,7 +202,6 @@ var dbPlatformGameGroup = {
                         }
                         return true;
                     });
-                    console.log("checking ---- gameGroup.games.length 2", [gameGroup && gameGroup.games ? gameGroup.games.length : 0, query.code])
                     for (var i = 0; i < gameGroup.games.length; i++) {
                         var game = gameGroup.games[i].game;
                         if (game) {
@@ -273,7 +271,6 @@ var dbPlatformGameGroup = {
                     );
                     gameGroup.games = gameGroup.games.slice(startIndex, startIndex + count);
                 }
-                console.log("checking ---- gameGroup.games.length 3", [gameGroup && gameGroup.games ? gameGroup.games.length : 0, query.code])
                 return dbPlatformGameGroup.checkFavoriteGames(playerId, gameGroup.games);
             }
         ).then(
@@ -305,7 +302,6 @@ var dbPlatformGameGroup = {
             }
         ).then(
             games => {
-                console.log("checking ---- games 5", [games ? games.length: 0, query.code ])
                 gameGroup.games = {
                     stats: gameGroup.stats,
                     gameList: games
@@ -348,7 +344,6 @@ var dbPlatformGameGroup = {
                             //     }
                             // )
                         }
-                        console.log("checking ---- games 6", [gameGroup && gameGroup.games && gameGroup.games.gameList? gameGroup.games.gameList.length: 0, query.code ])
                         return gameGroup;
                     }
                 );
@@ -431,9 +426,7 @@ var dbPlatformGameGroup = {
                         }
                     );
                     if (code) {
-                        console.log("checking --- code", code )
                         var resGroup = groups.find(group => group.code == code);
-                        console.log("checking --- resGroup",resGroup)
                         return {
                             stats: {
                                 totalCount: resGroup ? 1 : 0,
