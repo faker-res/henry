@@ -26887,19 +26887,22 @@ let dbPlayerInfo = {
 
                     console.log('LK checking bill board query', matchQuery);
                     // sometimes the sort method won't work, added .sort when find record from db to guarantee the record is sorted by amount in decending ( large to samll )
-                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).sort({amount: -1}).then(
+                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).lean().then(
                         summaryRecord => {
                             if(summaryRecord && summaryRecord.length){
-                                console.log('LK checking bill board summary Record', summaryRecord);
                                 for(var i = 0; i < summaryRecord.length; i++){
                                     if(summaryRecord[i].name){
                                         summaryRecord[i].name = censoredPlayerName(summaryRecord[i].name);
                                     }
                                 }
+
+                                // force sort and slice
+                                summaryRecord = summaryRecord.sort((a, b) => Number(b.amount) - Number(a.amount));
+                                summaryRecord = summaryRecord.slice(0, recordCount);
+
                                 returnData.allWin = {};
-                                console.log('summary..', summaryRecord);
                                 returnData.allWin.boardRanking = summaryRecord;
-                                console.log('return data..',returnData.allWin);
+
                                 return returnData;
                             }
                         }
