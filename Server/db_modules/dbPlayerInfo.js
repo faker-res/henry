@@ -23987,9 +23987,6 @@ let dbPlayerInfo = {
             startTime = dbUtil.getDayStartTime(startTime);
             endTime = dbUtil.getDayEndTime(endTime);
 
-            console.log('getPlayerRecordFromSummary startTime', startTime);
-            console.log('getPlayerRecordFromSummary endTime', endTime);
-
             let playerQuery = {_id: {$in: playerObjId}};
             if (query.playerLevel) {
                 playerQuery.playerLevel = query.playerLevel;
@@ -24289,8 +24286,8 @@ let dbPlayerInfo = {
                         result.bonusTimes += gameRecord.bonusTimes || 0;
 
                         // reward detail
-                        result.consumptionReturnAmount = gameRecord.consumptionReturnAmount || 0;
-                        result.rewardAmount = gameRecord.rewardAmount || 0;
+                        result.consumptionReturnAmount += gameRecord.consumptionReturnAmount || 0;
+                        result.rewardAmount += gameRecord.rewardAmount || 0;
 
                         // platform fee detail
                         if (showPlatformFeeEstimate) {
