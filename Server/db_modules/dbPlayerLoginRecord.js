@@ -809,10 +809,11 @@ var dbPlayerLoginRecord = {
 
             queryObj = Object.assign({}, queryObj, playerFilter);
 
+            let dayStart = new Date(time0);
             let prom = async function () {
                 let players = await dbconfig.collection_players.find(queryObj, {_id: 1}).read("secondaryPreferred").lean();
                 let outputFormat = {
-                    _id: time0.toString(),
+                    _id: new Date(dayStart).toString(),
                     playerId: []
                 };
 
@@ -827,7 +828,7 @@ var dbPlayerLoginRecord = {
                 return outputFormat;
             };
 
-            day0PlayerArrayProm.push(prom);
+            day0PlayerArrayProm.push(prom());
             time0.setDate(time0.getDate() + 1);
             time1.setDate(time1.getDate() + 1);
         }
@@ -838,7 +839,7 @@ var dbPlayerLoginRecord = {
         // dayNo = number of day after the player had registered (e.g. a player registered at 4 Jul, the No1 will be 5Jul and No2 will be 6Jul,
         // meanwhile player registered at 5 Jul will be 7Jul and 8Jul for their No1 and No2 respectively)
         for (let registerDateNo in day0Players) {
-            if (day0Players[registerDateNo].length > 0) {
+            if (day0Players[registerDateNo]["playerId"].length > 0) {
                 day0PlayerObj[(day0Players[registerDateNo]._id)] = day0Players[registerDateNo].playerId
                     .map(a => a.toString())
                     .sort((a, b) => a < b ? -1 : 1);
