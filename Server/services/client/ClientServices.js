@@ -232,6 +232,7 @@
                 "requestBankTypeByUserName",
                 "getMinMaxCommonTopupAmount",
                 "createCommonTopupProposal",
+                "createFixedTopupProposal",
                 "createFKPTopupProposal",
                 "applyFKPWithdraw",
                 "getPlayerConsumptionSum",
