@@ -104,6 +104,7 @@ class Home extends Component {
                     key = "guide"
                     title = {this.state.displayList.name}
                     desc = {this.state.displayList.text}
+                    exampleCode = {this.state.displayList.exampleCode}
                 />
             );
         } else if (curTab === "definition") {

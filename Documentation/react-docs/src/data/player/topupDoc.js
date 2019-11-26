@@ -57,7 +57,7 @@ getMinMaxCommonTopupAmount: `{
     minDepositAmount: 最低充值额
     maxDepositAmount: 最高充值额
 }`,
-    
+
 }
 
 /*
@@ -266,6 +266,33 @@ let topup = {
             },
             respondFailure: {
                 status: "4xx",
+            }
+        },
+        createFixedTopupProposal: {
+            title: "（固定额度充值接口）创建充值提案",
+            serviceName: "player",
+            functionName: "createFixedTopupProposal",
+            desc: `玩家选择固定金额后提交，通过此接口生成提案后发给PMS，PMS返回链接，系统返回跳转链接。\n需登入。`,
+            requestContent: [
+                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
+                { param: "topUpType", mandatory: "是", type: "Int", content: "充值方式" },
+                { param: "depositMethod", mandatory: "是", type: "Int", content: "次级充值方式" },
+                { param: "amount", mandatory: "是", type: "Int", content: "充值金额" },
+                { param: "clientType", mandatory: "是", type: "Int", content: `客户端类型：
+                                                                                1-- Web 电脑端
+                                                                                2-- H5 手机端（包括：包壳APP）
+                                                                                4-- APP APP端 (原生APP)` },
+                { param: "bonusCode", mandatory: "否", type: "Int", content: "优惠代码" },
+                { param: "limitedOfferObjId", mandatory: "否", type: "String", content: "指定充值应用于哪个秒杀礼包" },
+                { param: "topUpReturnCode", mandatory: "否", type: "String", content: "指定充值应用于哪个秒存送金" },
+            ],
+            respondSuccess: {
+                status: 200,
+                data: '"http://url" //跳转链接'
+            },
+            respondFailure: {
+                status: "4xx",
+                errorMessage: '"" //详细错误信息'
             }
         },
 
