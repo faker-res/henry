@@ -731,6 +731,12 @@ var dbPlayerLoginRecord = {
                     
                     queryObj = Object.assign({}, queryObj, playerFilter);
 
+                    // todo :: remove when not use
+                    console.log('#348DD0', queryObj)
+                    dbconfig.collection_players.find(queryObj, {name: 1}).lean().then(d => {
+                        console.log('#348DD1', JSON.stringify(d, null, 2))
+                    }).catch(e => console.log('#348DD1 log err', e))
+
                     var temp = dbconfig.collection_players.aggregate(
                         [{
                             $match: queryObj
@@ -778,9 +784,10 @@ var dbPlayerLoginRecord = {
                                 }
                             };
 
-                            if(inputDeviceTypes) {
-                                matchObj.inputDeviceType = {$in: inputDeviceTypes};
-                            }
+                            // player registered on certain device does not necessary have to login from that particular device.
+                            // if(inputDeviceTypes) {
+                            //     matchObj.inputDeviceType = {$in: inputDeviceTypes};
+                            // }
 
                             var temp = dbconfig.collection_playerLoginRecord.aggregate(
                                 [{
@@ -808,6 +815,7 @@ var dbPlayerLoginRecord = {
                         return Q.all(loginDataArrayProm).then(
                             data => {
                                 for (var i in data) {
+                                    console.log('#348DD4', i, JSON.stringify(data[i], null, 2))
                                     if (data[i].length > 0) {
                                         dayNPlayerObj[data[i][0]._id] = data[i][0].playerId
                                             .map(a => a.toString())
@@ -841,6 +849,7 @@ var dbPlayerLoginRecord = {
                                             var count = 0;
                                             for (var e in num) {
                                                 if (baseArr.indexOf(num[e]) != -1) {
+                                                    console.log('#348DD5', time, num[e])
                                                     count++;
                                                 }
                                             }

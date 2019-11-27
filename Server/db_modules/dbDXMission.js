@@ -1001,13 +1001,19 @@ let dbDXMission = {
         }
 
        // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort({createTime: -1}).lean();
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery, {playerObjId: 1, platform: 1, dxMission: 1, createTime: 1, url: 1, remark: 1, phoneNumber: 1})
+            .populate({
+                path: "playerObjId",
+                model: dbconfig.collection_players,
+                select: 'name topUpTimes loginTimes'
+            }).sort({createTime: -1}).lean();
             //.sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
 
         return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
             result => {
+
                 if(result){
                     //let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[0] ? result[0] : {};
@@ -1018,6 +1024,7 @@ let dbDXMission = {
                         return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission), data.lastSendingStartTime, data.lastSendingEndTime).then( smsLog => {
                             if (smsLog && smsLog.length > 0){
                                 let smsLogDetail = {};
+
                                 smsLog.forEach( data => {
                                     if (data){
                                         smsLogDetail[data.phoneNumber] = data;
@@ -1313,16 +1320,10 @@ let dbDXMission = {
     },
 
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId, lastSendingStartTime, lastSendingEndTime) {
-        let regexPhoneNoList = [];
         let smsLogReturnedObj = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
 
-            dxPhoneData.forEach (data => {
-                regexPhoneNoList.push(new RegExp(data.phoneNumber.trim()));
-            });
-
             let findQuery = {
-                tel: {$in: regexPhoneNoList},
                 "data.dxMission": dxMissionObjId,
                 status: "success"
             };
@@ -1330,6 +1331,7 @@ let dbDXMission = {
             if (lastSendingStartTime && lastSendingEndTime){
                 findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
             }
+
             return dbconfig.collection_smsLog.aggregate(
                 {
                     $match: findQuery
@@ -1341,8 +1343,9 @@ let dbDXMission = {
                         count: {$sum: 1},
                     }
                 }
-            ).then(
+            ).read("secondaryPreferred").then(
                 smsLog => {
+
                     dxPhoneData.forEach(data => {
                         let returnedData = {};
                         let indexNo = smsLog.findIndex(s => s._id.phoneNumber == data.phoneNumber.trim());

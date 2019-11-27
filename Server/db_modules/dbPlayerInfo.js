@@ -5139,6 +5139,10 @@ let dbPlayerInfo = {
                                         && (proposal.status === "Rejected" || proposal.status === "Cancel")
                                         && creditChangeLog.operationTime >= proposal.createTime;
                                 }
+                                // if unlock from free provider, it must be related to the most recent top-up record
+                                else if (creditChangeLog && creditChangeLog.operationType && creditChangeLog.operationType == 'Free amount:unlock' && !creditChangeLog.data.providerGroup) {
+                                    return proposal.mainType && proposal.mainType == 'TopUp' && creditChangeLog.operationTime >= proposal.createTime
+                                }
                                 else {
                                     return proposal.data.requestId === creditChangeLog.data.requestId
                                         && creditChangeLog.operationTime >= proposal.createTime;
@@ -7422,9 +7426,14 @@ let dbPlayerInfo = {
         let isSMSVerified = false;
         let isRegister = false;
         let rejectMsg = {
-            status: constServerCode.VALIDATION_CODE_INVALID,
+            status: constServerCode.VALIDATION_CODE_EXPIRED,
             name: "ValidationError",
             message: "Invalid SMS Validation Code"
+        };
+        let rejectMsg2 = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Incorrect SMS Validation Code"
         };
 
         // Check matched verification code
@@ -7686,7 +7695,7 @@ let dbPlayerInfo = {
                                 {_id: verificationSMS._id},
                                 {$inc: {loginAttempts: 1}}
                             ).then(() => {
-                                return Q.reject(rejectMsg);
+                                return Q.reject(rejectMsg2);
                             });
                         }
                     }
@@ -12474,7 +12483,7 @@ let dbPlayerInfo = {
                                             let promResolve = Promise.resolve();
 
                                             if (!userAgent && playerObj && playerObj.loginDevice) {
-                                                let device = playerObj.loginDevice.substring(0,1);
+                                                let device = String(playerObj.loginDevice).substring(0,1);
 
                                                 if (device) {
                                                     switch (Number(device)) {
@@ -19745,7 +19754,7 @@ let dbPlayerInfo = {
         );
     },
 
-    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment) => {
+    updatePlayerCredibilityRemark: (adminName, platformObjId, playerObjId, remarks, comment, changedRemarks) => {
         // Avoid assigning empty remarks
         if (!remarks) {
             return;
@@ -19761,7 +19770,7 @@ let dbPlayerInfo = {
             }
         ).lean().then(
             playerData => {
-                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, remarks, comment);
+                dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, changedRemarks, comment);
                 // dbPlayerCredibility.calculatePlayerValue(playerData._id);
                 return playerData;
             }
@@ -23214,7 +23223,6 @@ let dbPlayerInfo = {
     },
 
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option = {}, isPromoteWay, customStartTime, customEndTime, startT, endT) {
-        console.log('Consumption query', query);
         console.log('getConsumptionDetailOfPlayers - start', playerObjIds.length);
         option = option || {};
         let proposalType = [];
@@ -23254,7 +23262,9 @@ let dbPlayerInfo = {
                                                 qEndTime = customEndTime;
                                             }
 
-                                            return getPlayerRecord([id], qStartTime, qEndTime, playerData.domain, true);
+                                            return query.isUseSummary
+                                                ? getPlayerRecordFromSummary([id], qStartTime, qEndTime, null, true)
+                                                : getPlayerRecord([id], qStartTime, qEndTime, null, true)
                                         }
                                     )
                                 })
@@ -23271,23 +23281,25 @@ let dbPlayerInfo = {
                                         }).lean();
                                     let qStartTime = new Date(playerFeedBackData.createTime);
                                     let qEndTime = query.days ? moment(qStartTime).add(query.days, 'day') : new Date();
+
                                     if (customStartTime && customEndTime) {
                                         qStartTime = customStartTime;
                                         qEndTime = customEndTime;
                                     }
 
-                                    let retData = await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true);
+                                    let retData = query.isUseSummary
+                                        ? await getPlayerRecordFromSummary(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+                                        : await getPlayerRecord(playerFeedBackData.playerId, qStartTime, qEndTime, null, true)
+
                                     if (retData && retData[0]) {
                                         retData[0].feedback = playerFeedBackData;
                                     }
 
                                     return retData;
-                                    // return [];
                                 })
                             );
                         }
                         else {
-
                             return getPlayerRecord(playerObjIds, new Date(startTime), new Date(endTime), option, true);
                         }
                     },
@@ -23451,7 +23463,7 @@ let dbPlayerInfo = {
                 model: dbconfig.collection_playerCredibilityRemark,
                 select: "_id name"
             }).lean();
-            console.log('player data', playerData);
+
             if (!playerData) {
                 return "";
             }
@@ -23955,6 +23967,524 @@ let dbPlayerInfo = {
                             })
                         }
                     }
+
+                    console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning');
+                    retArr.push(result);
+                })
+
+                return retArr;
+            }
+        }
+
+        async function getPlayerRecordFromSummary(playerObjId, startTime, endTime, option, showPlatformFeeEstimate) {
+            let onlineTopUpTypeId = "";
+            let manualTopUpTypeId = "";
+            let weChatTopUpTypeId = "";
+            let aliPayTopUpTypeId = "";
+            let consumptionReturnTypeId = "";
+
+            // Get summary start and end time
+            startTime = dbUtil.getDayStartTime(startTime);
+
+            if (!dbUtil.isSharpTime(endTime)) {
+                endTime = dbUtil.getDayEndTime(endTime);
+            }
+
+            let playerQuery = {_id: {$in: playerObjId}};
+            if (query.playerLevel) {
+                playerQuery.playerLevel = query.playerLevel;
+            }
+            if (query.credibilityRemarks && query.credibilityRemarks.length !== 0) {
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.credibilityRemarks.forEach(remark => {
+                    if (remark == "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(remark);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.credibilityRemarks = {$in: query.credibilityRemarks};
+                }
+            }
+            if (query.hasOwnProperty('isRealPlayer')) {
+                playerQuery.isRealPlayer = query.isRealPlayer;
+            }
+            if (query.hasOwnProperty('partner')) {
+                playerQuery.partner = query.partner;
+            }
+
+            if(query.hasOwnProperty('searchTime') || query.hasOwnProperty('searchEndTime')){
+                if(!query.days){
+                    startTime = query.searchTime;
+                    endTime = query.searchEndTime;
+                }
+            }
+
+            // Player Score Query Operator
+            if ((query.playerScoreValue || Number(query.playerScoreValue) === 0) && query.playerScoreValue !== null) {
+                switch (query.valueScoreOperator) {
+                    case '>=':
+                        playerQuery.valueScore = {$gte: query.playerScoreValue};
+                        break;
+                    case '=':
+                        playerQuery.valueScore = {$eq: query.playerScoreValue};
+                        break;
+                    case '<=':
+                        playerQuery.valueScore = {$lte: query.playerScoreValue};
+                        break;
+                    case 'range':
+                        if (query.playerScoreValueTwo) {
+                            playerQuery.valueScore = {$gte: query.playerScoreValue, $lte: query.playerScoreValueTwo};
+                        }
+                        break;
+                }
+            }
+
+            if (query.depositTrackingGroup && query.depositTrackingGroup.length !== 0) {
+                let tempArr = [];
+                let isNoneExist = false;
+
+                query.depositTrackingGroup.forEach(group => {
+                    if (group === "") {
+                        isNoneExist = true;
+                    } else {
+                        tempArr.push(group);
+                    }
+                });
+
+                if (isNoneExist && tempArr.length > 0) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}, {depositTrackingGroup: {$in: tempArr}}];
+                } else if (isNoneExist && !tempArr.length) {
+                    playerQuery.$or = [{depositTrackingGroup: []}, {depositTrackingGroup: {$exists: false}}];
+                } else if (tempArr.length > 0 && !isNoneExist) {
+                    playerQuery.depositTrackingGroup = {$in: query.depositTrackingGroup};
+                }
+            }
+
+            let playerData = await dbconfig.collection_players.find(
+                playerQuery, {
+                    playerLevel: 1,
+                    credibilityRemarks: 1,
+                    name: 1,
+                    valueScore: 1,
+                    registrationTime: 1,
+                    accAdmin: 1,
+                    promoteWay: 1,
+                    phoneProvince: 1,
+                    phoneCity: 1,
+                    province: 1,
+                    city: 1,
+                    depositTrackingGroup: 1,
+                    csOfficer: 1,
+                    lastAccessTime: 1,
+                    realName: 1,
+                    domain: 1,
+                    registrationDevice: 1,
+                    registrationInterface: 1,
+                    guestDeviceId: 1,
+                    deviceId: 1
+                }
+            ).populate({
+                path: 'csOfficer',
+                model: dbconfig.collection_admin
+            }).populate({
+                path: 'playerLevel',
+                model: dbconfig.collection_playerLevel,
+                select: "_id name"
+            }).populate({
+                path: 'credibilityRemarks',
+                model: dbconfig.collection_playerCredibilityRemark,
+                select: "_id name"
+            }).lean();
+
+            if (!playerData) {
+                return "";
+            }
+            let playerObjIds = playerData.map(e => e._id);
+            let consumptionPromMatchObj = {
+                playerId: {$in: playerObjIds},
+                createTime: {
+                    $gte: new Date(startTime),
+                    $lt: new Date(endTime)
+                },
+                isDuplicate: {$ne: true}
+            };
+
+            query.providerId ? consumptionPromMatchObj.providerId = ObjectId(query.providerId) : false;
+
+            if (query.loginDevice && query.loginDevice.length) {
+                consumptionPromMatchObj.loginDevice = {$in: query.loginDevice};
+            }
+
+            for (let i = 0, len = proposalType.length; i < len; i++) {
+                let proposalTypeObj = proposalType[i];
+                if (proposalTypeObj.name === constProposalType.PLAYER_TOP_UP) {
+                    onlineTopUpTypeId = proposalTypeObj._id.toString();
+                }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_MANUAL_TOP_UP) {
+                    manualTopUpTypeId = proposalTypeObj._id.toString();
+                }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_WECHAT_TOP_UP) {
+                    weChatTopUpTypeId = proposalTypeObj._id.toString();
+                }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_ALIPAY_TOP_UP) {
+                    aliPayTopUpTypeId = proposalTypeObj._id.toString();
+                }
+                else if (proposalTypeObj.name === constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                    consumptionReturnTypeId = proposalTypeObj._id.toString();
+                }
+            }
+
+            //use summary
+            let summaryProm = dbconfig.collection_playerReportDataDaySummary.find({
+                playerId: {$in: playerObjIds},
+                date: {$gte: startTime, $lt: endTime}
+            }).lean();
+
+            // Promise domain CS and promote way
+            let filteredDomain = dbUtility.filterDomainName(playerData.domain);
+            let promoteWayProm = filteredDomain ?
+                dbconfig.collection_csOfficerUrl.findOne({
+                    platform: platformObjId,
+                    domain: filteredDomain
+                }).populate({
+                    path: 'admin',
+                    model: dbconfig.collection_admin
+                }).lean() : Promise.resolve(false);
+
+            let feeProm = dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+                path: 'platformFee.gameProvider',
+                model: dbconfig.collection_gameProvider
+            }).lean();
+
+            let [players, summaryDetail, csOfficerDetail, feeDetail] = await Promise.all([
+                Promise.resolve(playerData), summaryProm, promoteWayProm, feeProm]);
+
+            if (players && players.length) {
+                let retArr = [];
+
+                players.map(playerDetail => {
+                    let result = {_id: playerDetail._id};
+
+                    // recalculate player value
+                    // I don't think we really need to calculate the player value here
+                    // dbPlayerCredibility.calculatePlayerValue(playerDetail._id).catch(errorUtils.reportError);
+
+                    // player related
+                    if (playerDetail.credibilityRemarks && playerDetail.credibilityRemarks.length) {
+                        result.credibilityRemarks = playerDetail.credibilityRemarks.map(e => e && e._id);
+                        result.credibilityRemarksName = playerDetail.credibilityRemarks.reduce((i, n, idx, arr) => {
+                            if (n && n.name) {
+                                if (arr.length === idx + 1) {
+                                    return i += n.name
+                                } else {
+                                    return i += n.name + "\n"
+                                }
+                            } else {
+                                return i;
+                            }
+                        }, "");
+                    }
+                    if (playerDetail.playerLevel) {
+                        result.playerLevel = playerDetail.playerLevel._id;
+                        result.playerLevelName = playerDetail.playerLevel.name;
+                    }
+                    result.name = playerDetail.name;
+                    result.valueScore = playerDetail.valueScore;
+                    result.registrationTime = playerDetail.registrationTime;
+                    result.depositTrackingGroup = playerDetail.depositTrackingGroup;
+                    result.endTime = endTime;
+                    result.lastAccessTime = playerDetail.lastAccessTime;
+                    result.realName = playerDetail.realName;
+
+                    result.gameDetail = summaryDetail.filter(e => String(e.playerId) === String(playerDetail._id));
+                    result.consumptionTimes = 0;
+                    result.consumptionAmount = 0;
+                    result.validConsumptionAmount = 0;
+                    result.consumptionBonusAmount = 0;
+
+                    // proposal related
+                    result.topUpAmount = 0;
+                    result.topUpTimes = 0;
+                    result.onlineTopUpAmount = 0;
+                    result.manualTopUpAmount = 0;
+                    result.weChatTopUpAmount = 0;
+                    result.aliPayTopUpAmount = 0;
+                    result.onlineTopUpFeeDetail = [];
+                    result.totalOnlineTopUpFee = 0;
+                    result.bonusAmount = 0;
+                    result.bonusTimes = 0;
+
+                    // reward related
+                    result.rewardAmount = 0;
+                    result.consumptionReturnAmount = 0;
+
+                    let providerDetail = {};
+                    let providerNameArr = [];
+                    let providerNames = "";
+
+                    for (let i = 0, len = result.gameDetail.length; i < len; i++) {
+                        let gameRecord = result.gameDetail[i];
+
+                        if (gameRecord && gameRecord.providerDetail) {
+                            Object.keys(gameRecord.providerDetail).forEach(provider => {
+                                if (providerNameArr.findIndex(p => p === provider) === -1) {
+                                    providerNameArr.push(provider);
+
+                                    // if (len > i + 1) {
+                                    //     providerNames += gameRecord.providerId.name + '\n';
+                                    // } else {
+                                    //     providerNames += gameRecord.providerId.name;
+                                    // }
+                                    providerNames += provider + '\n';
+                                }
+
+                                if (!providerDetail.hasOwnProperty(provider)) {
+                                    providerDetail[provider] = {
+                                        count: 0,
+                                        amount: 0,
+                                        validAmount: 0,
+                                        bonusAmount: 0
+                                    };
+                                }
+
+                                providerDetail[provider].count += gameRecord.providerDetail[provider].count;
+                                providerDetail[provider].amount += gameRecord.providerDetail[provider].amount;
+                                providerDetail[provider].validAmount += gameRecord.providerDetail[provider].validAmount;
+                                providerDetail[provider].bonusAmount += gameRecord.providerDetail[provider].bonusAmount;
+                                providerDetail[provider].bonusRatio = (providerDetail[provider].bonusAmount / providerDetail[provider].validAmount);
+                            })
+                        }
+
+                        gameRecord.bonusRatio = (gameRecord.consumptionBonusAmount / gameRecord.consumptionValidAmount);
+
+                        result.consumptionTimes += gameRecord.consumptionTimes;
+                        result.consumptionAmount += gameRecord.consumptionAmount;
+                        result.validConsumptionAmount += gameRecord.consumptionValidAmount;
+                        result.consumptionBonusAmount += gameRecord.consumptionBonusAmount;
+
+                        // top up detail
+                        result.onlineTopUpAmount += gameRecord.onlineTopUpAmount || 0;
+                        result.totalOnlineTopUpFee += Number(gameRecord.totalOnlineTopUpFee) || 0;
+                        result.onlineTopUpFeeDetail.push(gameRecord.onlineTopUpFeeDetail);
+                        result.manualTopUpAmount += gameRecord.manualTopUpAmount || 0;
+                        result.weChatTopUpAmount += gameRecord.wechatpayTopUpAmount || 0;
+                        result.aliPayTopUpAmount += gameRecord.alipayTopUpAmount || 0;
+                        result.topUpAmount += (
+                            gameRecord.onlineTopUpAmount || 0
+                            + gameRecord.manualTopUpAmount || 0
+                            + gameRecord.wechatpayTopUpAmount || 0
+                            + gameRecord.alipayTopUpAmount || 0
+                        );
+                        result.topUpTimes += gameRecord.topUpTimes;
+                        result.bonusAmount += gameRecord.bonusAmount || 0;
+                        result.bonusTimes += gameRecord.bonusTimes || 0;
+
+                        // reward detail
+                        result.consumptionReturnAmount += gameRecord.consumptionReturnAmount || 0;
+                        result.rewardAmount += gameRecord.rewardAmount || 0;
+
+                        // platform fee detail
+                        if (showPlatformFeeEstimate) {
+                            result.platformFeeEstimate = {};
+                            result.totalPlatformFeeEstimate = 0;
+
+                            if (result.providerDetail && Object.keys(result.providerDetail).length && feeDetail && feeDetail.platformFee && feeDetail.platformFee.length) {
+                                feeDetail.platformFee.forEach(provider => {
+                                    if (provider.gameProvider && provider.gameProvider._id && result.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                                        let gameProviderName = String(provider.gameProvider.name);
+                                        result.platformFeeEstimate[gameProviderName] = (result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                                        if (result.platformFeeEstimate[gameProviderName] < 0) {
+                                            result.platformFeeEstimate[gameProviderName] = 0;
+                                        }
+                                        if (result.consumptionBonusAmount <= 0) {
+                                            result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    }
+
+                    result.consumptionBonusRatio = (result.consumptionBonusAmount / result.consumptionBonusRatio);
+                    result.providerDetail = providerDetail;
+                    result.providerNames = providerNames;
+
+                    // filter irrelevant result base on query
+                    if (query.providerId && !providerDetail[query.providerId]) {
+                        return "";
+                    }
+
+                    if ((query.consumptionTimesValue || Number(query.consumptionTimesValue) === 0) && query.consumptionTimesOperator) {
+                        let relevant = true;
+                        switch (query.consumptionTimesOperator) {
+                            case '>=':
+                                relevant = result.consumptionTimes >= query.consumptionTimesValue;
+                                break;
+                            case '=':
+                                relevant = result.consumptionTimes == query.consumptionTimesValue;
+                                break;
+                            case '<=':
+                                relevant = result.consumptionTimes <= query.consumptionTimesValue;
+                                break;
+                            case 'range':
+                                if (query.consumptionTimesValueTwo) {
+                                    relevant = result.consumptionTimes >= query.consumptionTimesValue && result.consumptionTimes <= query.consumptionTimesValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!relevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.profitAmountValue || Number(query.profitAmountValue) === 0) && query.profitAmountOperator) {
+                        let relevant = true;
+                        switch (query.profitAmountOperator) {
+                            case '>=':
+                                relevant = result.consumptionBonusAmount >= query.profitAmountValue;
+                                break;
+                            case '=':
+                                relevant = result.consumptionBonusAmount == query.profitAmountValue;
+                                break;
+                            case '<=':
+                                relevant = result.consumptionBonusAmount <= query.profitAmountValue;
+                                break;
+                            case 'range':
+                                if (query.profitAmountValueTwo) {
+                                    relevant = result.consumptionBonusAmount >= query.profitAmountValue && result.consumptionBonusAmount <= query.profitAmountValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!relevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.topUpTimesValue || Number(query.topUpTimesValue) === 0) && query.topUpTimesOperator && query.topUpTimesValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.topUpTimesOperator) {
+                            case '>=':
+                                isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                break;
+                            case '=':
+                                isRelevant = result.topUpTimes === Number(query.topUpTimesValue);
+                                break;
+                            case '<=':
+                                isRelevant = result.topUpTimes >= query.topUpTimesValue;
+                                break;
+                            case 'range':
+                                if (query.topUpTimesValueTwo) {
+                                    isRelevant = result.topUpTimes >= query.topUpTimesValue && result.topUpTimes <= query.topUpTimesValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.bonusTimesValue || Number(query.bonusTimesValue) === 0) && query.bonusTimesOperator && query.bonusTimesValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.bonusTimesOperator) {
+                            case '>=':
+                                isRelevant = result.bonusTimes >= query.bonusTimesValue;
+                                break;
+                            case '=':
+                                isRelevant = result.bonusTimes === Number(query.bonusTimesValue);
+                                break;
+                            case '<=':
+                                isRelevant =  result.bonusTimes <= query.bonusTimesValue;
+                                break;
+                            case 'range':
+                                if (query.bonusTimesValueTwo) {
+                                    isRelevant = result.bonusTimes >= query.bonusTimesValue && result.bonusTimes <= query.bonusTimesValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    if ((query.topUpAmountValue || Number(query.topUpAmountValue) === 0) && query.topUpAmountOperator && query.topUpAmountValue !== null) {
+                        let isRelevant = false;
+
+                        switch (query.topUpAmountOperator) {
+                            case '>=':
+                                isRelevant = result.topUpAmount >= query.topUpAmountValue;
+                                break;
+                            case '=':
+                                isRelevant = result.topUpAmount === Number(query.topUpAmountValue);
+                                break;
+                            case '<=':
+                                isRelevant = result.topUpAmount <= query.topUpAmountValue;
+                                break;
+                            case 'range':
+                                if (query.topUpAmountValueTwo) {
+                                    isRelevant = result.topUpAmount >= query.topUpAmountValue && result.topUpAmount <= query.topUpAmountValueTwo;
+                                }
+                                break;
+                        }
+
+                        if (!isRelevant) {
+                            return "";
+                        }
+                    }
+
+                    // related admin
+                    if (playerDetail.accAdmin) {
+                        result.csOfficer = playerDetail.accAdmin;
+                    }
+                    else if (playerDetail.csOfficer) {
+                        result.csOfficer = playerDetail.csOfficer.adminName || "";
+                    }
+                    else if (csOfficerDetail) {
+                        result.csOfficer = csOfficerDetail.admin ? csOfficerDetail.admin.adminName : "";
+                        // result.csPromoteWay = csOfficerDetail.way;
+                    }
+
+                    if (playerDetail && playerDetail.promoteWay) {
+                        result.csPromoteWay = playerDetail.promoteWay;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationDevice')){
+                        result.registrationDevice = playerDetail.registrationDevice;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('registrationInterface')){
+                        result.registrationInterface = playerDetail.registrationInterface;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('guestDeviceId')){
+                        result.guestDeviceId = playerDetail.guestDeviceId;
+                    }
+
+                    if (playerDetail && playerDetail.hasOwnProperty('deviceId')){
+                        result.deviceId = playerDetail.deviceId;
+                    }
+
+                    result.phoneProvince = playerDetail.phoneProvince ? playerDetail.phoneProvince : null;
+                    result.phoneCity = playerDetail.phoneCity ? playerDetail.phoneCity : null;
+                    result.province = playerDetail.province ? playerDetail.province : null;
+                    result.city = playerDetail.city ? playerDetail.city : null;
+                    result.registrationDevice = playerDetail.registrationDevice ? playerDetail.registrationDevice : null;
+
+
 
                     console.log('getConsumptionDetailOfPlayers getPlayerRecord - returning');
                     retArr.push(result);
@@ -26356,19 +26886,23 @@ let dbPlayerInfo = {
                     }
 
                     console.log('LK checking bill board query', matchQuery);
-                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).then(
+                    // sometimes the sort method won't work, added .sort when find record from db to guarantee the record is sorted by amount in decending ( large to samll )
+                    return dbconfig.collection_playerTopUpHourSummary.find(matchQuery, {amount: 1, rank: 1, name: 1, providerName: 1, gameName: 1}).lean().then(
                         summaryRecord => {
                             if(summaryRecord && summaryRecord.length){
-                                console.log('LK checking bill board summary Record', summaryRecord);
                                 for(var i = 0; i < summaryRecord.length; i++){
                                     if(summaryRecord[i].name){
                                         summaryRecord[i].name = censoredPlayerName(summaryRecord[i].name);
                                     }
                                 }
+
+                                // force sort and slice
+                                summaryRecord = summaryRecord.sort((a, b) => Number(b.amount) - Number(a.amount));
+                                summaryRecord = summaryRecord.slice(0, recordCount);
+
                                 returnData.allWin = {};
-                                console.log('summary..', summaryRecord);
                                 returnData.allWin.boardRanking = summaryRecord;
-                                console.log('return data..',returnData.allWin);
+
                                 return returnData;
                             }
                         }

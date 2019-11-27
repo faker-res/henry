@@ -1082,6 +1082,12 @@ var dbUtility = {
         return day == 1;
     },
 
+    isSharpTime: function (date) {
+        let day = moment(date).tz('Asia/Singapore').toDate();
+
+        return day.getHours() === 0 && day.getMinutes() === 0 && day.getSeconds() === 0
+    },
+
     getPastHalfMonthPeriodSG: function () {
         let day = moment().tz('Asia/Singapore').toDate().getDate();
         if (day >= 1 && day < 16) {

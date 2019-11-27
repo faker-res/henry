@@ -1288,6 +1288,9 @@ define(['js/app'], function (myApp) {
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
+
+                    // commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+
                     commonService.getAllAutoFeedback($scope).catch(err => Promise.resolve([])),
                     commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
@@ -31060,7 +31063,11 @@ define(['js/app'], function (myApp) {
             // vm.downloadTranslationCSV = function () {
             //     vm.prepareTranslationCSV = false;
             //     let platformId = vm.selectedPlatform.data.platformId;
+<<<<<<< HEAD
             //
+=======
+
+>>>>>>> 9e99281b1e78a0be4f383fcff843b4f80daaf962
             //     socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
             //         vm.fileNameCSV = "ch_SP" + "_" + platformId;
             //         vm.prepareTranslationCSV = true;
@@ -33505,7 +33512,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
-                vm.newPlayerLvl.platform = vm.selectedPlatform.id;
+                vm.newPlayerLvl.platform = vm.filterConfigPlatform || vm.selectedPlatform.id;
                 let levelUpConfig = vm.newPlayerLvl.levelUpConfig;
                 for (let j = 0; j < levelUpConfig.length; j++) {
                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
@@ -33520,8 +33527,9 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('createPlayerLevel', sendData)
                     .done(function (data) {
                         if (!vm.platformBatchLevelUp) {
+                            let levelPlatformObjId = vm.filterConfigPlatform || vm.selectedPlatform.id;
                             let updateData = {
-                                query: {_id: vm.selectedPlatform.id},
+                                query: {_id: levelPlatformObjId},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
                                     autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
