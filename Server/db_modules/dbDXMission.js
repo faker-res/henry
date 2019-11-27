@@ -1000,9 +1000,6 @@ let dbDXMission = {
             findQuery.phoneNumber = data.phoneNumber;
         }
 
-        let beforeDXCheckTime = new Date();
-        console.log('JY check before dx query', beforeDXCheckTime);
-
        // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
         let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery, {playerObjId: 1, platform: 1, dxMission: 1, createTime: 1, url: 1, remark: 1, phoneNumber: 1})
             .populate({
@@ -1017,10 +1014,6 @@ let dbDXMission = {
         return Promise.all([dxPhoneDataProm, dxMissionProm]).then(
             result => {
 
-                let afterDXCheckTime = new Date();
-                console.log('JY check after dx query', afterDXCheckTime);
-                console.log('Jy check dx difference', new Date(afterDXCheckTime).getTime() - new Date(beforeDXCheckTime).getTime());
-
                 if(result){
                     //let size = result[0] ? result[0] : 0;
                     let dxPhoneData = result[0] ? result[0] : {};
@@ -1029,21 +1022,15 @@ let dbDXMission = {
 
                     if (dxPhoneData && dxPhoneData.length > 0){
                         return dbDXMission.retrieveSMSLogInfo(dxPhoneData, ObjectId(dxMission), data.lastSendingStartTime, data.lastSendingEndTime).then( smsLog => {
-                            console.log('JY check after sms return', new Date());
                             if (smsLog && smsLog.length > 0){
                                 let smsLogDetail = {};
 
-                                console.log('JY check before sms forEach', new Date());
                                 smsLog.forEach( data => {
                                     if (data){
                                         smsLogDetail[data.phoneNumber] = data;
                                     }
 
                                 });
-                                console.log('JY check after sms forEach', new Date());
-
-                                let beforeDXForEachTime = new Date();
-                                console.log('JY check before dx forEach',beforeDXForEachTime);
 
                                 dxPhoneData.forEach( (phoneData,i) => {
                                     if (smsLogDetail && smsLogDetail[phoneData.phoneNumber.trim()]){
@@ -1084,10 +1071,6 @@ let dbDXMission = {
 
                                     }
                                 })
-
-                                let afterDXForEachTime = new Date();
-                                console.log('JY check after dx forEach',afterDXForEachTime);
-                                console.log('Jy check dx forEach difference', new Date(afterDXForEachTime).getTime() - new Date(beforeDXForEachTime).getTime());
 
                             }
                             return {dxPhoneData: dxPhoneDataWithDetails, dxMissionData: dxMissionData};
@@ -1349,9 +1332,6 @@ let dbDXMission = {
                 findQuery.createTime = {$gte: new Date(lastSendingStartTime), $lt: new Date(lastSendingEndTime)};
             }
 
-            let beforeSMSLogCheckTime = new Date();
-            console.log('JY check before sms query', beforeSMSLogCheckTime);
-
             return dbconfig.collection_smsLog.aggregate(
                 {
                     $match: findQuery
@@ -1365,9 +1345,6 @@ let dbDXMission = {
                 }
             ).read("secondaryPreferred").then(
                 smsLog => {
-                    let afterSMSLogCheckTime = new Date();
-                    console.log('JY check after sms query', afterSMSLogCheckTime);
-                    console.log('Jy check sms query difference', new Date(afterSMSLogCheckTime).getTime() - new Date(beforeSMSLogCheckTime).getTime());
 
                     dxPhoneData.forEach(data => {
                         let returnedData = {};
@@ -1388,8 +1365,6 @@ let dbDXMission = {
 
                         smsLogReturnedObj.push(returnedData);
                     });
-
-                    console.log('JY check before sms return', new Date());
 
                     return smsLogReturnedObj;
                 }
