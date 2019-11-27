@@ -1004,7 +1004,12 @@ let dbDXMission = {
         console.log('JY check before dx query', beforeDXCheckTime);
 
        // let sizeProm = dbconfig.collection_dxPhone.find(findQuery).count();
-        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery).populate({path: "playerObjId", model: dbconfig.collection_players}).sort({createTime: -1}).lean();
+        let dxPhoneDataProm = dbconfig.collection_dxPhone.find(findQuery, {playerObjId: 1, platform: 1, dxMission: 1, createTime: 1, url: 1, remark: 1, phoneNumber: 1})
+            .populate({
+                path: "playerObjId",
+                model: dbconfig.collection_players,
+                select: 'name topUpTimes loginTimes'
+            }).sort({createTime: -1}).lean();
             //.sort(QsortCol).skip(Qindex).limit(Qlimit);
         let dxMissionProm =  dbconfig.collection_dxMission.findOne({_id: dxMission}).lean();
 
