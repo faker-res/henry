@@ -1313,16 +1313,10 @@ let dbDXMission = {
     },
 
     retrieveSMSLogInfo: function (dxPhoneData, dxMissionObjId, lastSendingStartTime, lastSendingEndTime) {
-        let regexPhoneNoList = [];
         let smsLogReturnedObj = [];
         if (dxPhoneData && dxPhoneData.length > 0) {
 
-            dxPhoneData.forEach (data => {
-                regexPhoneNoList.push(new RegExp(data.phoneNumber.trim()));
-            });
-
             let findQuery = {
-                tel: {$in: regexPhoneNoList},
                 "data.dxMission": dxMissionObjId,
                 status: "success"
             };
@@ -1341,7 +1335,7 @@ let dbDXMission = {
                         count: {$sum: 1},
                     }
                 }
-            ).then(
+            ).read("secondaryPreferred").then(
                 smsLog => {
                     dxPhoneData.forEach(data => {
                         let returnedData = {};

@@ -52,5 +52,6 @@ var smsLogSchema = new Schema ({
 });
 
 smsLogSchema.index({"data.dxMission": 1});
+smsLogSchema.index({"data.dxMission": 1, "status": 1, "createTime": 1});
 
 module.exports = smsLogSchema;
