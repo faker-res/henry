@@ -10199,7 +10199,7 @@ let dbPlayerInfo = {
             if(firstPlayerState){
                 return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                     playerState => {
-                        if (playerState) {
+                        if (playerState || isMultiProvider) {
 
                             dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
                                 gameProviderData.providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
