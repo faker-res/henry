@@ -474,6 +474,8 @@ var simplifiedChinese = {
     "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
+    "First time bound to the bank info 2": "首次绑定提款卡2",
+    "First time bound to the bank info 3": "首次绑定提款卡3",
     "allTopUp": "所有存款",
     "Player does not have matching bank info": "玩家没有匹配的银行信息",
     "Please complete the phone number, thank you": "请完善手机号，谢谢",

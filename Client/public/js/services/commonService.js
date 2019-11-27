@@ -404,6 +404,17 @@ define([], () => {
             return lineAcc;
         };
 
+        self.redefineInputDevice = function (inputDevice) {
+            if (inputDevice && inputDevice == 5){
+                // 5: 玩家包壳APP 已归类为 H5
+                return 3
+            }
+            else if (inputDevice && inputDevice == 6){
+                // 6: 代理包壳APP 已归类为 H5
+                return 4
+            }
+        };
+
         self.convertClientTypeToInputDevice = function (clientType, userAgent) {
             let inputDevice;
 
@@ -671,12 +682,18 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs, options) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs, options, showDateOnly) => {
             vm[model] = vm[model] || {};
             options = options || null;
 
             utilService.actionAfterLoaded(queryId, () => {
-                vm[model][field] = utilService.createDatePicker(queryId, options);
+                if (showDateOnly){
+                    vm[model][field] = utilService.createDatePickerWithoutTime(queryId, options);
+                }
+                else{
+                    vm[model][field] = utilService.createDatePicker(queryId, options);
+                }
+
                 if(defTimeAsIs) {
                     $(queryId).data('datetimepicker').setDate(new Date(defTime));
                 } else {
@@ -826,7 +843,7 @@ define([], () => {
             proposalDetail = Object.assign(proposalDetail, vm.selectedProposal.data);
             proposalDetail.platformId = proposalDetail.platformId._id;
 
-            let inputDevice = proposalDetail  && proposalDetail.clientType ? this.convertClientTypeToInputDevice(proposalDetail.clientType, proposalDetail.userAgent) : null;
+            let inputDevice = vm.selectedProposal && vm.selectedProposal.inputDevice ?  this.redefineInputDevice(vm.selectedProposal.inputDevice) : null;
 
             // region Manual top up proposal
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "ManualPlayerTopUp") {

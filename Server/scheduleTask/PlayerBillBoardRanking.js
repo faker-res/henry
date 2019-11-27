@@ -8,7 +8,6 @@ var playerBillBoardranking ={
 
         var deferred = Q.defer();
 
-        let totalRecord = 10;
         let recordDate;
         recordDate = dbUtility.getCurrentWeekSGTime();
         console.log('record Date...', recordDate);
@@ -69,9 +68,6 @@ var playerBillBoardranking ={
                     if (sortedData[i].createTime) {
                         delete sortedData[i].createTime;
                     }
-                }
-                if (sortedData.length > totalRecord) {
-                    sortedData.length = totalRecord;
                 }
                 if (playerRanking) {
                     sortedData.push(playerRanking);
@@ -152,7 +148,6 @@ var playerBillBoardranking ={
                                     // save to topuphoursummary
                                     let updateTime = new Date();
                                     updateTime.setHours(updateTime.getHours());
-                                    console.log('LK checking cal rank updateTime', updateTime);
                                     // type = ranking mode
                                     obj.type = "5";
                                     obj.updateTime = updateTime;

@@ -1332,6 +1332,7 @@
   "WINLOSE_UNLOCK": "解锁时完成（输赢值）",
   "PLAYER_REWARDTASK_LOG": "优惠解锁记录",
   "SEARCH": "搜索",
+  "SEARCH_BY_SUMMARY": "小记搜索",
   "type 1": "类型 1",
   "type 2": "类型 2",
   "all": "所有",

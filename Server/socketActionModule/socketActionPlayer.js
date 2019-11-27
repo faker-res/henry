@@ -1171,7 +1171,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerObjId && data.remarks);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment, data.changedRemarks], actionName, isValidData);
         },
         updateBatchPlayerCredibilityRemark: function updateBatchPlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
