@@ -22,7 +22,10 @@ div
         label {{vm.dateReformat(vm.selectedProposal.createTime) || 'none'}}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
-        label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL && vm.selectedProposal.status != vm.proposalStatusList.PENDING && vm.selectedProposal.status != vm.proposalStatusList.EXPIRED") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
+        label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL && " +
+        "vm.selectedProposal.status != vm.proposalStatusList.PENDING && vm.selectedProposal.status != vm.proposalStatusList.EXPIRED " +
+        "&& !(vm.selectedProposal.type.name  == 'BulkExportPlayerData' && vm.selectedProposal.status == 'Approved') && vm.selectedProposal.type.name != 'PlayerBonus'") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
+            label(ng-if = "(vm.selectedProposal.type.name == 'PlayerBonus' && (vm.selectedProposal.status.toLowerCase() == 'approved' || vm.selectedProposal.status.toLowerCase() == 'success'))") {{vm.dateReformat(vm.selectedProposal.data.lastSettleTime) || 'none'}}
     .label-value
         //label {{'cancelTime' | translate}}&nbsp;:&nbsp;
         //label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
