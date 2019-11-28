@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var playerConsumptionRecordSchema = new Schema({
     //player id
-    playerId: {type: Schema.ObjectId, required: true, index: true},
+    playerId: {type: Schema.ObjectId, required: true},
     // platform Id
     platformId: {type: Schema.ObjectId, required: true},
     // provider ID
@@ -21,7 +21,7 @@ var playerConsumptionRecordSchema = new Schema({
     // gameRound
     playNo: {type: String, index: true},
     // payment time
-    createTime: {type: Date, default: Date.now, index: true},
+    createTime: {type: Date, default: Date.now},
     //total amount for statistics
     amount: {type: Number, required: true, default: 0, index: true},
     //total amount for statistics
@@ -51,9 +51,9 @@ var playerConsumptionRecordSchema = new Schema({
     // had been used for which proposal
     usedProposal: {type: Schema.ObjectId},
     //check if record has been used for other reward
-    bDirty: {type: Boolean, default: false, index: true},
+    bDirty: {type: Boolean, default: false},
     // check if record is duplicate
-    isDuplicate: {type: Boolean, default: false, index: true},
+    isDuplicate: {type: Boolean, default: false},
     // record insert time
     insertTime: {type: Date, default: Date.now},
     // last update time
@@ -72,10 +72,9 @@ var playerConsumptionRecordSchema = new Schema({
 
 //record is unique by playerId platformId and date
 playerConsumptionRecordSchema.index({playerId: 1, platformId: 1, gameId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({playerId: 1, createTime: 1, isDuplicate: 1});
 playerConsumptionRecordSchema.index({platformId: 1, playerId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({createTime: 1, platformId: 1, _id: 1});
+playerConsumptionRecordSchema.index({createTime: 1, platformId: 1});
 playerConsumptionRecordSchema.index({platformId:1, providerId:1, createTime:1});
 playerConsumptionRecordSchema.index({providerId:1, createTime:1, isDuplicate:1});
 
