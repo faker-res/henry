@@ -1,18 +1,20 @@
 
 var Q = require("q");
 var dbconfig = require('./../modules/dbproperties');
+var dbUtility = require('./../modules/dbutility');
 var playerBillBoardranking ={
 
     calculateWinAllRanking: function() {
 
         var deferred = Q.defer();
 
-        let totalRecord = 10;
-        let recordDate = new Date();
-        recordDate.setHours(recordDate.getHours() - 1);
+        let recordDate;
+        recordDate = dbUtility.getCurrentWeekSGTime();
+        console.log('record Date...', recordDate);
         let matchQuery = {
             $match: {
-                createTime: {$gte: recordDate},
+                // createTime: {$gte: recordDate},
+                createTime: {$gte: recordDate.startTime, $lte: recordDate.endTime},
                 $and: [{"winRatio": {$ne: null}}, {"winRatio": {$ne: Infinity}}]
             },
         };
@@ -66,9 +68,6 @@ var playerBillBoardranking ={
                     if (sortedData[i].createTime) {
                         delete sortedData[i].createTime;
                     }
-                }
-                if (sortedData.length > totalRecord) {
-                    sortedData.length = totalRecord;
                 }
                 if (playerRanking) {
                     sortedData.push(playerRanking);
@@ -148,8 +147,7 @@ var playerBillBoardranking ={
                                     var obj = returnData.allWin.boardRanking[key];
                                     // save to topuphoursummary
                                     let updateTime = new Date();
-                                    updateTime.setHours(recordDate.getHours());
-                                    console.log('LK checking cal rank updateTime', updateTime);
+                                    updateTime.setHours(updateTime.getHours());
                                     // type = ranking mode
                                     obj.type = "5";
                                     obj.updateTime = updateTime;

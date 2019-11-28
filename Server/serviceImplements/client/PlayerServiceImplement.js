@@ -1657,12 +1657,25 @@ let PlayerServiceImplement = function () {
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                         }, data);
-                    } else if (error && error.isRegisterError) {
+                    } else if (error && error.message === "Incorrect SMS Validation Code") {
                         wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Incorrect SMS Validation Code", conn.lang, conn.platformId),
+                        }, data);
+                    } else if (error && error.isRegisterError) {
+                        let returnObj = {
                             status: constServerCode.DEVICE_ID_ERROR,
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate(error.message),
-                        }, data);
+                        }
+                        if (error.player) {
+                            returnObj.player = error.player;
+                        }
+                        if (error.playerId) {
+                            returnObj.playerId = error.playerId;
+                        }
+                        wsFunc.response(conn, returnObj, data);
                     } else {
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_USER_PASSWORD,

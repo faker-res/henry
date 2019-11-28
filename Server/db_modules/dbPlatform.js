@@ -2522,9 +2522,30 @@ var dbPlatform = {
         type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
         provider ? queryObject.providerId = provider : '';
 
+        let gameProviderProm = dbconfig.collection_platform.distinct('gameProviders', {_id: platformObjId}).lean().then(
+            providerObjIds => {
+                if (providerObjIds && providerObjIds.length > 0) {
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerObjIds}}).lean();
+                } else
+                    return [];
+            }
+        );
         let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").count();
-        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
-        return Q.all([countProm, recordProm]).then(data => {
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").lean().sort(sortCol).skip(index).limit(limit);
+        return Promise.all([countProm, recordProm, gameProviderProm]).then(data => {
+            if (data && data[1] && data[1].length > 0 && data[2] && data[2].length > 0) {
+                data[1].map(item => {
+                    if (item && item.providerId) {
+                        let indexNo = data[2].findIndex(x => x && x.providerId && (x.providerId === item.providerId));
+
+                        if (indexNo > -1) {
+                            item.providerText = data[2][indexNo].name;
+                        }
+                    }
+                    return item;
+                });
+            }
+
             return {total: data[0], data: data[1]};
         })
     },
@@ -4820,7 +4841,7 @@ var dbPlatform = {
                     return Promise.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DBError",
-                        message: "Error finding db data"
+                        message: "Please fill in the call request url in the platform configuration"
                     });
                 }
 

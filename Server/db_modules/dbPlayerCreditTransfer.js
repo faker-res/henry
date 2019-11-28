@@ -1176,7 +1176,7 @@ let dbPlayerCreditTransfer = {
      * @param useEbetWallet
      * @constructor
      */
-    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
+    TransferPlayerCreditFromProviderWithProviderGroup: async function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
         let pCTFP = this;
         let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
@@ -1188,6 +1188,28 @@ let dbPlayerCreditTransfer = {
         let rewardGroupObj;
         let updateObj = {};
         let eBetWalletObj = {};
+
+        // check if player.lastplayedprovider is the same as current providerid
+        console.log("TransferPlayerCreditFromProviderWithProviderGroup**");
+        console.log("playerObjId", playerObjId);
+        if(!useEbetWallet) {
+            let playerData = await dbConfig.collection_players.findOne({_id: playerObjId}).populate({
+                path: "lastPlayedProvider",
+                model: dbConfig.collection_gameProvider
+            }).lean();
+
+            console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+            if ((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
+                playerData.lastPlayedProvider._id != providerId) {
+                gameProviderGroup = null;
+                providerId = playerData.lastPlayedProvider._id;
+            }
+            console.log("AFTER MAKE OVER");
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+        }
 
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {

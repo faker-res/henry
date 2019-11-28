@@ -15,13 +15,16 @@ var providerSummary = {
      * @param {objectId} providerId - provider id
      */
     calculateYesterdayProviderSummary: function (providerId) {
+        console.log('JY check==calculateYesterdayProviderSummary==settleTime==>', providerId);
         var deferred = Q.defer();
 
         dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             function (providerData) {
+                console.log('JY check==calculateYesterdayProviderSummary==providerData==>', providerData);
                 if (providerData) {
                     //var settleTime = dbutility.getDailySettlementTime(providerData.dailySettlementHour, providerData.dailySettlementMinute);
                     var settleTime = dbutility.getYesterdaySGTime();
+                    console.log('JY check==calculateYesterdayProviderSummary==settleTime==>', settleTime);
                     return dbGameProviderDaySummary.calculateProviderDaySummaryForTimeFrame(settleTime.startTime, settleTime.endTime, providerId);
                 }
                 else {
@@ -61,12 +64,15 @@ var providerSummary = {
      */
     calculateYesterdayProviderPlayerSummary: function (providerId) {
         var deferred = Q.defer();
+        console.log('JY check==calculateYesterdayProviderPlayerSummary==providerId==>', providerId);
 
         dbconfig.collection_gameProvider.findOne({_id: providerId}).then(
             function (providerData) {
+                console.log('JY check==calculateYesterdayProviderPlayerSummary==providerData==>', providerData);
                 if (providerData) {
                     //var settleTime = dbutility.getDailySettlementTime(providerData.dailySettlementHour, providerData.dailySettlementMinute);
                     var settleTime = dbutility.getYesterdaySGTime();
+                    console.log('JY check==calculateYesterdayProviderPlayerSummary==settleTime==>', settleTime);
                     return dbGameProviderPlayerDaySummary.calculateProviderPlayerDaySummaryForTimeFrame(settleTime.startTime, settleTime.endTime, providerId);
                 }
                 else {
