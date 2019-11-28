@@ -172,6 +172,12 @@ define(['js/app'], function (myApp) {
                 1: "consumptionType", // 投注条件
                 2: "depositType" // 存款条件
             }
+
+            vm.topUpAmountConfigDevice = {
+                1: "WEB",
+                2: "H5",
+                3: "APP"
+            }
             // vm.allProposalType = [
             //     "UpdatePlayerInfo",
             //     "UpdatePlayerCredit",
@@ -1263,7 +1269,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions, vm.autoFeedbackMissionsAcrossPlatform, vm.smsTemplate
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissionsAcrossPlatform, vm.smsTemplate
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -1282,11 +1288,13 @@ define(['js/app'], function (myApp) {
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
                     commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
-                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                    // commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getAllAutoFeedback($scope).catch(err => Promise.resolve([])),
                     commonService.getSMSTemplate($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
+                vm.autoFeedbackMissions = vm.autoFeedbackMissionsAcrossPlatform.filter(item =>{return item.platformObjId == vm.selectedPlatform.id});
+                
                 // 1st dependencies variable
                 const preValue1 = await Promise.all([
                     commonService.getAllBankCard($scope, $translate, vm.selectedPlatform.data.platformId, vm.allBankTypeList).catch(err => Promise.resolve([])),
@@ -24890,6 +24898,7 @@ define(['js/app'], function (myApp) {
                         vm.newDelayDurationGroup = {};
                         break;
                     case 'topUpAmountConfig':
+                        vm.isProceed = true;
                         vm.getPlatformTopUpAmountConfig(platformObjId);
                         break;
                     case 'bonusBasic':
@@ -25574,10 +25583,10 @@ define(['js/app'], function (myApp) {
                             vm.subPlatformIdList[text] = vm.platformId + counter;
                         }
 
-                        // hardcode 03 as the product itself
+                        // hardcode 10 as the product itself
                         if (vm.subPlatformIdList) {
-                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
-                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
                         }
                     }
                 }
@@ -25590,9 +25599,11 @@ define(['js/app'], function (myApp) {
                         vm.loadPopUpAdvertisementSetting(vm.filterFrontEndSettingPlatform);
                         break;
                     case 'popularRecommendation':
+                        vm.popularRecommendationSettingDevice = 'pc';
+                        vm.frontEndFirstPageSelectedSubTab = 1;
                         vm.getPlatformGameData(vm.filterFrontEndSettingPlatform);
                         vm.getAllPlayerLevels(vm.filterFrontEndSettingPlatform);
-                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                        vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, 1);
                         break;
                     case 'carouselConfiguration':
                     case 'partnerCarouselConfiguration':
@@ -25608,6 +25619,7 @@ define(['js/app'], function (myApp) {
                             web: {},
                             pc: {},
                         };
+                        vm.newFrontEndSkinSetting = {};
                         vm.urlConfigShowMessage = '';
                         if (vm.selectedFrontEndSettingTab == 'partnerUrlConfiguration') {
                             vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, true);
@@ -25655,6 +25667,7 @@ define(['js/app'], function (myApp) {
                     case 'rewardPointClarification':
                         break;
                     case 'popularRecommendation':
+                        vm.popularRecommendationSettingDevice = 'pc';
                         break;
                     case 'carouselConfiguration':
                         vm.isPartnerForCarouselConfiguration = false;
@@ -25674,8 +25687,10 @@ define(['js/app'], function (myApp) {
                         vm.frontEndSkinSetting = [];
                         vm.urlConfigShowMessage = '';
                         vm.isPartnerForUrlConfiguration = false;
+                        vm.isPartnerForSkinManagement = false;
                         if (choice == 'partnerUrlConfiguration'){
                             vm.isPartnerForUrlConfiguration = true;
+                            vm.isPartnerForSkinManagement = true;
                         }
                         break;
                     case 'skinManagement':
@@ -26051,14 +26066,25 @@ define(['js/app'], function (myApp) {
                 $('#gameSettingModal').modal();
             };
 
-            vm.loadPopularRecommendationSetting = function (platformObjId) {
-                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId}, function (data) {
+            vm.loadPopularRecommendationSetting = function (platformObjId, deviceType) {
+                socketService.$socket($scope.AppSocket, 'getFrontEndPopularRecommendationSetting', {platformObjId: platformObjId, deviceType}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getFrontEndPopularRecommendationSetting', data.data);
                         if (data && data.data) {
                             vm.clearAllDropArea();
                             vm.frontEndDeletedList = [];
                             vm.frontEndPopularRecommendationData = data.data;
+                            if (vm.frontEndPopularRecommendationData && vm.frontEndPopularRecommendationData.length) {
+                                vm.frontEndPopularRecommendationData.forEach(
+                                    rowData => {
+                                        if (rowData.hasOwnProperty("onClickAction")){
+                                            rowData.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === rowData.onClickAction)
+                                            rowData.displayRoute$ = utilService.getFrontEndSettingRoute(rowData);
+                                        }
+                                        return rowData
+                                    }
+                                )
+                            }
                         }
                     })
                 }, function (err) {
@@ -26221,6 +26247,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'getFrontEndRewardSetting', {platformObjId: platformObjId}, function (data) {
                       $scope.$evalAsync( () => {
                           console.log('getFrontEndRewardSetting', data.data);
+                          let frontEndRewardSettingOnClickAction = Object.assign({}, vm.frontEndSettingOnClickAction);
+                          frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data;
@@ -26245,6 +26273,19 @@ define(['js/app'], function (myApp) {
                                           }
                                           if (object && object.app && object.app.hasOwnProperty('onClickAction')){
                                               object.app.onClickAction = object.app.onClickAction.toString();
+                                          }
+
+                                          if (object && object.pc && object.pc.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.pc.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                          }
+                                          else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.h5.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                          }
+                                          else if (object && object.app && object.app.hasOwnProperty('onClickAction')){
+                                              object.onClickAction$ = Object.keys(frontEndRewardSettingOnClickAction).find(key => frontEndRewardSettingOnClickAction[key] == object.app.onClickAction)
+                                              object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
                                           }
 
                                           return object;
@@ -26554,6 +26595,20 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.initSkinManagement = (deviceType) => {
+                vm.skinSettingShowMessage="";
+                if (deviceType){
+                    vm.frontEndSkinSettingDeviceType = deviceType.toString();
+                    vm.newFrontEndSkinSetting.device = deviceType.toString();
+
+                    $('#modalSkinManagement').modal();
+                }
+            };
+
+            vm.closeSkinSetting = () => {
+                $('#modalSkinManagement').modal('hide');
+            };
+
             //#region Frontend Configuration - Skin Management
             vm.saveFrontEndSkinSetting = function (isPartner, subPlatformId = null) {
                 let sendData = {
@@ -26571,6 +26626,10 @@ define(['js/app'], function (myApp) {
                     return $scope.$socketPromise('savePartnerSkinSetting', sendData).then(data => {
                         console.log("savePartnerSkinSetting success:", data);
                         vm.newFrontEndSkinSetting = {};
+
+                        if (vm.frontEndSkinSettingDeviceType) {
+                            vm.newFrontEndSkinSetting.device = vm.frontEndSkinSettingDeviceType;
+                        }
                         vm.skinSettingShowMessage = "SUCCESS";
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform, subPlatformId, isPartner);
                         $scope.$evalAsync();
@@ -26583,6 +26642,9 @@ define(['js/app'], function (myApp) {
                     return $scope.$socketPromise('saveSkinSetting', sendData).then(data => {
                         console.log("saveSkinSetting success:", data);
                         vm.newFrontEndSkinSetting = {};
+                        if (vm.frontEndSkinSettingDeviceType) {
+                            vm.newFrontEndSkinSetting.device = vm.frontEndSkinSettingDeviceType;
+                        }
                         vm.skinSettingShowMessage = "SUCCESS";
                         vm.getFrontEndSkinSetting(vm.filterFrontEndSettingPlatform);
                         $scope.$evalAsync();
@@ -26948,6 +27010,11 @@ define(['js/app'], function (myApp) {
                             vm.frontEndDeletedList = [];
                             vm.frontEndCarouselSetting = data.data.map(item => {
                                 item.device = item.device.toString();
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
+                                }
+
                                 return item;
                             });
 
@@ -27086,7 +27153,13 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'rewardPointsRanking':
                         vm.editFakeAcc = false;
-                        vm.displayFrontEndRewardPointsRankingData = true;
+                        let rewardSelectedPlatform;
+                        if(vm.rewardPointsSelectedPlatform && vm.allPlatformData && vm.allPlatformData.length) {
+                            rewardSelectedPlatform = vm.allPlatformData.find(platform => {
+                                return vm.rewardPointsSelectedPlatform == platform._id
+                            });
+                        }
+                        vm.displayFrontEndRewardPointsRankingData = rewardSelectedPlatform && rewardSelectedPlatform.displayFrontEndRewardPointsRankingData? true: false;
                         vm.playerRankingRandom = [{}];
                         vm.playerRankingRandomClone = [{}];
                         vm.isEditRandomData = false;
@@ -29334,6 +29407,8 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         result =  vm.allGameProviders[index].name;
                     }
+                } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                    result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
                 }
                 return $sce.trustAsHtml(result);
             };
@@ -30983,17 +31058,17 @@ define(['js/app'], function (myApp) {
             };
             // player level codes==============end===============================
 
-            vm.downloadTranslationCSV = function () {
-                vm.prepareTranslationCSV = false;
-                let platformId = vm.selectedPlatform.data.platformId;
+            // vm.downloadTranslationCSV = function () {
+            //     vm.prepareTranslationCSV = false;
+            //     let platformId = vm.selectedPlatform.data.platformId;
 
-                socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
-                    vm.fileNameCSV = "ch_SP" + "_" + platformId;
-                    vm.prepareTranslationCSV = true;
-                    vm.exportTranslationCSV = data.data;
-                    $scope.safeApply();
-                });
-            };
+            //     socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
+            //         vm.fileNameCSV = "ch_SP" + "_" + platformId;
+            //         vm.prepareTranslationCSV = true;
+            //         vm.exportTranslationCSV = data.data;
+            //         $scope.safeApply();
+            //     });
+            // };
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
@@ -33431,7 +33506,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
-                vm.newPlayerLvl.platform = vm.selectedPlatform.id;
+                vm.newPlayerLvl.platform = vm.filterConfigPlatform || vm.selectedPlatform.id;
                 let levelUpConfig = vm.newPlayerLvl.levelUpConfig;
                 for (let j = 0; j < levelUpConfig.length; j++) {
                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
@@ -33446,8 +33521,9 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('createPlayerLevel', sendData)
                     .done(function (data) {
                         if (!vm.platformBatchLevelUp) {
+                            let levelPlatformObjId = vm.filterConfigPlatform || vm.selectedPlatform.id;
                             let updateData = {
-                                query: {_id: vm.selectedPlatform.id},
+                                query: {_id: levelPlatformObjId},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
                                     autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp
@@ -34928,19 +35004,85 @@ define(['js/app'], function (myApp) {
 
             function updatePlatformTopUpAmountConfig(srcData) {
                 let isPass = true;
+                let isTopUpCountPass = true;
+                let isDevicePass = true;
+                let isDeviceAndTopUpCountPass = true;
+                let isCheckDuplicateDevicePass = true;
 
                 if (srcData.topUpCountAmountRange && srcData.topUpCountAmountRange.length) {
                     srcData.topUpCountAmountRange.forEach(el => {
                         if (!el.topUpCount) {
+                            isTopUpCountPass = false;
+                            isPass = false;
+                        } else if (!el.device || !el.device.length) {
+                            isDevicePass = false;
                             isPass = false;
                         }
-                    })
+                    });
+
+                    if (isPass) {
+                        let duplicateTopUpCounts = srcData.topUpCountAmountRange
+                            .map(e => e['topUpCount'])
+                            .map((e, i, final) => final.indexOf(e) !== i && i)
+                            .filter(obj=> srcData.topUpCountAmountRange[obj])
+                            .map(e => srcData.topUpCountAmountRange[e]["topUpCount"]);
+
+                        let duplicateData = srcData.topUpCountAmountRange.filter(obj=> duplicateTopUpCounts.includes(obj.topUpCount));
+                        if (duplicateData && duplicateData.length > 0) {
+                            let allDevice = [];
+                            duplicateData.forEach(item => {
+                                if (item && item.device && item.device.length > 0) {
+                                    allDevice.push.apply(allDevice, item.device);
+                                }
+                            });
+
+                            let existData = [];
+                            if (allDevice && allDevice.length > 0) {
+                                allDevice.forEach(item => {
+                                    if (existData[item]) {
+                                        isDeviceAndTopUpCountPass = false;
+                                        isPass = false;
+                                    } else {
+                                        existData[item] = true;
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+
+                if (srcData.topUpAmountRange && srcData.topUpAmountRange.length) {
+                    let combinedDevices = [];
+                    srcData.topUpAmountRange.forEach(el => {
+                        if (!el.device || !el.device.length) {
+                            isDevicePass = false;
+                            isPass = false;
+                        }
+
+                        if (el && el.device && el.device.length > 0) {
+                            combinedDevices.push.apply(combinedDevices, el.device);
+                        }
+                    });
+
+                    let existDevices = [];
+                    if (isPass && combinedDevices && combinedDevices.length > 0) {
+                        combinedDevices.forEach(item => {
+                            if (existDevices[item]) {
+                                isCheckDuplicateDevicePass = false;
+                                isPass = false;
+                            } else {
+                                existDevices[item] = true;
+                            }
+                        });
+                    }
+
+
                 }
 
                 let sendData = {
                     query: {platformObjId: vm.filterConfigPlatform},
                     updateData: {
-                        commonTopUpAmountRange: srcData.commonTopUpAmountRange,
+                        topUpAmountRange: srcData.topUpAmountRange,
                         topUpCountAmountRange: srcData.topUpCountAmountRange
                     }
                 };
@@ -34951,7 +35093,15 @@ define(['js/app'], function (myApp) {
                         loadPlatformData({loadAll: false});
                     });
                 } else {
-                    socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                    if (!isTopUpCountPass) {
+                        socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                    } else if (!isDevicePass) {
+                        socketService.showErrorMessage($translate("Device is mandatory"));
+                    } else if (!isDeviceAndTopUpCountPass) {
+                        socketService.showErrorMessage($translate("Device and Top Up Count is duplicate"));
+                    } else if (!isCheckDuplicateDevicePass) {
+                        socketService.showErrorMessage($translate("Device is duplicate"));
+                    }
                 }
             }
 
@@ -43539,18 +43689,37 @@ define(['js/app'], function (myApp) {
                 }
             };
 
-            vm.getPopularRecommendationSettingDevice = function(device){
-                vm.popularDevice = device;
+            vm.getPopularRecommendationSettingDevice = function(type){
+                let deviceConst = null;
+                switch (type) {
+                    case 'pc':
+                        deviceConst = 1;
+                        break;
+                    case 'h5':
+                        deviceConst = 2;
+                        break;
+                    case 'app':
+                        deviceConst = 4;
+                        break;
+                    default:
+                        deviceConst = 1;
+                        break;
+                }
+                vm.frontEndFirstPageSelectedSubTab = deviceConst;
+                if (vm.filterFrontEndSettingPlatform && deviceConst){
+                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, deviceConst)
+                }
+
             };
 
             vm.initPopularRecommendationSetting = function() {
-                if(!vm.popularDevice){
-                    vm.popularDevice = "1";
+                if(!vm.frontEndFirstPageSelectedSubTab){
+                    vm.frontEndFirstPageSelectedSubTab = "1";
                 }
                 vm.newPopularRecommendationSetting = {
                     isPlayerVisible: true,
                     isPlayerWithRegisteredHpNoVisible: true,
-                    device: vm.popularDevice
+                    device: vm.frontEndFirstPageSelectedSubTab
                 };
 
                 vm.addNewPopularRecommendationSetting();
@@ -43681,7 +43850,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.refreshSPicker();
-                $('#popularRecommendationSetting').modal();
+                // $('#popularRecommendationSetting').modal();
                 $("#popularRecommendationPcImageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcImage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcNewPageFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcNewPage", vm.popularRecommendationImageFile);});
                 $("#popularRecommendationPcPageDetailFile").change((ev)=>{vm.readURL(ev.currentTarget,"pcPageDetail", vm.popularRecommendationImageFile);});
@@ -43839,19 +44008,19 @@ define(['js/app'], function (myApp) {
                 // await vm.updatePopularRecommendationSetting();
                 let promArr;
 
-                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '1') {
+                if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '1') {
                     promArr = [
                         "pcImage",
                         "pcNewPage",
                         "pcPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '4') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '4') {
                     promArr = [
                         "appImage",
                         "appNewPage",
                         "appPageDetail",
                     ];
-                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device === '2') {
+                } else if (vm.newPopularRecommendationSetting.device && vm.newPopularRecommendationSetting.device == '2') {
                     promArr = [
                         "H5Image",
                         "H5NewPage",
@@ -43915,7 +44084,7 @@ define(['js/app'], function (myApp) {
                                     // close the modal
                                     $('#popularRecommendationSetting').modal('hide');
                                     // collect the latest setting
-                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                                    vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                                 }, function (err) {
                                     console.log("saveFrontEndPopularRecommendationSetting err", err);
                                 });
@@ -44004,7 +44173,7 @@ define(['js/app'], function (myApp) {
                     (data) => {
                         $scope.$evalAsync( () => {
                             console.log('updatePopularRecommendationSetting is done', data);
-                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform);
+                            vm.loadPopularRecommendationSetting(vm.filterFrontEndSettingPlatform, vm.frontEndFirstPageSelectedSubTab);
                         })
                     }, function (err) {
                         console.log('err', err);
@@ -44171,6 +44340,10 @@ define(['js/app'], function (myApp) {
                             vm.popUpAdvertisementData = data.data.map(item => {
                                 if (item && item.device){
                                     item.device = item.device.toString();
+                                }
+                                if (item.hasOwnProperty("onClickAction")){
+                                    item.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] === item.onClickAction)
+                                    item.displayRoute$ = utilService.getFrontEndSettingRoute(item);
                                 }
                                 return item;
                             });
@@ -44657,6 +44830,44 @@ define(['js/app'], function (myApp) {
                                 vm.allRegistrationSettingData = data.data;
                             }
 
+                            if (vm.registrationSettingData && vm.registrationSettingData.length) {
+                                vm.registrationSettingData.map(
+                                    object => {
+                                        if (object && object.pc && object.pc.hasOwnProperty('displayFormat')) {
+                                            object.pc.displayFormat = object.pc.displayFormat.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('displayFormat')) {
+                                            object.h5.displayFormat = object.h5.displayFormat.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('displayFormat')) {
+                                            object.app.displayFormat = object.app.displayFormat.toString();
+                                        }
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.pc.onClickAction = object.pc.onClickAction.toString();
+                                        }
+                                        if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.h5.onClickAction = object.h5.onClickAction.toString();
+                                        }
+                                        if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.app.onClickAction = object.app.onClickAction.toString();
+                                        }
+
+                                        if (object && object.pc && object.pc.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.pc.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.pc);
+                                        } else if (object && object.h5 && object.h5.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.h5.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.h5);
+                                        } else if (object && object.app && object.app.hasOwnProperty('onClickAction')) {
+                                            object.onClickAction$ = Object.keys(vm.frontEndSettingOnClickAction).find(key => vm.frontEndSettingOnClickAction[key] == object.app.onClickAction)
+                                            object.displayRoute$ = utilService.getFrontEndSettingRoute(object.app);
+                                        }
+
+                                        return object;
+                                    }
+                                )
+                            }
+
                             let tempId = vm.registrationCategory && vm.registrationCategory.length? vm.registrationCategory[vm.registrationCategory.length -1]._id : "";
                             utilService.actionAfterLoaded('#' + tempId, function () {
                                 $(".droppable-area").sortable({
@@ -44983,27 +45194,97 @@ define(['js/app'], function (myApp) {
             }
 
             //#region top up amount range setting
+            vm.updateTopUpAmountRangeConfigInEdit = function (type, data) {
+                if (type == 'add') {
+                    if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpAmountRange && vm.topUpAmountBasic.topUpAmountRange.length) {
+                        addTopUpRangeConfig();
+                    } else {
+                        if (data) {
+                            vm.topUpAmountBasic.topUpAmountRange = [];
+                            addTopUpRangeConfig();
+                        }
+                    }
+
+                } else if (type == 'remove') {
+                    vm.topUpAmountBasic.topUpAmountRange.splice(data, 1);
+                }
+                vm.refreshSPicker();
+
+                function addTopUpRangeConfig() {
+                    if (data.device && data.device.length > 0) {
+                        let isDuplicateDevice = false;
+
+                        for (let i = 0; i < vm.topUpAmountBasic.topUpAmountRange.length; i++) {
+                            let deviceInList = vm.topUpAmountBasic.topUpAmountRange[i].device;
+                            let duplicate = deviceInList.filter(function(v,i,a){
+                                return data.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                isDuplicateDevice = true;
+                                break;
+                            }
+                        }
+
+                        if (isDuplicateDevice) {
+                            socketService.showErrorMessage($translate("Device is duplicate"));
+                        } else {
+                            vm.topUpAmountBasic.topUpAmountRange.push({device: data.device, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        }
+                    } else {
+                        socketService.showErrorMessage($translate("Device is mandatory"));
+                    }
+                }
+            };
+
             vm.updateTopUpCountAmountRangeConfigInEdit = function (type, data) {
                 if (type == 'add') {
                     if (vm.topUpAmountBasic && vm.topUpAmountBasic.topUpCountAmountRange && vm.topUpAmountBasic.topUpCountAmountRange.length) {
-                        if (data.topUpCount) {
-                            vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
-                        } else {
-                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
-                        }
+                        addTopUpCountRangeConfig();
                     } else {
                         if (data) {
-                            if (data.topUpCount) {
-                                vm.topUpAmountBasic.topUpCountAmountRange = [];
-                                vm.topUpAmountBasic.topUpCountAmountRange.push({topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
-                            } else {
-                                socketService.showErrorMessage($translate("Top Up Count is mandatory"));
-                            }
+                            vm.topUpAmountBasic.topUpCountAmountRange = [];
+                            addTopUpCountRangeConfig();
                         }
                     }
 
                 } else if (type == 'remove') {
                     vm.topUpAmountBasic.topUpCountAmountRange.splice(data, 1);
+                }
+                vm.refreshSPicker();
+
+                function addTopUpCountRangeConfig() {
+                    if (data.topUpCount && data.device.length > 0) {
+                        let isDuplicateDevice = false;
+
+                        for (let i = 0; i < vm.topUpAmountBasic.topUpCountAmountRange.length; i++) {
+                            let deviceInList = vm.topUpAmountBasic.topUpCountAmountRange[i].device;
+                            let duplicate = deviceInList.filter(function(v,i,a){
+                                return data.device.indexOf(v) > -1;
+                            });
+
+                            if (duplicate && duplicate.length > 0) {
+                                if (vm.topUpAmountBasic.topUpCountAmountRange[i].topUpCount && vm.topUpAmountBasic.topUpCountAmountRange[i].topUpCount == data.topUpCount) {
+                                    isDuplicateDevice = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isDuplicateDevice) {
+                            socketService.showErrorMessage($translate("Device and Top Up Count is duplicate"));
+                        } else {
+                            vm.topUpAmountBasic.topUpCountAmountRange.push({device: data.device, topUpCount: data.topUpCount, minAmount: data.minAmount, maxAmount: data.maxAmount});
+                        }
+                    } else {
+                        if (!data.topUpCount) {
+                            socketService.showErrorMessage($translate("Top Up Count is mandatory"));
+                        }
+
+                        if (!data.device || data.device.length == 0) {
+                            socketService.showErrorMessage($translate("Device is mandatory"));
+                        }
+                    }
                 }
             };
 
@@ -45018,14 +45299,6 @@ define(['js/app'], function (myApp) {
                         vm.topUpAmountBasic = {};
                         if (data && data.data) {
                             vm.topUpAmountBasic = JSON.parse(JSON.stringify(data.data));
-                        }
-
-                        if (!vm.topUpAmountBasic.commonTopUpAmountRange || (!vm.topUpAmountBasic.commonTopUpAmountRange.minAmount && !vm.topUpAmountBasic.commonTopUpAmountRange.maxAmount)) {
-                            vm.topUpAmountBasic = vm.topUpAmountBasic ? vm.topUpAmountBasic : {};
-                            vm.topUpAmountBasic.commonTopUpAmountRange = {
-                                minAmount: 10,
-                                maxAmount: 1000000
-                            };
                         }
                     })
                 });

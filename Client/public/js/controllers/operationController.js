@@ -938,13 +938,14 @@ define(['js/app'], function (myApp) {
 
                 result = $scope.counterDepositType[val];
                 result = $translate(result);
-            }
-            else if (fieldName === 'gameProviderInEvent') {
+            } else if (fieldName === 'gameProviderInEvent') {
                 let gameProviderById = vm.allGameProviderById[val.toString()];
 
                 if(gameProviderById && gameProviderById.name){
                     result =  gameProviderById.name;
                 }
+            } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
             }
             return $sce.trustAsHtml(result);
         };

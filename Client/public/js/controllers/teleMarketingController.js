@@ -5729,7 +5729,7 @@ define(['js/app'], function (myApp) {
 
         vm.initTelePlayerSendingMsgTable = function () {
 
-            if(vm.selectedPlatform){
+            // if(vm.selectedPlatform){
                 // vm.teleMarketingTaskTab = 'TELEMARKETING_TASK_OVERVIEW';
 
                 utilService.actionAfterLoaded('#teleMarketingOverview', function () {
@@ -5770,7 +5770,7 @@ define(['js/app'], function (myApp) {
 
                     $("#sendSMSTableMsgEndDatetimePicker").data('datetimepicker').setLocalDate(null);
                 });
-            }
+            // }
         };
         // generate telePlayer Sending Message function table ====================Start==================
         vm.showTelePlayerSendingMsgTable = function (dxMission, platformId) {
@@ -5785,12 +5785,17 @@ define(['js/app'], function (myApp) {
                 //     vm.commonPageChangeHandler(curP, pageSize, "telePlayerSendingMsgTable", vm.getTelePlayerSendingMsgTable)
                 // });
                 vm.getTelePlayerSendingMsgTable(true, dxMission, platformId);
-                $scope.safeApply()
+                $scope.$evalAsync()
             });
         };
 
         vm.getTelePlayerSendingMsgTable = function (newSearch, dxMission, platformId) {
             vm.loadingTelePlayerSendingSMSTable = true;
+            vm.telePlayerSendingMsgTable.limit = 10;
+            vm.cloneTeleMarketingSendSmsData = [];
+            vm.msgSendingGroupData = [];
+            vm.selectedSendingSMSData = {};
+            vm.pagesCheckFlagObj = {};
             let sendQuery = {
                 platform: platformId ? platformId : vm.teleMarketingOverview.platformObjId,
                 dxMission: dxMission ? dxMission : vm.telePlayerSendingMsgTable.dxMissionId,
@@ -5819,8 +5824,7 @@ define(['js/app'], function (myApp) {
                 if(data){
                     vm.teleMarketingSendSMS.count = data.data && data.data.dxPhoneData ? data.data.dxPhoneData.length : 0;
                     vm.teleMarketingSendSMS.data = data.data && data.data.dxPhoneData ? data.data.dxPhoneData : [];
-                    vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0
-
+                    vm.msgTemplate = data.data && data.data.dxMissionData ? data.data.dxMissionData : 0;
                 }
                 vm.showSMSTable = true;
                 if ( vm.teleMarketingSendSMS.data &&  vm.teleMarketingSendSMS.data.length > 0){
@@ -5842,15 +5846,218 @@ define(['js/app'], function (myApp) {
                 }
                 vm.loadingTelePlayerSendingSMSTable = false;
                 vm.teleSendSmsDataholder = {};
+                vm.phoneNumberInfo.remark = {};
                 if (vm.teleMarketingSendSMS && vm.teleMarketingSendSMS.data) {
                     vm.teleMarketingSendSMS.data.map(record => {
                         vm.teleSendSmsDataholder[record._id] = record;
+
+                        let remark = "";
+                        if (vm.teleSendSmsDataholder && vm.teleSendSmsDataholder.hasOwnProperty(record._id) && vm.teleSendSmsDataholder[record._id].hasOwnProperty("remark$")) {
+                            remark = vm.teleSendSmsDataholder[record._id].remark$;
+                        }
+
+                        if (vm.phoneNumberInfo && vm.phoneNumberInfo.remark) {
+                            vm.phoneNumberInfo.remark[record._id] = remark;
+                        }
                     })
                 }
 
-                $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data));
+                if (vm.teleMarketingSendSMS && vm.teleMarketingSendSMS.data) {
+                    vm.cloneTeleMarketingSendSmsData = vm.teleMarketingSendSMS.data ? JSON.parse(JSON.stringify(vm.teleMarketingSendSMS.data)) : [];
+                } else {
+                    vm.telePlayerSendingMsgTable.totalPage = 1;
+                    vm.telePlayerSendingMsgTable.totalCount = 0;
+                }
+
+                vm.searchTeleMarketingSendSmsPageData();
+                $scope.$evalAsync();
+                // $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data));
+
                 // $scope.$evalAsync(vm.drawTelePlayerMsgTable(newSearch, vm.teleMarketingSendSMS.data, vm.teleMarketingSendSMS.count));
-            })
+            });
+        };
+
+        vm.changeTelePlayerSendingMsgTablePage = function(type) {
+            switch(type) {
+                case 'first_page':
+                    vm.telePlayerSendingMsgTable.currentPage = 1;
+                    break;
+                case 'previous_page':
+                    vm.telePlayerSendingMsgTable.currentPage -= 1;
+                    break;
+                case 'next_page':
+                    vm.telePlayerSendingMsgTable.currentPage += 1;
+                    break;
+                case 'last_page':
+                    vm.telePlayerSendingMsgTable.currentPage = vm.telePlayerSendingMsgTable.totalPage;
+                    break;
+                default:
+                    vm.telePlayerSendingMsgTable.currentPage = 1;
+                    break;
+            }
+
+            vm.telePlayerSendingMsgTable.index = (vm.telePlayerSendingMsgTable.currentPage - 1) * vm.telePlayerSendingMsgTable.limit;
+            if (vm.telePlayerSendingMsgTable.currentPage > 0 && vm.telePlayerSendingMsgTable.currentPage <= vm.telePlayerSendingMsgTable.totalPage) {
+                vm.searchTeleMarketingSendSmsPageData();
+            }
+        };
+
+        vm.gotoTelePlayerSendingMsgTablePage = function(pg, $event) {
+            $('body .pagination li').removeClass('active');
+            if($event){
+                $($event.currentTarget).addClass('active');
+            }
+            let pgNo = null;
+            if(pg<=0){
+                pgNo = 0
+            }else if(pg >= 1){
+                pgNo = pg;
+            }
+            vm.telePlayerSendingMsgTable.index = ((pgNo - 1) * vm.telePlayerSendingMsgTable.limit);
+            vm.telePlayerSendingMsgTable.currentPage = pgNo;
+
+            if (vm.telePlayerSendingMsgTable.currentPage > 0 && vm.telePlayerSendingMsgTable.currentPage <= vm.telePlayerSendingMsgTable.totalPage) {
+                vm.searchTeleMarketingSendSmsPageData();
+            }
+        };
+
+        vm.searchTeleMarketingSendSmsPageData = function () {
+            vm.teleMarketingSendSmsPageData = [];
+            if (vm.telePlayerSendingMsgTable) {
+                vm.telePlayerSendingMsgTable.limit = vm.telePlayerSendingMsgTable.limit || 10;
+                vm.telePlayerSendingMsgTable.index = vm.telePlayerSendingMsgTable.index || 0;
+                vm.telePlayerSendingMsgTable.currentPage = vm.telePlayerSendingMsgTable.currentPage || 1;
+            } else {
+                vm.telePlayerSendingMsgTable = {};
+                vm.telePlayerSendingMsgTable.limit = 10;
+                vm.telePlayerSendingMsgTable.index = 0;
+                vm.telePlayerSendingMsgTable.currentPage = 1;
+            }
+
+            let itemTotal = vm.cloneTeleMarketingSendSmsData ? vm.cloneTeleMarketingSendSmsData.length : 0;
+            let totalPage = itemTotal / vm.telePlayerSendingMsgTable.limit;
+            vm.telePlayerSendingMsgTable.totalPage = Math.ceil(totalPage);
+            vm.telePlayerSendingMsgTable.totalCount = vm.cloneTeleMarketingSendSmsData ? vm.cloneTeleMarketingSendSmsData.length : 0;
+
+            if (vm.cloneTeleMarketingSendSmsData && vm.cloneTeleMarketingSendSmsData.length > 0){
+                vm.teleMarketingSendSmsPageData = vm.cloneTeleMarketingSendSmsData.slice(vm.telePlayerSendingMsgTable.index, vm.telePlayerSendingMsgTable.index + vm.telePlayerSendingMsgTable.limit);
+            } else {
+                vm.teleMarketingSendSmsPageData = vm.cloneTeleMarketingSendSmsData || [];
+            }
+
+            let pageNo = vm.telePlayerSendingMsgTable.currentPage;
+            if (vm.pagesCheckFlagObj[String(pageNo)] && vm.teleMarketingSendSmsPageData && (vm.pagesCheckFlagObj[String(pageNo)] == vm.teleMarketingSendSmsPageData.length)) {
+                $("#checkAll")[0].checked = true;
+            } else {
+                $("#checkAll")[0].checked = false;
+            }
+        };
+
+        vm.checkUncheckSelectAll = function () {
+            let isChecked = false;
+
+            isChecked = $("#checkAll")[0].checked ? true : false;
+            console.log('isChecked ==>', isChecked);
+
+            if(isChecked) {
+                vm.updateSelectCustomerSms(null, true, isChecked)
+            } else {
+                vm.updateSelectCustomerSms(null, true, isChecked)
+            }
+        };
+
+        vm.updateSelectCustomerSms = function (selected, isFromAllSelect=false, isAllChecked=false) {
+            if (isFromAllSelect) {
+                if (vm.teleMarketingSendSmsPageData && vm.teleMarketingSendSmsPageData.length > 0) {
+                    vm.teleMarketingSendSmsPageData.forEach(item => {
+                        if (item && item._id && item.platform && item.phoneNumber) {
+                            vm.selectedSendingSMSData[item._id] = isAllChecked;
+
+                            if (vm.selectedSendingSMSData && Object.keys(vm.selectedSendingSMSData).length > 0) {
+                                Object.keys(vm.selectedSendingSMSData).forEach(key => {
+                                    if (key && (vm.selectedSendingSMSData[key].toString() === 'true')) {
+                                        let addIndex = vm.msgSendingGroupData.findIndex(x => x && x.dxMissionId && (String(key) === String(x.dxMissionId)));
+                                        if (addIndex == -1) {
+                                            vm.msgSendingGroupData.push({dxMissionId: item._id, platformId: item.platform, phoneNumber: item.phoneNumber.trim()});
+                                            countSelectItemPerPage(true);
+                                        }
+                                    } else if (key && (vm.selectedSendingSMSData[key].toString() === 'false')) {
+                                        let delIndex = vm.msgSendingGroupData.findIndex(x => x && x.dxMissionId && (String(key) === String(x.dxMissionId)));
+                                        if (delIndex > -1) {
+                                            vm.msgSendingGroupData.splice(delIndex, 1);
+                                            countSelectItemPerPage(false);
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    });
+                }
+            } else {
+                if (selected && selected._id && selected.platform && selected.phoneNumber) {
+                    if (vm.selectedSendingSMSData && Object.keys(vm.selectedSendingSMSData).length > 0) {
+                        let index = Object.keys(vm.selectedSendingSMSData).indexOf(String(selected._id));
+                        if (index > -1) {
+                            delete Object.keys(vm.selectedSendingSMSData)[index];
+                        } else {
+                            vm.selectedSendingSMSData[selected._id] = Boolean(true);
+                        }
+                    }
+                    else {
+                        vm.selectedSendingSMSData[selected._id] = Boolean(true);
+                    }
+
+                    if (vm.selectedSendingSMSData && Object.keys(vm.selectedSendingSMSData).length > 0) {
+                        Object.keys(vm.selectedSendingSMSData).forEach(item => {
+                            if (item && (vm.selectedSendingSMSData[item].toString() === 'true')) {
+                                let addIndex = vm.msgSendingGroupData.findIndex(x => x && x.dxMissionId && (String(item) === String(x.dxMissionId)));
+                                if (addIndex == -1) {
+                                    vm.msgSendingGroupData.push({dxMissionId: selected._id, platformId: selected.platform, phoneNumber: selected.phoneNumber.trim()});
+                                    countSelectItemPerPage(true);
+                                }
+                            } else if (item && (vm.selectedSendingSMSData[item].toString() === 'false')) {
+                                let delIndex = vm.msgSendingGroupData.findIndex(x => x && x.dxMissionId && (String(item) === String(x.dxMissionId)));
+                                if (delIndex > -1) {
+                                    vm.msgSendingGroupData.splice(delIndex, 1);
+                                    countSelectItemPerPage(false);
+                                }
+                            }
+                        })
+                    }
+
+
+                }
+            }
+
+            console.log(vm.msgSendingGroupData);
+            vm.totalmsg = vm.msgSendingGroupData.length;
+            $scope.$evalAsync();
+
+            function countSelectItemPerPage (isAdd=false) {
+                let pageNo = vm.telePlayerSendingMsgTable.currentPage;
+                let index = Object.keys(vm.pagesCheckFlagObj).indexOf(String(pageNo));
+                if (index > -1) {
+                    let key = Object.keys(vm.pagesCheckFlagObj)[index];
+
+                    if (isAdd) {
+                        vm.pagesCheckFlagObj[key] += 1;
+                    } else {
+                        vm.pagesCheckFlagObj[key] -= 1;
+                    }
+                } else {
+                    if (isAdd) {
+                        vm.pagesCheckFlagObj[String(pageNo)] = 1
+                    } else {
+                        vm.pagesCheckFlagObj[String(pageNo)] = 0;
+                    }
+                }
+
+                if (vm.pagesCheckFlagObj[String(pageNo)] && vm.teleMarketingSendSmsPageData && (vm.pagesCheckFlagObj[String(pageNo)] == vm.teleMarketingSendSmsPageData.length)) {
+                    $("#checkAll")[0].checked = true;
+                } else {
+                    $("#checkAll")[0].checked = false;
+                }
+            }
         };
 
         vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
@@ -6086,6 +6293,7 @@ define(['js/app'], function (myApp) {
                     setCheckAllProposal($checkAll.checked);
                 })
             }
+
             function setCheckAllProposal(flag) {
                 var s = $("#telePlayerSendingMsgTable tbody td.customerSelected input").each(function () {
                     $(this).prop("checked", flag);
@@ -6116,7 +6324,10 @@ define(['js/app'], function (myApp) {
             if (vm.teleSendSmsDataholder && vm.teleSendSmsDataholder.hasOwnProperty(obj._id) && vm.teleSendSmsDataholder[obj._id].hasOwnProperty("remark$")) {
                 remark = vm.teleSendSmsDataholder[obj._id].remark$;
             }
-            vm.phoneNumberInfo.remark[obj._id] = remark;
+
+            if (vm.phoneNumberInfo && vm.phoneNumberInfo.remark) {
+                vm.phoneNumberInfo.remark[obj._id] = remark;
+            }
         };
 
         vm.savePhoneNumberInfoRemark = function (data) {
@@ -6138,6 +6349,16 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
+
+                if (vm.teleMarketingSendSMS && vm.teleMarketingSendSMS.data) {
+                    vm.cloneTeleMarketingSendSmsData = vm.teleMarketingSendSMS.data ? JSON.parse(JSON.stringify(vm.teleMarketingSendSMS.data)) : [];
+                } else {
+                    vm.telePlayerSendingMsgTable.totalPage = 1;
+                    vm.telePlayerSendingMsgTable.totalCount = 0;
+                }
+
+                vm.searchTeleMarketingSendSmsPageData();
+
                 console.log("update phone number remark status", data)
             }, function (error) {
                 console.log("error", error);

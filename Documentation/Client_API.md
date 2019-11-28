@@ -1942,6 +1942,7 @@ API说明：
 				referralId: "4322" //推荐人邀请码
 				deviceType: 1 //选填|设备类型列表
 				subPlatformId: 401 //选填|子平台列表
+				domain: "domain.com" //选填｜当下注册域名
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
 	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
@@ -7001,6 +7002,9 @@ API说明：
 				}
 				getPartnerConfig
 	* 请求失败: `{"status": 400,"errorMessage": "No platform exists with id: 11","data": null}`
+	* 1 代表 WEB
+    * 3 代表 H5
+    * 没提供device 参数的话会根据user agent来判定
 
 <div id='请求客服会电'></div>
 
