@@ -59,7 +59,7 @@ var playerConsumptionRecordSchema = new Schema({
     // last update time
     updateTime: {type: Date, default: Date.now},
     // source for dba
-    source: {type: String, index: true},
+    source: {type: String},
     // Number of comsumption (compressed records)
     count: {type: Number, default: 1},
     // win ratio (bonusAmount / validAmount)
