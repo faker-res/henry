@@ -42,6 +42,7 @@ var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTrans
 var constReferralStatus = require("./../const/constReferralStatus");
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 let constMessageType = require("../const/constMessageType");
+const constDevice = require("../const/constDevice");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
@@ -30278,6 +30279,23 @@ let dbPlayerInfo = {
             )
         }
 
+        let iOSDevice = [];
+        let androidDevice = [];
+        let appDevices = [];
+
+        for (let key in constDevice) {
+            if (key.startsWith("APP")) {
+                appDevices.push(constDevice[key]);
+            }
+            if (key.startsWith("APP_PLAYER_ANDROID")) {
+                androidDevice.push(constDevice[key]);
+            }
+            if (key.startsWith("APP_PLAYER_IOS")) {
+                iOSDevice.push(constDevice[key]);
+            }
+        }
+
+
         return promoteWayProm.then(
             promoteWayData => {
                 let timeSlot = dbUtil.splitTimeFrameToDaily(startDate, endDate)
@@ -30291,13 +30309,29 @@ let dbPlayerInfo = {
                             platform: platformId
                         };
 
-                        if (deviceType && (deviceType !== 'all')) {
-                            matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
+                        if (deviceType == 'iOS') {
+                            matchObj.loginDevice = {$in: iOSDevice}
+                        } else if (deviceType == "Android") {
+                            matchObj.loginDevice = {$in: androidDevice}
+                        } else {
+                            matchObj.loginDevice = {$in: appDevices}
                         }
 
+                        // if (deviceType && (deviceType !== 'all')) {
+                        //     matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
+                        // }
+
                         if (playerType && (playerType === 'new_registration')) {
-                            matchObj.guestDeviceId = {$exists: true, $ne: null};
+                            // matchObj.guestDeviceId = {$exists: true, $ne: null};
                             matchObj.registrationTime = {$gte: startTime, $lt: endTime};
+                            delete matchObj.loginDevice;
+                            if (deviceType == 'iOS') {
+                                matchObj.registrationDevice = {$in: iOSDevice}
+                            } else if (deviceType == "Android") {
+                                matchObj.registrationDevice = {$in: androidDevice}
+                            } else {
+                                matchObj.registrationDevice = {$in: appDevices}
+                            }
 
                             if (domain && promoteWayData && promoteWayData.length > 0) {
                                 matchObj.promoteWay = {$in: promoteWayData};
