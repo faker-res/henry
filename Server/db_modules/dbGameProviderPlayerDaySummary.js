@@ -118,6 +118,10 @@ var dbGameProviderPlayerDaySummary = {
      * @param {ObjectId} providerId - The provider id
      */
     calculateProviderPlayerDaySummaryForPlayers: function (startTime, endTime, providerId, playerObjIds) {
+        console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==startTime==>', startTime);
+        console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==endTime==>', endTime);
+        console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==providerId==>', providerId);
+        console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==playerObjIds==>', playerObjIds);
         return dbconfig.collection_playerConsumptionRecord.aggregate(
             [
                 {
@@ -149,6 +153,7 @@ var dbGameProviderPlayerDaySummary = {
             ]
         ).read("secondaryPreferred").cursor({batchSize: 1000}).allowDiskUse(true).exec().toArray().then(
             function (data) {
+                console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==data');
                 if (data && data.length > 0) {
                     var prom = [];
                     for (var i = 0; i < data.length; i++) {
@@ -192,6 +197,7 @@ var dbGameProviderPlayerDaySummary = {
             }
         ).then(
             function (data) {
+                console.log('JY check==calculateProviderPlayerDaySummaryForPlayers==data 111');
                 return Promise.resolve(data);
             },
             function (error) {

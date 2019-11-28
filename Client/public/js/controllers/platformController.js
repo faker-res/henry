@@ -29407,6 +29407,8 @@ define(['js/app'], function (myApp) {
                     if (index != -1){
                         result =  vm.allGameProviders[index].name;
                     }
+                } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                    result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
                 }
                 return $sce.trustAsHtml(result);
             };
@@ -33504,7 +33506,7 @@ define(['js/app'], function (myApp) {
 
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
-                vm.newPlayerLvl.platform = vm.selectedPlatform.id;
+                vm.newPlayerLvl.platform = vm.filterConfigPlatform || vm.selectedPlatform.id;
                 let levelUpConfig = vm.newPlayerLvl.levelUpConfig;
                 for (let j = 0; j < levelUpConfig.length; j++) {
                     if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
@@ -33519,8 +33521,9 @@ define(['js/app'], function (myApp) {
                 $scope.$socketPromise('createPlayerLevel', sendData)
                     .done(function (data) {
                         if (!vm.platformBatchLevelUp) {
+                            let levelPlatformObjId = vm.filterConfigPlatform || vm.selectedPlatform.id;
                             let updateData = {
-                                query: {_id: vm.selectedPlatform.id},
+                                query: {_id: levelPlatformObjId},
                                 updateData: {
                                     platformBatchLevelUp: vm.platformBatchLevelUp,
                                     autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp

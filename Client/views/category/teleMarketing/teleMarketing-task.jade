@@ -208,7 +208,68 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             label {{"Total" | translate}} {{vm.teleMarketingSendSMS.count}} {{"records" | translate}}
                             label(style="margin-left:100px;") {{vm.msgTemplate.name}} - {{vm.msgTemplate.description}}
                             button.common-button.btn.btn-primary(ng-click="vm.showSMSTable = false", style="position:absolute;right:0px;margin:0px;") {{ 'collapse' | translate}}
-                            table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll;margin-top:10px;")
+                            table#telePlayerSendingMsgTable.table-striped.display.text-center.dataTable.table-condensed(style="min-width:100% ;overflow: scroll;margin-top:10px;")
+                                thead
+                                    tr
+                                        th {{'ORDER' | translate}}
+                                        th {{'IMPORTED_PHONE_NUMBER' | translate}}
+                                        th {{'SMS URL' | translate}}
+                                        th {{'CUSTOMER_ACCOUNT_ID' | translate}}
+                                        th {{'TIME_IMPORTED_PHONE_NUMBER' | translate}}
+                                        th {{'LAST_SENDING' | translate}}
+                                        th {{'SENDING_TIMES' | translate}}
+                                        th {{'loginTimes' | translate}}
+                                        th {{'TOP_UP_TIMES' | translate}}
+                                        th(style='padding:15px')
+                                            input(type='checkbox' id='checkAll' name='checkAll' ng-click='vm.checkUncheckSelectAll()')
+                                        th {{'REMARKS' | translate}}
+                                tbody
+                                    tr(ng-repeat='(i,v) in vm.teleMarketingSendSmsPageData')
+                                        td {{ vm.telePlayerSendingMsgTable.index + $index + 1}}
+                                        td
+                                            a(ng-click="vm.callNewPlayerBtn(v.phoneNumber, v)") {{ v.phoneNumber$ }}
+                                        td {{ v.url }}
+                                        td {{ v.playerName }}
+                                        td {{ v.createTime }}
+                                        td {{ v.lastTime }}
+                                        td {{ v.count }}
+                                        td {{ v.loginTimes }}
+                                        td {{ v.topupTimes }}
+                                        td(ng-if="!v.isLocked")
+                                            input(type="checkbox" ng-model='vm.selectedSendingSMSData[v._id]' ng-click="vm.updateSelectCustomerSms(v)")
+                                        td(ng-if="v.isLocked")
+                                            span -
+                                        td(ng-if="!v.isLocked")
+                                            input.margin-right-5(type='text' ng-init='vm.changePlayerMsgTableRemark(v)' ng-show='!vm.showPhoneNumberRemark' ng-model='vm.phoneNumberInfo.remark[v._id]' disabled)
+                                            button.btn.btn-danger(type='edit' ng-click='vm.showPhoneNumberRemark=true' ng-show='!vm.showPhoneNumberRemark') {{'EDIT' | translate}}
+                                            input.margin-right-5(type='text' ng-model='vm.phoneNumberInfo.remark[v._id]' ng-show='vm.showPhoneNumberRemark')
+                                            button.btn.btn-success(type='edit' ng-click='vm.savePhoneNumberInfoRemark()' ng-show='vm.showPhoneNumberRemark') {{'SAVE' | translate}}
+                                        td(ng-if="v.isLocked")
+                                            span -
+
+                                tfoot
+                                    tr
+                                        th
+                                            div(style='display:inline-block;font-weight:normal')
+                                                text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
+                                                input.form-control(style='max-width:80px;display:inline-block;',type='number',ng-init=10,ng-model='vm.telePlayerSendingMsgTable.limit' ,ng-blur='vm.searchTeleMarketingSendSmsPageData()')
+                                                text.margin-left-5(style="display:inline-block") {{'COUNT1' | translate}}
+                                        th(colspan=10 style="text-align:right")
+                                            div(style='display:inline-block;font-weight:normal')
+                                                text.margin-right-5(style='display:inline-block') {{'Jump to' | translate}}
+                                                input.form-control.margin-right-5(style='max-width:60px;display:inline-block', type='number',ng-model='vm.telePlayerSendingMsgTable.currentPage',ng-init=1 ,ng-blur="vm.gotoTelePlayerSendingMsgTablePage((vm.telePlayerSendingMsgTable.currentPage),null)")
+                                                text(style="display:inline-block") / {{ vm.telePlayerSendingMsgTable.totalPage }} {{'Page' | translate}}
+                                            div(style='display:inline-block')
+                                                button.btn.btnPage.first_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("first_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == 1') {{'FIRST_PAGE' | translate}}
+                                            div(style='display:inline-block')
+                                                button.btn.btnPage.prev_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("previous_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == 1') {{'PREVIOUS_PAGE' | translate}}
+                                            div(style='display:inline-block')
+                                                button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("next_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == vm.telePlayerSendingMsgTable.totalPage') {{'NEXT_PAGE' | translate}}
+                                            div(style='display:inline-block')
+                                                button.btn.btnPage.last_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("last_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == vm.telePlayerSendingMsgTable.totalPage') {{'LAST_PAGE' | translate}}
+
+                            //table#telePlayerSendingMsgTable.common-table.display(style="min-width:100% ;overflow: scroll;margin-top:10px;")
+
                             //#telePlayerSendingMsgTablePage
                             #msgPreview(ng-if="vm.totalmsg > 0", style="text-align:right;margin-top:60px;")
                                 table.simple-table#actionLogDataTable(style='max-width:100%;')
