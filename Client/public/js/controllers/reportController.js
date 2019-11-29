@@ -2273,11 +2273,11 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
             if(isExport){
-                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {14: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {12: summary.amount});
                 $('#topupExcelTable_wrapper').hide();
                 vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
             }else{
-                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {14: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {12: summary.amount});
                 vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
                 $('#topupTable').off('order.dt');
