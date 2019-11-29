@@ -16,10 +16,10 @@ getLevel:`{
       "providerGroup": "free", //提供商
       "isRewardTask": false, //是否奖励任务
       "bonusCredit": 20, //奖励额
-      "requiredUnlockTimesLevelDown": 0,
-      "providerGroupLevelDown": "free",
-      "isRewardTaskLevelDown": false,
-      "bonusCreditLevelDown": 0
+      "requiredUnlockTimesLevelDown": 0, //保级-优惠解锁流水倍数
+      "providerGroupLevelDown": "free", //保级-优惠锁大厅组
+      "isRewardTaskLevelDown": false, //如果解锁流水 >0 就是true。代表优惠需要解锁才能提款
+      "bonusCreditLevelDown": 0 //保级优惠额度
     },
     "levelDownConfig": [
       {
@@ -45,10 +45,10 @@ getLevel:`{
 }`,
 
 getLevelReward:`{
-    "bonusCreditLevelDown": 0,
-    "isRewardTaskLevelDown": false,
-    "providerGroupLevelDown": "free",
-    "requiredUnlockTimesLevelDown": 0,
+    "bonusCreditLevelDown": 0, //保级优惠额度
+    "isRewardTaskLevelDown": false, //如果解锁流水 >0 就是true。代表优惠需要解锁才能提款
+    "providerGroupLevelDown": "free", //保级-优惠锁大厅组
+    "requiredUnlockTimesLevelDown": 0, //保级-优惠解锁流水倍数
     "bonusCredit": 20, //奖励额
     "isRewardTask": false, //是否奖励任务
     "providerGroup": "free", //提供商
