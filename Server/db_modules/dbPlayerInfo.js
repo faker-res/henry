@@ -25530,7 +25530,7 @@ let dbPlayerInfo = {
         });
     },
 
-    getCreditDetail: function (playerObjId) {
+    getCreditDetail: async function (playerObjId) {
         let returnData = {
             gameCreditList: [],
             lockedCreditList: []
@@ -25546,198 +25546,196 @@ let dbPlayerInfo = {
         let totalLockedCredit = 0;
         let totalGameCreditAmount = 0;
 
-        return dbconfig.collection_players.findOne({_id: playerObjId}, {
-            platform: 1,
-            validCredit: 1,
-            isRealPlayer: 1,
-            name: 1,
-            _id: 0,
-            forbidProviders: 1
-        }).populate({
+        // Get player info
+        let playerData = await dbconfig.collection_players.findOne(
+            {_id: playerObjId},
+            {platform: 1, validCredit: 1, isRealPlayer: 1, name: 1, _id: 0, forbidProviders: 1}
+        ).populate({
             path: "platform",
             model: dbconfig.collection_platform,
             select: ['_id', 'platformId']
-        }).lean().then(
-            (playerData) => {
-                isRealPlayer = playerData.isRealPlayer;
-                playerDetails.name = playerData.name;
-                playerDetails.validCredit = playerData.validCredit;
-                playerDetails.platformId = playerData.platform.platformId;
-                playerDetails.platformObjId = playerData.platform._id;
-                playerForbidProvider = playerData.forbidProviders ? playerData.forbidProviders.map(provider => String(provider)) : [];
-                returnData.credit = playerData.validCredit;
-                return dbconfig.collection_platform.findOne({_id: playerData.platform})
-                    .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
-                    .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
-            }).then(
-            platformData => {
-                let providerCredit = {gameCreditList: []};
+        }).lean()
 
-                if (platformData && platformData.gameProviders.length > 0) {
-                    // sorting to reduce chances of getting joint-list
-                    platformData.gameProviders.sort(sortRankingRecord);
+        isRealPlayer = playerData.isRealPlayer;
+        playerDetails.name = playerData.name;
+        playerDetails.validCredit = playerData.validCredit;
+        playerDetails.platformId = playerData.platform.platformId;
+        playerDetails.platformObjId = playerData.platform._id;
+        playerForbidProvider = playerData.forbidProviders ? playerData.forbidProviders.map(provider => String(provider)) : [];
+        returnData.credit = playerData.validCredit;
 
-                    for (let i = 0; i < platformData.gameProviders.length; i++) {
-                        gameProviderIdList.push(platformData.gameProviders[i].providerId);
-                        // check each of the game provider for the sameLineProvider
-                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
-                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
+        let platformData = await dbconfig.collection_platform.findOne({_id: playerData.platform})
+            .populate({path: "paymentChannels", model: dbconfig.collection_paymentChannel})
+            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
 
-                            if (!groupSameLineProviders.length) {
-                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
-                            }
-                            else {
-                                // check each of the providerId
-                                let isAdded = false;
-                                let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId];
+        let providerCredit = {gameCreditList: []};
 
-                                for (let count = 0; count < groupSameLineProviders.length; count++) {
-                                    let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
-                                    if (interceptProviderIdList && interceptProviderIdList.length) {
-                                        nextProviderIdList.forEach(
-                                            nextItem => {
-                                                if (interceptProviderIdList.indexOf(nextItem) == -1) {
-                                                    groupSameLineProviders[count].push(nextItem);
-                                                }
-                                            }
-                                        );
+        if (platformData && platformData.gameProviders.length > 0) {
+            // sorting to reduce chances of getting joint-list
+            platformData.gameProviders.sort(sortRankingRecord);
 
-                                        isAdded = true;
-                                        break;
-                                    }
-                                }
-
-                                if (!isAdded) {
-                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
-                                }
-                            }
-                        }
-                        else{
-                            // for those game provider does not have samelineProvider
-                            groupSameLineProviders.push([platformData.gameProviders[i].providerId]);
-                        }
-                        let nickName = "";
-                        let status = platformData.gameProviders[i].status;
-                        if (platformData.gameProviderInfo) {
-                            for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
-                                if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
-                                    let gameProviderId = platformData.gameProviders[i]._id.toString();
-                                    let platformProviderInfo = platformData.gameProviderInfo[gameProviderId];
-                                    nickName = platformProviderInfo.localNickName || nickName;
-                                    if (status === 1 && platformProviderInfo.isEnable === false) {
-                                        status = 2;
-                                    }
-
-                                    if (status === 1 && playerForbidProvider.indexOf(gameProviderId) >= 0) {
-                                        status = 2;
-                                    }
-                                }
-                            }
-                        }
-                        providerCredit.gameCreditList[i] = {
-                            providerObjId: platformData.gameProviders[i]._id,
-                            providerId: platformData.gameProviders[i].providerId,
-                            // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
-                            nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
-                            chName: platformData.gameProviders[i].chName ? platformData.gameProviders[i].chName : '',
-                            status: status
-                        };
-                    }
-
-                    let tempSameLineProviderList = [];
-                    let skipList= [];
-                    // check if the newly added row is intercept with the current set of data
-                    for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
-
-                        if (!skipList.length && skipList.indexOf(index1) > -1){
-                            continue;
-                        }
-                        let firstGroup = groupSameLineProviders[index1];
+            for (let i = 0; i < platformData.gameProviders.length; i++) {
+                gameProviderIdList.push(platformData.gameProviders[i].providerId);
+                // check each of the game provider for the sameLineProvider
+                if (
+                    platformData.gameProviders[i]
+                    && platformData.gameProviders[i].sameLineProviders
+                    && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]
+                    && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length
+                ) {
+                    if (!groupSameLineProviders.length) {
+                        groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
+                    } else {
+                        // check each of the providerId
                         let isAdded = false;
+                        let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId];
 
-                        for (let index2 = 0; index2 < groupSameLineProviders.length; index2++) {
-                            if (index1 == index2) {
-                                continue;
-                            }
-
-                            if (!skipList.length && skipList.indexOf(index2) > -1){
-                                continue;
-                            }
-
-                            let secondGroup = groupSameLineProviders[index2];
-
-                            let interceptProviderIdList = firstGroup.filter(q => secondGroup.indexOf(q) > -1);
+                        for (let count = 0; count < groupSameLineProviders.length; count++) {
+                            let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
                             if (interceptProviderIdList && interceptProviderIdList.length) {
-                                secondGroup.forEach(
+                                nextProviderIdList.forEach(
                                     nextItem => {
                                         if (interceptProviderIdList.indexOf(nextItem) == -1) {
-                                            firstGroup.push(nextItem);
+                                            groupSameLineProviders[count].push(nextItem);
                                         }
                                     }
-                                )
+                                );
 
-                                // remove the intercepted list
-                                skipList.push(index2);
                                 isAdded = true;
+                                break;
                             }
-
                         }
-                        if (!tempSameLineProviderList.length || !isAdded){
-                            tempSameLineProviderList.push(firstGroup);
+
+                        if (!isAdded) {
+                            groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                         }
                     }
+                } else {
+                    // for those game provider does not have samelineProvider
+                    groupSameLineProviders.push([platformData.gameProviders[i].providerId]);
+                }
 
-                    // remove the unrelated provderID and return data
-                    returnData.sameLineProviders = {};
-                    for (let i = 0; i < tempSameLineProviderList.length; i ++) {
-                        if (tempSameLineProviderList[i].length) {
-                            returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                            amountGameProviderList.push(returnData.sameLineProviders[i]);
+                let nickName = "";
+                let status = platformData.gameProviders[i].status;
+
+                if (platformData.gameProviderInfo) {
+                    for (let j = 0; j < Object.keys(platformData.gameProviderInfo).length; j++) {
+                        if (Object.keys(platformData.gameProviderInfo)[j].toString() == platformData.gameProviders[i]._id.toString()) {
+                            let gameProviderId = platformData.gameProviders[i]._id.toString();
+                            let platformProviderInfo = platformData.gameProviderInfo[gameProviderId];
+                            nickName = platformProviderInfo.localNickName || nickName;
+                            if (status === 1 && platformProviderInfo.isEnable === false) {
+                                status = 2;
+                            }
+
+                            if (status === 1 && playerForbidProvider.indexOf(gameProviderId) >= 0) {
+                                status = 2;
+                            }
                         }
                     }
                 }
-                return providerCredit;
+
+                providerCredit.gameCreditList[i] = {
+                    providerObjId: platformData.gameProviders[i]._id,
+                    providerId: platformData.gameProviders[i].providerId,
+                    // nickName: platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                    nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
+                    chName: platformData.gameProviders[i].chName ? platformData.gameProviders[i].chName : '',
+                    status: status
+                };
             }
-        ).then(
-            providerList => {
-                if (providerList && providerList.gameCreditList && providerList.gameCreditList.length > 0 && isRealPlayer) {
-                    let promArray = [];
-                    for (let i = 0; i < providerList.gameCreditList.length; i++) {
-                        let queryObj = {
-                            username: playerDetails.name,
-                            platformId: playerDetails.platformId,
-                            providerId: providerList.gameCreditList[i].providerId,
+
+            let tempSameLineProviderList = [];
+            let skipList = [];
+            // check if the newly added row is intercept with the current set of data
+            for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
+                if (!skipList.length && skipList.indexOf(index1) > -1) {
+                    continue;
+                }
+                let firstGroup = groupSameLineProviders[index1];
+                let isAdded = false;
+
+                for (let index2 = 0; index2 < groupSameLineProviders.length; index2++) {
+                    if (index1 == index2) {
+                        continue;
+                    }
+
+                    if (!skipList.length && skipList.indexOf(index2) > -1) {
+                        continue;
+                    }
+
+                    let secondGroup = groupSameLineProviders[index2];
+
+                    let interceptProviderIdList = firstGroup.filter(q => secondGroup.indexOf(q) > -1);
+                    if (interceptProviderIdList && interceptProviderIdList.length) {
+                        secondGroup.forEach(
+                            nextItem => {
+                                if (interceptProviderIdList.indexOf(nextItem) == -1) {
+                                    firstGroup.push(nextItem);
+                                }
+                            }
+                        )
+
+                        // remove the intercepted list
+                        skipList.push(index2);
+                        isAdded = true;
+                    }
+
+                }
+                if (!tempSameLineProviderList.length || !isAdded) {
+                    tempSameLineProviderList.push(firstGroup);
+                }
+            }
+
+            // remove the unrelated provderID and return data
+            returnData.sameLineProviders = {};
+            for (let i = 0; i < tempSameLineProviderList.length; i++) {
+                if (tempSameLineProviderList[i].length) {
+                    returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
+                    amountGameProviderList.push(returnData.sameLineProviders[i]);
+                }
+            }
+        }
+
+        let promArray = [];
+
+        if (providerCredit && providerCredit.gameCreditList && providerCredit.gameCreditList.length > 0 && isRealPlayer) {
+            for (let i = 0; i < providerCredit.gameCreditList.length; i++) {
+                let queryObj = {
+                    username: playerDetails.name,
+                    platformId: playerDetails.platformId,
+                    providerId: providerCredit.gameCreditList[i].providerId,
+                };
+
+                let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).then(
+                    function (creditData) {
+                        return {
+                            providerObjId: providerCredit.gameCreditList[i].providerObjId,
+                            providerId: creditData.providerId,
+                            gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
+                            nickName: providerCredit.gameCreditList[i].nickName ? providerCredit.gameCreditList[i].nickName : '',
+                            chName: providerCredit.gameCreditList[i].chName ? providerCredit.gameCreditList[i].chName : '',
+                            status: providerCredit.gameCreditList[i].status
                         };
-                        let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).then(
-                            function (creditData) {
-                                return {
-                                    providerObjId: providerList.gameCreditList[i].providerObjId,
-                                    providerId: creditData.providerId,
-                                    gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
-                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
-                                    status: providerList.gameCreditList[i].status
-                                };
-                            },
-                            function (err) {
-                                //todo::for debug, to be removed
-                                return {
-                                    providerObjId: providerList.gameCreditList[i].providerObjId,
-                                    providerId: providerList.gameCreditList[i].providerId,
-                                    gameCredit: 'unknown',
-                                    nickName: providerList.gameCreditList[i].nickName ? providerList.gameCreditList[i].nickName : '',
-                                    chName: providerList.gameCreditList[i].chName ? providerList.gameCreditList[i].chName : '',
-                                    reason: err,
-                                    status: providerList.gameCreditList[i].status
-                                };
-                            }
-                        );
-                        promArray.push(gameCreditProm);
+                    },
+                    function (err) {
+                        //todo::for debug, to be removed
+                        return {
+                            providerObjId: providerCredit.gameCreditList[i].providerObjId,
+                            providerId: providerCredit.gameCreditList[i].providerId,
+                            gameCredit: 'unknown',
+                            nickName: providerCredit.gameCreditList[i].nickName ? providerCredit.gameCreditList[i].nickName : '',
+                            chName: providerCredit.gameCreditList[i].chName ? providerCredit.gameCreditList[i].chName : '',
+                            reason: err,
+                            status: providerCredit.gameCreditList[i].status
+                        };
                     }
-                    return Promise.all(promArray);
-                }
+                );
+                promArray.push(gameCreditProm);
             }
-        ).then(
+        }
+
+        return Promise.all(promArray).then(
             gameCreditList => {
                 if (gameCreditList && gameCreditList.length > 0) {
                     gameData = gameCreditList;
