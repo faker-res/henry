@@ -2,32 +2,84 @@ const sampleData = {
     manualPlayerLevelUp: `{
     message: 恭喜您从 (当前等级) 升级到(当前等级),获得 xx元、xx元共x个礼包
 }`,
+getLevel:`{
+    "_id": "5733e26ef8c8a9355caf49dc",
+    "name": "普通会员", //会员等级
+    "value": 0,
+    "consumptionLimit": 20000, //消费限额
+    "topupLimit": 2000, //充值限额
+    "canApplyConsumptionReturn": true, //可以申請退回消费
+    "playerValueScore": 2, //玩家价值
+    "reward": {
+      "requiredUnlockAmount": 0, //解锁所需数量
+      "requiredUnlockTimes": 0, //解锁所需次数
+      "providerGroup": "free", //提供商
+      "isRewardTask": false, //是否奖励任务
+      "bonusCredit": 20, //奖励额
+      "requiredUnlockTimesLevelDown": 0,
+      "providerGroupLevelDown": "free",
+      "isRewardTaskLevelDown": false,
+      "bonusCreditLevelDown": 0
+    },
+    "levelDownConfig": [
+      {
+        "_id": "5800988c1a8d1645a7091e49",
+        "topupPeriod": "DAY", //值可以是“DAY”, “WEEK”, “NONE”
+        "consumptionPeriod": "DAY", //值可以是“DAY”, “WEEK”, “NONE”
+        "consumptionMinimum": 0, //玩家最小消费限额 保持在这个等级
+        "topupMinimum": 0 //玩家最小充值限额 保持在这个等级
+      }
+    ],
+    "levelUpConfig": [ //升级设定
+      {
+        "_id": "573abaefed6da1cf5c398fed",
+        "topupPeriod": "DAY", //值可以是“DAY”, “WEEK”, “NONE”
+        "consumptionPeriod": "DAY", //值可以是“DAY”, “WEEK”, “NONE”
+        "consumptionLimit": 0, //玩家升级所需最小消费限额
+        "consumptionSourceProviderId": [], 游戏提供商ID,用来检测投注额。 [ ]空 代表全部提供商
+        "topupLimit": 0 //玩家升级所需最小充值限额
+      }
+    ],
+    "platformId": "4" //平台ID 
+  }
+}`,
 
-    getAllLevel: `{
-        [{
-            levelUpConfig: [ //升级设定{
-                andConditions: true, //true =>AND, false =>OR// 玩家最小充值额
-                topupLimit: 2000,//玩家最小消费额
-                topupPeriod: “WEEK”, //值可以是“DAY”, “WEEK”, “NONE”
-                consumptionLimit: 20000,
-                consumptionPeriod: “WEEK”,//值可以是“DAY”, “WEEK”, “NONE”//本例说明玩家在一个星期内必须同时充值2000以上以及消费20000以上才能达到下一个等级
-                consumptionSourceProviderId: [“16”] 游戏提供商ID,用来检测投注额。 [ ]空 代表全部提供商
-            },...],
-            Name: “Normal”, //等级名
-            Value: 0, //等级值
-            Reward: [{
-                bonusCredit: 20 //奖励额
-            }],
-            list:[{
-                displayTextContent: "内文",
-                displayTitle: "标题",
-                displayId: "0",
-                playerLevel:xxx
-            }]
-        },...]
-    }`,
-    upgrade: `{
-    "message": "恭喜您从 普通会员 升级到 高级,获得30元共1个礼包"
+getLevelReward:`{
+    "bonusCreditLevelDown": 0,
+    "isRewardTaskLevelDown": false,
+    "providerGroupLevelDown": "free",
+    "requiredUnlockTimesLevelDown": 0,
+    "bonusCredit": 20, //奖励额
+    "isRewardTask": false, //是否奖励任务
+    "providerGroup": "free", //提供商
+    "requiredUnlockTimes": 0, //解锁所需次数
+    "requiredUnlockAmount": 0 //解锁所需数量
+}`,
+getAllLevel: `{
+    [{
+        levelUpConfig: [ //升级设定{
+            andConditions: true, //true =>AND, false =>OR// 玩家最小充值额
+            topupLimit: 2000,//玩家最小消费额
+            topupPeriod: “WEEK”, //值可以是“DAY”, “WEEK”, “NONE”
+            consumptionLimit: 20000,
+            consumptionPeriod: “WEEK”,//值可以是“DAY”, “WEEK”, “NONE”//本例说明玩家在一个星期内必须同时充值2000以上以及消费20000以上才能达到下一个等级
+            consumptionSourceProviderId: [“16”] 游戏提供商ID,用来检测投注额。 [ ]空 代表全部提供商
+        },...],
+        Name: “Normal”, //等级名
+        Value: 0, //等级值
+        Reward: [{
+            bonusCredit: 20 //奖励额
+        }],
+        list:[{
+            displayTextContent: "内文",
+            displayTitle: "标题",
+            displayId: "0",
+            playerLevel:xxx
+        }]
+    },...]
+}`,
+upgrade: `{
+"message": "恭喜您从 普通会员 升级到 高级,获得30元共1个礼包"
 }`,
 }
 
@@ -60,7 +112,7 @@ let level = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "玩家等级信息"
+                data: sampleData.getLevel
             },
             respondFailure: {
                 status: "40x",
@@ -77,7 +129,7 @@ let level = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "等级优惠信息对象"
+                data: sampleData.getLevelReward
             },
             respondFailure: {
                 status: "40x"
