@@ -1352,6 +1352,8 @@
   "failure": "失败",
   "Fail": "失败",
   "Lock Lobby Group": "锁大厅设置",
+  "Game Type Config": "游戏类型设置",
+  "gameTypeConfigEdit": "游戏类型设置",
   "VALID_CONSUMPTION": "有效投注额",
   "EARNING_RATIO": "营收比例",
   "Daily Settlement": "每日结算",
@@ -5073,6 +5075,7 @@
   "PMS2 Group": "PMS2组",
   "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
   "Delete Provider Group": "删除锁大厅组",
+  "Delete Game Type Config": "删除游戏类型设置",
   "This will release all rewards amount binded with this group to player.": "这将会解锁所有此大厅的锁定额度，释放成自由额度。",
   "Account found. (Password reset)": "找回帐号成功（同时重置密码）",
 
