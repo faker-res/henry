@@ -994,8 +994,6 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
-
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
         let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
@@ -1006,9 +1004,9 @@ var dbPlayerTopUpRecord = {
         }).read("secondaryPreferred").allowDiskUse(true);
 
         let topupRecordProm = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-            .populate({path: 'type', model: dbconfig.collection_proposalType})
-            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-            .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
+            .populate({path: 'type', model: dbconfig.collection_proposalType, select: 'name'})
+            .populate({path: "data.playerObjId", model: dbconfig.collection_players, select: 'realName'})
+            .populate({path: 'data.platformId', model: dbconfig.collection_platform, select: 'name'}).lean();
 
         return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
             data => {
