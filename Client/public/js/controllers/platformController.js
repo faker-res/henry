@@ -633,6 +633,7 @@ define(['js/app'], function (myApp) {
             vm.partnerCommissionLog= {};
 
             vm.prepareToBeDeletedProviderGroupId = [];
+            vm.prepareToBeDeletedGameTypeConfigId = [];
 
             vm.longestDelayStatus = "rgb(0,180,0)";
 
@@ -24927,6 +24928,10 @@ define(['js/app'], function (myApp) {
                         vm.providerGroupConfig = {showWarning: false};
                         vm.getPlatformProviderGroup(platformObjId);
                         break;
+                    case 'gameTypeConfig':
+                        vm.gameTypeConfigShowWarning = false;
+                        vm.getPlatformGameTypeConfig(platformObjId);
+                        break;
                     case 'smsGroup':
                         vm.deletingSmsGroup = null;
                         vm.getPlatformSmsGroups(platformObjId);
@@ -33504,6 +33509,23 @@ define(['js/app'], function (myApp) {
                 );
             };
 
+            vm.getPlatformGameTypeConfig = (platformObjId) => {
+                let sendData = {
+                    platformObjId: platformObjId || vm.selectedPlatform.data._id
+                };
+                vm.getPlatformGameData(platformObjId);
+                return $scope.$socketPromise('getPlatformGameTypeConfig', sendData).then(
+                    data => {
+                        console.log('getPlatformGameTypeConfig', JSON.stringify(data));
+                        if (data) {
+                            $scope.$evalAsync(() => {
+                                vm.gameTypeConfig = data.data;
+                            });
+                        }
+                    }
+                );
+            };
+
             vm.submitAddPlayerLvl = function () {
                 var sendData = vm.newPlayerLvl;
                 vm.newPlayerLvl.platform = vm.filterConfigPlatform || vm.selectedPlatform.id;
@@ -33710,6 +33732,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'providerGroup':
                         updateProviderGroup();
+                        break;
+                    case 'gameTypeConfig':
+                        updateGameTypeConfig();
                         break;
                     case 'smsGroup':
                         updateSmsGroup();
@@ -35959,6 +35984,86 @@ define(['js/app'], function (myApp) {
                         });
                         break;
                 }
+            };
+
+            function updateGameTypeConfig() {
+                let totalProviderCount = vm.platformProviderList.length;
+                let localProviderCount = vm.gameTypeConfig.reduce(
+                    (a, b) => {
+                        let lengthB = b.providers && b.providers.length || 0;
+                        return a + lengthB;
+                    }, 0
+                );
+
+                if (totalProviderCount > localProviderCount) {
+                    vm.gameTypeConfigShowWarning = true;
+                }
+                else {
+                    vm.gameTypeConfigShowWarning = false;
+                }
+                vm.configTableEdit = false;
+
+                vm.removeGameTypeConfig();
+
+                let sendData = {
+                    platformObjId: vm.filterConfigPlatform,
+                    gameTypeConfig: vm.gameTypeConfig
+                };
+
+                console.log('sendData', sendData);
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformGameTypeConfig', sendData, function (data) {
+                    console.log('updatePlatformGameTypeConfig', data);
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            vm.gameTypeConfig = data.data;
+                            vm.gameTypeConfigNames = {};
+                            for (let i = 0; i < vm.gameTypeConfig.length; i++) {
+                                let gameTypeConfig = vm.gameTypeConfig[i];
+                                vm.gameTypeConfigNames[gameTypeConfig._id] = gameTypeConfig.name;
+                            }
+                        });
+                    }
+                });
+            };
+
+            vm.deleteGameTypeConfig = function (index, grp, isConfirm) {
+                if (!isConfirm) {
+                    vm.modalYesNo = {};
+                    vm.modalYesNo.modalTitle = $translate("Delete Game Type Config");
+                    vm.modalYesNo.modalText = $translate("Delete Game Type Config") + " " + grp.gameTypeName + "? ";
+                    vm.modalYesNo.actionYes = () => vm.deleteGameTypeConfig(index, grp, true);
+                    $('#modalYesNo').modal();
+                }
+                else {
+                    vm.prepareToBeDeletedGameTypeConfigId.push(grp._id);
+                    vm.gameTypeConfig.splice(index, 1);
+                    $scope.safeApply();
+                }
+            };
+
+            vm.removeGameTypeConfig = () => {
+                if (vm.prepareToBeDeletedGameTypeConfigId && vm.prepareToBeDeletedGameTypeConfigId.length > 0) {
+                    let sendObj = {
+                        gameTypeConfigObjId: vm.prepareToBeDeletedGameTypeConfigId
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'deletePlatformGameTypeConfig', sendObj, function (data) {
+                        vm.getPlatformGameTypeConfig(vm.filterConfigPlatform);
+                    })
+                }
+            };
+
+            vm.checkGameTypeConfig = (providerId, curCollection) => {
+                let isUsed = false;
+
+                vm.gameTypeConfig.map((e) => {
+                    if (e.providers && e.providers.indexOf(String(providerId)) > -1 && (!curCollection || curCollection.indexOf(String(providerId)) < 0)) {
+                        isUsed = true;
+                    }
+                });
+                vm.debounceRefreshSPicker();
+                return isUsed;
             };
             // partner level codes==============end===============================
 

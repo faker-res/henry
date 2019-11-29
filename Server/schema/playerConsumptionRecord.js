@@ -13,7 +13,7 @@ var playerConsumptionRecordSchema = new Schema({
     // game type
     gameType: {type: String, required: true},
     // cp game type
-    cpGameType: {type: String, index: true},
+    cpGameType: {type: String},
     // bet type
     betType: {type: String},
     // gameRound
