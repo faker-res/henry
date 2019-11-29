@@ -4105,6 +4105,7 @@ let dbPlayerInfo = {
                     dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
                     // playerObj.password = newPassword;
                     // return playerObj.save();
+                    console.log('update password', deferred.promise);
                     return deferred.promise;
                 }
                 else {
@@ -4427,6 +4428,7 @@ let dbPlayerInfo = {
                 }
 
                 dbPlayerUtil.setPlayerBState(playerObj._id, "updatePaymentInfo", false).catch(errorUtils.reportError);
+                console.log('payment info 1...', updatedData);
                 return updatedData;
             }
         ).then(
@@ -4442,6 +4444,7 @@ let dbPlayerInfo = {
                         return updatedData
                     });
                 } else {
+                    console.log('payment info 2...', updatedData);
                     return updatedData;
                 }
             }
