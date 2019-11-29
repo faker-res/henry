@@ -1328,6 +1328,7 @@ const dbRewardUtility = {
     // endregion
 
     checkForbidReward: (eventData, intervalTime, playerData) => {
+        console.log('JY check checkForbidReward intervalTime ==>', intervalTime);
         let createTime = {$gte: eventData.condition.validStartTime, $lte: eventData.condition.validEndTime};
 
         // check during this period interval

@@ -539,6 +539,7 @@ var roleChecker = {
                 PlayerValueEdit: ['updatePlayerValueConfig','updatePlayerLevelScores'],
                 CredibilityEdit: ['updateCredibilityRemarksInBulk'],
                 providerGroupEdit: ['deletePlatformProviderGroup'],
+                gameTypeConfigEdit: ['deleteGameTypeConfig'],
                 smsGroupEdit: [],
                 sensitiveKeywordEdit:[],
                 // AddCtiUrl: ['addCtiUrlSubDomain'],

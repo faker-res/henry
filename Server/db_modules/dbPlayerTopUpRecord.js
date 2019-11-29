@@ -431,13 +431,13 @@ var dbPlayerTopUpRecord = {
                                             playerReportDaySummary[indexNo].topUpTimes += topUp.times;
 
                                             if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].manualTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                playerReportDaySummary[indexNo].onlineTopUpAmount = topUp.oriAmount || topUp.amount;
+                                                playerReportDaySummary[indexNo].onlineTopUpAmount = (topUp.oriAmount || topUp.amount) + (playerReportDaySummary[indexNo].onlineTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].alipayTopUpAmount || 0);
                                             }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount;
+                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount + (playerReportDaySummary[indexNo].wechatpayTopUpAmount || 0);
                                             }
                                         }
                                     }
@@ -449,6 +449,7 @@ var dbPlayerTopUpRecord = {
                             console.log("LH check player report 5------", consumptionDetails.length);
                             consumptionDetails.forEach(
                                 consumption => {
+                                    console.log("debug #C8AD00 grouped consumption", consumption)
                                     if(consumption && consumption._id && consumption._id.playerId){
                                         let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
                                         let providerDetail = {};
@@ -781,6 +782,7 @@ var dbPlayerTopUpRecord = {
                     playerReportDaySummary => {
                         console.log("LH check player report 11------");
                         playerReportSummary = playerReportDaySummary;
+                        console.log("debug #C8AD01 recalculate result", JSON.stringify(playerReportSummary, null, 2))
                         let platformFeeProm = [];
                         if(consumptionDetailArr  && consumptionDetailArr.length > 0){
                             consumptionDetailArr .forEach(
@@ -992,8 +994,6 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
-
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
         let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
@@ -1003,39 +1003,16 @@ var dbPlayerTopUpRecord = {
             }
         }).read("secondaryPreferred").allowDiskUse(true);
 
-        let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-            .populate({path: 'type', model: dbconfig.collection_proposalType})
-            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-            .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-
-        let stream = prom.cursor({batchSize: 500});
-        let balancer = new SettlementBalancer();
-
-        let topupRecordProm = balancer.initConns().then(function () {
-            return Q(
-                balancer.processStream(
-                    {
-                        stream: stream,
-                        batchSize: 100,
-                        makeRequest: function (proposals, request) {
-                            request("player", "topupRecordInsertRepeatCount", {
-                                proposals: proposals,
-                                platformId: query.platformId,
-                                query: query
-                            });
-                        },
-                        processResponse: function (record) {
-                            topupRecords = topupRecords.concat(record.data);
-                        }
-                    }
-                )
-            );
-        });
+        let topupRecordProm = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
+            .populate({path: 'type', model: dbconfig.collection_proposalType, select: 'name'})
+            .populate({path: "data.playerObjId", model: dbconfig.collection_players, select: 'realName'})
+            .populate({path: 'data.platformId', model: dbconfig.collection_platform, select: 'name'}).lean();
 
         return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
             data => {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
+                topupRecords = data[2];
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
                 topupRecords = topupRecords.map(item => {
@@ -1044,7 +1021,6 @@ var dbPlayerTopUpRecord = {
                     }
                     return item;
                 });
-
 
                 if (isExport) {
                     return dbReportUtil.generateExcelFile("TopupReport", topupRecords);

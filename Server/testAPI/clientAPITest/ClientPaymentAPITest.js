@@ -345,6 +345,13 @@
         this._service.getPlayerConsumptionSum.once(callback);
     };
 
+    proto.notifyCreditChange = function(callback, requestData) {
+        let responseFunc = function(data) {
+            callback(data);
+        };
+        this._service.notifyCreditChange.addListener(responseFunc);
+    };
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

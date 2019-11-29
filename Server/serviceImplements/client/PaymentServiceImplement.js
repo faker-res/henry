@@ -469,6 +469,12 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerConsumptionSum, [data.platformId, data.name], isValidData);
     };
 
+    this.notifyCreditChange.addListener(
+        data => {
+            WebSocketUtil.notifyMessageClient(self, "notifyCreditChange", data);
+        }
+    );
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;

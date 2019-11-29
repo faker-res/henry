@@ -1082,6 +1082,12 @@ var dbUtility = {
         return day == 1;
     },
 
+    isSharpTime: function (date) {
+        let day = moment(date).tz('Asia/Singapore').toDate();
+
+        return day.getHours() === 0 && day.getMinutes() === 0 && day.getSeconds() === 0
+    },
+
     getPastHalfMonthPeriodSG: function () {
         let day = moment().tz('Asia/Singapore').toDate().getDate();
         if (day >= 1 && day < 16) {
@@ -1214,7 +1220,7 @@ var dbUtility = {
                         shardKeys.forEach((shardKey) => {
                             shardQuery[shardKey] = data[shardKey]
                         });
-                        return model.findOneAndUpdate(shardQuery, updateData);
+                        return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                     }
                     else {
                         var newModel = new model(query);
@@ -1224,7 +1230,7 @@ var dbUtility = {
                                 shardKeys.forEach((shardKey) => {
                                     shardQuery[shardKey] = newData[shardKey]
                                 });
-                                return model.findOneAndUpdate(shardQuery, updateData, {new: true});
+                                return model.findOneAndUpdate(shardQuery, updateData, {new: true}).lean();
                             },
                             function (error) {
                                 return Q.reject({name: "DBError", message: "Error creating db data", error: error});
@@ -2155,6 +2161,19 @@ var dbUtility = {
         delete entry.updateTime;
         delete entry.settlementPeriod;
         delete entry.needSettlement;
+
+        if (entry && entry.condition) {
+            delete entry.condition.userAgent;
+            delete entry.condition.consumptionProvider;
+            delete entry.condition.topupType;
+            delete entry.condition.onlineTopUpType;
+            delete entry.condition.bankCardType;
+            delete entry.condition.depositMethod;
+            delete entry.condition.forbidApplyReward;
+            delete entry.condition.ignoreTopUpDirtyCheckForReward;
+            delete entry.condition.ignoreAllTopUpDirtyCheckForReward;
+        }
+
         return entry;
     }
 };

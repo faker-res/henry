@@ -989,138 +989,137 @@ let dbTeleSales = {
         )
     },
 
-    getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
+    getDistributionDetails: async (platformObjId, tsPhoneListObjId, adminNames) => {
+        async function updateTsAssigneeRecord(platformObjId, assignees, phoneList) {
+            let partnerLevelConfigData = await dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean();
+            if (!partnerLevelConfigData) {
+                return Promise.reject({name: "DataError", message: "Cannot find active player"});
+            }
+            let proms = [];
+
+            for (let i = 0; i < assignees.length; i++) {
+                let assignee = assignees[i];
+
+                let prom = async function () {
+                    let playerValidCount = await dbconfig.collection_players.find({
+                        tsPhoneList: phoneList._id,
+                        tsAssignee: assignee.admin,
+                        csOfficer: assignee.admin, // new requirement, player must registered by tsAssignee (by zm)
+                        platform: platformObjId,
+                        topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                        topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                        consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                        consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                    }).count();
+
+                    let registrationCount = await dbconfig.collection_players.find({
+                        tsPhoneList: phoneList._id,
+                        tsAssignee: assignee.admin,
+                        platform: platformObjId,
+                    }).count();
+                    await dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerValidCount, registrationCount: registrationCount}).catch(errorUtils.reportError);
+                }
+                proms.push(prom);
+            }
+            return Promise.all(proms);
+        }
+
         let returnData = {};
         let distributionDetails = [];
         let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
         let assigneeProm = dbconfig.collection_tsAssignee.find({
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
-            // noDistribute: {$in: [null, true]},
             adminName: {
                 $in: adminNames
             }
         });
         let assigneeAdminList = [];
 
-        return Promise.all([phoneListProm, assigneeProm]).then(data => {
-            let phoneList = data[0];
-            let assignees = data[1];
-            let currentHoldingCountProm = [];
+        let [phoneList, assignees] = await Promise.all([phoneListProm, assigneeProm]);
+        let currentHoldingCountProm = [];
 
-            if(assignees && assignees.length > 0 && phoneList) {
+        if(assignees && assignees.length > 0 && phoneList) {
 
-                //count total valid player
-                dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
-                    partnerLevelConfigData => {
-                        if (!partnerLevelConfigData) {
-                            return Promise.reject({name: "DataError", message: "Cannot find active player"});
-                        }
-                        let promArr = [];
-                        assignees.forEach(assignee => {
-                        let updateProm = dbconfig.collection_players.find({
-                            tsPhoneList: phoneList._id,
-                            tsAssignee: assignee.admin,
-                            csOfficer: assignee.admin, // new requirement, player must registered by tsAssignee
-                            platform: platformObjId,
-                            topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
-                            topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
-                            consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
-                            consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
-                        }).count().then(
-                            playerCount => {
-                                return dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerCount});
-                            }
-                        );
-                        promArr.push(updateProm);
-                        });
-                        return Promise.all(promArr);
-                    }
-                ).catch(errorUtils.reportError);
+            //count total valid player
+            updateTsAssigneeRecord(platformObjId, assignees, phoneList).catch(errorUtils.reportError);
 
 
-                for (let i = 0; i < assignees.length; i++) {
-                    assigneeAdminList.push(assignees[i].admin);
-                }
+            for (let i = 0; i < assignees.length; i++) {
+                assigneeAdminList.push(assignees[i].admin);
+            }
 
-                assignees.forEach(assignee => {
-                    currentHoldingCountProm.push(
-                        dbconfig.collection_tsDistributedPhone.find({
-                            assignee: assignee.admin,
-                            tsPhoneList: tsPhoneListObjId,
-                            startTime: {$lt: new Date()},
-                            endTime: {$gt: new Date()},
-                            registered: {$ne: true}
-                        }, {
-                            _id: 1,
-                            assignee: 1
-                        }).lean()
-                    );
-                    let assigneeDistributionDetail = {
-                        assigneeObjId: assignee.admin,
-                        adminName: assignee.adminName,
-                        distributedCount: assignee.assignedCount,
-                        fulfilledCount: assignee.phoneUsedCount,
-                        successCount: assignee.successfulCount,
-                        registeredCount: assignee.registrationCount,
-                        topUpCount: assignee.singleTopUpCount,
-                        multipleTopUpCount: assignee.multipleTopUpCount,
-                        validPlayerCount: assignee.effectivePlayerCount,
-                        currentListSize: 0
-                    };
-                    distributionDetails.push(assigneeDistributionDetail);
-                });
-
-                returnData = {
-                    distributionDetails: distributionDetails,
+            assignees.forEach(assignee => {
+                currentHoldingCountProm.push(
+                    dbconfig.collection_tsDistributedPhone.find({
+                        assignee: assignee.admin,
+                        tsPhoneList: tsPhoneListObjId,
+                        startTime: {$lt: new Date()},
+                        endTime: {$gt: new Date()},
+                        registered: {$ne: true}
+                    }, {
+                        _id: 1,
+                        assignee: 1
+                    }).lean()
+                );
+                let assigneeDistributionDetail = {
+                    assigneeObjId: assignee.admin,
+                    adminName: assignee.adminName,
+                    distributedCount: assignee.assignedCount,
+                    fulfilledCount: assignee.phoneUsedCount,
+                    successCount: assignee.successfulCount,
+                    registeredCount: assignee.registrationCount,
+                    topUpCount: assignee.singleTopUpCount,
+                    multipleTopUpCount: assignee.multipleTopUpCount,
+                    validPlayerCount: assignee.effectivePlayerCount,
+                    currentListSize: 0
                 };
-
-                return Promise.all(currentHoldingCountProm);
-            }
-            return null;
-        }).then(currentHoldingCount => {
-            if (currentHoldingCount) {
-                currentHoldingCount.forEach(currentHolding => {
-                    if(currentHolding && currentHolding.length > 0) {
-                        distributionDetails.forEach(detail => {
-                            if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
-                                detail.currentListSize = currentHolding.length;
-                            }
-                        })
-                    }
-                });
-            }
-
-            let totalDistributedProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
+                distributionDetails.push(assigneeDistributionDetail);
             });
 
-            let totalFulfilledProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
-                isUsed: true
+            returnData = {
+                distributionDetails: distributionDetails,
+            };
+        }
+        let currentHoldingCount = await Promise.all(currentHoldingCountProm);
+        if (currentHoldingCount) {
+            currentHoldingCount.forEach(currentHolding => {
+                if(currentHolding && currentHolding.length > 0) {
+                    distributionDetails.forEach(detail => {
+                        if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
+                            detail.currentListSize = currentHolding.length;
+                        }
+                    })
+                }
             });
+        }
 
-            let totalSuccessProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
-                isSucceedBefore: true
-            });
+        let totalDistributedProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+        });
 
-            return Promise.all([totalDistributedProm, totalFulfilledProm, totalSuccessProm]);
-        }).then(
-            ([totalDistributedTsPhone, totalFulfilledTsPhone, totalSuccessTsPhone]) => {
-                returnData.totalDistributed = totalDistributedTsPhone.length;
-                returnData.totalFulfilled = totalFulfilledTsPhone.length;
-                returnData.totalSuccess = totalSuccessTsPhone.length;
+        let totalFulfilledProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+            isUsed: true
+        });
 
-                return returnData;
-            }
-        );
+        let totalSuccessProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+            isSucceedBefore: true
+        });
+
+        let [totalDistributedTsPhone, totalFulfilledTsPhone, totalSuccessTsPhone] = await Promise.all([totalDistributedProm, totalFulfilledProm, totalSuccessProm]);
+        returnData.totalDistributed = totalDistributedTsPhone.length;
+        returnData.totalFulfilled = totalFulfilledTsPhone.length;
+        returnData.totalSuccess = totalSuccessTsPhone.length;
+
+        return returnData;
     },
 
     getTsWorkloadReport: async (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {

@@ -5,6 +5,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color:#F7F7F7!important; ;
 }
 
 code {
@@ -12,33 +13,26 @@ code {
     monospace;
 }
 
-.filterBodyClose{
-  height: 0;
-  width: 100%;
-  position: absolute;
-  z-index: 100;
-  top: 3em;
-  background-color: white;
-  overflow-y: hidden;
-  border-bottom-left-radius:0.25rem;
-  border-bottom-right-radius:0.25rem;
+.container{
+  background-color:#fff
 }
 
-.filterBodyOpen{
-  height: 100%!important;
-  position: initial!important;
-  padding: .5em 1em 0em;
+.mainContent{
+  border-left: 1px solid #dee2e6  ;
+}
+
+.navBar li{
   font-size: 20px;
-}
-
-.filterBodyOpen p{
+  border: 1px solid;
+  text-align: center;
+  margin: .4em 0 .4em;
+  font-weight: bold;
+  border-radius: 5px;
   cursor: pointer;
+  transition: 0.5s;
+}
+.navBar li:hover, .active {
+  background-color:#343a40!important ;
+  color:#fff;
 }
 
-.filterBodyOpen h1{
-  cursor: pointer;
-}
-
-div {
-  white-space: pre-wrap;
-}

@@ -10,6 +10,7 @@ let constPartnerCommissionSettlementMode = require('./../const/constPartnerCommi
 
 const dbAutoProposal = require('./../db_modules/dbAutoProposal');
 const dbGameProvider = require('./../db_modules/dbGameProvider');
+const dbGameType = require('./../db_modules/dbGameType');
 const dbPlayerLevel = require('./../db_modules/dbPlayerLevel');
 const dbClientQnA = require('./../db_modules/dbClientQnA');
 const dbRewardEvent = require('./../db_modules/dbRewardEvent');
@@ -75,9 +76,9 @@ function socketActionPlatform(socketIO, socket) {
 
         getFrontEndPopularRecommendationSetting: function getFrontEndPopularRecommendationSetting (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
+            let isValidData = Boolean(data && data.platformObjId && data.hasOwnProperty('deviceType') );
 
-            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getFrontEndPopularRecommendationSetting, [data.platformObjId, data.deviceType], actionName, isValidData);
         },
 
         updateRewardPointClarification: function updateRewardPointClarification (data) {
@@ -102,6 +103,16 @@ function socketActionPlatform(socketIO, socket) {
          * @param {json} data - Query data. It has to contain platformName or _id
          */
         getPlatform: function getPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && (data.name || data._id));
+            socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
+        },
+        /**
+         * Get a platform by platformName or _id
+         * It is intentionally duplicating getPlatform, used to prevent websocket response interception - Huat
+         * @param {json} data - Query data. It has to contain platformName or _id
+         */
+        getPlatformDetail: function getPlatformDetail(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && (data.name || data._id));
             socketUtil.emitter(self.socket, dbPlatform.getPlatform, [data], actionName, isValidData);
@@ -1134,6 +1145,24 @@ function socketActionPlatform(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updatePlatformTopUpAmount, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        getPlatformGameTypeConfig: function getPlatformGameTypeConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbGameType.getPlatformGameTypeConfig, [data.platformObjId], actionName, isValidData);
+        },
+
+        updatePlatformGameTypeConfig: function updatePlatformGameTypeConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.gameTypeConfig);
+            socketUtil.emitter(self.socket, dbGameType.updatePlatformGameTypeConfig, [data.platformObjId, data.gameTypeConfig], actionName, isValidData);
+        },
+
+        deletePlatformGameTypeConfig: function deletePlatformGameTypeConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.gameTypeConfigObjId);
+            socketUtil.emitter(self.socket, dbGameType.deletePlatformGameTypeConfig, [data.gameTypeConfigObjId], actionName, isValidData);
         },
     };
     socketActionPlatform.actions = this.actions;

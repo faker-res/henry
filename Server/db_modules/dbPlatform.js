@@ -2522,9 +2522,30 @@ var dbPlatform = {
         type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
         provider ? queryObject.providerId = provider : '';
 
+        let gameProviderProm = dbconfig.collection_platform.distinct('gameProviders', {_id: platformObjId}).lean().then(
+            providerObjIds => {
+                if (providerObjIds && providerObjIds.length > 0) {
+                    return dbconfig.collection_gameProvider.find({_id: {$in: providerObjIds}}).lean();
+                } else
+                    return [];
+            }
+        );
         let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").count();
-        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
-        return Q.all([countProm, recordProm]).then(data => {
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").lean().sort(sortCol).skip(index).limit(limit);
+        return Promise.all([countProm, recordProm, gameProviderProm]).then(data => {
+            if (data && data[1] && data[1].length > 0 && data[2] && data[2].length > 0) {
+                data[1].map(item => {
+                    if (item && item.providerId) {
+                        let indexNo = data[2].findIndex(x => x && x.providerId && (x.providerId === item.providerId));
+
+                        if (indexNo > -1) {
+                            item.providerText = data[2][indexNo].name;
+                        }
+                    }
+                    return item;
+                });
+            }
+
             return {total: data[0], data: data[1]};
         })
     },
@@ -3153,6 +3174,7 @@ var dbPlatform = {
             let themeIdList = [];
             let themeStyleObjId = null;
             let platformTopUpAmountConfig;
+            let topUpAmountRangeConfig = [];
 
             if (subject == 'player') {
                 returnedObj = {
@@ -3226,6 +3248,28 @@ var dbPlatform = {
             ).then(
                 topUpAmountConfig => {
                     platformTopUpAmountConfig = topUpAmountConfig;
+                    let configClientType;
+
+                    switch (Number(inputDevice)) {
+                        case constPlayerRegistrationInterface.WEB_PLAYER:
+                            configClientType = '1';
+                            break;
+                        case constPlayerRegistrationInterface.H5_PLAYER:
+                            configClientType = '2';
+                            break;
+                        case constPlayerRegistrationInterface.APP_NATIVE_PLAYER:
+                        case constPlayerRegistrationInterface.APP_PLAYER:
+                            configClientType = '3'
+                            break;
+                    }
+
+                    if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpAmountRange && platformTopUpAmountConfig.topUpAmountRange.length > 0 && configClientType) {
+                        platformTopUpAmountConfig.topUpAmountRange.forEach(range => {
+                            if (range && range.device && range.device.includes(String(configClientType))) {
+                                topUpAmountRangeConfig.push(range);
+                            }
+                        });
+                    }
 
                     return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                 }
@@ -3486,7 +3530,10 @@ var dbPlatform = {
                             return appendPartnerConfig(platformData._id, returnedObj);
                         }
 
-                        if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                        if (topUpAmountRangeConfig && topUpAmountRangeConfig.length > 0 && topUpAmountRangeConfig[0] && topUpAmountRangeConfig[0].minAmount) {
+                            returnedObj.minDepositAmount = topUpAmountRangeConfig[0].minAmount;
+                        } else if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
+                            // deprecated - retrieve this min when not yet set up new requirement's min and max
                             returnedObj.minDepositAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
                         } else {
                             returnedObj.minDepositAmount = 10;
@@ -4151,10 +4198,10 @@ var dbPlatform = {
         }
     },
 
-    getFrontEndPopularRecommendationSetting: (platformObjId) => {
+    getFrontEndPopularRecommendationSetting: (platformObjId, deviceType) => {
         let prom =  Promise.resolve();
-        if (platformObjId){
-            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: {$exists: true}}).populate({
+        if (platformObjId && deviceType){
+            prom = dbconfig.collection_frontEndPopularRecommendationSetting.find({platformObjId: ObjectId(platformObjId), status: 1, device: deviceType}).populate({
                 path: "popUpList",
                 model: dbconfig.collection_frontEndPopUpSetting
             }).sort({displayOrder: 1}).lean();
@@ -4794,7 +4841,7 @@ var dbPlatform = {
                     return Promise.reject({
                         status: constServerCode.INVALID_DATA,
                         name: "DBError",
-                        message: "Error finding db data"
+                        message: "Please fill in the call request url in the platform configuration"
                     });
                 }
 
@@ -7341,7 +7388,7 @@ var dbPlatform = {
                 } else {
                     let newSetting = {
                         platformObjId: query.platformObjId,
-                        commonTopUpAmountRange: updateData.commonTopUpAmountRange,
+                        topUpAmountRange: updateData.topUpAmountRange,
                         topUpCountAmountRange: updateData.topUpCountAmountRange
                     }
 

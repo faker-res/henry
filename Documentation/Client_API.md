@@ -121,6 +121,7 @@
 	39. [(通用充值接口) 获取通用充值最高和最低可接收充值额度](#获取通用充值最高和最低可接收充值额度(通用充值接口))
 	40. [获取玩家『总』有效投注额](#获取玩家(总)有效投注额)
 	41. [(第三方上下分接口) 快付充值接口](#快付充值接口(第三方上下分接口))
+	42. [接收额度变化通知](#接收额度变化通知)
 6. [充值意向服务](#充值意向服务：)
 	1. [添加充值意向](#添加充值意向)
 	2. [修改充值意向](#修改充值意向)
@@ -1941,6 +1942,7 @@ API说明：
 				referralId: "4322" //推荐人邀请码
 				deviceType: 1 //选填|设备类型列表
 				subPlatformId: 401 //选填|子平台列表
+				domain: "domain.com" //选填｜当下注册域名
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
 	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
@@ -2931,6 +2933,26 @@ API说明：
 	* status: 操作状态， 200--成功， 4xx--失败
 	* data: {}
 	* errorMessage: 详细错误信息
+	
+<div id='接收额度变化通知'></div>
+
+* **42. 接收额度变化通知**
+	* functionName: notifyCreditChange
+	* 监听类型, 呼叫后, 如果额度有变动, 系统会主动推送
+	* 请求内容：
+        ```
+        {}
+        ```
+	* 操作成功:
+        ```
+        status: 200
+        ```
+    * 操作失败:
+        ```
+        status: 40x
+        data: -
+        errorMessage: 错误信息
+        ```
 
 # 充值意向服务：
 用于关注玩家充值过程中是否遇到问题，便于改进充值界面以及在适当的时候为玩家提供帮助。
@@ -6980,6 +7002,9 @@ API说明：
 				}
 				getPartnerConfig
 	* 请求失败: `{"status": 400,"errorMessage": "No platform exists with id: 11","data": null}`
+	* 1 代表 WEB
+    * 3 代表 H5
+    * 没提供device 参数的话会根据user agent来判定
 
 <div id='请求客服会电'></div>
 

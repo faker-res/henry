@@ -202,7 +202,6 @@ var dbPlatformGameGroup = {
                         }
                         return true;
                     });
-
                     for (var i = 0; i < gameGroup.games.length; i++) {
                         var game = gameGroup.games[i].game;
                         if (game) {
@@ -332,7 +331,9 @@ var dbPlatformGameGroup = {
                             for (let i = gameGroup.games.gameList.length - 1; i >=0; i--) {
                                 if (!playerId && providerNeedLoginShow[String(gameGroup.games.gameList[i].game.provider)]) {
                                     gameGroup.games.gameList.splice(i, 1);
-                                    gameGroup.games.stats.totalCount -= 1;
+                                    if (gameGroup.games.stats && gameGroup.games.stats.totalCount) {
+                                        gameGroup.games.stats.totalCount -= 1;
+                                    }
                                 } else {
                                     gameGroup.games.gameList[i].game.provider = gameProviderMap[String(gameGroup.games.gameList[i].game.provider)] || gameGroup.games.gameList[i].game.provider;
                                 }

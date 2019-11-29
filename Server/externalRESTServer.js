@@ -11,6 +11,7 @@ const WebSocketMessageClient = require("./server_common/WebSocketMessageClient")
 const socketActionMessage = require("./socketActionModule/socketActionMessage");
 
 const constMessageClientTypes = require("./const/constMessageClientTypes");
+const constServerCode = require("./const/constServerCode");
 
 const skipTokenVerificationPaths = [
     "fkpNotify",
@@ -65,9 +66,12 @@ app.use(function(req, res, next) {
         });
     } else {
         // return false if no token is provided
+        let messageString = 'No token provided.'
         return res.json({
+            code: constServerCode.COMMON_ERROR,
             success: false,
-            message: 'No token provided.'
+            message: messageString,
+            msg: messageString
         });
     }
 });

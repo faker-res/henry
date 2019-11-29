@@ -591,6 +591,9 @@ var dbDepartment = {
                 path: "users",
                 model: dbconfig.collection_admin
             }
+        }).populate({
+            path: "users",
+            model: dbconfig.collection_admin
         }).then(
             data => {
                 if (data && data.length > 0) {

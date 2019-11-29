@@ -12,6 +12,7 @@ const dbOps = require('./../db_common/dbOperations');
 
 const dbPlayerInfo = require("./../db_modules/dbPlayerInfo");
 const dbRewardTask = require('./../db_modules/dbRewardTask');
+const dbEbetWallet = require("./../db_modules/dbEbetWallet");
 
 const cpmsAPI = require("../externalAPI/cpmsAPI");
 
@@ -23,7 +24,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const localization = require("../modules/localization");
 const translate = localization.localization.translate;
 
-const ebetWalletProviders = ["EBET", "EBETSLOTS", "EBETBOARD", "V68LIVE", "V68SLOT", "V68BOARD"];
+const ebetWalletProviders = dbEbetWallet.getWalletPlatformNames(); // TRAP ALERT :: this apply to all wallet channel, not just EBETwallet
 
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
@@ -1175,7 +1176,7 @@ let dbPlayerCreditTransfer = {
      * @param useEbetWallet
      * @constructor
      */
-    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
+    TransferPlayerCreditFromProviderWithProviderGroup: async function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
         let pCTFP = this;
         let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
@@ -1187,6 +1188,28 @@ let dbPlayerCreditTransfer = {
         let rewardGroupObj;
         let updateObj = {};
         let eBetWalletObj = {};
+
+        // check if player.lastplayedprovider is the same as current providerid
+        console.log("TransferPlayerCreditFromProviderWithProviderGroup**");
+        console.log("playerObjId", playerObjId);
+        if(!useEbetWallet) {
+            let playerData = await dbConfig.collection_players.findOne({_id: playerObjId}).populate({
+                path: "lastPlayedProvider",
+                model: dbConfig.collection_gameProvider
+            }).lean();
+
+            console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+            if ((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
+                playerData.lastPlayedProvider._id != providerId) {
+                gameProviderGroup = null;
+                providerId = playerData.lastPlayedProvider._id;
+            }
+            console.log("AFTER MAKE OVER");
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+        }
 
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
@@ -1217,6 +1240,7 @@ let dbPlayerCreditTransfer = {
                                 }
                                 return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                     res => {
+                                        // misleading console log message, it just mean transfer out success no matter ebetwallet or not
                                         console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                         return res;
                                     },
@@ -1395,6 +1419,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
+    // TRAP ALERT :: providerId here accept provider's ObjectId instead of actual providerId
     playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync, isUpdateTransferId, currentDate) {
         let checkAmountProm = [];
         let transferIn = Promise.resolve();
@@ -1410,11 +1435,14 @@ let dbPlayerCreditTransfer = {
             });
         };
 
-        return dbConfig.collection_gameProviderGroup.find({
-            platform: platform
-        }).populate(
-            {path: "providers", model: dbConfig.collection_gameProvider}
-        ).lean().then(groups => {
+        return dbEbetWallet.getRelevantPOIDsFromPOID(providerId).then(poids => { // get relevent wallet channel group
+            return dbConfig.collection_gameProviderGroup.find({
+                platform: platform,
+                providers: {$in: poids}
+            }).populate(
+                {path: "providers", model: dbConfig.collection_gameProvider}
+            ).lean();
+        }).then(groups => {
             if(groups && groups.length > 0) {
                 groups.forEach(group => {
                     if(group.hasOwnProperty('ebetWallet') && group.ebetWallet > 0) {
@@ -1771,15 +1799,24 @@ let dbPlayerCreditTransfer = {
             });
         };
 
+        console.log("playerCreditTransferFromEbetWallets getPlayerGameCredit", { // debug log #22332F
+            username: userName,
+            platformId: platformId,
+            providerId: providerShortId
+        })
         return dbPlayerCreditTransfer.getPlayerGameCredit({
             username: userName,
             platformId: platformId,
             providerId: providerShortId
         }).then(res => {
             gameCredit = res;
+            console.log("playerCreditTransferFromEbetWallets gameCredit", gameCredit) // debug log #22332F
+            return dbEbetWallet.getRelevantPOIDsFromPOID(providerId);
+        }).then(poids => {
             if(gameCredit && gameCredit.wallet) {
                 return dbConfig.collection_gameProviderGroup.find({
-                    platform: platform
+                    platform: platform,
+                    providers: {$in: poids},
                 }).populate(
                     {path: "providers", model: dbConfig.collection_gameProvider}
                 ).lean();
@@ -1807,9 +1844,10 @@ let dbPlayerCreditTransfer = {
                             }).populate({
                                 path: "lastPlayedProvider", model: dbConfig.collection_gameProvider
                             }).lean().then(RTG => {
-                                console.log("Reward Task Group filter",RTG);
-                                let providerName = RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
-                                if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name && (ebetWalletProviders.includes(providerName)) ||
+                                console.log("Reward Task Group filter", RTG);
+                                let providerName = RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name ? RTG.lastPlayedProvider.name.toUpperCase() : '';
+                                console.log('playerCreditTransferFromEbetWallets group if detail', group.name, providerName, hasEbet, gameCredit.wallet[group.ebetWallet]) // debug log #22332F
+                                if((providerName && ebetWalletProviders.includes(providerName)) ||
                                     (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
@@ -1843,6 +1881,7 @@ let dbPlayerCreditTransfer = {
                     //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
                     //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
                     return Promise.all(checkRTGProm).then(() => {
+                        console.log('playerCreditTransferFromEbetWallets gameCredit.wallet[0]', gameCredit.wallet[0]) // debug log #22332F
                         if(gameCredit.wallet[0] > 0) {
                             transferOut = transferOut.then(() => {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
@@ -2058,11 +2097,14 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
     console.log('--MT --ori-gameProviderGroup', gameProviderGroup);
+    // The reason to allow outside gameProviderGroup to pass in is,
+    // There are time that would want to pass in other provider group to transferOut whole wallet channel
     let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
         dbConfig.collection_gameProviderGroup.findOne({
             platform: platform,
             providers: providerId
         }).lean();
+
     return gameProviderGroupProm.then(
         res => {
             gameProviderGroup = res;
@@ -2075,6 +2117,12 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 if(useEbetWallet && gameProviderGroup && !gameProviderGroup._id) {
                     rewardTaskGroupProm = Promise.resolve(null);
                 } else {
+                    console.log("checkProviderGroupCredit rewardTaskGroupProm", {
+                        platformId: platform,
+                        playerId: playerObjId,
+                        providerGroup: gameProviderGroup._id,
+                        status: {$in: [constRewardTaskStatus.STARTED]}
+                    })
                     rewardTaskGroupProm = dbConfig.collection_rewardTaskGroup.findOne({
                         platformId: platform,
                         playerId: playerObjId,
