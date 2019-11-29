@@ -6985,7 +6985,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0)),
-                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || null),
+                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || 20),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1}
             };
 
