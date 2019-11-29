@@ -1979,23 +1979,26 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.paymentChannel = 'all';
             vm.queryTopup.platformList = [];
         }
-        vm.searchTopupRecord = function (newSearch, isExport = false) {
 
-            if (vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length){
+        vm.searchTopupRecord = function (newSearch, isExport = false) {
+            if (
+                vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice
+                && vm.queryTopup.loginDevice.length
+            ){
                 return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
             }
             vm.reportSearchTimeStart = new Date().getTime();
 
             $('#topupTableSpin').show();
 
-            var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
+            let staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
 
             if (staArr.length > 0) {
                 staArr.forEach(item => {
-                    if (item == "Success") {
+                    if (item === "Success") {
                         staArr.push("Approved");
                     }
-                    if (item == "Fail") {
+                    if (item === "Fail") {
                         staArr.push("Rejected");
                     }
                 })
@@ -2154,14 +2157,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.drawTopupReport = function (data, size, summary, newSearch, isExport) {
-            console.log('data', data);
             var tableOptions = {
                 data: data,
                 "order": vm.queryTopup.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2247,14 +2249,10 @@ define(['js/app'], function (myApp) {
                             return "<div>" + data + addititionalText + "</div>";
                         }
                     },
-                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
-                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
-
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
                         title: $translate('Approved Time'), data: "endTime$",
