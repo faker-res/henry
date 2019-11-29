@@ -16235,7 +16235,18 @@ let dbPlayerInfo = {
             }
         });
 
-        return deferred.promise;
+        return deferred.promise.then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                conn.isAuth = false;
+                conn.playerId = null;
+                conn.playerObjId = null;
+                conn.platformId = null;
+                return Promise.reject(err);
+            }
+        );
     },
 
     getFavoriteGames: function (playerId, device) {
