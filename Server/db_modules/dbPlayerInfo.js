@@ -23132,7 +23132,7 @@ let dbPlayerInfo = {
                     outputResult = result;
                 }
 
-                return {size: outputResult.length, data: outputResult};
+                return {size: result && result.length ? result.length : 0, data: outputResult};
             }
         );
     },
