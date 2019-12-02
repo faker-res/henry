@@ -1,4 +1,4 @@
-
+import loginFlow from './../../img/login.jpg';
 /*
     func.*.desc:
     for description of each function, it takes a string and convert '\n' to line break.
@@ -7,6 +7,7 @@
 
 let loginLogout = {
     name: "登入/登出",
+    desc:`<img src=${loginFlow} />`,
     func: {
         login: {
             title: "登录",
@@ -21,8 +22,8 @@ let loginLogout = {
                 { param: "clientDomain", mandatory: "否", type: 'String', content: '登陆域名' },
                 { param: "deviceId", mandatory: "否", type: 'String', content: '设备号' },
                 { param: "checkLastDeviceId", mandatory: "否", type: 'Boolean', content: '检查上次登入设备是否与这次一样' },
-                { param: "deviceType", mandatory: "否", type: 'String', content: '设备类型列表' },
-                { param: "subPlatformId", mandatory: "否", type: 'String', content: '子平台列表' },
+                { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
+                { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
             ],
             respondSuccess: {
                 status: 200,
@@ -86,8 +87,8 @@ let loginLogout = {
                 { param: "accountPrefix", mandatory: "否", type: 'String', content: '玩家帐号前缀' },
                 { param: "checkLastDeviceId", mandatory: "否", type: 'Boolean', content: '检查上次登入设备是否与这次一样' },
                 { param: "referralId", mandatory: "否", type: 'String', content: '邀请码' },
-                { param: "deviceType", mandatory: "否", type: 'String', content: '设备类型列表' },
-                { param: "subPlatformId", mandatory: "否", type: 'String', content: '子平台列表' },
+                { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
+                { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
             ],
             respondSuccess: {
                 status: 200,
@@ -107,12 +108,12 @@ let loginLogout = {
                 { param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台' },
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家手机号' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },
-                { param: "captcha", mandatory: "是", type: 'String', content: '验证码 (登录三次失败后需要填验证码)' },
-                { param: "clientDomain", mandatory: "是", type: 'String', content: '登陆域名' },
-                { param: "deviceId", mandatory: "是", type: 'String', content: '设备号' },
+                { param: "captcha", mandatory: "否", type: 'String', content: '验证码 (登录三次失败后需要填验证码)' },
+                { param: "clientDomain", mandatory: "否", type: 'String', content: '登陆域名' },
+                { param: "deviceId", mandatory: "否", type: 'String', content: '设备号' },
                 { param: "checkLastDeviceId", mandatory: "否", type: 'Boolean', content: '检查上次登入设备是否与这次一样' },
-                { param: "deviceType", mandatory: "否", type: 'String', content: '设备类型列表' },
-                { param: "subPlatformId", mandatory: "否", type: 'String', content: '子平台列表' },
+                { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
+                { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
             ],
             respondSuccess: {
                 status: 200,
@@ -136,7 +137,7 @@ let loginLogout = {
                 { param: "referralId", mandatory: "否", type: 'String', content: '推荐人邀请码' },
                 { param: "deviceType", mandatory: "否", type: 'Int', content: '设备类型列表' },
                 { param: "subPlatformId", mandatory: "否", type: 'Int', content: '子平台列表' },
-                { param: "domain", mandatory: "否", type: 'Int', content: '当下注册域名' },
+                { param: "domain", mandatory: "否", type: 'String', content: '当下注册域名' },
             ],
             respondSuccess: {
                 status: 200,
@@ -145,7 +146,6 @@ let loginLogout = {
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "",
             }
         },
         logout: {

@@ -2,27 +2,26 @@
 let smsCode = {
     name:"短信验证码",
     func: {
-        getSMSCode:{
-            title: " 通过短信验证码修改代理手机号码",
+        getSMSCode: {
+            title: "获取手机验证码",
             serviceName: "partner",
             functionName: "getSMSCode",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
-                { param: "partnerId", mandatory: "否", type: "int", content: "代理ID" },
-                { param: "phoneNumber", mandatory: "是", type: "int", content: "手机号, 代理有登入会忽略" },
-                { param: "newPhoneNumber", mandatory: "否", type: "int", content: "新手机号" },
-                { param: "captcha", mandatory: "否", type: "String", content: "图片验证码" }
+            requestContent: [
+                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
+                {param: "purpose", mandatory: "否", type: 'String', content: '请参考 【定义】-->【手机验证码 验证用途】列表\n注：不能是“newPhoneNumber"，请使用 【代理】-->【通过短信验证码修改代理手机号】。'},
+                {param: "name", mandatory: "否", type: 'String', content: '代理帐号'},
+                {param: "captcha", mandatory: "否", type: 'String', content: '图片验证码'},
             ],
-            respondSuccess:{
+            respondSuccess: {
                 status: 200,
-                data: "-"
+                data: "",
             },
             respondFailure: {
-                status: "4xx",
-                errorMessage: "xxxxx"
-
+                status: "40x",
+                data: "-",
+                errorMessage: "错误信息",
             }
-        },
+        }
     }
 }
 

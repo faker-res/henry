@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Menu from './menu';
+import ContentDescription from './contentDescription';
 import Content from './content';
 import apiData from '../data/apiDocumentation';
 
@@ -8,33 +9,41 @@ const antiPatternContentKeys = ["guide","definition"];
 class Home extends Component {
     constructor(props) {
         super(props);
-        const landingPage = "reward";
+        const landingPage = "guide";
         this.state = {
             curNav: landingPage,
-            displayList: apiData.player[landingPage].func || apiData.player[landingPage].def || apiData.player[landingPage]
+            curCategory: "",
+            displayList: apiData.guide
         };
     };
-
+    
     navClickHandler = (event) => {
-        let arr = event.target.parentElement.children;
+        if(this.state.curNav === event.currentTarget.getAttribute('name')) {
+            return;
+        }
+        let arr = event.currentTarget.parentElement.children;
         for (let i=0; i< arr.length; i++){
             arr[i].className = arr[i].className.replace("active","").trim();
         }
-        event.target.className += " active";
-        
-        if(event.target.getAttribute('name') === "guide" && event.target.getAttribute('category') == null) {
+        event.currentTarget.className += " active";
+        window.location.hash = '';
+    
+        if(event.currentTarget.getAttribute('name') === "guide" && event.currentTarget.getAttribute('category') == null) {
             this.setState({displayList: apiData.guide});
             this.setState({curNav: "guide"});
-        } else if (event.target.getAttribute('name') === "definition" && event.target.getAttribute('category') == null) {
+            this.setState({curCategory: null});
+        } else if (event.currentTarget.getAttribute('name') === "definition" && event.currentTarget.getAttribute('category') == null) {
             this.setState({displayList: apiData.definition.def});
             this.setState({curNav: "definition"});
+            this.setState({curCategory: null});
         } else {
             for(let categoryName in apiData){
-                if(categoryName === event.target.getAttribute('category')){
+                if(categoryName === event.currentTarget.getAttribute('category')){
                     let category = apiData[categoryName];
                     for(let key in category){
-                        if(key === event.target.getAttribute('name')){
+                        if(key === event.currentTarget.getAttribute('name')){
                             this.setState({curNav: key});
+                            this.setState({curCategory: categoryName});
                             this.setState({displayList: apiData[categoryName][key].func});
                         }
                     }
@@ -75,6 +84,17 @@ class Home extends Component {
         return menuList;
     };
 
+    drawContentDescription = () => {
+        if(this.state.curCategory) {
+            return(
+                <ContentDescription
+                    title = {apiData[this.state.curCategory][this.state.curNav].name}
+                    desc = {apiData[this.state.curCategory][this.state.curNav].desc}
+                />
+            )
+        }
+    };
+
     drawContents = () => {
         let contents = [];
         let curTab = this.state.curNav;
@@ -84,6 +104,7 @@ class Home extends Component {
                     key = "guide"
                     title = {this.state.displayList.name}
                     desc = {this.state.displayList.text}
+                    exampleCode = {this.state.displayList.exampleCode}
                 />
             );
         } else if (curTab === "definition") {
@@ -127,14 +148,15 @@ class Home extends Component {
                     </div>
                 </div>
                 <div className="row">
-                    <div className="col-4 col-lg-2 pt-2">
-                    <Menu
-                        curNav = {this.state.curNav}
-                        list = {this.buildMenuList()}
-                        onClick = {this.navClickHandler}
-                    />
+                    <div className="col-4 col-lg-3 pt-2 pl-5 pr-3">
+                        <Menu
+                            curNav = {this.state.curNav}
+                            list = {this.buildMenuList()}
+                            onClick = {this.navClickHandler}
+                        />
                     </div>
-                    <div className="col-8 col-lg-10 mainContent">
+                    <div className="col-8 col-lg-9 mainContent">
+                        {this.drawContentDescription()}
                         {this.drawContents()}
                     </div>
                 </div>
