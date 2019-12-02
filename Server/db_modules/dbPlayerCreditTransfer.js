@@ -1868,8 +1868,7 @@ let dbPlayerCreditTransfer = {
                                             transferOutErrorData.push(err);
                                             return errorUtils.reportError(err);
                                         });
-                                    })
-                                        // .then(delayTransferOut);
+                                    }).then(delayTransferOut);
                                 }
                             })
                         );
