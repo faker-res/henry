@@ -1213,6 +1213,7 @@ let dbPlayerCreditTransfer = {
 
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
+                console.log("zm checkpoint 1", playerId, res);
                 if (res && res[1]) {
                     amount = res[0];
                     updateObj = res[1];
@@ -1258,14 +1259,20 @@ let dbPlayerCreditTransfer = {
                     } else if (res[0] == 0 && res[2]) {  //if the amount is 0 but there is reward task group
                         return true;
                     } else {
+                        console.log("zm checkpoint 2", playerId, res);
                         // should not reach here
                         return errorUtils.reportError(res);
                     }
                 }
+            },
+            err => {
+                console.log("zm checkpoint err 1", playerId, err)
+                return Promise.reject(err);
             }
         ).then(
             res => {
                 if (res) {
+                    console.log("zm checkpoint 3", playerId, res);
                     // CPMS Transfer out success
                     // Update reward task group if available
                     if (rewardGroupObj) {
@@ -1308,11 +1315,13 @@ let dbPlayerCreditTransfer = {
             },
             function (error) {
                 //log transfer error
+                console.log("zm checkpoint err 2", playerId, error)
                 return Promise.reject(error);
             }
         ).then(
             res => {
                 if (res) {
+                    console.log("zm checkpoint 4", playerId, res);
                     let updatePlayerObj = {
                         lastPlayedProvider: null,
                         $inc: {validCredit: updateObj.freeAmt}
@@ -1331,6 +1340,7 @@ let dbPlayerCreditTransfer = {
                     });
                 }
             }, function (err) {
+                console.log("zm checkpoint err 3", playerId, err)
                 return Q.reject({
                     status: constServerCode.PLAYER_REWARD_INFO,
                     name: "DataError",
@@ -1340,6 +1350,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("zm checkpoint 5", playerId, res);
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
