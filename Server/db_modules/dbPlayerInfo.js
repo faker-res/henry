@@ -5236,8 +5236,12 @@ let dbPlayerInfo = {
 
                         rewardTaskGroup.forEach(
                             rtg => {
-                                if (rtg && platform && rtg._id && rtg.totalCredit >= 0 && platform.autoUnlockWhenInitAmtLessThanLostThreshold
-                                    && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
+                                if (
+                                    rtg && platform && rtg._id && rtg.totalCredit >= 0
+                                    && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                                    && platform.autoApproveLostThreshold
+                                    && rtg.totalCredit <= platform.autoApproveLostThreshold
+                                ) {
                                     console.log('JY check rtg ---', rtg);
 
                                     console.log('unlock rtg due to consumption clear in other location A', rtg._id);
@@ -10185,18 +10189,24 @@ let dbPlayerInfo = {
         );
 
         function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, isMultiProvider){
-            if (dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+            if (
+                dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL
+                ||
+                    platformData && platformData.gameProviderInfo
+                    && platformData.gameProviderInfo[String(gameProvider._id)]
+                    && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false
+            ) {
                 if(!isMultiProvider){
                     return Promise.reject({
                         name: "DataError",
                         message: "Provider is not available"
                     });
-                }else{
+                } else {
                     return;
                 }
             }
 
-            if(firstPlayerState){
+            if (firstPlayerState) {
                 return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                     playerState => {
                         if (playerState || isMultiProvider) {
