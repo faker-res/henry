@@ -1917,8 +1917,17 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: platformQuery}, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.rewardList = data.data;
-                    console.log('vm.rewardList', vm.rewardList);
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(item => {
+                            if (item) {
+                                let indexNo = vm.rewardList.findIndex(x => x && x.name && item.name && (x.name === item.name));
+
+                                if (indexNo == -1) {
+                                    vm.rewardList.push(item);
+                                }
+                            }
+                        })
+                    }
 
                     utilService.actionAfterLoaded("#proposalTablePage", function () {
                         setTimeout(()=>{
