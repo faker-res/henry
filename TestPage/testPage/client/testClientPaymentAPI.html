@@ -874,6 +874,55 @@
     </div>
 </div>
 
+<h3>Create Fixed Top Up (PMS固定额度充值)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Topup type
+            <input name="topUpType">
+        </label>
+    </div>
+    <div>
+        <label>Deposit Method
+            <input name="depositMethod">
+        </label>
+    </div>
+    <div>
+        <label>Amount
+            <input name="amount">
+        </label>
+    </div>
+    <div>
+        <label>Client Type
+            <input name="clientType">
+        </label>
+    </div>
+    <div>
+        <label>bonusCode
+            <input name="bonusCode">
+        </label>
+    </div>
+    <div>
+        <label>topUpReturnCode
+            <input name="topUpReturnCode">
+        </label>
+    </div>
+    <div>
+        <label>limitedOfferObjId
+            <input name="limitedOfferObjId">
+        </label>
+        <p>
+    </div>
+    <button data-api-name="createFixedTopupProposal">Pay</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {
