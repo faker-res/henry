@@ -708,7 +708,8 @@ var roleChecker = {
                 FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
                 GAME_TYPE_ANALYSIS_REPORT: [],
                 DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup'],
-                ReCalculateReport: ['reCalculatePlayerReportSummary']
+                ReCalculateReport: ['reCalculatePlayerReportSummary'],
+                PLATFORM_OVERVIEW_REPORT: ['getPlatformOverviewReport']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],

@@ -1,0 +1,134 @@
+#platformOverviewReport.block-query.col-md-12.well
+    .search-filters-item
+        label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
+        select.form-control.spicker(ng-model='vm.platformOverviewReport.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+    .search-filters-item
+        label {{"Start date" | translate}}
+        .startTime
+    .search-filters-item
+        label {{"End date" | translate}}
+        .endTime
+    .search-filters-item
+        label {{"Login Device"|translate}}
+        select.spicker.form-control(ng-model='vm.platformOverviewReport.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
+
+    .text-right.widthto100
+        button.btn.btn-success.btn-space(ng-click='vm.searchPlatformOverviewReport()') {{'SEARCH' | translate}}
+        span#platformOverviewReportSpin.collapse
+            i.fa.fa-spinner.fa-spin
+
+
+.clearfix
+    label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+    div(style="min-width:100% ;overflow-x: scroll; display; none !important")
+        table#platformOverviewReportTable.table-striped.display.text-center.dataTable.table-condensed(style='width:100%')
+            thead
+                tr
+                    th(rowspan='2') {{'PRODUCT' | translate}}
+                    th(rowspan='2') {{'Login Headcount' | translate}}
+                    th(rowspan='2') {{'Total Consumption Headcount' | translate}}
+                    th(rowspan='2') {{'Total Top Up Headcount' | translate}}
+                    th(rowspan='2') {{'Total Bonus Headcount' | translate}}
+                    th(rowspan='2') {{'Top Up Ratio' | translate}}
+                    th(colspan='4') {{'Registration Analysis' | translate}}
+                    th(colspan='3') {{'TOPUPMANUAL' | translate}}
+                    th(colspan='3') {{'TOPUPALIPAY' | translate}}
+                    th(colspan='3') {{'TOPUPWECHAT' | translate}}
+                    th(colspan='3') {{'TOPUPONLINE' | translate}}
+                    th(rowspan='2') {{'Top Up Total Count' | translate}}
+                    th(rowspan='2') {{'TOTAL_TOPUP' | translate}}
+                    th(rowspan='2') {{'TOTAL_WITHDRAWAL_AMOUNT' | translate}}
+                    th(rowspan='2') {{'Update Player Credit(Abnormal Deduction)' | translate}}
+                    th(rowspan='2') {{'Update Player Credit(Limit Deduction)' | translate}}
+                    th(rowspan='2') {{'Update Player Credit(Other Deduction)' | translate}}
+                    th(rowspan='2') {{'Update Player Credit(Addition)' | translate}}
+                    th(rowspan='2') {{'Total Credit Deduction' | translate}}
+                    th(rowspan='2') {{'Total Income(Top Up-Withdrawal)' | translate}}
+                tr
+                    th {{'TOTAL_REGISTRATION' | translate}}
+                    th {{'Player with Top-ups' | translate}}
+                    th {{'Player with Top-ups Multiple Times' | translate}}
+                    th {{'Valid Player' | translate}}
+                    th {{'HEAD_COUNT' | translate}}
+                    th {{'COUNT' | translate}}
+                    th {{'TopAmount' | translate}}
+                    th {{'HEAD_COUNT' | translate}}
+                    th {{'COUNT' | translate}}
+                    th {{'TopAmount' | translate}}
+                    th {{'HEAD_COUNT' | translate}}
+                    th {{'COUNT' | translate}}
+                    th {{'TopAmount' | translate}}
+                    th {{'HEAD_COUNT' | translate}}
+                    th {{'COUNT' | translate}}
+                    th {{'TopAmount' | translate}}
+
+
+            tbody
+                tr(ng-show='!vm.platformOverviewReportList || vm.platformOverviewReportList.length == 0')
+                    td(colspan=31) {{'No data available in table' | translate}}
+                tr(ng-show='vm.platformOverviewReportList.length > 0' ng-repeat='(i,v) in vm.platformOverviewReportList')
+                    td {{ v.platformName }}
+                    td {{ v.loginPlayerCount || 0 }}
+                    td {{ v.consumptionPlayerCount || 0 }}
+                    td {{ v.topUpPlayerCount || 0 }}
+                    td {{ v.bonusPlayerCount || 0 }}
+                    td {{ v.topUpRatio || 0 }}%
+                    td {{ v.newPlayerCount || 0 }}
+                    td {{ v.newPlayerTopUpCount || 0 }}
+                    td {{ v.newPlayerNTimesTopUpCount || 0 }}
+                    td {{ v.newPlayerValidPlayer || 0 }}
+                    td {{ v.newPlayerValidPlayer || 0 }}
+                    td {{ v.manualTopUpPlayerCount || 0 }}
+                    td {{ v.manualTopUpCount || 0 }}
+                    td {{ v.manualTopUpAmount || 0 }}
+                    td {{ v.alipayTopUpPlayerCount || 0 }}
+                    td {{ v.alipayTopUpCount || 0 }}
+                    td {{ v.alipayTopUpAmount || 0 }}
+                    td {{ v.wechatTopUpPlayerCount || 0 }}
+                    td {{ v.wechatTopUpCount || 0 }}
+                    td {{ v.wechatTopUpAmount || 0 }}
+                    td {{ v.onlineTopUpPlayerCount || 0 }}
+                    td {{ v.onlineTopUpCount || 0 }}
+                    td {{ v.onlineTopUpAmount || 0 }}
+                    td {{ v.topUpCount || 0 }}
+                    td {{ v.topUpAmount || 0 }}
+                    td {{ v.bonusAmount || 0 }}
+                    td {{ v.abnormalCreditDeduction || 0 }}
+                    td {{ v.limitCreditDeduction || 0 }}
+                    td {{ v.additionCredit || 0 }}
+                    td {{ v.deductionCredit || 0 }}
+                    td {{ v.totalIncome || 0 }}
+
+            tfoot
+                tr(ng-show='vm.platformOverviewReportList.length > 0')
+                    th {{ vm.platformOverviewReportSummary.platformName }}
+                    th {{ vm.platformOverviewReportSummary.loginPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.consumptionPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.topUpPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.bonusPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.topUpRatio || 0 }}%
+                    th {{ vm.platformOverviewReportSummary.newPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.newPlayerTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.newPlayerNTimesTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.newPlayerValidPlayer || 0 }}
+                    th {{ vm.platformOverviewReportSummary.newPlayerValidPlayer || 0 }}
+                    th {{ vm.platformOverviewReportSummary.manualTopUpPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.manualTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.manualTopUpAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.alipayTopUpPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.alipayTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.alipayTopUpAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.wechatTopUpPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.wechatTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.wechatTopUpAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.onlineTopUpPlayerCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.onlineTopUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.onlineTopUpAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.topUpCount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.topUpAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.bonusAmount || 0 }}
+                    th {{ vm.platformOverviewReportSummary.abnormalCreditDeduction || 0 }}
+                    th {{ vm.platformOverviewReportSummary.limitCreditDeduction || 0 }}
+                    th {{ vm.platformOverviewReportSummary.additionCredit || 0 }}
+                    th {{ vm.platformOverviewReportSummary.deductionCredit || 0 }}
+                    th {{ vm.platformOverviewReportSummary.totalIncome || 0 }}

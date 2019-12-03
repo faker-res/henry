@@ -1,10 +1,12 @@
 const dbconfig = require('./../modules/dbproperties');
 const errorUtils = require('../modules/errorUtils');
+const dbutility = require('../modules/dbutility');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require("./../const/constProposalType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const constPlayerTopUpType = require('../const/constPlayerTopUpType');
+const constCreditChangeType = require('../const/constCreditChangeType');
 const dbProposalUtility = require("../db_common/dbProposalUtility");
 let dbProposal = require('./../db_modules/dbProposal');
 const ObjectId = mongoose.Types.ObjectId;
@@ -581,6 +583,540 @@ let dbReport = {
             }
         )
     },
+
+    getPlatformOverviewReport: async (query) => {
+        let platformListQuery;
+        let loginDeviceQuery;
+        let result = [];
+
+        if (query && query.platformList && query.platformList.length > 0)
+            platformListQuery = {$in: query.platformList.map(item => { return ObjectId(item)} )};
+
+        if (query && query.loginDevice && query.loginDevice.length > 0)
+            loginDeviceQuery = {$in: query.loginDevice};
+
+        let platformQuery = platformListQuery ? {_id: platformListQuery} : {};
+        let platformData = await dbconfig.collection_platform.find(platformQuery).lean();
+
+        if (platformData && platformData.length > 0)
+            platformData.sort(dbutility.sortPlatform);
+
+        let configQuery = platformListQuery ? {platform: platformListQuery} : {};
+        let partnerLevelConfigData = await dbconfig.collection_partnerLevelConfig.find(configQuery).lean();
+
+        // player login count
+        let loginCountQuery = {
+            loginTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)}
+        };
+        if (platformListQuery)
+            loginCountQuery.platform = platformListQuery;
+
+        if (loginDeviceQuery)
+            loginCountQuery.loginDevice = loginDeviceQuery;
+
+
+        let playerLoginCountData = await dbconfig.collection_playerLoginRecord.aggregate(
+            [{
+                $match: loginCountQuery
+            }, {
+                $group: {
+                    _id: {platform: '$platform', player: '$player'}
+                }
+            }, {
+                    $group: {
+                        _id: '$_id.platform',
+                        count: {$sum: 1}
+                    }
+                }]
+        ).read("secondaryPreferred");
+
+
+        // player consumption count
+        let consumptionCountQuery = {
+            createTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+            isDuplicate : {$ne: true}
+        };
+        if (platformListQuery)
+            consumptionCountQuery.platformId = platformListQuery;
+        if (loginDeviceQuery)
+            consumptionCountQuery.loginDevice = loginDeviceQuery;
+
+        let playerConsumptionCountData = await dbconfig.collection_playerConsumptionRecord.aggregate(
+            [{
+                $match: consumptionCountQuery
+            }, {
+                $group: {
+                    _id: {platform: '$platformId', player: '$playerId'}
+                }
+            }, {
+                $group: {
+                    _id: '$_id.platform',
+                    count: {$sum: 1}
+                }
+            }]
+        ).read("secondaryPreferred");
+
+
+        // player topup count
+        let topUpCountQuery = {
+            createTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+            mainType : 'TopUp',
+            status : constProposalStatus.SUCCESS
+        };
+
+        if (platformListQuery)
+            topUpCountQuery['data.platformId'] = platformListQuery;
+        if (loginDeviceQuery)
+            topUpCountQuery.device = loginDeviceQuery;
+
+        let playerTopUpCountData = await dbconfig.collection_proposal.aggregate(
+            {
+                $match: topUpCountQuery
+            }, {
+                $group: {
+                    _id: '$data.platformId',
+                    userIds: {$addToSet: '$data.playerObjId'},
+                    amount: {$sum: '$data.amount'},
+                    topUpCount: {$sum: 1},
+                }
+            }
+        ).read("secondaryPreferred").then(
+            data => {
+                if (data && data.length > 0) {
+                    return data.map(item => {
+                        item.playerCount = 0;
+                        if (item && item.userIds.length > 0) {
+                            item.playerCount = item.userIds.length;
+                        }
+
+                        return item;
+                    })
+                }
+
+                return data;
+            }
+        );
+
+
+        // player bonus count
+        let bonusCountQuery = {
+            createTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+            mainType : 'PlayerBonus',
+            status : constProposalStatus.SUCCESS
+        };
+        if (platformListQuery)
+            bonusCountQuery['data.platformId'] = platformListQuery;
+
+        if (loginDeviceQuery)
+            bonusCountQuery.device = loginDeviceQuery;
+
+        let playerBonusCountData = await dbconfig.collection_proposal.aggregate(
+            {
+                $match: bonusCountQuery
+            }, {
+                $group: {
+                    _id: '$data.platformId',
+                    userIds: {$addToSet: '$data.playerObjId'},
+                    amount: {$sum: '$data.amount'}
+                }
+            }
+        ).read("secondaryPreferred").then(
+            data => {
+                if (data && data.length > 0) {
+                    return data.map(item => {
+                        item.playerCount = 0;
+                        if (item && item.userIds.length > 0) {
+                            item.playerCount = item.userIds.length;
+                        }
+
+                        return item;
+                    })
+                }
+
+                return data;
+            }
+        );
+
+
+        // topup percentage
+        let countTopUpPercentage = [];
+        if (playerTopUpCountData && playerTopUpCountData.length > 0 && playerLoginCountData && playerLoginCountData.length > 0) {
+            playerTopUpCountData.forEach(topUpCount => {
+                if (topUpCount && topUpCount._id) {
+                    let indexNo = playerLoginCountData.findIndex(x => x && x._id && (String(x._id) === String(topUpCount._id)));
+
+                    if (indexNo > -1) {
+                        let loginCount = playerLoginCountData[indexNo];
+                        let countTopUpRatio = (topUpCount.playerCount / loginCount.count) * 100;
+                        countTopUpPercentage.push({_id: topUpCount._id, topUpRatio: countTopUpRatio});
+                    }
+                }
+            });
+        }
+
+
+        // registration analysis
+        // new player count
+        let newPlayerCountQuery = {};
+        newPlayerCountQuery.registrationTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+
+        if (platformListQuery)
+            newPlayerCountQuery.platform = platformListQuery;
+
+        let newPlayerCountData = await dbconfig.collection_players.aggregate(
+            [{
+                $match: newPlayerCountQuery
+            }, {
+                $group: {
+                    _id: '$platform',
+                    count: {$sum: 1}
+                }
+            }]).read("secondaryPreferred");
+
+
+        // new player - is player topup count
+        let newPlayerTopUpCountQuery = Object.assign({}, newPlayerCountQuery);
+        newPlayerTopUpCountQuery.topUpTimes = {$gt: 0};
+
+        let newPlayerTopUpCountData = await dbconfig.collection_players.aggregate(
+            [{
+                $match: newPlayerTopUpCountQuery
+            }, {
+                $group: {
+                    _id: '$platform',
+                    count: {$sum: 1}
+                }
+            }]).read("secondaryPreferred");
+
+
+        // new player - is player multiple times topup count
+        let nTimesTopUpCountQuery = Object.assign({}, newPlayerCountQuery);
+        nTimesTopUpCountQuery.topUpTimes = {$gt: 1};
+
+        let nTimesTopUpCountData = await dbconfig.collection_players.aggregate(
+            [{
+                $match: nTimesTopUpCountQuery
+            }, {
+                $group: {
+                    _id: '$platform',
+                    count: {$sum: 1}
+                }
+            }]).read("secondaryPreferred");
+
+
+        // new player - valid player
+        let newPlayerValidPlayerCountData = [];
+        if (partnerLevelConfigData && partnerLevelConfigData.length > 0) {
+            let playerRegValidPlayerProm = [];
+            partnerLevelConfigData.forEach(config => {
+                if (config && config.hasOwnProperty("validPlayerTopUpAmount") &&
+                    config.hasOwnProperty("validPlayerConsumptionTimes") &&
+                    config.hasOwnProperty("validPlayerTopUpTimes") &&
+                    config.hasOwnProperty("validPlayerConsumptionAmount")
+                ) {
+
+                    let queryObj = {
+                        platform: config.platform,
+                        registrationTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)}
+                    };
+
+                    queryObj.topUpSum = {$gte: config.validPlayerTopUpAmount};
+                    queryObj.consumptionTimes = {$gte: config.validPlayerConsumptionTimes};
+                    queryObj.consumptionSum = {$gte: config.validPlayerConsumptionAmount};
+                    queryObj.topUpTimes = {$gte: config.validPlayerTopUpTimes}
+
+                    playerRegValidPlayerProm.push(dbconfig.collection_players.find(queryObj).count().then(
+                        data => {
+                            return {_id: config.platform, count: data || 0};
+                        }
+                    ));
+                }
+            });
+
+            newPlayerValidPlayerCountData = await Promise.all(playerRegValidPlayerProm);
+        }
+
+
+        let manualTopUpData = await getTopUpData(constProposalType.PLAYER_MANUAL_TOP_UP, query, platformListQuery, loginDeviceQuery);
+        let onlineTopUpData = await getTopUpData(constProposalType.PLAYER_TOP_UP, query, platformListQuery, loginDeviceQuery);
+        let alipayTopUpData = await getTopUpData(constProposalType.PLAYER_ALIPAY_TOP_UP, query, platformListQuery, loginDeviceQuery);
+        let wechatTopUpData = await getTopUpData(constProposalType.PLAYER_WECHAT_TOP_UP, query, platformListQuery, loginDeviceQuery);
+
+
+        //UpdatePlayerCredit
+        let playerCreditPropTypeQuery = {
+            name: constProposalType.UPDATE_PLAYER_CREDIT
+        };
+        if (platformListQuery) {
+            playerCreditPropTypeQuery.platformId = platformListQuery;
+        }
+        let playerCreditPropTypeData = await dbconfig.collection_proposalType.find(playerCreditPropTypeQuery)
+        let playerCreditQuery = {
+            createTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+            mainType : 'Others',
+            status : constProposalStatus.APPROVED,
+            type: {$in: playerCreditPropTypeData.map(item => item && item._id)}
+        }
+
+        if (platformListQuery)
+            playerCreditQuery['data.platformId'] = platformListQuery;
+
+        if (loginDeviceQuery)
+            playerCreditQuery.device = loginDeviceQuery;
+
+        // UpdatePlayerCredit - get total by type
+        let updatePlayerCreditTypeData = await dbconfig.collection_proposal.aggregate(
+            {
+                $match: playerCreditQuery
+            }, {
+                $group: {
+                    _id: {platform: '$data.platformId', creditChangeType: '$data.creditChangeType'},
+                    amount: {$sum: '$data.updateAmount'},
+                }
+            }
+        ).read("secondaryPreferred");
+
+
+        if (platformData && platformData.length > 0) {
+            platformData.forEach(platform => {
+                if (platform && platform._id) {
+                    let details = {
+                        platformObjId: platform._id,
+                        platformName: platform.name
+                    };
+
+                    let loginIndex = playerLoginCountData.findIndex(login => login && login._id && (String(login._id) === String(platform._id)));
+                    if (loginIndex > -1) {
+                        details.loginPlayerCount = playerLoginCountData[loginIndex].count;
+                    }
+
+                    let consumptionIndex = playerConsumptionCountData.findIndex(consumption => consumption && consumption._id && (String(consumption._id) === String(platform._id)));
+                    if (consumptionIndex > -1) {
+                        details.consumptionPlayerCount = playerConsumptionCountData[consumptionIndex].count;
+                    }
+
+                    let topupIndex = playerTopUpCountData.findIndex(topUp => topUp && topUp._id && (String(topUp._id) === String(platform._id)));
+                    if (topupIndex > -1) {
+                        details.topUpPlayerCount = playerTopUpCountData[topupIndex].playerCount;
+                        details.topUpCount = playerTopUpCountData[topupIndex].topUpCount;
+                        details.topUpAmount = playerTopUpCountData[topupIndex].amount;
+                    }
+
+                    let bonusIndex = playerBonusCountData.findIndex(bonus => bonus && bonus._id && (String(bonus._id) === String(platform._id)));
+                    if (bonusIndex > -1) {
+                        details.bonusPlayerCount = playerBonusCountData[bonusIndex].playerCount;
+                        details.bonusAmount = playerBonusCountData[bonusIndex].amount;
+                    }
+
+                    let topUpRatioIndex = countTopUpPercentage.findIndex(ratio => ratio && ratio._id && (String(ratio._id) === String(platform._id)));
+                    if (topUpRatioIndex > -1) {
+                        details.topUpRatio = dbutility.noRoundTwoDecimalPlaces(countTopUpPercentage[topUpRatioIndex].topUpRatio);
+                    }
+
+                    // player registration
+                    let newPlayerIndex = newPlayerCountData.findIndex(newPlayer => newPlayer && newPlayer._id && (String(newPlayer._id) === String(platform._id)));
+                    if (newPlayerIndex > -1) {
+                        details.newPlayerCount = newPlayerCountData[newPlayerIndex].count;
+                    }
+
+                    let newPlayerTopUpIndex = newPlayerTopUpCountData.findIndex(newPlayerTopUp => newPlayerTopUp && newPlayerTopUp._id && (String(newPlayerTopUp._id) === String(platform._id)));
+                    if (newPlayerTopUpIndex > -1) {
+                        details.newPlayerTopUpCount = newPlayerTopUpCountData[newPlayerTopUpIndex].count;
+                    }
+
+                    let newPlayerNTimesTopUpIndex = nTimesTopUpCountData.findIndex(multipleTimesTopUp => multipleTimesTopUp && multipleTimesTopUp._id && (String(multipleTimesTopUp._id) === String(platform._id)));
+                    if (newPlayerNTimesTopUpIndex > -1) {
+                        details.newPlayerNTimesTopUpCount = nTimesTopUpCountData[newPlayerNTimesTopUpIndex].count;
+                    }
+
+                    let validPlayerIndex = newPlayerValidPlayerCountData.findIndex(validPlayer => validPlayer && validPlayer._id && (String(validPlayer._id) === String(platform._id)));
+                    if (validPlayerIndex > -1) {
+                        details.newPlayerValidPlayer = newPlayerValidPlayerCountData[validPlayerIndex].count;
+                    }
+
+                    let manualTopUpIndex = manualTopUpData.findIndex(manual => manual && manual._id && (String(manual._id) === String(platform._id)));
+                    if (manualTopUpIndex > -1) {
+                        details.manualTopUpPlayerCount = manualTopUpData[manualTopUpIndex].playerCount;
+                        details.manualTopUpCount = manualTopUpData[manualTopUpIndex].topUpCount;
+                        details.manualTopUpAmount = manualTopUpData[manualTopUpIndex].amount;
+                    }
+
+                    let onlineTopUpIndex = onlineTopUpData.findIndex(online => online && online._id && (String(online._id) === String(platform._id)));
+                    if (onlineTopUpIndex > -1) {
+                        details.onlineTopUpPlayerCount = onlineTopUpData[onlineTopUpIndex].playerCount;
+                        details.onlineTopUpCount = onlineTopUpData[onlineTopUpIndex].topUpCount;
+                        details.onlineTopUpAmount = onlineTopUpData[onlineTopUpIndex].amount;
+                    }
+
+                    let alipayTopUpIndex = alipayTopUpData.findIndex(alipay => alipay && alipay._id && (String(alipay._id) === String(platform._id)));
+                    if (alipayTopUpIndex > -1) {
+                        details.alipayTopUpPlayerCount = alipayTopUpData[alipayTopUpIndex].playerCount;
+                        details.alipayTopUpCount = alipayTopUpData[alipayTopUpIndex].topUpCount;
+                        details.alipayTopUpAmount = alipayTopUpData[alipayTopUpIndex].amount;
+                    }
+
+                    let wechatTopUpIndex = wechatTopUpData.findIndex(wechat => wechat && wechat._id && (String(wechat._id) === String(platform._id)));
+                    if (wechatTopUpIndex > -1) {
+                        details.wechatTopUpPlayerCount = wechatTopUpData[wechatTopUpIndex].playerCount;
+                        details.wechatTopUpCount = wechatTopUpData[wechatTopUpIndex].topUpCount;
+                        details.wechatTopUpAmount = wechatTopUpData[wechatTopUpIndex].amount;
+                    }
+
+                    let abnormalDeductionCreditIndex = updatePlayerCreditTypeData.findIndex(credit => credit && credit._id && credit._id.platform
+                        && (String(credit._id.platform) === String(platform._id)) && (credit._id.creditChangeType === constCreditChangeType.ABNORMAL_DEDUCTION));
+                    if (abnormalDeductionCreditIndex > -1) {
+                        details.abnormalCreditDeduction = updatePlayerCreditTypeData[abnormalDeductionCreditIndex].amount;
+                    }
+
+                    let limitDeductionCreditIndex = updatePlayerCreditTypeData.findIndex(credit => credit && credit._id && credit._id.platform
+                        && (String(credit._id.platform) === String(platform._id)) && (credit._id.creditChangeType === constCreditChangeType.LIMIT_DEDUCTION));
+                    if (limitDeductionCreditIndex > -1) {
+                        details.limitCreditDeduction = updatePlayerCreditTypeData[limitDeductionCreditIndex].amount;
+                    }
+
+                    let otherDeductionCreditIndex = updatePlayerCreditTypeData.findIndex(credit => credit && credit._id && credit._id.platform
+                        && (String(credit._id.platform) === String(platform._id)) && (credit._id.creditChangeType === constCreditChangeType.OTHER_DEDUCTION));
+                    if (otherDeductionCreditIndex > -1) {
+                        details.otherCreditDeduction = updatePlayerCreditTypeData[otherDeductionCreditIndex].amount;
+                    }
+
+                    let additionCreditIndex = updatePlayerCreditTypeData.findIndex(credit => credit && credit._id && credit._id.platform
+                        && (String(credit._id.platform) === String(platform._id)) && (credit._id.creditChangeType === constCreditChangeType.ADDITION));
+                    if (additionCreditIndex > -1) {
+                        details.additionCredit = updatePlayerCreditTypeData[additionCreditIndex].amount;
+                    }
+
+                    let abnormalCreditDeduction = details && details.abnormalCreditDeduction < 0 ? (details.abnormalCreditDeduction * -1) : 0;
+                    let limitCreditDeduction = details && details.limitCreditDeduction < 0 ? (details.limitCreditDeduction * -1) : 0;
+                    let otherCreditDeduction = details && details.otherCreditDeduction < 0 ? (details.otherCreditDeduction * -1) : 0;
+                    let totalDeduction = (abnormalCreditDeduction + limitCreditDeduction + otherCreditDeduction);
+                    details.deductionCredit = totalDeduction > 0 ? (totalDeduction * -1) : 0;
+
+                    let totalTopUp = (details && details.topUpAmount) || 0;
+                    let totalBonus = (details && details.bonusAmount) || 0;
+                    details.totalIncome = totalTopUp - totalBonus;
+
+                    result.push(details);
+                }
+            });
+        };
+
+        let sumTotal = {
+            loginPlayerCount : result.reduce( (a,b) => a + (b.loginPlayerCount ? b.loginPlayerCount : 0), 0),
+            consumptionPlayerCount : result.reduce( (a,b) => a + (b.consumptionPlayerCount ? b.consumptionPlayerCount : 0), 0),
+            topUpPlayerCount : result.reduce( (a,b) => a + (b.topUpPlayerCount ? b.topUpPlayerCount : 0), 0),
+            topUpCount : result.reduce( (a,b) => a + (b.topUpCount ? b.topUpCount : 0), 0),
+            topUpAmount : result.reduce( (a,b) => a + (b.topUpAmount ? b.topUpAmount : 0), 0),
+            bonusPlayerCount : result.reduce( (a,b) => a + (b.bonusPlayerCount ? b.bonusPlayerCount : 0), 0),
+            bonusAmount : result.reduce( (a,b) => a + (b.bonusAmount ? b.bonusAmount : 0), 0),
+            newPlayerCount : result.reduce( (a,b) => a + (b.newPlayerCount ? b.newPlayerCount : 0), 0),
+            newPlayerTopUpCount : result.reduce( (a,b) => a + (b.newPlayerTopUpCount ? b.newPlayerTopUpCount : 0), 0),
+            newPlayerNTimesTopUpCount : result.reduce( (a,b) => a + (b.newPlayerNTimesTopUpCount ? b.newPlayerNTimesTopUpCount : 0), 0),
+            newPlayerValidPlayer : result.reduce( (a,b) => a + (b.newPlayerValidPlayer ? b.newPlayerValidPlayer : 0), 0),
+            manualTopUpPlayerCount : result.reduce( (a,b) => a + (b.manualTopUpPlayerCount ? b.manualTopUpPlayerCount : 0), 0),
+            manualTopUpCount : result.reduce( (a,b) => a + (b.manualTopUpCount ? b.manualTopUpCount : 0), 0),
+            manualTopUpAmount : result.reduce( (a,b) => a + (b.manualTopUpAmount ? b.manualTopUpAmount : 0), 0),
+            onlineTopUpPlayerCount : result.reduce( (a,b) => a + (b.onlineTopUpPlayerCount ? b.onlineTopUpPlayerCount : 0), 0),
+            onlineTopUpCount : result.reduce( (a,b) => a + (b.onlineTopUpCount ? b.onlineTopUpCount : 0), 0),
+            onlineTopUpAmount : result.reduce( (a,b) => a + (b.onlineTopUpAmount ? b.onlineTopUpAmount : 0), 0),
+            alipayTopUpPlayerCount : result.reduce( (a,b) => a + (b.alipayTopUpPlayerCount ? b.alipayTopUpPlayerCount : 0), 0),
+            alipayTopUpCount : result.reduce( (a,b) => a + (b.alipayTopUpCount ? b.alipayTopUpCount : 0), 0),
+            alipayTopUpAmount : result.reduce( (a,b) => a + (b.alipayTopUpAmount ? b.alipayTopUpAmount : 0), 0),
+            wechatTopUpPlayerCount : result.reduce( (a,b) => a + ( b.wechatTopUpPlayerCount ? b.wechatTopUpPlayerCount : 0), 0),
+            wechatTopUpCount : result.reduce( (a,b) => a + (b.wechatTopUpCount ? b.wechatTopUpCount : 0), 0),
+            wechatTopUpAmount : result.reduce( (a,b) => a + (b.wechatTopUpAmount ? b.wechatTopUpAmount : 0), 0),
+            abnormalCreditDeduction : result.reduce( (a,b) => a + (b.abnormalCreditDeduction ? b.abnormalCreditDeduction : 0), 0),
+            limitCreditDeduction : result.reduce( (a,b) => a + (b.limitCreditDeduction ? b.limitCreditDeduction : 0), 0),
+            otherCreditDeduction : result.reduce( (a,b) => a + (b.otherCreditDeduction ? b.otherCreditDeduction : 0), 0),
+            additionCredit : result.reduce( (a,b) => a + (b.additionCredit ? b.additionCredit : 0), 0),
+            totalIncome : result.reduce( (a,b) => a + (b.totalIncome ? b.totalIncome : 0), 0)
+        };
+
+        let sumTotalDeductionCredit = result.reduce( (a,b) => a + (b && b.deductionCredit < 0 ? (b.deductionCredit * -1) : 0), 0);
+        sumTotal.deductionCredit = sumTotalDeductionCredit > 0 ? (sumTotalDeductionCredit * -1) : 0;
+        sumTotal.topUpRatio = dbutility.noRoundTwoDecimalPlaces(((sumTotal.topUpPlayerCount || 0) / (sumTotal.loginPlayerCount || 0)) * 100) || 0;
+
+        return {data: result, summary: sumTotal};
+
+
+        function getTopUpData(type, query, platformListQuery, loginDeviceQuery) {
+            let propTypeName;
+
+            switch (type) {
+                case constProposalType.PLAYER_MANUAL_TOP_UP:
+                    propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
+                    break;
+                case constProposalType.PLAYER_TOP_UP:
+                    propTypeName = constProposalType.PLAYER_TOP_UP;
+                    break;
+                case constProposalType.PLAYER_ALIPAY_TOP_UP:
+                    propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                    break;
+                case constProposalType.PLAYER_WECHAT_TOP_UP:
+                    propTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
+                    break;
+            }
+
+            let propTypeQuery = {
+                name: propTypeName
+            };
+
+            if (platformListQuery) {
+                propTypeQuery.platformId = platformListQuery;
+            }
+
+            return dbconfig.collection_proposalType.find(propTypeQuery).then(
+                propTypeData => {
+                    if (propTypeData && propTypeData.length > 0) {
+                        let topUpQuery = {
+                            createTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+                            mainType : 'TopUp',
+                            status : constProposalStatus.SUCCESS,
+                            type: {$in: propTypeData.map(item => item && item._id)}
+                        };
+
+                        if (platformListQuery)
+                            topUpQuery['data.platformId'] = platformListQuery;
+
+                        if (loginDeviceQuery)
+                            topUpQuery.device = loginDeviceQuery;
+
+                        let groupObj = {
+                            _id: '$data.platformId',
+                            userIds: {$addToSet: '$data.playerObjId'},
+                            amount: {$sum: '$data.amount'},
+                            topUpCount: {$sum: 1},
+                        };
+
+                        return dbconfig.collection_proposal.aggregate(
+                            {
+                                $match: topUpQuery
+                            }, {
+                                $group: groupObj
+                            }
+                        ).read("secondaryPreferred").then(
+                            data => {
+                                if (data && data.length > 0) {
+                                    return data.map(item => {
+                                        item.playerCount = 0;
+                                        if (item && item.userIds.length > 0) {
+                                            item.playerCount = item.userIds.length;
+                                        }
+
+                                        return item;
+                                    })
+                                }
+
+                                return data;
+                            }
+                        );
+                    } else {
+                        return [];
+                    }
+                }
+            );
+        }
+    }
 };
 
 function convertStringNumber(Arr) {
