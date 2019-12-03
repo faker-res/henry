@@ -168,7 +168,6 @@ var WebSocketUtility = {
                     }
                 },
                 err => {
-                    console.error(`responsePromise error: ${err}`);
                     if (!customErrorHandler) {
                         if (err && err.status) {
                             if (err.errorMessage || err.message) {
