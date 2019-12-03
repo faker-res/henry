@@ -8139,7 +8139,7 @@ let dbPlayerInfo = {
                         return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(
                             async playerData => {
                                 await updatePlayerNameToPlayerId(inputData, playerData, playerData.name);
-                                return playerData;
+                                return dbconfig.collection_players.findOne({_id: playerData._id}).lean();
                             }
                         );
                     }
