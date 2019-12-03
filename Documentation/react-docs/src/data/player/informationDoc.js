@@ -1,229 +1,6 @@
 const sampleData = {
 
-    get: `{
-    "_id": "5ddf76f108d86c02c8cdb34d",
-    "playerId": "8833", // 玩家ID
-    "domain": "localhost", // 域名
-    "password": "$2b$10$LtrT3BEww5LF1rjpuQ.j9ueA.Ms6WL.jYqnxu80Lp95ZSNNQtWDAa", // 玩家密码
-    "name": "pp2doc", // 玩家姓名
-    "nickName": "docnick", // 玩家昵称
-    "phoneNumber": "115******5855", // 玩家电话号码
-    "isNewSystem": true, // 是否为新系统注册
-    "accAdmin": "admin", // 后台账号
-    "csOfficer": "599ce2785a806af6d051030c", // 后台账号ID
-    "bankAccountName": "测试名字", // 银行账户姓名
-    "registrationDevice": "0", // 注册装置
-    "hasPassword": false, // 玩家是否有改过密码
-    "qnaWrongCount": { // 在客服服务中，玩家回答问题错误时的计数
-      "editName": 0,
-      "editBankCard": 0,
-      "updatePhoneNumber": 0,
-      "forgotPassword": 0
-    },
-    "relTsPhoneList": [],
-    "ximaWithdraw": 0, // 戏码额度
-    "viewInfo": {
-      "showInfoState": true,
-      "limitedOfferInfo": 1
-    },
-    "loginTimes": 3, // 登入次数
-    "registrationInterface": 0,
-    "valueScore": 3.1,
-    "gameProviderPlayed": [], // 有玩过的游戏
-    "credibilityRemarks": [ // 信用评价
-      "5b9b801ede3bad0feafe3b2d"
-    ],
-    "applyingEasterEgg": false, // 申请彩蛋中
-    "isReferralReward": false,
-    "similarPlayers": [],
-    "favoriteGames": [], // 最爱的游戏
-    "bFirstTopUpReward": false,
-    "forbidLevelMaintainReward": false, // 被禁取等级奖励
-    "forbidLevelUpReward": false, // 被禁取升级奖励
-    "forbidPromoCode": false, // 禁用优惠代码
-    "forbidRewardEvents": [], // 被禁用的优惠
-    "forbidTopUpType": [], // 被禁用的充值管道
-    "creditWallet": [], // 额度
-    "consumptionTimes": 0, // 消费次数
-    "consumptionSum": 0, // 消费总额
-    "pastMonthConsumptionSum": 0, // 上一个月的消费总额
-    "weeklyConsumptionSum": 0, // 上周的消费总额
-    "dailyConsumptionSum": 0, // 每日的消费总额
-    "bonusAmountSum": 0, // 赢取总额度
-    "pastMonthBonusAmountSum": 0, // 上一个月赢取的总额度
-    "weeklyBonusAmountSum": 0, // 上周赢取的总额度
-    "dailyBonusAmountSum": 0, // 每日赢取的总额度
-    "withdrawSum": 0, // 提取的总额度
-    "pastMonthWithdrawSum": 0, // 上个月提取的总额度
-    "weeklyWithdrawSum": 0, // 上周提取的总额度
-    "dailyWithdrawSum": 0, // 每日提取的总额度
-    "withdrawTimes": 0, // 提取次数
-    "topUpTimes": 0, // 充值次数
-    "topUpSum": 0, // 充值总额
-    "pastMonthTopUpSum": 0, // 上一个月的充值总额
-    "weeklyTopUpSum": 0, // 上周的充值总额
-    "dailyTopUpIncentiveAmount": 0, 
-    "dailyTopUpSum": 0, // 每日的充值总额
-    "lockedCredit": 0, // 未解锁额度
-    "validCredit": 0, // 有效额度
-    "creditBalance": 0, // 额度
-    "permission": { // 权限
-      "levelChange": true, // 等级变更
-      "PlayerLimitedOfferReward": true, // 
-      "PlayerPacketRainReward": true,
-      "playerConsecutiveConsumptionReward": true,
-      "forbidPlayerFromEnteringGame": false, // 是否禁止登入游戏
-      "forbidPlayerFromLogin": false, // 是否禁止登入
-      "PlayerDoubleTopUpReturn": true,
-      "PlayerTopUpReturn": true,
-      "forbidPlayerConsumptionIncentive": false,
-      "allowPromoCode": true, // 是否禁止优惠代码申请
-      "forbidPlayerConsumptionReturn": false,
-      "disableWechatPay": false, // 是否禁止个人微信支付
-      "rewardPointsTask": true, // 积分任务权限
-      "banReward": false,
-      "quickpayTransaction": true,
-      "alipayTransaction": true, // 是否禁止个人支付宝支付
-      "SMSFeedBack": true, // 是否禁止短信回访
-      "phoneCallFeedback": true, // 是否禁止电话回访
-      "topUpCard": true, // 是否禁止点卡充值
-      "topupManual": true, // 是否禁止手工充值
-      "topupOnline": true, // 是否禁止在线充值
-      "allTopUp": true, // 所有存款权限
-      "transactionReward": true,
-      "applyBonus": true // 是否禁止申请提款
-    },
-    "userAgent": [ // 用户代理
-      {
-        "os": "Mac OS",
-        "device": "PC",
-        "browser": "Chrome"
-      }
-    ],
-    "games": [], // 游戏
-    "exp": 0, // 经验
-    "forbidPromoCodeList": [], // 禁用优惠代码列表
-    "forbidRewardPointsEvent": [],
-    "forbidProviders": [],
-    "status": 1, // 状态
-    "badRecords": [],
-    "trustLevel": "2",
-    "blacklistIp": [],
-    "loginIps": [
-      "::1"
-    ],
-    "lastLoginIp": "::1",
-    "isLogin": true,
-    "lastAccessTime": "2019-11-28T09:43:53.904Z", // 开始时间
-    "registrationTime": "2019-11-28T07:27:45.166Z", // 注册时间
-    "realName": "测试名字", // 真实姓名
-    "receiveSMS": true, // 是否接收短信
-    "feedbackTimes": 0, // 回访次数
-    "lastFeedbackTime": null, // 最后回访次数
-    "isRealPlayer": true, // 是否为真实玩家
-    "isTestPlayer": false, // 是否为测试玩家
-    "icon": "",
-    "smsSetting": { // 选短信设定
-      "PlayerRetentionRewardGroupSuccess": true,
-      "AuctionOpenPromoCodeSuccess": true,
-      "AuctionPromoCodeSuccess": true,
-      "PromoCodeSend": true,
-      "PlayerLevelUpSuccess": true,
-      "PlayerLevelDownMigrationSuccess": true,
-      "PlayerLevelUpMigrationSuccess": true,
-      "PlayerPromoCodeRewardSuccess": true,
-      "PlayerRegisterIntentionSuccess": true,
-      "PlayerFreeTrialRewardGroupSuccess": true,
-      "PlayerConsumptionRewardGroupSuccess": true,
-      "PlayerConsecutiveRewardGroupSuccess": true,
-      "PlayerLoseReturnRewardGroupSuccess": true,
-      "PlayerTopUpReturnGroupSuccess": true,
-      "updatePassword": true,
-      "UpdatePhoneInfoSuccess": true,
-      "UpdateBankInfoSuccess": true,
-      "PlayerLimitedOfferRewardSuccess": true,
-      "WithdrawCancel": true,
-      "WithdrawSuccess": true,
-      "WechatTopupSuccess": true,
-      "AlipayTopupSuccess": true,
-      "OnlineTopupSuccess": true,
-      "ManualTopupSuccess": true,
-      "PlayerConsumptionReturnSuccess": true,
-      "updatePaymentInfo": true,
-      "consumptionReturn": true,
-      "applyReward": true,
-      "cancelBonus": true,
-      "applyBonus": true,
-      "manualTopup": true
-    },
-    "DOB": "1995-11-01T07:25:35.045Z", // 生日
-    "gender": true, // 性别
-    "email": "admi******n.com", // 电邮
-    "playerLevel": { // 玩家等级
-      "_id": "57ff08433f8838c63a7f8372",
-      "name": "Normal",
-      "value": 0,
-      "platform": "a71a6b88616ad166d2b92e30",
-      "reward": {
-        "bonusCreditLevelDown": 0,
-        "isRewardTaskLevelDown": false,
-        "providerGroupLevelDown": "free",
-        "requiredUnlockTimesLevelDown": 0,
-        "bonusCredit": 20,
-        "isRewardTask": false,
-        "providerGroup": "free",
-        "requiredUnlockTimes": 0,
-        "requiredUnlockAmount": 0
-      },
-      "levelDownConfig": [ // 降级设置
-        {
-          "andConditions": true,
-          "topupPeriod": "MONTH",
-          "consumptionPeriod": "MONTH",
-          "_id": "57ff08433f8838c63a7f8374",
-          "consumptionMinimum": 100,
-          "topupMinimum": 10
-        },
-        {
-          "andConditions": false,
-          "topupPeriod": "MONTH",
-          "consumptionPeriod": "MONTH",
-          "_id": "57ff08433f8838c63a7f8373",
-          "consumptionMinimum": 100,
-          "topupMinimum": 10
-        }
-      ],
-      "levelUpConfig": [ // 升级设置
-        {
-          "andConditions": true,
-          "topupPeriod": "MONTH",
-          "consumptionPeriod": "MONTH",
-          "_id": "57ff08433f8838c63a7f8376",
-          "consumptionLimit": 20000,
-          "consumptionSourceProviderId": [],
-          "topupLimit": 2000
-        }
-      ],
-      "playerValueScore": 2,
-      "canApplyConsumptionReturn": true
-    },
-    "rewardPointsObjId": "5ddf76f308d86c02c8cdb34f",
-    "bankName": "1",
-    "bankAccountType": "2",
-    "remark": "首次绑定提款卡2",
-    "bankAccount": "******889963",
-    "bankAccountDistrict": "西城区",
-    "bankAccountCity": "北京市",
-    "bankAccountProvince": "北京",
-    "userCurrentPoint": 0,
-    "platformId": "4",
-    "bankAccountProvinceId": "110000",
-    "bankAccountCityId": "110100",
-    "bankAccountDistrictId": "110102",
-    "pendingRewardAmount": 0,
-    "preDailyExchangedPoint": 0,
-    "preDailyAppliedPoint": 0
-}`,
+    get: `{}`,
     getWithdrawalInfo: `{
         freeTimes: 免手续费提款剩余次数
         serviceCharge: 手续费
@@ -295,11 +72,52 @@ const sampleData = {
         
 }`,
     updatePlayerWeChatSuccess: `{
-        //第一次绑定，没填wechat
-        {}
-        
-        //编辑，有填wechat
-        {提案资料........}
+    //第一次绑定，没填wechat
+    {}
+    
+    //编辑，有填wechat
+    {
+        "_id": "5de5cfcc641b2c035a1ca6ed",
+        "proposalId": "409214",
+        "type": { // 提案类型
+          "_id": "5de5cfa285cd94377bc41c8d",
+          "platformId": "a71a6b88616ad166d2b92e30",
+          "name": "UpdatePlayerWeChat",
+          "process": "5de5cfa285cd94377bc41c86",
+          "executionType": "executeUpdatePlayerWeChat",
+          "rejectionType": "rejectUpdatePlayerWeChat"
+        },
+        "mainType": "UpdatePlayer",
+        "status": "Approved",
+        "inputDevice": 1, // 设备
+        "processedTimes": 0, // 处理的次数
+        "settleTime": "2019-12-03T03:00:28.483Z", // 处理完毕的时间
+        "expirationTime": "9999-12-31T23:59:59.000Z", // 过期日期
+        "noSteps": true,
+        "userType": "0",
+        "entryType": "0",
+        "priority": "0",
+        "data": {
+          "realNameBeforeEdit": "docdocreal", // 更改前的真实姓名
+          "proposalPlayerLevel": "Normal",
+          "playerLevelName": "Normal",
+          "proposalPlayerLevelValue": 0,
+          "updateData": {
+            "wechat": "wechataddtest1"
+          },
+          "playerName": "pp2docdco",
+          "playerObjId": "5ddf7a6508d86c02c8cdb35e",
+          "platformId": "a71a6b88616ad166d2b92e30",
+          "playerId": "8834",
+          "_id": "5ddf7a6508d86c02c8cdb35e"
+        },
+        "createTime": "2019-12-03T03:00:28.483Z",
+        "creator": {
+          "id": "5ddf7a6508d86c02c8cdb35e",
+          "name": "pp2docdco",
+          "type": "player"
+        },
+    }
 
 }`,
     updatePlayerWeChatFailure: `{
@@ -367,6 +185,50 @@ const sampleData = {
         "errorMessage": "数据无效"
         
 }`,
+    changeBirthdayDate: `{
+    "_id": "5de5baf5641b2c035a1ca6eb",
+    "proposalId": "409213",
+    "type": {
+      "_id": "57ff08433f8838c63a7f8399",
+      "platformId": "a71a6b88616ad166d2b92e30",
+      "name": "UpdatePlayerInfo",
+      "process": "57ff08433f8838c63a7f8384",
+      "executionType": "executeUpdatePlayerInfo",
+      "rejectionType": "rejectUpdatePlayerInfo",
+      "__v": 0
+    },
+    "mainType": "UpdatePlayer",
+    "status": "Approved",
+    "inputDevice": 1,
+    "processedTimes": 0,
+    "settleTime": "2019-12-03T01:31:33.565Z",
+    "expirationTime": "9999-12-31T23:59:59.000Z",
+    "noSteps": true,
+    "userType": "0",
+    "entryType": "0",
+    "priority": "0",
+    "data": {
+      "realNameBeforeEdit": "docdocreal",
+      "proposalPlayerLevel": "Normal",
+      "playerLevelName": "Normal",
+      "proposalPlayerLevelValue": 0,
+      "isIgnoreAudit": true,
+      "remark": "生日",
+      "DOB": "1995-11-16T08:44:00.000Z",
+      "playerName": "pp2docdco",
+      "playerObjId": "5ddf7a6508d86c02c8cdb35e",
+      "platformId": "a71a6b88616ad166d2b92e30",
+      "playerId": "8834",
+      "_id": "5ddf7a6508d86c02c8cdb35e"
+    },
+    "createTime": "2019-12-03T01:31:33.565Z",
+    "creator": {
+      "id": "5ddf7a6508d86c02c8cdb35e",
+      "name": "pp2docdco",
+      "type": "player"
+    }
+}`,
+    updatePlayerAvatar: `{}`,
 
 
 }
@@ -384,7 +246,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: sampleData.get,
+                data: "玩家对象",
             },
             respondFailure: {
                 status: "40x",
@@ -543,7 +405,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data:"玩家对象",
+                data: sampleData.changeBirthdayDate,
             },
             respondFailure: {
                 status: "4xx",
@@ -602,7 +464,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data:"玩家资料",
+                data: "玩家对象",
             },
             respondFailure: {
                 status: "4xx",
