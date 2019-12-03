@@ -7,9 +7,9 @@ body {
   background-color:#F7F7F7!important; ;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+.code-area {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+  word-wrap: break-word;
 }
 
 img {

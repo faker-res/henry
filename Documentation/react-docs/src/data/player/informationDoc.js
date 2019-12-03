@@ -60,6 +60,7 @@ const sampleData = {
 
 let information = {
     name: "玩家信息/资料",
+    desc:``,
     func: {
         get: {
             title: "获取玩家基本信息",
