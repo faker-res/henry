@@ -3995,7 +3995,6 @@ let dbPlayerInfo = {
             }
         ).then(
             isVerified => {
-                console.log('is verified..', isVerified);
                 if (isVerified) {
                     // if resetpassword from app ,the password could be null;
                     if (isAppFirstPWD && !playerObj.hasPassword) {
@@ -4022,8 +4021,6 @@ let dbPlayerInfo = {
                             }
                             passDefer.resolve(isMatch);
                         });
-
-                        console.log('return promise 1..', passDefer.promise);
                         return passDefer.promise;
                     }
                 }

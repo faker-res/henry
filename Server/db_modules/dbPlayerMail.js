@@ -1213,7 +1213,6 @@ const dbPlayerMail = {
             tel: phoneNumber,
             createTime: {$gte: smsExpiredDate}
         };
-        console.log('sms log data', smsVerificationLogQuery);
         let smsProm = dbconfig.collection_smsVerificationLog.find(smsVerificationLogQuery).sort({createTime: -1}).limit(1).lean();
 
         console.log('smsVerificationLogQuery', smsVerificationLogQuery);
