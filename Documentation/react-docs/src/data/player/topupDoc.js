@@ -53,16 +53,6 @@ getTopupHistory: `{
         }
     }]
 }`,
-
-createCommonTopupProposal:`{
-    "url": "http://52.221.143.107:8182/pc/?tk=eyJhbGciOiJIUzI1NiJ9.NCoqdGVzdDExMioqdGVzdGFnYWluKipodHRwOi8vZGV2dGVzdC53c3dlYi5tZTo3MTAwL25vdGlmeVBheW1lbnQqKjEqKjo6MSoqNTAwKio2MDI0NjAqKjAqKjE1NzUwMTU0MzQwODA.-JZyfxZOkiXRCsM1zzy0Wa_vqmJye5EB-GAnOg1gasw",
-    "proposalId": "602460", //提案号码
-    "amount": 500, //充值金额
-    "createTime": "2019-11-29T08:17:14.080Z", //创建时间
-    "isExceedTopUpFailCount": false, // true= 报错 玩家连续 （充值方式）失败 X 次后前端提醒
-    "isExceedCommonTopUpFailCount": false // true= 报错 玩家连续 （通用充值）失败 X 次后前端提醒
-
-}`,
 getMinMaxCommonTopupAmount: `{
     minDepositAmount: 最低充值额
     maxDepositAmount: 最高充值额
@@ -213,7 +203,7 @@ let topup = {
             functionName: "createCommonTopupProposal",
             desc: "玩家输入在线充值金额，系统返回跳转链接",
             requestContent: [
-                { param: "amount", mandatory: "是", type: "Int", content: "充值金额" },
+                { param: "amount", mandatory: "否", type: "Int", content: "充值金额" },
                 { param: "clientType", mandatory: "否", type: "Int", content: `clientType (客户端类型): 
                                                                                1–浏览器(Browser) 
                                                                                2–手机H5
@@ -224,7 +214,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: sampleData.createCommonTopupProposal
+                data: "跳转链接"
             },
             respondFailure: {
                 status: "4xx",
@@ -264,7 +254,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: sampleData.createFKPTopupProposal
+                data: "{xxx}"
             },
             respondFailure: {
                 status: "420",
@@ -292,7 +282,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: sampleData.add
+                data: "带ID 的注册意向记录"
             },
             respondFailure: {
                 status: "4xx",
@@ -310,7 +300,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: sampleData.update
+                data: "null"
             },
             respondFailure: {
                 status: "4xx",
