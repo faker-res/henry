@@ -405,7 +405,7 @@ const dbPlayerUtility = {
 
     //endregion
 
-    //region Permission
+    // region Permission
 
     /**
      *
@@ -454,7 +454,24 @@ const dbPlayerUtility = {
         return dbconfig.collection_playerPermissionLog(query).save();
     },
 
-    //endregion
+    // endregion
+
+    // region Name Utility
+    savePlayerName: (platform, name) => {
+        let playerName = new dbconfig.collection_playerName({
+            name: name,
+            platform: platform
+        });
+        return playerName.save();
+    },
+
+    removePlayerName: (platform, name) => {
+        return dbconfig.collection_playerName.remove({
+            name: name,
+            platform: platform
+        });
+    },
+    // endregion
 };
 
 var proto = dbPlayerUtilFunc.prototype;
