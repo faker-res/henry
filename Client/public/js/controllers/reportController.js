@@ -11186,6 +11186,14 @@ define(['js/app'], function (myApp) {
 
 
 
+                } else if(reportName == "PLATFORM_OVERVIEW_REPORT") {
+                    tableId = "platformOverviewReportTable";
+                    tab = document.getElementById(tableId);
+
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" ;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[1].innerHTML + "</tr>";
+                    htmlContent += tab.getElementsByTagName('tbody')[0].innerHTML;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('tfoot')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>";
                 } else{
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;

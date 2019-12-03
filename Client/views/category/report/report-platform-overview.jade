@@ -16,6 +16,7 @@
         button.btn.btn-success.btn-space(ng-click='vm.searchPlatformOverviewReport()') {{'SEARCH' | translate}}
         span#platformOverviewReportSpin.collapse
             i.fa.fa-spinner.fa-spin
+        button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("platformOverviewReportTable", "PLATFORM_OVERVIEW_REPORT")') {{'EXPORT_EXCEL' | translate}}
 
 
 .clearfix
@@ -64,8 +65,6 @@
 
 
             tbody
-                tr(ng-show='!vm.platformOverviewReportList || vm.platformOverviewReportList.length == 0')
-                    td(colspan=31) {{'No data available in table' | translate}}
                 tr(ng-show='vm.platformOverviewReportList.length > 0' ng-repeat='(i,v) in vm.platformOverviewReportList')
                     td {{ v.platformName }}
                     td {{ v.loginPlayerCount || 0 }}
@@ -73,30 +72,38 @@
                     td {{ v.topUpPlayerCount || 0 }}
                     td {{ v.bonusPlayerCount || 0 }}
                     td {{ v.topUpRatio || 0 }}%
+
                     td {{ v.newPlayerCount || 0 }}
                     td {{ v.newPlayerTopUpCount || 0 }}
                     td {{ v.newPlayerNTimesTopUpCount || 0 }}
                     td {{ v.newPlayerValidPlayer || 0 }}
-                    td {{ v.newPlayerValidPlayer || 0 }}
+
                     td {{ v.manualTopUpPlayerCount || 0 }}
                     td {{ v.manualTopUpCount || 0 }}
                     td {{ v.manualTopUpAmount || 0 }}
+
                     td {{ v.alipayTopUpPlayerCount || 0 }}
                     td {{ v.alipayTopUpCount || 0 }}
                     td {{ v.alipayTopUpAmount || 0 }}
+
                     td {{ v.wechatTopUpPlayerCount || 0 }}
                     td {{ v.wechatTopUpCount || 0 }}
                     td {{ v.wechatTopUpAmount || 0 }}
+
                     td {{ v.onlineTopUpPlayerCount || 0 }}
                     td {{ v.onlineTopUpCount || 0 }}
                     td {{ v.onlineTopUpAmount || 0 }}
+
                     td {{ v.topUpCount || 0 }}
                     td {{ v.topUpAmount || 0 }}
                     td {{ v.bonusAmount || 0 }}
+
                     td {{ v.abnormalCreditDeduction || 0 }}
                     td {{ v.limitCreditDeduction || 0 }}
+                    td {{ v.otherCreditDeduction || 0 }}
                     td {{ v.additionCredit || 0 }}
                     td {{ v.deductionCredit || 0 }}
+
                     td {{ v.totalIncome || 0 }}
 
             tfoot
@@ -107,28 +114,36 @@
                     th {{ vm.platformOverviewReportSummary.topUpPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.bonusPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.topUpRatio || 0 }}%
+
                     th {{ vm.platformOverviewReportSummary.newPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.newPlayerTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.newPlayerNTimesTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.newPlayerValidPlayer || 0 }}
-                    th {{ vm.platformOverviewReportSummary.newPlayerValidPlayer || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.manualTopUpPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.manualTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.manualTopUpAmount || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.alipayTopUpPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.alipayTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.alipayTopUpAmount || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.wechatTopUpPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.wechatTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.wechatTopUpAmount || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.onlineTopUpPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.onlineTopUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.onlineTopUpAmount || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.topUpCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.topUpAmount || 0 }}
                     th {{ vm.platformOverviewReportSummary.bonusAmount || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.abnormalCreditDeduction || 0 }}
                     th {{ vm.platformOverviewReportSummary.limitCreditDeduction || 0 }}
+                    th {{ vm.platformOverviewReportSummary.otherCreditDeduction || 0 }}
                     th {{ vm.platformOverviewReportSummary.additionCredit || 0 }}
                     th {{ vm.platformOverviewReportSummary.deductionCredit || 0 }}
+
                     th {{ vm.platformOverviewReportSummary.totalIncome || 0 }}
