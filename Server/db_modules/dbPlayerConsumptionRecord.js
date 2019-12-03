@@ -603,8 +603,6 @@ var dbPlayerConsumptionRecord = {
         return deferred.promise;
     },
 
-
-
     /**
      * @param data
      * @param platformObj
@@ -2548,6 +2546,10 @@ var dbPlayerConsumptionRecord = {
             matchObj.loginDevice = loginDeviceQuery;
         }
 
+        console.log('JY checking winrate==platformQuery==>', platformQuery);
+        console.log('JY checking winrate==matchObj==>', matchObj);
+        console.log('JY checking winrate==listAll==>', listAll);
+
         let groupById = null;
         if (listAll) {
             //find the number of player consumption (non-repeat), with different provider
@@ -2602,6 +2604,11 @@ var dbPlayerConsumptionRecord = {
                 let participantData = data[0] ? data[0] : [];
                 let allPlatformGameProviders = data[3];
 
+                console.log('JY checking winrate==participantData==>', data[0]);
+                console.log('JY checking winrate==totalSumData==>', data[1]);
+                console.log('JY checking winrate==gameProviders==>', data[2]);
+                console.log('JY checking winrate==allPlatformGameProviders==>', data[3]);
+
                 if (!listAll && data && data[0] && data[1] && data[1][0]) {
                     participantNumber = data[0].length;
                     consumptionTimes = data[1][0].consumptionTimes;
@@ -2609,11 +2616,22 @@ var dbPlayerConsumptionRecord = {
                     validAmount = data[1][0].validAmount;
                     bonusAmount = data[1][0].bonusAmount;
                     // return sum of "all" provider winrate data
+
+                    console.log('JY checking winrate==providerId==>', providerId);
+                    console.log('JY checking winrate==participantNumber==>', participantNumber);
+                    console.log('JY checking winrate==consumptionTimes==>', consumptionTimes);
+                    console.log('JY checking winrate==totalAmount==>', totalAmount);
+                    console.log('JY checking winrate==validAmount==>', validAmount);
+                    console.log('JY checking winrate==bonusAmount==>', bonusAmount);
                     returnData = dbPlayerConsumptionRecord.getAllSumWinRate(providerId, gameProviders, participantNumber, consumptionTimes, totalAmount, validAmount, bonusAmount);
+                    console.log('JY checking winrate==returnData=111==>', returnData);
                 } else if (listAll && data && data[0] && data[1] && data[1][0]) {
                     // return  detail of each provider's winrate data
                     returnData = dbPlayerConsumptionRecord.getProvidersWinRate(allPlatformGameProviders, participantData, totalSumData);
+                    console.log('JY checking winrate==returnData=222==>', returnData);
                 }
+
+                console.log('JY checking winrate==returnData=333==>', returnData);
                 return returnData;
             }
         );
@@ -2660,6 +2678,7 @@ var dbPlayerConsumptionRecord = {
                 let participantNumber = 0;
                 if (participantData && participantData.length > 0) {
                     participant = participantData.filter(item => {
+                        console.log('JY checking winrate==item==>', item);
                         return item._id.providerId.equals(provider._id) && item._id.platformId.equals(provider.platformObjId);
                     })
                     participant = (participant && participant[0]) ? participant[0] : null;
@@ -2667,6 +2686,7 @@ var dbPlayerConsumptionRecord = {
                 }
                 //pair the provider - dump aggregate data into that provider object
                 let sumData = totalSumData.filter(sum => {
+                    console.log('JY checking winrate==sum==>', sum);
                     if (sum._id.providerId.equals(provider._id) && sum._id.platformId.equals(provider.platformObjId)) {
                         return sum;
                     }
@@ -2688,6 +2708,7 @@ var dbPlayerConsumptionRecord = {
                 result.push(providerSum);
             })
         }
+        console.log('JY checking winrate==result==>', result);
         return result;
 
     },

@@ -82,6 +82,13 @@
                                     span {{ vm.platformAppPlayerTotalSum.loginTimesTotalSum }}
                                 td(ng-show='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
                                     span {{ vm.platformAppPlayerTotalSum.playerCountTotalSum }}
+                            tr(ng-if='vm.queryPara.appPlayer.playerType && vm.queryPara.appPlayer.playerType === "login"')
+                                td
+                                    span {{ "TOTAL_CONSECUTIVE_LOGIN" | translate }}
+                                td
+                                    span
+                                td
+                                    span {{ vm.platformAppPlayerTotalSum.totalConsecutiveLogin }}
 
 
 p(ng-init="vm.loadPageFunc('APP_PLAYER')")
