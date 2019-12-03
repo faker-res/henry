@@ -410,6 +410,13 @@ define(['js/app'], function (myApp) {
             5: 'WEEKLY_CONSUMPTION'
         };
 
+        vm.creditChangeType = {
+            'abnormal_deduction': "Abnormal Deduction",
+            'limit_deduction': "Limit Deduction",
+            'other_deduction': "Other Deduction",
+            'addition': "Addition"
+        };
+
         vm.partnerCommissionLog= {};
 
         vm.prepareToBeDeletedProviderGroupId = [];
@@ -10903,6 +10910,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange.finalLockedAmount = null;
             vm.creditChange.remark = '';
             vm.creditChange.updateAmount = 0;
+            vm.creditChange.creditChangeType = null;
 
 
             vm.linkedPlayerTransferId = null;
@@ -10935,7 +10943,8 @@ define(['js/app'], function (myApp) {
                     curAmount: vm.isOneSelectedPlayer().validCredit,
                     realName: vm.isOneSelectedPlayer().realName,
                     remark: vm.creditChange.remark,
-                    adminName: authService.adminName
+                    adminName: authService.adminName,
+                    creditChangeType: vm.creditChange.creditChangeType
                 }
             }
 
@@ -20600,6 +20609,8 @@ define(['js/app'], function (myApp) {
                 }
             } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
                 result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
+            } else if (fieldName === 'creditChangeType') {
+                result = $translate(vm.creditChangeType[val]);
             }
 
             return $sce.trustAsHtml(result);

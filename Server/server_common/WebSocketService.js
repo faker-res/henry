@@ -90,7 +90,7 @@ var rootObj = {};
         }
         var res = JSON.stringify(packageData);
 
-        let ignoreResponseLogFuncList = ["login", "create"];
+        let ignoreResponseLogFuncList = ["login", "create", "getMailList"];
 
         if (!ignoreResponseLogFuncList.includes(funcName)) {
             console.log("server _sendResponse:", res);

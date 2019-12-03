@@ -1843,7 +1843,7 @@ var dbPlatform = {
                         playerLevel: {$ne: playerLevel[0]._id}
                     },
                     {_id: 1}
-                ).cursor({batchSize: 1000});
+                ).cursor({batchSize: 100});
 
                 var balancer = new SettlementBalancer();
                 return balancer.initConns().then(function () {
@@ -1851,7 +1851,7 @@ var dbPlatform = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: 30, //100
+                                batchSize: 10, //100
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "checkPlayerLevelDownForPlayers", {
                                         playerObjIds: playerIdObjs.map(function (playerIdObj) {

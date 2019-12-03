@@ -299,6 +299,7 @@ var simplifiedChinese = {
     "Player does not have online topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Player does not have manual topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Player does not have common topup permission": "充值系统维护中，请稍后尝试，谢谢！",
+    "Player does not have topup permission": "充值系统维护中，请稍后尝试，谢谢！",
     "Player does not have this topup permission": "支付方式暂时无法使用，请更换存款方式或者联系在线客服。",
     "Please contact customer service": "请联系在线客服",
     "Referral does not have enough topup amount": "被推荐人充值额度不够",
@@ -518,6 +519,7 @@ var simplifiedChinese = {
     "Password is mandatory": "密码必填",
     "Please fill in correct amount": "请填写正确金额",
     "Unable to find player": "找不到玩家",
+    "Please select correct top up type": "请选择正确充值类型",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",

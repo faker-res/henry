@@ -421,304 +421,330 @@ let dbPlayerInfo = {
         )
     },
 
-    createGuestPlayer: function (inputData, deviceData) {
-        let platform, guestPlayerData, newPlayerData;
+    createGuestPlayer: async function (inputData, deviceData) {
+        let newPlayerData;
         let isEnableUseReferralPlayerId = false;
         let referralLog = {};
         let referralInterval;
         let isHitReferralLimit = false;
         let isRegister = false;
 
-        return dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean().then(
-            platformData => {
-                let promArr = [];
+        // Get platform
+        let platform = await dbconfig.collection_platform.findOne({platformId: inputData.platformId}).lean();
 
-                if (!platformData) {
-                    return Promise.reject({name: "DataError", message: "Platform does not exist"});
+        if (!platform) {
+            return errorUtils.throwSystemError(constServerCode.INVALID_PLATFORM);
+        }
+
+        // Find player
+        let playerQuery = {
+            platform: platform._id,
+            $or: [
+                {guestDeviceId: String(inputData.guestDeviceId)},
+                {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
+                {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))},
+                {guestDeviceId: rsaCrypto.legacyEncrypt(String(inputData.guestDeviceId))},
+            ]
+        };
+
+        if (inputData.phoneNumber) {
+            let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
+            let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
+            let enLegacyPhoneNumber = rsaCrypto.legacyEncrypt(inputData.phoneNumber);
+            playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
+            playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
+            playerQuery.$or.push({phoneNumber: enLegacyPhoneNumber});
+        }
+
+        let guestPlayer = await dbconfig.collection_players.findOne(playerQuery).populate({
+            path: "playerLevel",
+            model: dbconfig.collection_playerLevel
+        }).lean();
+
+        if (guestPlayer) {
+            // Guest player found, proceed with login
+            guestPlayer.password = String(inputData.guestDeviceId);
+            guestPlayer.inputDevice = inputData.inputDevice ? inputData.inputDevice : (guestPlayer.inputDevice || "");
+            guestPlayer.platformId = inputData.platformId ? inputData.platformId : (guestPlayer.platformId || "");
+            guestPlayer.ua = inputData.ua ? inputData.ua : (guestPlayer.userAgent || "");
+            guestPlayer.mobileDetect = inputData.md ? inputData.md : (guestPlayer.mobileDetect || "");
+            guestPlayer.loginDevice = inputData.registrationDevice;
+
+            if (inputData && inputData.guestDeviceId){
+                guestPlayer.guestDeviceId = inputData.guestDeviceId;
+            }
+            if (inputData && inputData.lastLoginIp){
+                guestPlayer.lastLoginIp = inputData.lastLoginIp;
+            }
+            if (inputData && inputData.deviceId){
+                guestPlayer.deviceId = inputData.deviceId;
+            }
+            else if (inputData && inputData.guestDeviceId){
+                guestPlayer.deviceId = inputData.guestDeviceId;
+            }
+            if (inputData && inputData.osType) {
+                guestPlayer.osType = inputData.osType;
+            }
+            if (inputData.clientDomain) {
+                guestPlayer.clientDomain = inputData.clientDomain;
+            }
+            return dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true);
+        } else {
+            // Guest not found, create this player
+            let promArr = [];
+            let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
+
+            promArr.push(guestNameProm);
+
+            let guestNamePromData = await Promise.all(promArr);
+
+            if (!guestNamePromData || !guestNamePromData[0]) {
+                return Promise.reject({
+                    message: "Error in getting player data"
+                });
+            }
+
+            let guestPlayerName = guestNamePromData[0];
+            let guestPlayerData = generateGuestPlayerData(platform, guestPlayerName, inputData);
+
+            // Check partner if available
+            if (inputData && inputData.partnerId) {
+                let partnerData = await dbconfig.collection_partner.findOne({
+                    partnerId: inputData.partnerId,
+                    platform: platform._id
+                }).lean();
+
+                if (partnerData) {
+                    guestPlayerData.partner = partnerData._id;
+                    guestPlayerData.partnerId = partnerData.partnerId;
                 }
-                platform = platformData;
+            }
 
-                let playerQuery = {
+            // Check referral if available
+            if (inputData && !inputData.partnerId && inputData.referralId) {
+                let referralData = await bindReferral(platform._id, inputData);
+
+                if (referralData && referralData.length == 5) {
+                    if (referralData[0] && referralData[0].referral) {
+                        inputData.referral = referralData[0].referral;
+                    }
+
+                    isHitReferralLimit = referralData[1];
+                    referralInterval = referralData[2];
+                    isEnableUseReferralPlayerId = referralData[3];
+                    referralLog = referralData[4];
+                }
+            }
+
+            if (deviceData) {
+                guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
+            }
+            console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
+            guestPlayerData = determineRegistrationInterface(guestPlayerData);
+            console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
+            if (inputData && inputData.osType) {
+                guestPlayerData.osType = inputData.osType;
+            }
+
+            if (inputData && inputData.referral) {
+                guestPlayerData.referral = inputData.referral;
+            }
+
+            return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true).then(
+                playerData => {
+                    if (!playerData) {
+                        return Promise.reject({name: "DataError", message: "Can't create new player."});
+                    }
+                    isRegister = true;
+
+                    if (isEnableUseReferralPlayerId) {
+                        let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
+
+                        referralLog.playerObjId = playerData._id;
+                        referralLog.createTime = new Date(bindReferralTime);
+
+                        if (referralInterval) {
+                            let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
+
+                            if (referralIntervalTime) {
+                                referralLog.validEndTime = referralIntervalTime.endTime;
+                            }
+                        }
+
+                        let newRecord = new dbconfig.collection_referralLog(referralLog);
+                        newRecord.save().catch(errorUtils.reportError);
+                    }
+
+                    newPlayerData = playerData;
+
+                    newPlayerData.password = String(inputData.guestDeviceId);
+                    newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
+                    newPlayerData.platformId = inputData.platformId ? inputData.platformId : (newPlayerData.platformId || "");
+                    // newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                    newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
+                    newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
+
+                    if (inputData.clientDomain) {
+                        newPlayerData.clientDomain = inputData.clientDomain;
+                    }
+                    if (inputData && inputData.osType) {
+                        newPlayerData.osType = inputData.osType;
+                    }
+                    //after created new player, need to create login record and apply login reward
+                    dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
+
+                    // Requirement 20191203: Use prefix + playerId as name
+                    updateGuestName(inputData, newPlayerData);
+
+                    return playerData;
+
+                }
+            ).then(
+                data => dbconfig.collection_players.findOne({_id: data._id})
+                    .populate({
+                        path: "playerLevel",
+                        model: dbconfig.collection_playerLevel
+                    }).lean().then(
+                        pdata => {
+                            pdata.platformId = inputData.platformId;
+                            if (isHitReferralLimit) {
+                                pdata.isHitReferralLimit = isHitReferralLimit;
+                            }
+                            return pdata;
+                        }
+                    )
+            ).then(
+                () => {
+                    // if this player is from ebet4.0 , create a ebet user at cpms too.
+                    if (platform.isEbet4) {
+                        //56 - ebet
+                        return cpmsAPI.player_addPlayer({
+                            "username": newPlayerData.name,
+                            "platformId": platform.platformId,
+                            "providerId": "56"
+                        });
+                    }
+                    return
+                }
+            ).then(
+                (cpmsPlayer) => {
+                    if (platform.isEbet4 && !cpmsPlayer) {
+                        // if the create user by cpms failed, then we will delete fpms user as well
+                        return dbconfig.collection_players.findOneAndRemove({
+                            _id: newPlayerData._id,
+                            platform: newPlayerData.platform
+                        }).lean();
+                    }
+                    return
+                }
+            ).then(
+                data => {
+                    if (!data) {
+                        // findOneAndRemove return false
+                        // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
+                        // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
+                        console.log('MT --checking createPlayerRewardPointsRecord', newPlayerData.platform, newPlayerData._id)
+                        return dbPlayerInfo.createPlayerRewardPointsRecord(newPlayerData.platform, newPlayerData._id, false).then(
+                            data => {
+                                if (data && isHitReferralLimit) {
+                                    data.isHitReferralLimit = isHitReferralLimit;
+                                }
+                                if (isRegister) {
+                                    data.isRegister = true;
+                                }
+
+                                return data;
+                            }
+                        );
+                    }
+                    if (data && platform.isEbet4) {
+                        // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
+                        return Q.reject({name: "DataError", message: localization.localization.translate("Ebet Account created Failed")});
+                    } else {
+                        return data;
+                    }
+                }
+            );
+
+            function generateGuestPlayerData (platform, guestPlayerName, inputData) {
+                let retData = {
                     platform: platform._id,
-                    $or: [
-                        {guestDeviceId: String(inputData.guestDeviceId)},
-                        {guestDeviceId: rsaCrypto.encrypt(String(inputData.guestDeviceId))},
-                        {guestDeviceId: rsaCrypto.oldEncrypt(String(inputData.guestDeviceId))},
-                        {guestDeviceId: rsaCrypto.legacyEncrypt(String(inputData.guestDeviceId))},
-                    ]
+                    name: guestPlayerName,
+                    password: inputData.guestDeviceId,
+                    isTestPlayer: false,
+                    isRealPlayer: true,
+                    guestDeviceId: inputData.guestDeviceId,
+                    registrationDevice: inputData.registrationDevice,
+                    loginDevice: inputData.registrationDevice, // directly login in by passing token after registration
                 };
 
-                if (inputData.phoneNumber) {
-                    let encryptedPhoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
-                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(inputData.phoneNumber);
-                    let enLegacyPhoneNumber = rsaCrypto.legacyEncrypt(inputData.phoneNumber);
-                    playerQuery.$or.push({phoneNumber: encryptedPhoneNumber});
-                    playerQuery.$or.push({phoneNumber: enOldPhoneNumber});
-                    playerQuery.$or.push({phoneNumber: enLegacyPhoneNumber});
+                if (inputData.guestDeviceId){
+                    retData.deviceId = inputData.guestDeviceId;
                 }
 
-                return dbconfig.collection_players.findOne(playerQuery).populate({
-                    path: "playerLevel",
-                    model: dbconfig.collection_playerLevel
-                }).lean().then(
-                    guestPlayer => {
-                        if (guestPlayer) {
-                            guestPlayer.password = String(inputData.guestDeviceId);
-                            guestPlayer.inputDevice = inputData.inputDevice ? inputData.inputDevice : (guestPlayer.inputDevice || "");
-                            guestPlayer.platformId = inputData.platformId ? inputData.platformId : (guestPlayer.platformId || "");
-                            guestPlayer.ua = inputData.ua ? inputData.ua : (guestPlayer.userAgent || "");
-                            guestPlayer.mobileDetect = inputData.md ? inputData.md : (guestPlayer.mobileDetect || "");
-                            guestPlayer.loginDevice = inputData.registrationDevice;
+                if (inputData.phoneNumber) {
+                    retData.phoneNumber = inputData.phoneNumber;
+                }
 
-                            if (inputData && inputData.guestDeviceId){
-                                guestPlayer.guestDeviceId = inputData.guestDeviceId;
-                            }
-                            if (inputData && inputData.lastLoginIp){
-                                guestPlayer.lastLoginIp = inputData.lastLoginIp;
-                            }
-                            if (inputData && inputData.deviceId){
-                                guestPlayer.deviceId = inputData.deviceId;
-                            }
-                            else if (inputData && inputData.guestDeviceId){
-                                guestPlayer.deviceId = inputData.guestDeviceId;
-                            }
-                            if (inputData && inputData.osType) {
-                                guestPlayer.osType = inputData.osType;
-                            }
-                            if (inputData.clientDomain) {
-                                guestPlayer.clientDomain = inputData.clientDomain;
-                            }
-                            return dbPlayerInfo.playerLogin(guestPlayer, guestPlayer.ua, guestPlayer.inputDevice, guestPlayer.mobileDetect, null, true);
-                        } else {
-                            let guestNameProm = generateGuestPlayerName(platform._id, inputData.accountPrefix);
-                            promArr.push(guestNameProm);
+                if (inputData.partnerId) {
+                    retData.partnerId = inputData.partnerId;
+                }
 
+                if (inputData.phoneProvince) {
+                    retData.phoneProvince = inputData.phoneProvince;
+                }
 
-                            return Promise.all(promArr).then(
-                                data => {
-                                    if (!data || !data[0]) {
-                                        return Promise.reject({
-                                            message: "Error in getting player data"
-                                        });
-                                    }
+                if (inputData.phoneCity) {
+                    retData.phoneCity = inputData.phoneCity;
+                }
 
-                                    let guestPlayerName = data[0];
+                if (inputData.phoneType) {
+                    retData.phoneType = inputData.phoneType;
+                }
 
-                                    guestPlayerData = {
-                                        platform: platform._id,
-                                        name: guestPlayerName,
-                                        password: inputData.guestDeviceId,
-                                        isTestPlayer: false,
-                                        isRealPlayer: true,
-                                        guestDeviceId: inputData.guestDeviceId,
-                                        registrationDevice: inputData.registrationDevice,
-                                        loginDevice: inputData.registrationDevice, // directly login in by passing token after registration
-                                    };
+                if (inputData.domain) {
+                    retData.domain = inputData.domain;
+                }
 
-                                    if (inputData.guestDeviceId){
-                                        guestPlayerData.deviceId = inputData.guestDeviceId;
-                                    }
-
-                                    if (inputData.phoneNumber) {
-                                        guestPlayerData.phoneNumber = inputData.phoneNumber;
-                                    }
-
-                                    if (inputData.partnerId) {
-                                        guestPlayerData.partnerId = inputData.partnerId;
-                                    }
-
-                                    if (inputData.phoneProvince) {
-                                        guestPlayerData.phoneProvince = inputData.phoneProvince;
-                                    }
-
-                                    if (inputData.phoneCity) {
-                                        guestPlayerData.phoneCity = inputData.phoneCity;
-                                    }
-
-                                    if (inputData.phoneType) {
-                                        guestPlayerData.phoneType = inputData.phoneType;
-                                    }
-
-                                    if (inputData.domain) {
-                                        guestPlayerData.domain = inputData.domain;
-                                    }
-                                }
-
-                            ).then(
-                                () => {
-                                    if (inputData && inputData.partnerId) {
-                                        return dbconfig.collection_partner.findOne({
-                                            partnerId: inputData.partnerId,
-                                            platform: platform._id
-                                        }).lean().then(
-                                            data => {
-                                                if (data) {
-                                                    console.log('MT --checking partner', data.partnerId)
-                                                    guestPlayerData.partner = data._id;
-                                                    guestPlayerData.partnerId = data.partnerId;
-                                                    return inputData;
-                                                }
-                                            }
-                                        );
-                                    }
-                                    return
-                                }
-                            ).then(
-                                () => {
-                                    if (inputData && !inputData.partnerId && inputData.referralId) {
-                                        return bindReferral(platform._id, inputData).then(
-                                            referralData => {
-                                                if (referralData && referralData.length == 5) {
-                                                    if (referralData[0] && referralData[0].referral) {
-                                                        inputData.referral = referralData[0].referral;
-                                                    }
-
-                                                    isHitReferralLimit = referralData[1];
-                                                    referralInterval = referralData[2];
-                                                    isEnableUseReferralPlayerId = referralData[3];
-                                                    referralLog = referralData[4];
-                                                }
-                                                return inputData;
-                                            }
-                                        );
-                                    }
-                                    return inputData;
-                                }
-                            ).then(
-                                () => {
-                                    if (deviceData) {
-                                        guestPlayerData = Object.assign({}, guestPlayerData, deviceData);
-                                    }
-                                    console.log("checking guestPlayerData.userAgent", [guestPlayerData.userAgent, guestPlayerData.name])
-                                    guestPlayerData = determineRegistrationInterface(guestPlayerData);
-                                    console.log("checking guestPlayerData.registrationInterface", [guestPlayerData.registrationInterface, guestPlayerData.name])
-                                    if (inputData && inputData.osType) {
-                                        guestPlayerData.osType = inputData.osType;
-                                    }
-
-                                    if (inputData && inputData.referral) {
-                                        guestPlayerData.referral = inputData.referral;
-                                    }
-                                    return dbPlayerInfo.createPlayerInfo(guestPlayerData, true, true);
-                                }
-                            ).then(
-                                playerData => {
-                                    if (!playerData) {
-                                        return Promise.reject({name: "DataError", message: "Can't create new player."});
-                                    }
-                                    isRegister = true;
-
-                                    if (isEnableUseReferralPlayerId) {
-                                        let bindReferralTime = (playerData && playerData.registrationTime) || new Date();
-
-                                        referralLog.playerObjId = playerData._id;
-                                        referralLog.createTime = new Date(bindReferralTime);
-
-                                        if (referralInterval) {
-                                            let referralIntervalTime = dbUtility.getReferralConfigIntervalTime(referralInterval, new Date(bindReferralTime));
-
-                                            if (referralIntervalTime) {
-                                                referralLog.validEndTime = referralIntervalTime.endTime;
-                                            }
-                                        }
-
-                                        let newRecord = new dbconfig.collection_referralLog(referralLog);
-                                        newRecord.save().catch(errorUtils.reportError);
-                                    }
-
-                                    newPlayerData = playerData;
-
-                                    newPlayerData.password = String(inputData.guestDeviceId);
-                                    newPlayerData.inputDevice = inputData.inputDevice ? inputData.inputDevice : (newPlayerData.inputDevice || "");
-                                    newPlayerData.platformId = inputData.platformId ? inputData.platformId : (newPlayerData.platformId || "");
-                                    // newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
-                                    newPlayerData.ua = inputData.ua ? inputData.ua : (newPlayerData.userAgent || "");
-                                    newPlayerData.mobileDetect = inputData.md ? inputData.md : (newPlayerData.mobileDetect || "");
-
-                                    if (inputData.clientDomain) {
-                                        newPlayerData.clientDomain = inputData.clientDomain;
-                                    }
-                                    if (inputData && inputData.osType) {
-                                        newPlayerData.osType = inputData.osType;
-                                    }
-                                    //after created new player, need to create login record and apply login reward
-                                    dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
-
-
-                                    // dbPlayerInfo.findAndUpdateSimilarPlayerInfo(data, inputData.phoneNumber).then();
-                                    return playerData;
-
-                                }
-                            ).then(
-                                data => dbconfig.collection_players.findOne({_id: data._id})
-                                    .populate({
-                                        path: "playerLevel",
-                                        model: dbconfig.collection_playerLevel
-                                    }).lean().then(
-                                        pdata => {
-                                            pdata.platformId = inputData.platformId;
-                                            if (isHitReferralLimit) {
-                                                pdata.isHitReferralLimit = isHitReferralLimit;
-                                            }
-                                            return pdata;
-                                        }
-                                    )
-                            ).then(
-                                () => {
-                                    // if this player is from ebet4.0 , create a ebet user at cpms too.
-                                    if (platform.isEbet4) {
-                                         //56 - ebet
-                                        return cpmsAPI.player_addPlayer({
-                                            "username": newPlayerData.name,
-                                            "platformId": platform.platformId,
-                                            "providerId": "56"
-                                        });
-                                    }
-                                    return
-                                }
-                            ).then(
-                                (cpmsPlayer) => {
-                                    if (platform.isEbet4 && !cpmsPlayer) {
-                                        // if the create user by cpms failed, then we will delete fpms user as well
-                                        return dbconfig.collection_players.findOneAndRemove({
-                                            _id: newPlayerData._id,
-                                            platform: newPlayerData.platform
-                                        }).lean();
-                                    }
-                                    return
-                                }
-                            ).then(
-                                data => {
-                                    if (!data) {
-                                        // findOneAndRemove return false
-                                        // is related with ebet4.0 case     -> means player data havent deleted, so we create rewardpoints record
-                                        // if not related with ebet4.0 case -> last result will return null, will keep go on create rewardpoint
-                                        console.log('MT --checking createPlayerRewardPointsRecord', newPlayerData.platform, newPlayerData._id)
-                                        return dbPlayerInfo.createPlayerRewardPointsRecord(newPlayerData.platform, newPlayerData._id, false).then(
-                                            data => {
-                                                if (data && isHitReferralLimit) {
-                                                    data.isHitReferralLimit = isHitReferralLimit;
-                                                }
-                                                if (isRegister) {
-                                                    data.isRegister = true;
-                                                }
-
-                                                return data;
-                                            }
-                                        );
-                                    }
-                                    if (data && platform.isEbet4) {
-                                        // findOneAndRemove return true -> means player data is find and deleted , then we tell user , the acc created failed
-                                        return Q.reject({name: "DataError", message: localization.localization.translate("Ebet Account created Failed")});
-                                    } else {
-                                        return data;
-                                    }
-                                }
-                            );
-                        }
-                    });
+                return retData;
             }
-        )
+
+            async function updateGuestName (inputData, newPlayerData) {
+                // Check if name is in use
+                let placeholder = "abcdefghijklmnopqrstuvwxyz";
+                let accountPrefix = inputData && inputData.accountPrefix || "g";
+                let updateName = accountPrefix.concat(newPlayerData.playerId);
+                let playerExist = false;
+                let count = 0;
+
+                do {
+                    playerExist = false;
+
+                    let findPlayerData = await dbconfig.collection_players.findOne({
+                        platform: newPlayerData.platform,
+                        name: updateName
+                    }, {_id: 1}).lean();
+
+                    if (findPlayerData) {
+                        playerExist = true;
+                        updateName = accountPrefix + placeholder[count] + newPlayerData.playerId;
+                        count++;
+                    }
+                } while (playerExist);
+
+                // Update player name
+                await dbconfig.collection_players.findOneAndUpdate(
+                    {_id: newPlayerData._id},
+                    {$set: {name: updateName}}
+                )
+
+                // Save new name to playerName
+                await dbPlayerUtil.savePlayerName(newPlayerData.platform, updateName);
+
+                // Remove old name from playerName
+                await dbPlayerUtil.removePlayerName(newPlayerData.platform, guestPlayerName);
+            }
+        }
     },
 
     getLastPlayedGameInfo: async (playerObjId) => {
@@ -5236,8 +5262,12 @@ let dbPlayerInfo = {
 
                         rewardTaskGroup.forEach(
                             rtg => {
-                                if (rtg && platform && rtg._id && rtg.totalCredit >= 0 && platform.autoUnlockWhenInitAmtLessThanLostThreshold
-                                    && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold) {
+                                if (
+                                    rtg && platform && rtg._id && rtg.totalCredit >= 0
+                                    && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                                    && platform.autoApproveLostThreshold
+                                    && rtg.totalCredit <= platform.autoApproveLostThreshold
+                                ) {
                                     console.log('JY check rtg ---', rtg);
 
                                     console.log('unlock rtg due to consumption clear in other location A', rtg._id);
@@ -10185,18 +10215,24 @@ let dbPlayerInfo = {
         );
 
         function checkAndStartTransferPlayerCreditFromProvider(gameProviderData, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, isMultiProvider){
-            if (dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+            if (
+                dbUtility.getPlatformSpecificProviderStatus(gameProviderData, platformData.platformId) != constProviderStatus.NORMAL
+                ||
+                    platformData && platformData.gameProviderInfo
+                    && platformData.gameProviderInfo[String(gameProvider._id)]
+                    && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false
+            ) {
                 if(!isMultiProvider){
                     return Promise.reject({
                         name: "DataError",
                         message: "Provider is not available"
                     });
-                }else{
+                } else {
                     return;
                 }
             }
 
-            if(firstPlayerState){
+            if (firstPlayerState) {
                 return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
                     playerState => {
                         if (playerState || isMultiProvider) {
