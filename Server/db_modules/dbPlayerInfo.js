@@ -594,7 +594,7 @@ let dbPlayerInfo = {
                     dbPlayerInfo.playerLogin(newPlayerData, newPlayerData.ua, newPlayerData.inputDevice, newPlayerData.mobileDetect).catch(errorUtils.reportError);
 
                     // Requirement 20191203: Use prefix + playerId as name
-                    updateGuestName(inputData, newPlayerData);
+                    updatePlayerNameToPlayerId(inputData, newPlayerData, guestPlayerName);
 
                     return playerData;
 
@@ -707,42 +707,6 @@ let dbPlayerInfo = {
                 }
 
                 return retData;
-            }
-
-            async function updateGuestName (inputData, newPlayerData) {
-                // Check if name is in use
-                let placeholder = "abcdefghijklmnopqrstuvwxyz";
-                let accountPrefix = inputData && inputData.accountPrefix || "g";
-                let updateName = accountPrefix.concat(newPlayerData.playerId);
-                let playerExist = false;
-                let count = 0;
-
-                do {
-                    playerExist = false;
-
-                    let findPlayerData = await dbconfig.collection_players.findOne({
-                        platform: newPlayerData.platform,
-                        name: updateName
-                    }, {_id: 1}).lean();
-
-                    if (findPlayerData) {
-                        playerExist = true;
-                        updateName = accountPrefix + placeholder[count] + newPlayerData.playerId;
-                        count++;
-                    }
-                } while (playerExist);
-
-                // Update player name
-                await dbconfig.collection_players.findOneAndUpdate(
-                    {_id: newPlayerData._id},
-                    {$set: {name: updateName}}
-                )
-
-                // Save new name to playerName
-                await dbPlayerUtil.savePlayerName(newPlayerData.platform, updateName);
-
-                // Remove old name from playerName
-                await dbPlayerUtil.removePlayerName(newPlayerData.platform, guestPlayerName);
             }
         }
     },
@@ -7673,6 +7637,9 @@ let dbPlayerInfo = {
                                                                         isHitReferralLimit = playerData.isHitReferralLimit;
                                                                     }
                                                                     isRegister = true;
+
+                                                                    // Update player name
+                                                                    updatePlayerNameToPlayerId(loginData, playerData, playerData.name);
 
                                                                     return playerData;
                                                                 }
@@ -33577,6 +33544,46 @@ function bindReferral(platformObjId, loginData) {
             }
         }
     );
+}
+
+async function updatePlayerNameToPlayerId (inputData, newPlayerData, oldPlayerName) {
+    // Check if name is in use
+    let placeholder = "abcdefghijklmnopqrstuvwxyz";
+    let accountPrefix = inputData && inputData.accountPrefix || "g";
+    let updateName = accountPrefix.concat(newPlayerData.playerId);
+    let playerExist = false;
+    let count = 0;
+
+    do {
+        if (count >= 20) {
+            return errorUtils.throwSystemError();
+        }
+
+        playerExist = false;
+
+        let findPlayerData = await dbconfig.collection_players.findOne({
+            platform: newPlayerData.platform,
+            name: updateName
+        }, {_id: 1}).lean();
+
+        if (findPlayerData) {
+            playerExist = true;
+            updateName = accountPrefix + placeholder[count] + newPlayerData.playerId;
+            count++;
+        }
+    } while (playerExist);
+
+    // Update player name
+    await dbconfig.collection_players.findOneAndUpdate(
+        {_id: newPlayerData._id},
+        {$set: {name: updateName}}
+    )
+
+    // Save new name to playerName
+    await dbPlayerUtil.savePlayerName(newPlayerData.platform, updateName);
+
+    // Remove old name from playerName
+    await dbPlayerUtil.removePlayerName(newPlayerData.platform, oldPlayerName);
 }
 
 var proto = dbPlayerInfoFunc.prototype;
