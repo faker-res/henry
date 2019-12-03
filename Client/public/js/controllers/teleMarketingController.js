@@ -6499,9 +6499,16 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getAllDepartment = (platformObjId) => {
-            let sendData = {
-                platforms: [platformObjId]
-            };
+            let sendData;
+            if (platformObjId instanceof Array) {
+                sendData = {
+                    platforms: platformObjId
+                };
+            } else {
+                sendData = {
+                    platforms: [platformObjId]
+                };
+            }
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'getAllDepartment', sendData, function (data) {
                 $scope.$evalAsync(() => {
@@ -6864,6 +6871,18 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getAllTSPhoneListByPlatforms = (platformObjIds) => {
+            let sendQuery = {
+                platformObjIds: platformObjIds
+            };
+            socketService.$socket($scope.AppSocket, 'getAllTSPhoneListFromPlatforms', sendQuery, function (data) {
+                console.log("getAllTSPhoneListFromPlatforms ret", data);
+                $scope.$evalAsync(() => {
+                    vm.allTsPhoneListByPlatform = data.data;
+                });
+            });
+        };
+
         vm.filterWorkloadReport = () => {
             vm.workloadResult = null;
             vm.workloadSearch.phoneListNames = [];
@@ -6880,7 +6899,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             let sendQuery = {
-                platformObjId: vm.workloadSearch.platformObjId,
+                platformObjIds: vm.workloadSearch.platformObjIds,
                 phoneListObjIds: vm.workloadSearch.phoneLists || [],
                 adminObjIds: vm.workloadSearch.admins || [],
                 startTime: vm.workloadSearch.startTime,

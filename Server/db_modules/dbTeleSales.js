@@ -30,6 +30,10 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.find({platform: platformObjId}).lean();
     },
 
+    getAllTSPhoneListFromPlatforms: function (platformObjIds) {
+        return dbconfig.collection_tsPhoneList.find({platform: {$in: platformObjIds}}).lean();
+    },
+
     getOneTsNewList: function (query) {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
@@ -1120,6 +1124,22 @@ let dbTeleSales = {
         returnData.totalSuccess = totalSuccessTsPhone.length;
 
         return returnData;
+    },
+
+    getTsWorkloadReports: async (platformObjIds, phoneListObjIds, startTime, endTime, adminObjIds) => {
+        let reportsProms = platformObjIds.map(objId => dbTeleSales.getTsWorkloadReport(objId, phoneListObjIds, startTime, endTime, adminObjIds));
+        let reports = await Promise.all(reportsProms);
+        let mergedReport = {};
+        for (let i = 0; i < reports.length; i++) {
+            let report = reports[i];
+            for (admin in report) {
+                if (mergedReport[admin] && mergedReport[admin] instanceof Array) {
+                    mergedReport[admin] = Object.assign({}, mergedReport[admin], report[admin]);
+                } else {
+                    mergedReport[admin] = report[admin];
+                }
+            }
+        }
     },
 
     getTsWorkloadReport: async (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
