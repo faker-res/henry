@@ -31063,18 +31063,6 @@ define(['js/app'], function (myApp) {
             };
             // player level codes==============end===============================
 
-            // vm.downloadTranslationCSV = function () {
-            //     vm.prepareTranslationCSV = false;
-            //     let platformId = vm.selectedPlatform.data.platformId;
-
-            //     socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
-            //         vm.fileNameCSV = "ch_SP" + "_" + platformId;
-            //         vm.prepareTranslationCSV = true;
-            //         vm.exportTranslationCSV = data.data;
-            //         $scope.safeApply();
-            //     });
-            // };
-
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {
                 vm.filterAllPlatform = false;
