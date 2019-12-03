@@ -153,7 +153,11 @@ class Content extends Component{
         });
         return (
             <div key={name}>
+<<<<<<< HEAD
                 <div className="code-area bg-light p-1 pl-2 mb-1">
+=======
+                <div className="respond-area bg-light p-1 pl-2 mb-1">
+>>>>>>> a24f2c1f29e560403b0b16487c2c8739f7877f99
                     {rows}
                 </div>
                 <div>{name}</div>
