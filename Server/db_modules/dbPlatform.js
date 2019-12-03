@@ -2044,6 +2044,26 @@ var dbPlatform = {
         return Promise.resolve(proms);
     },
 
+    bulkSendSMSToTsList: (adminObjId, adminName, data, phones) => {
+        let proms = [];
+        if (phones && phones.length) {
+            phones.map(phone => {
+                let clonedData = Object.assign({}, data);
+                clonedData.hasPhone = phone;
+                clonedData.name = phone;
+                let prom = dbPlatform.sendNewPlayerSMS(adminObjId, adminName, clonedData).catch(error => {
+                    console.error("Sms failed for phone:", phone, "- error:", error);
+                    errorUtils.reportError(error);
+                    return {phone, error}
+                });
+
+                proms.push(prom);
+            });
+        }
+
+        return Promise.resolve(proms);
+    },
+
     sendNewPlayerSMS: function (adminObjId, adminName, data) {
 
         var sendObj = {
