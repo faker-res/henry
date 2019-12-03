@@ -1,6 +1,7 @@
 const sampleData = {
     insertPhoneToTask: `{
     message: “您已获得x元奖金，请注意短信接收”
+    // 导入任务最多能发3次， 过后会回到 操作失败: 状况2
 }`,
     insertPhoneToTaskFailed: `{
     // 状况1 - 号码已经开户
@@ -13,6 +14,8 @@ const sampleData = {
 
     submitDXCode: `{
     redirect: “foobar.com playerId=yunvince6896&token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoieXVudmluY2V5aDY2ODgiLCJwYXNzd29yZCI6IiQyYSQxMCREejhRSFhmTjJjeWtnWHBrdXVFZHdlVjVlZ1NTeDNIb2NXaEx5VnBzZWU5cWtpMXY3c3dRNiIsImlhdCI6MTUyOTkwODUxNCwiZXhwIjoxNTI5OTI2NTE0fQ.xts8n_iucqybjQG7eDhie-akmlz_YIAi9D-4ZING9nI”
+    // playerId: 玩家ID，authenticate用
+    // token: 玩家验证，用于重新建立链接
 }`,
     submitDXCodeFailed: `{
     // 状况1 - 此电销代码已注册，注册后玩家以修改密码
@@ -100,7 +103,7 @@ let teleSales = {
                 data: sampleData.submitDXCode
             },
             respondFailure: {
-                status: "200 / 400 / 401 / 431",
+                status: "400 / 401 / 431",
                 data: sampleData.submitDXCodeFailed
 
             }

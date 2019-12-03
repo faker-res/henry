@@ -17429,10 +17429,10 @@ define(['js/app'], function (myApp) {
                             vm.subPlatformIdList[text] = vm.platformId + counter;
                         }
 
-                        // hardcode 03 as the product itself
+                        // hardcode 10 as the product itself
                         if (vm.subPlatformIdList) {
-                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
-                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
                         }
                     }
                 }
@@ -17572,19 +17572,6 @@ define(['js/app'], function (myApp) {
                 vm.fakeRecordQuery.fluctuationLow = valHolder;
             }
 
-            if (validationFailed) {
-                return;
-            }
-
-            // implementations
-            if (!isConfirm) {
-                vm.modalYesNo = {};
-                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
-                vm.modalYesNo.modalText = $translate("Are you sure");
-                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
-                $('#modalYesNo').modal();
-                return;
-            }
             let query = {
                 platform: vm.platformInSetting._id,
                 period: vm.commissionBillboardPeriod,
@@ -17608,6 +17595,34 @@ define(['js/app'], function (myApp) {
                 flucOnFriday: $('#fakeCommChangeOnFriday').prop('checked'),
                 flucOnSaturday: $('#fakeCommChangeOnSaturday').prop('checked')
             };
+
+            if (query.useFluctuation && !(
+                query.flucOnSunday ||
+                query.flucOnMonday ||
+                query.flucOnTuesday ||
+                query.flucOnWednesday ||
+                query.flucOnThursday ||
+                query.flucOnFriday ||
+                query.flucOnSaturday
+            )) {
+                socketService.showErrorMessage($translate("useFluctuation have to at least trigger a day"));
+                validationFailed = true;
+            }
+
+            if (validationFailed) {
+                return;
+            }
+
+            // implementations
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
             $scope.$socketPromise('createFakeCommissionBBRecord', query).then(
                 data => {
                     console.log('createFakeCommissionBBRecord data', data)

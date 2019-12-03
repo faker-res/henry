@@ -39,6 +39,10 @@ let dailyProviderSettlement = {
 
         let settleTime = dbutility.getYesterdaySGTime();
 
+        console.log('JY check==startDailyProviderSettlement==curTime==>', curTime);
+        console.log('JY check==startDailyProviderSettlement==dailySettlementTime==>', dailySettlementTime);
+        console.log('JY check==startDailyProviderSettlement==providerData==>', providerData);
+
         //if provider is not doing any settlement and settlement time has been reached and last settlement time is older
         if (providerData && providerData._id && providerData.settlementStatus == constSettlementStatus.READY
             && dailySettlementTime.getTime() <= curTime.getTime() &&
@@ -46,6 +50,7 @@ let dailyProviderSettlement = {
 
             dbGameProvider.updateGameProvider({_id: providerData._id}, {settlementStatus: constSettlementStatus.DAILY_SETTLEMENT}).then(
                 data => {
+                    console.log('JY check==startDailyProviderSettlement==data==>', data);
                     //start daily settlement for all the params
                     if (data) {
                         return dailyProviderSettlement.calculateDailyProviderSettlement(providerData._id, settleTime);
@@ -60,6 +65,7 @@ let dailyProviderSettlement = {
             ).then(
                 //change provider status back to ready when settlement finished
                 function (data) {
+                    console.log('JY check==startDailyProviderSettlement==data==111');
                     var now = new Date();
                     return dbGameProvider.updateGameProvider(
                         {_id: providerData._id},
@@ -80,6 +86,7 @@ let dailyProviderSettlement = {
                 }
             ).then(
                 function (data) {
+                    console.log('JY check==startDailyProviderSettlement==data==222');
                     //if update status successfully, daily settlement is finished
                     if (data) {
                         deferred.resolve(true);
@@ -218,6 +225,8 @@ let dailyProviderSettlement = {
      */
     calculateDailyProviderSettlement: function (providerId, settleTime) {
         let deferred = Q.defer();
+        console.log('JY check==calculateDailyProviderSettlement==providerId==>', providerId);
+        console.log('JY check==calculateDailyProviderSettlement==settleTime==>', settleTime);
 
         //todo::add more daily settlement calculation here
         removeDuplicatedConsumptionRecords(settleTime.startTime, settleTime.endTime, providerId).then(
@@ -237,6 +246,7 @@ let dailyProviderSettlement = {
             }
         ).then(
             function (data) {
+                console.log('JY check==calculateDailyProviderSettlement==data');
                 deferred.resolve("Provider " + providerId + " daily settlement done");
             },
             function (error) {

@@ -441,6 +441,7 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackReportAdvance: async function (platform, query, index, limit, sortCol) {
+        console.log('start getPlayerFeedbackReportAdvance');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -515,8 +516,6 @@ var dbPlayerFeedback = {
                         stream: stream,
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
-
-                            console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,

@@ -9,11 +9,11 @@ const antiPatternContentKeys = ["guide","definition"];
 class Home extends Component {
     constructor(props) {
         super(props);
-        const landingPage = "reward";
+        const landingPage = "guide";
         this.state = {
             curNav: landingPage,
-            curCategory: "player",
-            displayList: apiData.player[landingPage].func
+            curCategory: "",
+            displayList: apiData.guide
         };
     };
     
@@ -104,6 +104,7 @@ class Home extends Component {
                     key = "guide"
                     title = {this.state.displayList.name}
                     desc = {this.state.displayList.text}
+                    exampleCode = {this.state.displayList.exampleCode}
                 />
             );
         } else if (curTab === "definition") {

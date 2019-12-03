@@ -253,8 +253,8 @@ let game = {
             requestContent:[
                 { param: "gameId", mandatory: "是", type: "String", content: "游戏Id " },
                 { param: "clientDomainName", mandatory: "是", type: "String", content: "客户端域名 " },
-                { param: "clientType", mandatory: "否", type: "Int", content: `1：pc
-                                                                               2: 手机` },
+                { param: "clientType", mandatory: "否", type: "Int", content: `1：Browser
+                                                                               2: APP` },
             ],
             respondSuccess:{
                 status: 200,
@@ -543,8 +543,8 @@ let game = {
             desc:"",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
-                { param: "count", mandatory: "否", type: "String", content: "新密碼" },
-                { param: "switchNotify", mandatory: "否", type: "Boolean", content: `otifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
+                { param: "count", mandatory: "否", type: "String", content: "" },
+                { param: "switchNotify", mandatory: "否", type: "Boolean", content: `notifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
 ],
             respondSuccess:{
                 status: 200,

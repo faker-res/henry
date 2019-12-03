@@ -86,7 +86,7 @@
             #proposalReportQuery.block-query.col-md-12.well
                 .search-filters-item
                     label {{'PRODUCT_NAME'| translate}} ({{'Multiple' | translate}})
-                    select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', multiple, bsp, data-actions-box='true')
+                    select.form-control.spicker(ng-model='vm.proposalQuery.platformList', ng-options='v._id as v.name$ for v in vm.platformList', ng-change='vm.getRewardList()', multiple, bsp, data-actions-box='true')
                 .search-filters-item
                     label {{"REGISTRATION_AGENT"|translate}} {{"Old" | translate}}
                     select.form-control(ng-model="vm.proposalQuery.inputDevice")
@@ -1499,6 +1499,7 @@
                     select.spicker.form-control(ng-model='vm.dxNewPlayerQuery.credibilityRemarks', bsp, multiple, data-actions-box='true', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks',)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchDXNewPlayerReport(true, false, true)') {{'SEARCH_BY_SUMMARY' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchDXNewPlayerReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1931,6 +1932,7 @@
                     select.spicker.form-control(ng-model='vm.feedbackQuery.registrationDevice', multiple, data-actions-box='true', ng-options='i as a | translate for (i,a) in vm.registrationDeviceList', bsp)
                 .text-right.widthto100
                     button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-success.btn-space(ng-click='vm.searchFeedbackReport(true, false, true)') {{'SEARCH_BY_SUMMARY' | translate}}
                     button.btn.btn-info.btn-space(ng-click="vm.searchFeedbackReport(true, true)") {{'EXPORT_EXCEL' | translate}}
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
@@ -1943,6 +1945,103 @@
             include ./report-player-alipay-account
         div(ng-if='vm.showPageName=="FINANCIAL_REPORT"')
             include ./report-financial
+        div(ng-if='vm.showPageName=="GAME_TYPE_ANALYSIS_REPORT"')
+            #gameTypeAnalysisReportQuery.col-md-12.well
+                .search-filters-item
+                    label {{'PRODUCT_NAME'| translate}}
+                    select.form-control(ng-model='vm.gameTypeQuery.platformId' ng-change='vm.reportOnPlatformChange(vm.gameTypeQuery.platformId)')
+                        option(ng-repeat='(i,v) in vm.platformList' value='{{v._id}}') {{v.name$}}
+                .search-filters-item
+                    label {{"Lobby Type" | translate}}
+                    select.form-control(ng-model='vm.gameTypeQuery.gameTypeId', required)
+                        option(value="all") {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v._id}}') {{v.name || translate}}
+                .search-filters-item
+                    label {{"Provider" | translate}}
+                    select.form-control(ng-model='vm.gameTypeQuery.providerId', required)
+                        option(value="all") {{'all' | translate}}
+                        option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
+                .search-filters-item
+                    label {{'Login Device' | translate}}
+                    select.spicker.form-control(ng-model='vm.gameTypeQuery.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
+                .search-filters-item
+                    label {{"csPromoteWay" | translate}}
+                    select.spicker.form-control(ng-model='vm.gameTypeQuery.csPromoteWay', multiple, data-actions-box='true')
+                        option(value="") {{"N/A" | translate}}
+                        option(ng-repeat='(i,v) in vm.allPromoteWay', value='{{v.name}}' ng-init='$last && vm.endLoadMultipleSelect()') {{v.name}}
+                .search-filters-item
+                    label {{"Start date" | translate}}
+                    .startTime
+                .search-filters-item
+                    label {{"End date" | translate}}
+                    .endTime
+                .text-right.widthto100
+                    button.btn.btn-success.btn-space(ng-click='vm.getGameTypeAnalysisReportData()') {{'SEARCH' | translate}}
+                    button.btn.btn-info.btn-space(ng-click='vm.exportToExcel("gameTypeAnalysisSummaryTable", "GAME_TYPE_ANALYSIS_REPORT")') {{'EXPORT_EXCEL' | translate}}
+                    span#gameTypeAnalysisTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+                    span.margin-left-5 {{vm.gameTypeAnalysisReportLoadingStatus}}
+            .clearfix
+            label {{"Total" | translate}} {{vm.gameTypeSummaryData.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+            table#gameTypeAnalysisTable.common-table.display
+            #gameTypeAnalysisTablePage
+            table.common-table.simple-table#gameTypeAnalysisSummaryTable(ng-show="vm.gameTypeLayer1", style='margin-top:10px;font-size:12px')
+                thead
+                    tr
+                        th(style='width:10%') {{'PRODUCT_NAME' | translate}}
+                        th(style='width:10%') {{'LOGIN_DEVICE' | translate}}
+                        th(style='width:10%') {{'TOTAL_PLAYER_DEPOSIT' | translate}}
+                        th(style='width:10%') {{'DEPOSIT_SUCCESS_COUNT' | translate}}
+                        th(style='width:10%') {{'TopupAmount' | translate}}
+                        th(style='width:10%') {{'WITHDRAW_AMOUNT' | translate}}
+                        th(style='width:10%') {{'CONSUMPTION_PARTICIPANT' | translate}}
+                        th(style='width:10%') {{'TIMES_CONSUMED' | translate}}
+                        th(style='width:10%') {{'TOTAL_CONSUMPTION' | translate}}
+                        th(style='width:10%') {{'VALID_CONSUMPTION' | translate}}
+                        th(style='width:10%') {{'PLAYER_PROFIT_AMOUNT' | translate}}
+                        th(style='width:10%') {{'COMPANY_EARNING_RATIO' | translate}}
+                        th(style='width:10%') {{'全会员平均付费' | translate}}
+                        th(style='width:10%') {{'存款会员平均付费' | translate}}
+                        th(style='width:10%') {{'全会员平均充值次数' | translate}}
+                        th(style='width:10%') {{'存款会员平均充值次数' | translate}}
+                        th(style='width:10%') {{'全会员平均收入' | translate}}
+                        th(style='width:10%') {{'存款会员平均收入' | translate}}
+                        th(style='width:10%') {{'DETAILS' | translate}}
+                tbody
+                    tr(ng-repeat='(i,v) in vm.gameTypeSummaryData.data.data')
+                        td {{v.platformName | translate}}
+                        td {{v.loginDevice$ | translate}}
+                        td {{v.topupPlayerCount | translate}}
+                        td {{v.topupSuccessCount | translate}}
+                        td {{(v.topupAmount) | number : 2}}
+                        td {{(v.withdrawAmount) | number : 2}}
+                        td {{v.participantNumber}}
+                        td {{v.consumptionTimes}}
+                        td {{(v.totalAmount) | number : 2}}
+                        td {{(v.validAmount) | number : 2}}
+                        td {{(v.bonusAmount) | number : 2}}
+                        td {{(-v.bonusAmount/v.validAmount*100 || 0) | number : 2 }}%
+                        td {{(v.averagePaymentAllPlayer) | number : 2}}
+                        td {{(v.averagePaymentAllTopupPlayer) | number : 2}}
+                        td {{(v.averageTopupCountAllPlayer) | number : 2}}
+                        td {{(v.averageTopupCountAllTopupPlayer) | number : 2}}
+                        td {{(v.averageIncomeAllPlayer) | number : 2}}
+                        td {{(v.averageIncomeAllTopupPlayer) | number : 2}}
+                        td(ng-click='vm.getGameTypeAnalysisByPlatform(v.platformObjId)')
+                            a {{'DETAILS' | translate}}
+            br
+            div(ng-show="vm.gameTypeLayer2")
+                table#gameTypeAnalysisLayer2Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#gameTypeSummaryLayer2Table(style='margin-top:10px;font-size:12px')
+
+            div(ng-show="vm.gameTypeLayer3")
+                table#gameTypeAnalysisLayer3Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#gameTypeSummaryLayer3Table(style='margin-top:10px;font-size:12px')
+
+            div(ng-show="vm.gameTypeLayer4")
+                table#gameTypeAnalysisLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
+                table.common-table.simple-table#gameTypeSummaryLayer4Table(style='margin-top:10px;font-size:12px')
+
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
             .panel.panel-primary

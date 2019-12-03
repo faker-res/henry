@@ -410,6 +410,13 @@ define(['js/app'], function (myApp) {
             5: 'WEEKLY_CONSUMPTION'
         };
 
+        vm.creditChangeType = {
+            'abnormal_deduction': "Abnormal Deduction",
+            'limit_deduction': "Limit Deduction",
+            'other_deduction': "Other Deduction",
+            'addition': "Addition"
+        };
+
         vm.partnerCommissionLog= {};
 
         vm.prepareToBeDeletedProviderGroupId = [];
@@ -3195,7 +3202,7 @@ define(['js/app'], function (myApp) {
             let tableData = data.map(item => {
                 item.createTime$ = vm.dateReformat(item.createTime);
                 item.typeText = $translate(item.type);
-                item.providerText = vm.getProviderText(item.providerId);
+                item.providerText = item.providerText || '';
                 item.lockedAmount$ = item.lockedAmount.toFixed(2);
                 item.localAmount$ = Number(item.amount) - Number(item.lockedAmount$);
                 if (item && item.platformObjId){
@@ -7747,7 +7754,7 @@ define(['js/app'], function (myApp) {
                     };
 
                     // for 2nd and 3rd bank info
-                    if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                    // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                         if (vm.selectedSinglePlayer.multipleBankDetailInfo) {
                             let bankDetails = vm.selectedSinglePlayer.multipleBankDetailInfo;
 
@@ -7758,7 +7765,7 @@ define(['js/app'], function (myApp) {
                             sendData.city3 = bankDetails.bankAccountCity3 ? bankDetails.bankAccountCity3 : null;
                             sendData.district3 = bankDetails.bankAccountDistrict3 ? bankDetails.bankAccountDistrict3 : null;
                         }
-                    }
+                    // }
 
                     socketService.$socket($scope.AppSocket, 'getBankZoneData', sendData, function (retData) {
                         $scope.$evalAsync(() => {
@@ -8717,7 +8724,7 @@ define(['js/app'], function (myApp) {
                 sendData = {_id: editObj.partner}
             }
             if (sendData) {
-                sendData.platform = vm.selectedPlatform.id;
+                sendData.platform = (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) || vm.selectedPlatform.id;
                 console.log('getPartner sendData', sendData)
                 socketService.$socket($scope.AppSocket, 'getPartner', sendData, function (retData) {
                     console.log('getPartner', retData)
@@ -9411,6 +9418,7 @@ define(['js/app'], function (myApp) {
                             for (let j = 0; j < vm.credibilityRemarks.length; j++) {
                                 if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
                                     vm.credibilityRemarks[j].selected = true;
+                                    vm.credibilityRemarks[j].isUsed = true; // indicate this remark is originally from player db
                                 }
                             }
                         }
@@ -9438,9 +9446,14 @@ define(['js/app'], function (myApp) {
 
         vm.submitRemarkUpdate = () => {
             let selectedRemarks = [];
+            let changedRemarks = [];
             for (let i = 0; i < vm.credibilityRemarks.length; i++) {
                 if (vm.credibilityRemarks[i].selected === true) {
                     selectedRemarks.push(vm.credibilityRemarks[i]._id);
+                }
+                // newly selected remarks or newly removed remarks
+                if ((!vm.credibilityRemarks[i].isUsed && vm.credibilityRemarks[i].selected === true) || (vm.credibilityRemarks[i].isUsed === true && vm.credibilityRemarks[i].selected === false)) {
+                    changedRemarks.push(vm.credibilityRemarks[i]._id);
                 }
             }
 
@@ -9449,6 +9462,7 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedSinglePlayer.platform,
                 playerObjId: vm.selectedSinglePlayer._id,
                 remarks: selectedRemarks,
+                changedRemarks: changedRemarks,
                 comment: vm.credibilityRemarkComment
             };
 
@@ -9857,6 +9871,13 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('IsConsumption'), data: "useConsumption",
                         render: function (data, type, row) {
+                            if (data){
+                                // useConsumption true means cannot XIMA
+                                data = false;
+                            }
+                            else{
+                                data = true;
+                            }
                             var text = $translate(data);
                             return "<div>" + text + "</div>";
                         }
@@ -10889,6 +10910,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange.finalLockedAmount = null;
             vm.creditChange.remark = '';
             vm.creditChange.updateAmount = 0;
+            vm.creditChange.creditChangeType = null;
 
 
             vm.linkedPlayerTransferId = null;
@@ -10921,7 +10943,8 @@ define(['js/app'], function (myApp) {
                     curAmount: vm.isOneSelectedPlayer().validCredit,
                     realName: vm.isOneSelectedPlayer().realName,
                     remark: vm.creditChange.remark,
-                    adminName: authService.adminName
+                    adminName: authService.adminName,
+                    creditChangeType: vm.creditChange.creditChangeType
                 }
             }
 
@@ -13637,7 +13660,7 @@ define(['js/app'], function (myApp) {
                 vm.drawPaymentHistory(drawData);
                 let drawData2 = [];
                 let drawData3 = [];
-                if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+                // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                     drawData2 = data.data.filter(item => {
                         return item.bankName2 || item.bankAccount2 || item.bankAccountName2;
                     }).map(item => {
@@ -13672,7 +13695,7 @@ define(['js/app'], function (myApp) {
                     vm.paymetHistoryCount3 = drawData3.length;
                     vm.drawPaymentHistory2(drawData2);
                     vm.drawPaymentHistory3(drawData3);
-                }
+                // }
 
             }, null, true);
             $('#modalPlayerPaymentHistory').modal();
@@ -15008,6 +15031,13 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('IsConsumption'), data: "useConsumption",
                         render: function (data, type, row) {
+                            if (data){
+                                // useConsumption true means cannot XIMA
+                                data = false;
+                            }
+                            else{
+                                data = true;
+                            }
                             var text = $translate(data);
                             return "<div>" + text + "</div>";
                         }
@@ -15655,9 +15685,9 @@ define(['js/app'], function (myApp) {
             vm.playerBankList = [];
             let isMultipleBank = false;
 
-            if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
+            // if (authService.checkViewPermission('Player', 'Player', 'BindMultiplePaymentInformation')) {
                 isMultipleBank = true;
-            }
+            // }
 
             let sendQuery = {
                 playerObjId: vm.selectedSinglePlayer._id,
@@ -20577,6 +20607,10 @@ define(['js/app'], function (myApp) {
                 if (index != -1){
                     result =  vm.allGameProviders[index].name;
                 }
+            } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
+                result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
+            } else if (fieldName === 'creditChangeType') {
+                result = $translate(vm.creditChangeType[val]);
             }
 
             return $sce.trustAsHtml(result);

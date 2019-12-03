@@ -205,7 +205,7 @@ let PlayerServiceImplement = function () {
     this.createGuestPlayer.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
@@ -555,7 +555,7 @@ let PlayerServiceImplement = function () {
     this.login.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
@@ -1511,7 +1511,7 @@ let PlayerServiceImplement = function () {
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
@@ -1657,12 +1657,25 @@ let PlayerServiceImplement = function () {
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
                         }, data);
-                    } else if (error && error.isRegisterError) {
+                    } else if (error && error.message === "Incorrect SMS Validation Code") {
                         wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Incorrect SMS Validation Code", conn.lang, conn.platformId),
+                        }, data);
+                    } else if (error && error.isRegisterError) {
+                        let returnObj = {
                             status: constServerCode.DEVICE_ID_ERROR,
                             data: {noOfAttempt: conn.noOfAttempt},
                             errorMessage: localization.translate(error.message),
-                        }, data);
+                        }
+                        if (error.player) {
+                            returnObj.player = error.player;
+                        }
+                        if (error.playerId) {
+                            returnObj.playerId = error.playerId;
+                        }
+                        wsFunc.response(conn, returnObj, data);
                     } else {
                         wsFunc.response(conn, {
                             status: constServerCode.INVALID_USER_PASSWORD,
@@ -1683,7 +1696,7 @@ let PlayerServiceImplement = function () {
     this.phoneNumberLoginWithPassword.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
@@ -1838,7 +1851,7 @@ let PlayerServiceImplement = function () {
     this.registerByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),
@@ -1981,7 +1994,7 @@ let PlayerServiceImplement = function () {
     this.loginByPhoneNumberAndPassword.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now
-        if (data && data.subPlatformId == '402') {
+        if (data && data.platformId == '4' && (data.subPlatformId == '402' || data.subPlatformId == '403')) {
             wsFunc.response(conn, {
                 status: constServerCode.COMMON_ERROR,
                 errorMessage: localization.translate("Please contact CS for latest app", conn.lang, conn.platformId),

@@ -1,18 +1,3 @@
-const sampleData = {
-    createDownLinePartner: `{
-    "data": [{
-        "playerName": "yu***nceplatinumdragon", // 玩家名称
-        "playerLevel": "普通会员", // 玩家等级
-        "lastUpdate": "2017-12-01T09:27:55.916Z",  // 最后更新时间
-        "points": 67  // 分数
-    },{
-        "playerName": "yu***ncetopazdragon",
-        "playerLevel": "普通会员",
-        "lastUpdate": "2017-12-18T07:02:38.172Z",
-        "points": 9
-    },… // 重复次数根据totalRank
-}`,
-}
 
 let register = {
     name:"注册",

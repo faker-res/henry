@@ -57,6 +57,7 @@ var roleSchema = require('./../schema/role');
 var apiUserSchema = require('./../schema/apiUser');
 
 var gameTypeSchema = require('./../schema/gameType');
+var gameTypeConfigSchema = require('./../schema/gameTypeConfig');
 var gameSchema = require('./../schema/game');
 var gameProviderSchema = require('./../schema/gameProvider');
 
@@ -147,6 +148,7 @@ var themeSettingModel = db_admin.model('themeSetting', themeSettingSchema, 'them
 var platformGameStatusModel = db_admin.model('platformGameStatus', platformGameStatusSchema, 'platformGameStatus');
 
 var gameTypeModel = db_admin.model('gametype', gameTypeSchema, 'gameType');
+var gameTypeConfigModel = db_admin.model('gameTypeConfig', gameTypeConfigSchema, 'gameTypeConfig');
 var gameModel = db_admin.model('game', gameSchema, 'game');
 var gameProviderModel = db_admin.model('gameProvider', gameProviderSchema, 'gameProvider');
 
@@ -482,6 +484,9 @@ let paymentMonitorFollowUpModel = dbLogs2.model('paymentMonitorFollowUp', paymen
 let playerConsumptionHourSummarySchema = require('./../schema/logs2/playerConsumptionHourSummary');
 let playerConsumptionHourSummaryModel = dbLogs2.model('playerConsumptionHourSummary', playerConsumptionHourSummarySchema, 'playerConsumptionHourSummary');
 
+let playerTopUpHourSummarySchema = require('./../schema/logs2/playerTopUpHourSummary');
+let playerTopUpHourSummaryModel = dbLogs2.model('playerTopUpHourSummary', playerTopUpHourSummarySchema, 'playerTopUpHourSummary');
+
 let commissionBBSchema = require('./../schema/commissionBB');
 let commissionBBModel = dbLogs2.model('commissionBB', commissionBBSchema, 'commissionBB');
 
@@ -778,6 +783,7 @@ var dbProperties = {
     collection_platformBlackWhiteListing: platformBlackWhiteListingModel,
 
     collection_gameType: gameTypeModel,
+    collection_gameTypeConfig: gameTypeConfigModel,
     collection_game: gameModel,
     collection_gameProvider: gameProviderModel,
     collection_gameProviderGroup: gameProviderGroupModel,
@@ -893,6 +899,7 @@ var dbProperties = {
     collection_playerConsumptionWeekSummary: playerConsumptionWeekSummaryModel,
     collection_playerGameTypeConsumptionDaySummary: playerGameTypeConsumptionDaySummaryModel,
     collection_playerGameTypeConsumptionWeekSummary: playerGameTypeConsumptionWeekSummaryModel,
+    collection_playerTopUpHourSummary: playerTopUpHourSummaryModel,
 
 
     collection_commissionBB: commissionBBModel,

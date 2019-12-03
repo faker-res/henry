@@ -285,6 +285,10 @@ function postPMSWithdrawalProposal (reqData, paymentSystemKey) {
     return postRequest(reqData, 'getCashOutListByProposal', 'POST', paymentSystemKey);
 }
 
+function postCreateFixedTopUpProposal (reqData, paymentSystemKey) {
+    return postRequest(reqData, 'requestFixedAmountMerchant', 'POST', paymentSystemKey);
+}
+
 module.exports = {
     getMinMax: getMinMax,
     getTopupLobbyAddress: getTopupLobbyAddress,
@@ -322,5 +326,6 @@ module.exports = {
     postCashoutList: postCashoutList,
     patchSubTopupTypePermission: patchSubTopupTypePermission,
     postBatchSubTopupTypePermission: postBatchSubTopupTypePermission,
-    postPMSWithdrawalProposal: postPMSWithdrawalProposal
+    postPMSWithdrawalProposal: postPMSWithdrawalProposal,
+    postCreateFixedTopUpProposal: postCreateFixedTopUpProposal
 };

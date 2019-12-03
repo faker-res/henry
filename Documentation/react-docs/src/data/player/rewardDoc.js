@@ -1,67 +1,66 @@
 import rewardFlow from './../../img/reward.png';
 const sampleData = {
-    getRewardList: `{
-        name: String|优惠名称
-        code: String|优惠代码
-        description: String|优惠详情
-        validStartTime: String|优惠开始时间
-        validEndTime: String|优惠结束时间
-        groupName: String|优惠分组名称
-        showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
-        referralPeriod: String|推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
-        condition: {
-            "requiredBankCard": Boolean|（领优惠中）是否有绑定提款资料
-            "isDynamicRewardTopUpAmount": Boolean|优惠金额随着存款变动
-            "referralRewardMode": String|推荐人优惠模式(1 - 投注条件, 2 - 存款条件)
-            "canApplyFromClient": Boolean|前端展示按钮
-            "visibleForDevice": Array|前端设备可见
-            "allowApplyAfterWithdrawal": Boolean|（领优惠前）检查最新存款后有审核中、已执行的提款记录仍可申请
-            "interval": String|优惠周期
-            "isPlayerLevelDiff": Boolean|前端设备可见
-            "validEndTime": DateTime|优惠开始时间
-            "validStartTime": DateTime|优惠结束时间
-            "isIgnoreAudit": Number|X 元以下优惠自动执行（忽略审核部)
-            "showInRealServer": Number|正式站展示
-            "imageUrl": Array|前端展示图片网址/imageUrl
-            "applyType": String|优惠周期不符合优惠提案生成方式
-            "forbidApplyReward": Array|（领优惠前）检查周期内不允许同时领取其他优惠
-        }
-        param: {
-            rewardParam: [
+getRewardList: `{
+    name: String|优惠名称
+    code: String|优惠代码
+    description: String|优惠详情
+    validStartTime: String|优惠开始时间
+    validEndTime: String|优惠结束时间
+    groupName: String|优惠分组名称
+    showInRealServer： String|正式站是否展示（0：不展示、1：展示、预设1）
+    referralPeriod: String|推荐人优惠组 - 被推荐人周期： 1 - 日; 2 - 周; 3 - 月; 4 - 年; 5 - 无周期
+    condition: {
+        "requiredBankCard": Boolean|（领优惠中）是否有绑定提款资料
+        "isDynamicRewardTopUpAmount": Boolean|优惠金额随着存款变动
+        "referralRewardMode": String|推荐人优惠模式(1 - 投注条件, 2 - 存款条件)
+        "canApplyFromClient": Boolean|前端展示按钮
+        "visibleForDevice": Array|前端设备可见
+        "allowApplyAfterWithdrawal": Boolean|（领优惠前）检查最新存款后有审核中、已执行的提款记录仍可申请
+        "interval": String|优惠周期
+        "isPlayerLevelDiff": Boolean|前端设备可见
+        "validEndTime": DateTime|优惠开始时间
+        "validStartTime": DateTime|优惠结束时间
+        "isIgnoreAudit": Number|X 元以下优惠自动执行（忽略审核部)
+        "showInRealServer": Number|正式站展示
+        "imageUrl": Array|前端展示图片网址/imageUrl
+        "applyType": String|优惠周期不符合优惠提案生成方式
+        "forbidApplyReward": Array|（领优惠前）检查周期内不允许同时领取其他优惠
+    }
+    param: {
+        rewardParam: [
+          {
+            "levelId": 0,
+            "value": [
               {
-                "levelId": 0,
-                "value": [
-                  {
-                    //推荐人优惠 - 模式(投注条件)
-                    "spendingTimes": Number|解锁流水（优）X倍
-                    "maxRewardAmount": Number|优惠金额上限
-                    "rewardPercentage": Double|推荐人返利金额（优惠比例）
-                    "playerValidConsumption": Number|被推荐人有效投注额
-                    
-                    
-                    //推荐人优惠 - 模式(存款条件) - 优惠金额随着存款变动
-                    "spendingTimes": Number|解锁流水（优）X倍
-                    "maxRewardAmount": Number|优惠金额上限
-                    "maxRewardInSingleTopUp": Number|单笔最高优惠金额
-                    "rewardPercentage": Double|推荐人赠送比例
-                    "topUpCount": Number|被推荐人存款笔数
-                    "firstTopUpAmount": Number|被推荐人首次单笔存款额
-                    
-                    
-                    //推荐人优惠 - 模式(存款条件) 
-                    "totalTopUpAmount": Number|被推荐人存款总额
-                    "topUpCount": Number|被推荐人存款笔数
-                    "rewardAmount": Number|优惠额
-                    "maxRewardAmount": Number|优惠金额上限
-                    "spendingTimes": Number|解锁流水（优）X倍
-                  }
-                ]
+                //推荐人优惠 - 模式(投注条件)
+                "spendingTimes": Number|解锁流水（优）X倍
+                "maxRewardAmount": Number|优惠金额上限
+                "rewardPercentage": Double|推荐人返利金额（优惠比例）
+                "playerValidConsumption": Number|被推荐人有效投注额
+                
+                
+                //推荐人优惠 - 模式(存款条件) - 优惠金额随着存款变动
+                "spendingTimes": Number|解锁流水（优）X倍
+                "maxRewardAmount": Number|优惠金额上限
+                "maxRewardInSingleTopUp": Number|单笔最高优惠金额
+                "rewardPercentage": Double|推荐人赠送比例
+                "topUpCount": Number|被推荐人存款笔数
+                "firstTopUpAmount": Number|被推荐人首次单笔存款额
+                
+                
+                //推荐人优惠 - 模式(存款条件) 
+                "totalTopUpAmount": Number|被推荐人存款总额
+                "topUpCount": Number|被推荐人存款笔数
+                "rewardAmount": Number|优惠额
+                "maxRewardAmount": Number|优惠金额上限
+                "spendingTimes": Number|解锁流水（优）X倍
               }
             ]
-        }
-    
+          }
+        ]
+    }
 }`,
-    getRewardTask:`{
+getRewardTask:`{
     "_id": "5801d011696f0b3448da40bd",
     "playerId": "57bbb966e2d544e224d6f11c",
     "type": "FirstTopUp",  任务类型
@@ -100,7 +99,7 @@ const sampleData = {
     "status": "Started"
 }`,
 
-    getPlayerRewardList:`{
+getPlayerRewardList:`{
     "stats": {
         "totalCount": 1,  //查询记录总数量，用于分页
         "startIndex": 0  //查询结果记录开始index
@@ -120,7 +119,7 @@ const sampleData = {
     ]  //查询列表
 }`,
 
-    getRewardApplicationData:`{
+getRewardApplicationData:`{
     code: 优惠唯一代码
     eventName: 优惠名称
     rewardType：优惠类型
@@ -200,7 +199,7 @@ const sampleData = {
     }  
 }`,
 
-    applyRewardEvent:`{
+applyRewardEvent:`{
     rewardAmount: 优惠额度
     selectedReward: {
         //随机抽奖组优惠
@@ -208,7 +207,7 @@ const sampleData = {
     }
 }`,
 
-    getRewardRanking:`{
+getRewardRanking:`{
     "stats": {
         "totalCount": 1, //数据总数
         "totalPage": 1, //一共多少页
@@ -251,8 +250,25 @@ const sampleData = {
         }  
     }
 }`,
-
-    getConsumeRebateAmount:`{
+requestConsumeRebate: `[
+    [
+        {
+        "_id": "5de5e36f69f259297b08f109",
+        "gameType": "7",
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "playerId": "5c0e3457e3c4bc102baa2cc6", //玩家ID
+        "summaryDay": "2019-12-03T04:00:00.000Z",
+        "nonXIMAAmt": 0,
+        "consumptionRecords": [],
+        "dirtyDate": "2019-12-03T04:25:15.344Z", /
+        "createTime": "2019-12-03T04:25:15.344Z", //创建时间
+        "bDirty": true,
+        "validAmount": 200,
+        "amount": 200
+        }
+    ]
+]`,
+getConsumeRebateAmount:`{
     "7": {  //游戏类型，对应获取游戏类型接口
         "consumptionAmount": 1000,  //消费额度
         "returnAmount": 50,  //返点额度
@@ -265,7 +281,7 @@ const sampleData = {
     }
 }`,
 
-    getConsumeRebateDetail:`{
+getConsumeRebateDetail:`{
    "totalAmount": 1.5, //总返点额度
    "totalConsumptionAmount": 150,
    "startTime": "2019-02-25T04:00:00.000Z", //周期开始时间
@@ -318,7 +334,7 @@ const sampleData = {
     }]
     }`,
 
-    getPlayerReferralList:`{
+getPlayerReferralList:`{
     "stats": {
         "totalCount": 1,  //查询记录总数量，用于分页
         "startIndex": 0  //查询结果记录开始index
@@ -333,12 +349,12 @@ const sampleData = {
     }, ... ]
 }`,
 
-    getConsecutiveLoginRewardDay:`{
+getConsecutiveLoginRewardDay:`{
     "dayIndex": 1,  //累计签到奖励天数
     "isApplied": false  //是否已领取
 }`,
 
-    getPromoCode:`{
+getPromoCode:`{
     "showInfo": 1,
     "usedList": [ //已经使用的名单{
         "title": "5元",
@@ -367,7 +383,7 @@ const sampleData = {
     "bonusList": [] // 中奖名单列表
 }`,
 
-    getLimitedOffers:`{
+getLimitedOffers:`{
     "time": 所有礼包时间,
     "secretList": [不显示价格列表{
         "_id": 申请ID,
@@ -395,7 +411,7 @@ const sampleData = {
     "normalList": [显示价格列表]
 }`,
 
-    applyLimitedOffers:`{
+applyLimitedOffers:`{
     "_id": "5a543f9df6f6cf61677ac492",
     "proposalId": "152201", //提案号
     "mainType": "Others",
@@ -440,13 +456,13 @@ const sampleData = {
     "timeLeft": 299 //剩余时间
 }`,
 
-    getLimitedOfferBonus:`[{
+getLimitedOfferBonus:`[{
     "accountNo": "XXX",
     "bonus": 200,
     "time": "2018-01-09T01:03:39.288Z"
 }]`,
 
-    getSignInfo:`{
+getSignInfo:`{
     "startTime": "2017-11-01T07:55:08.633Z", // 周期开始时间
     "endTime": "2018-05-25T07:55:08.656Z", // 周期结束时间
     "deposit": 15, // 需求存款额度
@@ -458,8 +474,62 @@ const sampleData = {
         "requestedTimes": 20, // 流水倍数
     }]
 }`,
-
-    getTopUpPromoList:`{
+getSignBonus: `{
+    "_id": "5de5dc9261d2c605c34823f5",
+    "proposalId": "602465", //提案号
+    "type": {
+        "_id": "5de5cccd0d71719dd7b497d6",
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "name": "PlayerConsecutiveRewardGroup",
+        "process": "5de5cccd0d71719dd7b497cd",
+        "executionType": "executePlayerConsecutiveRewardGroup",
+        "rejectionType": "rejectPlayerConsecutiveRewardGroup"
+    },
+    "mainType": "Reward",
+    "status": "Approved",
+    "device": "1",
+    "inputDevice": 1,
+    "processedTimes": 0,
+    "settleTime": "2019-12-03T03:54:58.286Z",
+    "expirationTime": "9999-12-31T23:59:59.000Z",
+    "noSteps": true,
+    "userType": "0",
+    "entryType": "0",
+    "priority": "0",
+    "data": {
+        "realNameBeforeEdit": "testagain", //玩家真实姓名（编辑前）
+        "proposalPlayerLevel": "普通会员", //玩家等级
+        "playerLevelName": "普通会员", //玩家等级
+        "proposalPlayerLevelValue": 0, //玩家提案值
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "applyTargetDate": "2019-12-02T16:00:00.000Z",
+        "consecutiveNumber": 2, //玩家累计登录天数
+        "settlementEndTime": "2019-12-08T16:00:00.000Z", //结算截至时间
+        "settlementStartTime": "2019-12-01T16:00:00.000Z", //结算开始时间
+        "consumptionSlipNo": null,
+        "forbidWithdrawIfBalanceAfterUnlock": 0,
+        "useConsumption": false,
+        "forbidWithdrawAfterApply": false,
+        "isIgnoreAudit": true,
+        "eventCode": "tt", //优惠代码
+        "eventName": "testing", //优惠名称
+        "eventId": "5de5cd263cedd805bf005d0c", //优惠ID
+        "spendingAmount": 25, //解锁流水额
+        "rewardAmount": 5, //优惠额
+        "platformObjId": "5733e26ef8c8a9355caf49d8",
+        "realName": "testagain", //玩家真实姓名
+        "playerName": "test112", //玩家账号
+        "playerId": "7325", //玩家ID
+        "playerObjId": "5c0e3457e3c4bc102baa2cc6"
+    },
+    "createTime": "2019-12-03T03:54:58.286Z",
+    "creator": {
+        "id": "5c0e3457e3c4bc102baa2cc6",
+        "name": "test112",
+        "type": "player"
+    },
+}`,
+getTopUpPromoList:`{
     "bValid": false, // 支付状态 （跟status一样，不过是以boolean显示，只限支付宝转账支付出现）
     "singleLimit": 0, // 单次充值最高允许额度 （只限支付宝转账支付出现）
     "type": 99, // 充值方式表, 1 - 9 请参照 充值方式表, 98 - 微信转账支付, 99 - 支付宝转账支付
@@ -475,7 +545,7 @@ const sampleData = {
     "rewardPercentage": 3
 }`,
 
-    getSlotInfo:`{
+getSlotInfo:`{
        "startTime": "2017-11-22 00:00:00",//开始时间
        "endTime": "2017-12-31 23:59:59",//结束时间
        "list":[{
@@ -495,12 +565,12 @@ const sampleData = {
        “appliedTimes”: 0, // 周期内已领取优惠次数，设置最高领取数后才会出现
     }`,
 
-    getTopUpRewardDayLimit:`{
-        applied: 已申请数量
+getTopUpRewardDayLimit:`{
+        applied: 已申请数量f
         balance: 剩余数量
     }`,
 
-    applyPromoCode:`{
+applyPromoCode:`{
     "_id": "59c0bb967227a82de217fa65",
     "expirationTime": "2017-09-19T16:00:00.000Z",
     "amount": 1,
@@ -519,7 +589,7 @@ const sampleData = {
     "disableWithdraw": true
 }`,
 
-    markPromoCodeAsViewed:`{
+markPromoCodeAsViewed:`{
     "_id": "59c0bb967227a82de217fa65",
     "expirationTime": "2017-09-19T16:00:00.000Z",
     "amount": 1,
@@ -538,7 +608,7 @@ const sampleData = {
     "disableWithdraw": true
 }`,
 
-    getOpenPromoCode:`{
+getOpenPromoCode:`{
     "showInfo": 1,
     "usedList": [], //已经使用的名单
     "noUseList": [ //尚未使用{
@@ -565,7 +635,7 @@ const sampleData = {
     }
 }`,
 
-    getValidFirstTopUpRecordList:`{
+getValidFirstTopUpRecordList:`{
     "stats": {
         "totalCount": 1,  //查询记录总数量，用于分页
         "totalAmount": 100,  //查询结果总额度
@@ -585,7 +655,7 @@ const sampleData = {
     }]
 }`,
 
-    getValidTopUpReturnRecordList:`{
+getValidTopUpReturnRecordList:`{
     "stats": {
         "totalCount": 1,  //查询记录总数量，用于分页
         "totalAmount": 100,  //查询结果总额度
@@ -605,7 +675,7 @@ const sampleData = {
     }]
 }`,
 
-    getValidTopUpRewardRecordList:`{
+getValidTopUpRewardRecordList:`{
     "stats": {
         "totalCount": 1,  //查询记录总数量，用于分页
         "totalAmount": 100,  //查询结果总额度
@@ -769,7 +839,8 @@ let reward = {
                 { param: "eventCode", mandatory: "否", type: "int", content: "该洗码的优惠代码，用在有两种洗码的情况" }
             ],
             respondSuccess:{
-                status: 200
+                status: 200,
+                data: sampleData.requestConsumeRebate
             },
             respondFailure: {
                 status: "4xx"
@@ -883,7 +954,8 @@ let reward = {
                                                                              1:显示` }
             ],
             respondSuccess:{
-                status: 200
+                status: 200,
+                data: "0 / 1"
             },
             respondFailure: {
                 status: "4xx",
@@ -938,11 +1010,11 @@ let reward = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{}"
+                data: sampleData.getSignBonus
             },
             respondFailure: {
                 status: "4xx",
-                data: "-null"
+                data: "null"
             }
         },
 

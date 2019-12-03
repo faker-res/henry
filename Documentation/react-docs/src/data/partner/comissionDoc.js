@@ -326,7 +326,7 @@ let commission = {
         partnerCreditToPlayer:{
             title: " 代理转金额给下线",
             serviceName: "partner",
-            functionName: "getCommissionProposalList",
+            functionName: "partnerCreditToPlayer",
             desc: "",
             requestContent:[
                 { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },

@@ -1129,7 +1129,7 @@ let information = {
             functionName: "updatePassword",
             desc: "",
             requestContent: [
-                { param: "partnerId", mandatory: "是", type: "String", content: "平台ID " },
+                { param: "partnerId", mandatory: "是", type: "String", content: "代理ID " },
                 { param: "oldPassword", mandatory: "是", type: "String", content: "旧密码" },
                 { param: "newPassword", mandatory: "是", type: "String", content: "新密码" },
 

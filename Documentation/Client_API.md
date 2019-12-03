@@ -122,6 +122,7 @@
 	40. [获取玩家『总』有效投注额](#获取玩家(总)有效投注额)
 	41. [(第三方上下分接口) 快付充值接口](#快付充值接口(第三方上下分接口))
 	42. [接收额度变化通知](#接收额度变化通知)
+	43. [(固定额度充值接口) 创建充值提案](#创建充值提案(固定额度充值接口))
 6. [充值意向服务](#充值意向服务：)
 	1. [添加充值意向](#添加充值意向)
 	2. [修改充值意向](#修改充值意向)
@@ -1942,6 +1943,7 @@ API说明：
 				referralId: "4322" //推荐人邀请码
 				deviceType: 1 //选填|设备类型列表
 				subPlatformId: 401 //选填|子平台列表
+				domain: "domain.com" //选填｜当下注册域名
 			}
 	* 响应内容：`{status: 200/4xx, data: playerObj, token: xxxxxxxx}`
 	* 操作成功： status--200, data--玩家对象(包含token), token--玩家atock, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）
@@ -2952,6 +2954,40 @@ API说明：
         data: -
         errorMessage: 错误信息
         ```
+        
+<div id='创建充值提案(固定额度充值接口)'></div>
+
+* **43. (固定额度充值接口) 创建充值提案**
+	* 玩家选择固定金额后提交，通过此接口生成提案后发给PMS, PMS返回链接，系统返回跳转链接。
+	* 需登入
+	* name: createFixedTopupProposal
+	* 请求内容：
+		* ```
+			{
+			    platformId: 4,
+			    topUpType: 2,
+			    depositMethod: 3,
+				amount: 300,
+				clientType: xxx，
+				bonusCode: 2211,
+				limitedOfferObjId: _1255443,
+				topUpReturnCode: ‘code_01’
+			}
+    * platformId: 平台ID,
+    * topUpType: 充值方式,
+    * depositMethod: 次级充值方式,
+	* amount: 充值金额,
+	* clientType (客户端类型):
+		* 1-- Web 电脑端
+		* 2-- H5 手机端（包括：包壳APP）
+		* 4-- APP APP端 (原生APP)
+	* bonusCode: (可选) 优惠代码
+	* limitedOfferObjId: (可选) 指定充值应用于哪个秒杀礼包
+	* topUpReturnCode: (可选) 指定充值应用于哪个秒存送金
+	* 响应内容：`{status: 200/4xx, data:”http://url”, errorMessage: “xxxxxxx”}`
+	* status: 操作状态， 200--成功， 4xx--失败
+	* data: 跳转链接
+	* errorMessage: 详细错误信息
 
 # 充值意向服务：
 用于关注玩家充值过程中是否遇到问题，便于改进充值界面以及在适当的时候为玩家提供帮助。
@@ -7001,6 +7037,9 @@ API说明：
 				}
 				getPartnerConfig
 	* 请求失败: `{"status": 400,"errorMessage": "No platform exists with id: 11","data": null}`
+	* 1 代表 WEB
+    * 3 代表 H5
+    * 没提供device 参数的话会根据user agent来判定
 
 <div id='请求客服会电'></div>
 

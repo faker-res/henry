@@ -1061,6 +1061,7 @@ var proposalExecutor = {
                 //valid data
                 let updateMultipleBankInfo = false;
                 let playerData;
+                console.log('##han-prod proposalData===', proposalData);
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
@@ -1072,7 +1073,7 @@ var proposalExecutor = {
                                 delete playerUpdate.playerId;
                                 delete playerUpdate.playerName;
                                 delete playerUpdate._id;
-                                if(playerUpdate.bankName && playerUpdate.bankAccountName){
+                                if (playerUpdate.bankName && playerUpdate.bankAccountName) {
                                     playerUpdate.realName = playerUpdate.bankAccountName;
                                 }
                                 if (playerUpdate.bankName2 || playerUpdate.bankName3) {
@@ -1085,11 +1086,18 @@ var proposalExecutor = {
                                     'data.playerName': proposalData.data.playerName,
                                     'data.playerId': proposalData.data.playerId,
                                 };
+                                console.log('##han-prod propQuery===', propQuery);
+                                console.log('##han-prod playerUpdate===', playerUpdate);
+                                console.log('##han-prod updateMultipleBankInfo===', updateMultipleBankInfo);
 
                                 return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
-                                        if (proposal && proposal.length > 1) {
+                                        console.log('##han-prod proposal===', proposal);
+                                        console.log('##han-prod proposal.length===', proposal.length);
+
+                                        if (proposal && proposal.length > 0) {
                                             if (playerUpdate.isDeleteBank2 || playerUpdate.isDeleteBank3) {
+                                                console.log('##han-prod DELETE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
@@ -1097,13 +1105,16 @@ var proposalExecutor = {
                                                 ).lean();
                                             }
                                             if (updateMultipleBankInfo) {
+                                                console.log('##han-prod TRUE===');
                                                 return dbconfig.collection_playerMultipleBankDetailInfo.findOneAndUpdate(
                                                     {playerObjId: proposalData.data._id, platformObjId: data.platform},
                                                     playerUpdate,
                                                     {upsert: true, new: true}
                                                 ).lean().then(
                                                     bankData => {
+                                                        console.log('##han-prod bankData===', bankData);
                                                         if (bankData && bankData._id) {
+                                                            console.log('##han-prod UPDATE===');
                                                             return dbconfig.collection_players.findOneAndUpdate(
                                                                 {_id: data._id, platform: data.platform},
                                                                 {multipleBankDetailInfo: bankData._id},
@@ -1116,13 +1127,17 @@ var proposalExecutor = {
                                                     }
                                                 );
                                             } else {
+                                                console.log('##han-prod HERE===11');
                                                 return dbconfig.collection_players.findOneAndUpdate(
                                                     {_id: data._id, platform: data.platform},
                                                     playerUpdate,
                                                     {returnNewDocument: true}
                                                 ).lean();
                                             }
-                                        } else {
+                                        }
+
+                                        if (proposal && proposal.length === 0) {
+                                            console.log('##han-prod HERE===22');
                                             if (playerUpdate.bankAccountName) {
                                                 playerUpdate.realName = playerUpdate.bankAccountName;
                                             }
@@ -1155,6 +1170,7 @@ var proposalExecutor = {
                         });
                     }).then(
                         function (data) {
+                            console.log('##han-prod data===', data);
                             let loggerInfo = {};
                             if (proposalData.data.bankName) {
                                 loggerInfo = {
@@ -1200,6 +1216,7 @@ var proposalExecutor = {
                             loggerInfo.creatorType = constProposalUserType.SYSTEM_USERS;
                             loggerInfo.creatorObjId = proposalData.creator ? proposalData.creator.id : null;
 
+                            console.log('##han-prod loggerInfo===', loggerInfo);
                             // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'bankAccount', proposalData.data.bankAccount).then();
                             dbLogger.createBankInfoLog(loggerInfo);
                             //SMSSender.sendByPlayerObjId(proposalData.data._id, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
@@ -2233,7 +2250,8 @@ var proposalExecutor = {
                     }
                 }
                 dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
-                    .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    .populate({path: "platform", model: dbconfig.collection_platform})
+                    .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                     player => {
                         if (!player) {
                             return Q.reject({
@@ -2263,19 +2281,21 @@ var proposalExecutor = {
                         //     }
                         // }
 
+                       let bankDetail = getWithdrawalBankInfo(player, player.multipleBankDetailInfo, proposalData);
+                        console.log('bankDetail ==>', bankDetail);
                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
                        let message = {
                            proposalId: proposalData.proposalId,
                            platformId: player.platform.platformId,
                            amount: proposalData.data.amount,
-                           bankTypeId: player.bankName || "",
-                           accountName: player.bankAccountName || "",
-                           accountCity: player.bankAccountCity || "",
-                           accountProvince: player.bankAccountProvince || "",
-                           accountNo: player.bankAccount ? player.bankAccount.replace(/\s/g, '') : "",
-                           bankAddress: player.bankAddress || "",
-                           bankName: player.bankName || "",
+                           bankTypeId: (bankDetail && bankDetail.bankName) || player.bankName || "",
+                           accountName: (bankDetail && bankDetail.bankAccountName) || player.bankAccountName || "",
+                           accountCity: (bankDetail && bankDetail.bankAccountCity) || player.bankAccountCity || "",
+                           accountProvince: (bankDetail && bankDetail.bankAccountProvince) || player.bankAccountProvince || "",
+                           accountNo: (bankDetail && bankDetail.bankAccount) || (player.bankAccount ? player.bankAccount.replace(/\s/g, '') : ""),
+                           bankAddress: (bankDetail && bankDetail.bankAddress) || player.bankAddress || "",
+                           bankName: (bankDetail && bankDetail.bankName) || player.bankName || "",
                            loginName: player.name || "",
                            applyTime: cTimeString,
                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
@@ -2305,6 +2325,17 @@ var proposalExecutor = {
                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
                                            };
+
+                                           if (proposalData && proposalData.data &&
+                                               !proposalData.data.bankAccountWhenApprove && !proposalData.data.bankNameWhenApprove &&
+                                               proposalData.data.decodedBankAccountWhenSubmit && proposalData.data.bankNameWhenSubmit &&
+                                               bankDetail && bankDetail.bankName && bankDetail.bankAccount &&
+                                               (bankDetail.bankName === proposalData.data.bankNameWhenSubmit) &&
+                                               (bankDetail.bankAccount === proposalData.data.decodedBankAccountWhenSubmit)) {
+                                               dataToUpdate["data.bankAccountWhenApprove"] = dbUtil.encodeBankAcc(bankDetail.bankAccount);
+                                               dataToUpdate["data.bankNameWhenApprove"] = bankDetail.bankName;
+                                           }
+
                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
                                            return bonusData;
                                        });
@@ -2352,6 +2383,58 @@ var proposalExecutor = {
                        // }
                     }
                 ).then(deferred.resolve, deferred.reject);
+
+                function getWithdrawalBankInfo (player, multipleBankDetailInfo, proposalData) {
+                    let bankInfo = {
+                        bankAccountName: player.bankAccountName,
+                        bankAccountCity: player.bankAccountCity,
+                        bankAccountProvince: player.bankAccountProvince,
+                        bankAccount: player.bankAccount,
+                        bankAddress: player.bankAddress,
+                        bankName: player.bankName
+                    };
+
+                    if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount2
+                        && multipleBankDetailInfo.bankName2
+                        && multipleBankDetailInfo.bankAccountName2
+                        && proposalData
+                        && proposalData.data.decodedBankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount2 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName2,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity2,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince2,
+                            bankAccount: multipleBankDetailInfo.bankAccount2,
+                            bankAddress: multipleBankDetailInfo.bankAddress2,
+                            bankName: multipleBankDetailInfo.bankName2
+                        };
+
+                    } else if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount3
+                        && multipleBankDetailInfo.bankName3
+                        && multipleBankDetailInfo.bankAccountName3
+                        && proposalData
+                        && proposalData.data.decodedBankAccountWhenSubmit
+                        && proposalData.data.bankNameWhenSubmit
+                        && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount3 &&
+                            proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 &&
+                            proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)) {
+                        bankInfo = {};
+                        bankInfo = {
+                            bankAccountName: multipleBankDetailInfo.bankAccountName3,
+                            bankAccountCity: multipleBankDetailInfo.bankAccountCity3,
+                            bankAccountProvince: multipleBankDetailInfo.bankAccountProvince3,
+                            bankAccount: multipleBankDetailInfo.bankAccount3,
+                            bankAddress: multipleBankDetailInfo.bankAddress3,
+                            bankName: multipleBankDetailInfo.bankName3
+                        };
+                    }
+
+                    return bankInfo;
+                };
             },
 
             executePartnerBonus: function (proposalData, deferred) {

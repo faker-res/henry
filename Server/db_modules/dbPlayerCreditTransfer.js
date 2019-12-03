@@ -1176,7 +1176,7 @@ let dbPlayerCreditTransfer = {
      * @param useEbetWallet
      * @constructor
      */
-    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
+    TransferPlayerCreditFromProviderWithProviderGroup: async function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
         let pCTFP = this;
         let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
@@ -1189,8 +1189,31 @@ let dbPlayerCreditTransfer = {
         let updateObj = {};
         let eBetWalletObj = {};
 
+        // check if player.lastplayedprovider is the same as current providerid
+        console.log("TransferPlayerCreditFromProviderWithProviderGroup**");
+        console.log("playerObjId", playerObjId);
+        if(!useEbetWallet) {
+            let playerData = await dbConfig.collection_players.findOne({_id: playerObjId}).populate({
+                path: "lastPlayedProvider",
+                model: dbConfig.collection_gameProvider
+            }).lean();
+
+            console.log("playerData.lastPlayedProvider", playerData && playerData.lastPlayedProvider ? playerData.lastPlayedProvider : null);
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+            if ((playerData && playerData.lastPlayedProvider && playerData.lastPlayedProvider._id) &&
+                playerData.lastPlayedProvider._id != providerId) {
+                gameProviderGroup = null;
+                providerId = playerData.lastPlayedProvider._id;
+            }
+            console.log("AFTER MAKE OVER");
+            console.log("gameProviderGroup", gameProviderGroup);
+            console.log("providerId", providerId);
+        }
+
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
+                console.log("zm checkpoint 1", playerId, res);
                 if (res && res[1]) {
                     amount = res[0];
                     updateObj = res[1];
@@ -1236,14 +1259,20 @@ let dbPlayerCreditTransfer = {
                     } else if (res[0] == 0 && res[2]) {  //if the amount is 0 but there is reward task group
                         return true;
                     } else {
+                        console.log("zm checkpoint 2", playerId, res);
                         // should not reach here
                         return errorUtils.reportError(res);
                     }
                 }
+            },
+            err => {
+                console.log("zm checkpoint err 1", playerId, err)
+                return Promise.reject(err);
             }
         ).then(
             res => {
                 if (res) {
+                    console.log("zm checkpoint 3", playerId, res);
                     // CPMS Transfer out success
                     // Update reward task group if available
                     if (rewardGroupObj) {
@@ -1286,11 +1315,13 @@ let dbPlayerCreditTransfer = {
             },
             function (error) {
                 //log transfer error
+                console.log("zm checkpoint err 2", playerId, error)
                 return Promise.reject(error);
             }
         ).then(
             res => {
                 if (res) {
+                    console.log("zm checkpoint 4", playerId, res);
                     let updatePlayerObj = {
                         lastPlayedProvider: null,
                         $inc: {validCredit: updateObj.freeAmt}
@@ -1309,6 +1340,7 @@ let dbPlayerCreditTransfer = {
                     });
                 }
             }, function (err) {
+                console.log("zm checkpoint err 3", playerId, err)
                 return Q.reject({
                     status: constServerCode.PLAYER_REWARD_INFO,
                     name: "DataError",
@@ -1318,6 +1350,7 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
+                console.log("zm checkpoint 5", playerId, res);
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
@@ -1835,7 +1868,8 @@ let dbPlayerCreditTransfer = {
                                             transferOutErrorData.push(err);
                                             return errorUtils.reportError(err);
                                         });
-                                    }).then(delayTransferOut);
+                                    })
+                                        // .then(delayTransferOut);
                                 }
                             })
                         );

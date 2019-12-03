@@ -202,7 +202,6 @@ var dbPlatformGameGroup = {
                         }
                         return true;
                     });
-
                     for (var i = 0; i < gameGroup.games.length; i++) {
                         var game = gameGroup.games[i].game;
                         if (game) {
