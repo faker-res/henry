@@ -1906,7 +1906,10 @@ let dbPlayerInfo = {
             loginTime: data.registrationTime,
             isRealPlayer: data.isRealPlayer,
             isTestPlayer: data.isTestPlayer,
-            partner: data.partner ? data.partner : null
+            partner: data.partner ? data.partner : null,
+            deviceId: data.deviceId,
+            osType: data.osType,
+            loginDevice: data.loginDevice,
         };
 
         console.log('JY check input device 1=====:', recordData.userAgent);
@@ -7107,6 +7110,10 @@ let dbPlayerInfo = {
                     recordData.osType = playerData.osType;
                 }
 
+                if (playerData && playerData.loginDevice) {
+                    recordData.loginDevice = playerData.loginDevice;
+                }
+
                 if (recordData.inputDeviceType && (recordData.inputDeviceType == '5' || recordData.inputDeviceType == '6') && !playerData.osType) {
                     console.log('MT --checking if didnt sent osType', playerData);
                 }
@@ -7926,7 +7933,9 @@ let dbPlayerInfo = {
                     isRealPlayer: playerObj.isRealPlayer,
                     isTestPlayer: playerObj.isTestPlayer,
                     partner: playerObj.partner ? playerObj.partner : null,
-                    deviceId: playerData.deviceId
+                    deviceId: playerData.deviceId,
+                    osType: playerData.osType,
+                    loginDevice: playerData.loginDevice,
                 };
 
                 if (platformObj.usePointSystem) {
@@ -8328,7 +8337,10 @@ let dbPlayerInfo = {
                             userAgent: uaObj,
                             isRealPlayer: playerObj.isRealPlayer,
                             isTestPlayer: playerObj.isTestPlayer,
-                            partner: playerObj.partner ? playerObj.partner : null
+                            partner: playerObj.partner ? playerObj.partner : null,
+                            deviceId: inputData.deviceId,
+                            osType: inputData.osType,
+                            loginDevice: inputData.loginDevice,
                         };
 
                         if (platformObj.usePointSystem) {

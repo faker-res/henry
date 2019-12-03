@@ -2042,6 +2042,8 @@
                 table#gameTypeAnalysisLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 table.common-table.simple-table#gameTypeSummaryLayer4Table(style='margin-top:10px;font-size:12px')
 
+        div(ng-if='vm.showPageName=="PLATFORM_OVERVIEW_REPORT"')
+            include ./report-platform-overview
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
             .panel.panel-primary

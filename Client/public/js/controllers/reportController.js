@@ -11186,6 +11186,14 @@ define(['js/app'], function (myApp) {
 
 
 
+                } else if(reportName == "PLATFORM_OVERVIEW_REPORT") {
+                    tableId = "platformOverviewReportTable";
+                    tab = document.getElementById(tableId);
+
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" ;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[1].innerHTML + "</tr>";
+                    htmlContent += tab.getElementsByTagName('tbody')[0].innerHTML;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('tfoot')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>";
                 } else{
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
@@ -12313,6 +12321,13 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     break;
+                case 'PLATFORM_OVERVIEW_REPORT':
+                    vm.platformOverviewReport = {};
+                    vm.platformOverviewReportList = [];
+                    vm.platformOverviewReportSummary = {};
+                    utilService.actionAfterLoaded("#platformOverviewReport", function () {
+                        vm.commonInitTime(vm.platformOverviewReport, '#platformOverviewReport', null, true);
+                    });
             }
 
             function createMerGroupList(nameObj, listObj) {
@@ -13632,6 +13647,33 @@ define(['js/app'], function (myApp) {
                 $('#referralRewardReportTable').resize();
             }
         }
+        //#endregion
+
+        //#region Platform Overview Report
+        vm.searchPlatformOverviewReport = function () {
+            vm.platformOverviewReportList = [];
+            vm.platformOverviewReportSummary = {};
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#platformOverviewReportSpin').show();
+
+            let sendData = {
+                platformList: vm.platformOverviewReport.platformList,
+                startTime: vm.platformOverviewReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.platformOverviewReport.endTime.data('datetimepicker').getLocalDate(),
+                loginDevice: vm.platformOverviewReport.loginDevice
+            };
+
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getPlatformOverviewReport', sendData, function (data) {
+                findReportSearchTime();
+                console.log('searchPlatformOverviewReport', data);
+                $scope.$evalAsync(() => {
+                    vm.platformOverviewReportList = data && data.data && data.data.data ? data.data.data : [];
+                    vm.platformOverviewReportSummary = data && data.data && data.data.summary ? data.data.summary : {};
+                });
+                $('#platformOverviewReportSpin').hide();
+            });
+        };
         //#endregion
 
         // $scope.$on('$viewContentLoaded', function () {

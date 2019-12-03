@@ -5853,6 +5853,7 @@
   "AutoExportListOrMaxNumOfTxnEveryday": "每日 4AM 白名单电话自动出口/交易上限数量",
   "AutoExportListOrMaxNumOfTxnEverydayRead": "每日 4AM 白名单电话自动出口/交易上限数量(读)",
   "AutoExportListOrMaxNumOfTxnEverydayEdit": "每日 4AM 白名单电话自动出口/交易上限数量(编辑)",
+  "PLATFORM_OVERVIEW_REPORT": "产品总报表",
   "FINANCIAL_REPORT": "财务报表（存、取、平台费）",
   "Search Date (Start)": "查询日期（开始）",
   "Search Date (End)": "查询日期（结束）",
@@ -6209,5 +6210,18 @@
   "Limit Deduction": "上限扣除",
   "Other Deduction": "其他扣除",
   "Addition": "添加",
-  "creditChangeType": "修改额度类型"
+  "creditChangeType": "修改额度类型",
+  "Login Headcount": "登入人数",
+  "Total Consumption Headcount": "总投注人数",
+  "Total Top Up Headcount": "总存款人数",
+  "Total Bonus Headcount": "总提款人数",
+  "Top Up Ratio": "付费率",
+  "Registration Analysis": "开户分析",
+  "Top Up Total Count": "存款总笔数",
+  "Update Player Credit(Abnormal Deduction)": "额度加减（异常扣除）",
+  "Update Player Credit(Limit Deduction)": "额度加减（上限扣除）",
+  "Update Player Credit(Other Deduction)": "额度加减（其他扣除）",
+  "Update Player Credit(Addition)": "额度加减（添加）",
+  "Total Credit Deduction": "总扣除金额",
+  "Total Income(Top Up-Withdrawal)": "总收入（存款-提款）"
 }
