@@ -101,7 +101,7 @@
 
             tfoot
                 tr(ng-show='vm.platformOverviewReportList.length > 0')
-                    th {{ vm.platformOverviewReportSummary.platformName }}
+                    th.text-center {{'Totalsum' | translate}}
                     th {{ vm.platformOverviewReportSummary.loginPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.consumptionPlayerCount || 0 }}
                     th {{ vm.platformOverviewReportSummary.topUpPlayerCount || 0 }}
