@@ -432,6 +432,20 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.createCommonTopupProposal, [conn.playerId, data, lastLoginIp, "CLIENT"], isValidData);
     };
 
+    this.createFixedTopupProposal.expectsData = 'amount: Number';
+    this.createFixedTopupProposal.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            data.userAgent = uaParser(userAgentConn);
+            data.clientType = data.clientType || '1';
+        }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
+        let isValidData = Boolean(data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.createFixedTopupProposal, [conn.playerId, data, lastLoginIp, data.platformId], isValidData);
+    };
+
     /**
      * fukuaipay 快付财务系统专用
      * @type {string}

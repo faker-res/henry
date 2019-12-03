@@ -1708,6 +1708,12 @@ define(['js/app'], function (myApp) {
                     });
                     vm.getFeedbackDetailsAndDepartmentDerails(platformObjId);
                     break;
+                case "GAME_TYPE_ANALYSIS_REPORT":
+                    vm.getPlatformProvider(platformObjId);
+                    vm.getAllPromoteWay(platformObjId).then(() => {
+                        endLoadMultipleSelect('.spicker');
+                    });
+                    break;
             }
         };
 
@@ -1911,8 +1917,17 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'getRewardEventsForPlatform', {platform: platformQuery}, function (data) {
                 $scope.$evalAsync(() => {
-                    vm.rewardList = data.data;
-                    console.log('vm.rewardList', vm.rewardList);
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.forEach(item => {
+                            if (item) {
+                                let indexNo = vm.rewardList.findIndex(x => x && x.name && item.name && (x.name === item.name));
+
+                                if (indexNo == -1) {
+                                    vm.rewardList.push(item);
+                                }
+                            }
+                        })
+                    }
 
                     utilService.actionAfterLoaded("#proposalTablePage", function () {
                         setTimeout(()=>{
@@ -1979,23 +1994,26 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.paymentChannel = 'all';
             vm.queryTopup.platformList = [];
         }
-        vm.searchTopupRecord = function (newSearch, isExport = false) {
 
-            if (vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice && vm.queryTopup.loginDevice.length){
+        vm.searchTopupRecord = function (newSearch, isExport = false) {
+            if (
+                vm.queryTopup && vm.queryTopup.userAgent && vm.queryTopup.userAgent.length && vm.queryTopup.loginDevice
+                && vm.queryTopup.loginDevice.length
+            ){
                 return socketService.showErrorMessage($translate("Input Device (Old) and LoginDevice cannot be selected at the same time."));
             }
             vm.reportSearchTimeStart = new Date().getTime();
 
             $('#topupTableSpin').show();
 
-            var staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
+            let staArr = vm.queryTopup.status ? vm.queryTopup.status : [];
 
             if (staArr.length > 0) {
                 staArr.forEach(item => {
-                    if (item == "Success") {
+                    if (item === "Success") {
                         staArr.push("Approved");
                     }
-                    if (item == "Fail") {
+                    if (item === "Fail") {
                         staArr.push("Rejected");
                     }
                 })
@@ -2154,14 +2172,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.drawTopupReport = function (data, size, summary, newSearch, isExport) {
-            console.log('data', data);
             var tableOptions = {
                 data: data,
                 "order": vm.queryTopup.aaSorting || [[1, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [14]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [15]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [13]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -2247,14 +2264,10 @@ define(['js/app'], function (myApp) {
                             return "<div>" + data + addititionalText + "</div>";
                         }
                     },
-                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
                     {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
-                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
-                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
                     {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
-
                     {title: $translate('START_TIME'), data: "startTime$"},
                     {
                         title: $translate('Approved Time'), data: "endTime$",
@@ -2275,11 +2288,11 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.topupTable = $('#topupTable').DataTable(tableOptions);
             if(isExport){
-                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {14: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupExcelTable', tableOptions, {12: summary.amount});
                 $('#topupExcelTable_wrapper').hide();
                 vm.exportToExcel("topupExcelTable", "TOPUP_REPORT");
             }else{
-                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {14: summary.amount});
+                vm.topupTable = utilService.createDatatableWithFooter('#topupTable', tableOptions, {12: summary.amount});
                 vm.queryTopup.pageObj.init({maxCount: size}, newSearch);
 
                 $('#topupTable').off('order.dt');
@@ -2991,6 +3004,357 @@ define(['js/app'], function (myApp) {
                 vm.winRateReportLoadingStatus = err.message;
                 $scope.$evalAsync();
             }, true);
+        };
+
+        vm.getGameTypeAnalysisReportData = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#gameTypeAnalysisTableSpin').show();
+            vm.gameTypeLayer1 = true;
+            vm.gameTypeLayer2 = false;
+            vm.gameTypeLayer3 = false;
+            vm.gameTypeLayer4 = false;
+            if (!vm.gameTypeQuery || !vm.gameTypeQuery.platformId) {
+                return socketService.showErrorMessage($translate('Product Name is Mandatory'));
+            }
+
+            vm.curGameTypeQuery = $.extend(true, {}, vm.gameTypeQuery);
+            vm.curGameTypeQuery.platformId = vm.gameTypeQuery.platformId;
+            vm.curGameTypeQuery.gameTypeId = vm.gameTypeQuery.gameTypeId === "all" ? null : vm.gameTypeQuery.gameTypeId;
+            vm.curGameTypeQuery.providerId = vm.gameTypeQuery.providerId === "all" ? null : vm.gameTypeQuery.providerId;
+            vm.curGameTypeQuery.limit = 0;
+            vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
+            vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
+            vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
+            console.log('vm.curGameTypeQuery', vm.curGameTypeQuery);
+
+            utilService.getDataTablePageSize("#gameTypeAnalysisTablePage", vm.curGameTypeQuery, 30);
+
+            socketService.$socket($scope.AppSocket, 'gameTypeAnalysisReport', vm.curGameTypeQuery, function (data) {
+                console.log('getGameTypeAnalysisReportData', data);
+                findReportSearchTime();
+                vm.gameTypeAnalysisReportLoadingStatus = "";
+                $('#gameTypeAnalysisTableSpin').hide();
+                if (data.data && data.data.summaryData && data.data.summaryData.participantArr) {
+                    let participantArr = data.data.summaryData.participantArr;
+                    let uniqueParticipant = participantArr.filter((x, index, array) => array.indexOf(x) == index);
+                    data.data.summaryData.participantNumber = uniqueParticipant.length;
+                }
+
+                if (data && data.data && data.data.data) {
+                    data.data.data.map(item => {
+                        item.platformObjId = vm.gameTypeQuery.platformId;
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
+                        return item;
+                    })
+                }
+                vm.gameTypeSummaryData = data;
+                vm.gameTypeSummaryData.totalCount = data.data.data.length;
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#gameTypeAnalysisTableSpin').hide();
+                vm.gameTypeAnalysisReportLoadingStatus = err.message;
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.getGameTypeAnalysisByPlatform = function (platformObjId) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#gameTypeAnalysisTableSpin').show();
+            vm.gameTypeLayer2 = true;
+            vm.gameTypeLayer3 = false;
+            vm.gameTypeLayer4 = false;
+
+            vm.curGameTypeQuery = $.extend(true, {}, vm.gameTypeQuery);
+            vm.curGameTypeQuery.platformId = platformObjId;
+            vm.curGameTypeQuery.gameTypeId = vm.gameTypeQuery.gameTypeId === "all" ? null : vm.gameTypeQuery.gameTypeId;
+            vm.curGameTypeQuery.providerId = vm.gameTypeQuery.providerId === "all" ? null : vm.gameTypeQuery.providerId;
+            vm.curGameTypeQuery.limit = 0;
+            vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
+            vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
+            vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.listAllProviders = true;
+            console.log('vm.curGameTypeQuery', vm.curGameTypeQuery);
+
+            socketService.$socket($scope.AppSocket, 'gameTypeAnalysisReport', vm.curGameTypeQuery, function (data) {
+                console.log('getGameTypeAnalysisByPlatform', data);
+                vm.drawGameTypeAnalysisLayer2Report(data.data.data, data.data.data.length, {}, true);
+                findReportSearchTime();
+                vm.gameTypeAnalysisReportLoadingStatus = "";
+                $('#gameTypeAnalysisTableSpin').hide();
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#gameTypeAnalysisTableSpin').hide();
+                vm.gameTypeAnalysisReportLoadingStatus = err.message;
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.getGameTypeAnalysisByProvider = function (providerId, providerName, platformName, platformObjId) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#gameTypeAnalysisTableSpin').show();
+            vm.gameTypeLayer2 = true;
+            vm.gameTypeLayer3 = true;
+            vm.gameTypeLayer4 = false;
+
+            vm.curGameTypeQuery = $.extend(true, {}, vm.gameTypeQuery);
+            vm.curGameTypeQuery.platformId = platformObjId;
+            vm.curGameTypeQuery.gameTypeId = vm.gameTypeQuery.gameTypeId === "all" ? null : vm.gameTypeQuery.gameTypeId;
+            vm.curGameTypeQuery.providerId = vm.gameTypeQuery.providerId === "all" ? null : vm.gameTypeQuery.providerId;
+            vm.curGameTypeQuery.limit = 0;
+            vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
+            vm.curGameTypeQuery.csPromoteWay = vm.gameTypeQuery.csPromoteWay;
+            vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.listAllProviders = false;
+            vm.curGameTypeQuery.byProviders = true;
+            console.log('vm.curGameTypeQuery', vm.curGameTypeQuery);
+
+            socketService.$socket($scope.AppSocket, 'gameTypeAnalysisReport', vm.curGameTypeQuery, function (data) {
+                console.log('getGameTypeAnalysisByProvider', data);
+                vm.drawGameTypeAnalysisLayer3Report(data.data, data.data.length, {}, true);
+                findReportSearchTime();
+                vm.gameTypeAnalysisReportLoadingStatus = "";
+                $('#gameTypeAnalysisTableSpin').hide();
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#gameTypeAnalysisTableSpin').hide();
+                vm.gameTypeAnalysisReportLoadingStatus = err.message;
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.getGameTypeAnalysisByGameType = function (providerId, providerName, platformName, platformObjId) {
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#gameTypeAnalysisTableSpin').show();
+            vm.gameTypeLayer4 = true;
+
+            vm.curGameTypeQuery = $.extend(true, {}, vm.gameTypeQuery);
+            vm.curGameTypeQuery.platformId = platformObjId;
+            vm.curGameTypeQuery.providerName = providerName;
+            vm.curGameTypeQuery.limit = 0;
+            vm.curGameTypeQuery.providerId = providerId;
+            vm.curGameTypeQuery.startTime = vm.gameTypeQuery.startTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.endTime = vm.gameTypeQuery.endTime.data('datetimepicker').getLocalDate();
+            vm.curGameTypeQuery.loginDevice = vm.gameTypeQuery.loginDevice;
+
+            socketService.$socket($scope.AppSocket, 'getGameTypeAnalysisByGameType', vm.curGameTypeQuery, function(data) {
+                $('#gameTypeAnalysisTableSpin').hide();
+                if (data.data && data.data.summaryData && data.data.summaryData.participantArr) {
+                    let participantArr = data.data.summaryData.participantArr;
+                    let uniqueParticipant = participantArr.filter((x, index, array) => array.indexOf(x) == index)
+                    data.data.summaryData.participantNumber = uniqueParticipant.length;
+                }
+
+                if (data && data.data && data.data.data) {
+                    data.data.data.map(item => {
+                        item.platformName = platformName;
+                        item.platformObjId = platformObjId;
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
+                        return item;
+                    })
+                }
+
+                vm.drawGameTypeAnalysisLayer4Report(data.data.data, data.data.length, data.data.summaryData, true);
+                $scope.$evalAsync();
+            }, function(err) {
+                $('#gameTypeAnalysisTableSpin').hide();
+                $scope.$evalAsync();
+            }, true);
+        };
+
+        vm.drawGameTypeAnalysisLayer2Report = function (data, size, summary, newSearch, isExport) {
+            let tableOptions = {
+                data: data,
+                "order": [],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        title: $translate('PROVIDER'), data: "providerName",
+                        render: function (data, type, row) {
+                            let result = $translate(data);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber"},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes"},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    },
+                    {
+                        title: $translate('DETAILS'),
+                        render: function (data, type, row) {
+                            let txt = $translate('DETAILS');
+                            return "<div ng-click='vm.getGameTypeAnalysisByProvider(\"" + row.providerId +'\",\"' + row.providerName +'\",\"' + row.platformName +'\",\"'+ row._id.platformId+"\")'><a>" + txt + "</a></div>";
+                        }
+                    },
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            let playerTbl = utilService.createDatatableWithFooter('#gameTypeSummaryLayer2Table', tableOptions, {}, false);
+            utilService.setDataTablePageInput('gameTypeSummaryLayer2Table', playerTbl, $translate);
+
+            $('#gameTypeAnalysisLayer2Table').resize();
+        };
+
+        vm.drawGameTypeAnalysisLayer3Report = function (data, size, summary, newSearch, isExport) {
+            let tableOptions = {
+                data: data,
+                "order": [],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
+                    {title: $translate('PROVIDER'), data: "providerName"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'textRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'textRight'},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'textRight',
+                        render: function (data, type, row) {
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    },
+                    {
+                        title: $translate('DETAILS'),
+                        render: function (data, type, row) {
+                            let txt = $translate('DETAILS');
+                            return "<div ng-click='vm.getGameTypeAnalysisByGameType(\"" + row.providerId +'\",\"' + row.providerName +'\",\"' + row.platformName +'\",\"'+ row.platformObjId+"\")'><a>" + txt + "</a></div>";
+                        }
+                    },
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            utilService.createDatatableWithFooter('#gameTypeSummaryLayer3Table', tableOptions, {
+                2: summary.participantNumber,
+                3: summary.consumptionTimes,
+                4: summary.totalAmount,
+                5: summary.validAmount,
+                6: summary.bonusAmount,
+                7: summary.profit
+            }, true);
+
+            $('#gameTypeAnalysisLayer3Table').resize();
+        };
+
+        vm.drawGameTypeAnalysisLayer4Report = function (data, size, summary, newSearch, isExport) {
+            let tableOptions = {
+                data: data,
+                "order": [],
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT_NAME'), data: "platformName"},
+                    {title: $translate('PROVIDER'), data: "providerName"},
+                    {title: $translate('GAME_TYPE'), data: "cpGameType"},
+                    {title: $translate('CONSUMPTION_PARTICIPANT'), data: "participantNumber", sClass: 'originTXT textRight'},
+                    {title: $translate('TIMES_CONSUMED'), data: "consumptionTimes", sClass: 'sumInt textRight'},
+                    {
+                        title: $translate('TOTAL_CONSUMPTION'), data: "totalAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('VALID_CONSUMPTION'), data: "validAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_PROFIT_AMOUNT'), data: "bonusAmount", sClass: 'sumFloat textRight',
+                        render: function (data, type, row) {
+                            let result = data.toFixed(2);
+                            return "<div>" + result + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('COMPANY_EARNING_RATIO'), data: "profit", sClass: 'sumEarning textRight',
+                        render: function (data, type, row) {
+                            let result = data;
+                            return "<div>" + result + "%</div>";
+                        }
+                    },
+                ],
+                "paging": false,
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            utilService.createDatatableWithFooter('#gameTypeSummaryLayer4Table', tableOptions, {
+                3: summary.participantNumber,
+                4: summary.consumptionTimes,
+                5: summary.totalAmount,
+                6: summary.validAmount,
+                7: summary.bonusAmount,
+                8: summary.profit
+            }, true);
+
+            $('#gameTypeAnalysisLayer4Table').resize();
         };
 
         vm.reCalculateWinRateReportSummary = function (){
@@ -6630,7 +6994,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0)),
-                limit: isExport ? 5000 : (vm.dxNewPlayerQuery.limit || null),
+                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || null),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1}
             };
 
@@ -8532,6 +8896,7 @@ define(['js/app'], function (myApp) {
                     data => {
                         vm.allPromoteWay = data.data;
                         resolve(vm.allPromoteWay);
+                        $scope.$evalAsync();
                     }
                 )
             });
@@ -12770,6 +13135,28 @@ define(['js/app'], function (myApp) {
                     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[0]);
                     vm.currentRewardTaskName = rewardNameWithoutReport;
                 }
+            } else if (choice === "GAME_TYPE_ANALYSIS_REPORT") {
+                $scope.$evalAsync(() => {
+                    vm.gameTypeQuery = {};
+                    vm.gameTypeSummaryData = {};
+                    vm.gameTypeQuery.platformId = '';
+                    vm.gameTypeQuery.gameTypeId = 'all';
+                    vm.gameTypeQuery.providerId = 'all';
+                    vm.gameTypeQuery.loginDevice = [];
+                    Object.keys(vm.loginDeviceList).forEach(key => {
+                        if (key) {
+                            vm.gameTypeQuery.loginDevice.push(key);
+                        }
+                    });
+                    vm.reportSearchTime = 0;
+                    vm.gameTypeLayer1 = true;
+                    vm.gameTypeLayer2 = false;
+                    vm.gameTypeLayer3 = false;
+                    vm.gameTypeLayer4 = false;
+                    utilService.actionAfterLoaded("#gameTypeAnalysisTablePage", function () {
+                        vm.commonInitTime(vm.gameTypeQuery, '#gameTypeAnalysisReportQuery');
+                    });
+                });
             }
         }
 
