@@ -5256,6 +5256,10 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
+                        title: $translate('ID'),
+                        data: 'playerId'
+                    },
+                    {
                         title: $translate('REAL_NAME'),
                         data: 'realName',
                         sClass: "wordWrap realNameCell",
