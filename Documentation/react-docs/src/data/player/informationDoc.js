@@ -337,7 +337,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "true",
             },
             respondFailure: {
                 status: "4xx",
