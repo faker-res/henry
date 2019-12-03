@@ -1072,10 +1072,10 @@ let PlayerServiceImplement = function () {
             data.bankAddress = data.bankAddress.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove special characters
         }
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, false], isValidData, true, false, false).then(
-            function(res) {
+            function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    /* // reference to constmessageTypeParam
+                    /*// reference to constmessageTypeParam
                     let sendMessageData = {
                          data:{bankAccount: data.bankAccount.substr(data.bankAccount.length - 4)},
                          createTime: new Date(),
@@ -1098,7 +1098,7 @@ let PlayerServiceImplement = function () {
                         creatorType: constProposalUserType.PLAYERS,
                         creatorObjId: res._id
                     };
-                    dbLogger.createBankInfoLog(loggerInfo); */
+                    dbLogger.createBankInfoLog(loggerInfo);*/
                 }
                 else {
                     wsFunc.response(conn, {
