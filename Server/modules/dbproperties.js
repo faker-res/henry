@@ -57,6 +57,7 @@ var roleSchema = require('./../schema/role');
 var apiUserSchema = require('./../schema/apiUser');
 
 var gameTypeSchema = require('./../schema/gameType');
+var gameTypeConfigSchema = require('./../schema/gameTypeConfig');
 var gameSchema = require('./../schema/game');
 var gameProviderSchema = require('./../schema/gameProvider');
 
@@ -147,6 +148,7 @@ var themeSettingModel = db_admin.model('themeSetting', themeSettingSchema, 'them
 var platformGameStatusModel = db_admin.model('platformGameStatus', platformGameStatusSchema, 'platformGameStatus');
 
 var gameTypeModel = db_admin.model('gametype', gameTypeSchema, 'gameType');
+var gameTypeConfigModel = db_admin.model('gameTypeConfig', gameTypeConfigSchema, 'gameTypeConfig');
 var gameModel = db_admin.model('game', gameSchema, 'game');
 var gameProviderModel = db_admin.model('gameProvider', gameProviderSchema, 'gameProvider');
 
@@ -781,6 +783,7 @@ var dbProperties = {
     collection_platformBlackWhiteListing: platformBlackWhiteListingModel,
 
     collection_gameType: gameTypeModel,
+    collection_gameTypeConfig: gameTypeConfigModel,
     collection_game: gameModel,
     collection_gameProvider: gameProviderModel,
     collection_gameProviderGroup: gameProviderGroupModel,

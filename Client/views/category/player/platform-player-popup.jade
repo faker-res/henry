@@ -1648,12 +1648,20 @@
                                         label.text-danger {{vm.creditChange.finalValidAmount || 0 | number:2}}
                                         .text-danger(ng-show='vm.creditChange.finalValidAmount<0') {{'Player credit cannot be less than 0' | translate}}
                         .row
+                            .col-md-3
+                                label.control-label {{'Credit Change Type' | translate}}
+                        .row
+                            .col-md-3
+                                select.form-control(ng-model='vm.creditChange.creditChangeType')
+                                    option(ng-repeat='(i,v) in vm.creditChangeType', value='{{i}}') {{v | translate}}
+                                <br/>
+                        .row
                             .col-md-6
                                 label.control-label {{'REMARKS' | translate}}
                             .col-md-12.textareaDetail
                                 textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0 || !vm.creditChange.creditChangeType', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', aria-labelledby='myModalLabel', aria-hidden='true')
