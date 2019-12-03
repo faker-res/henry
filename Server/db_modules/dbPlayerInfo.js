@@ -8137,8 +8137,8 @@ let dbPlayerInfo = {
                         newPlayerData.name = platformPrefix+(chance.string(userNameProp).replace(/\s+/g, '').toLowerCase());
 
                         return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(
-                            playerData => {
-                                updatePlayerNameToPlayerId(inputData, playerData, playerData.name);
+                            async playerData => {
+                                await updatePlayerNameToPlayerId(inputData, playerData, playerData.name);
                                 return playerData;
                             }
                         );
