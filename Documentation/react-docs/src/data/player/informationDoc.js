@@ -230,6 +230,10 @@ const sampleData = {
 }`,
     updatePlayerAvatar: `{}`,
 
+    updatePassword: `{
+        "text": "密码修改成功"
+        
+}`,
 
 }
 
@@ -312,7 +316,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: sampleData.updatePassword,
             },
             respondFailure: {
                 status: "40x",

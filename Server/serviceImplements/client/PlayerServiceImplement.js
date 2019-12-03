@@ -987,6 +987,7 @@ let PlayerServiceImplement = function () {
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
+        console.log('conn id..', conn.playerId);
         let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
         data.smsCode = data.smsCode ? data.smsCode : "";
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [data.playerId, data.oldPassword, data.newPassword, data.smsCode, userAgent], isValidData, true, false, false).then(
