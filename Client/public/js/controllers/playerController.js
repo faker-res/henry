@@ -411,7 +411,6 @@ define(['js/app'], function (myApp) {
         };
 
         vm.playerPermission = {
-            None: "none",
             applyBonus: "applyBonus",
             allTopUp: "allTopUp",
             topupOnline: "topupOnline",
@@ -5128,9 +5127,6 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.playerTableQuery.sortCol,
                 playerPermission: vm.playerAdvanceSearchQuery.playerPermission
             };
-            if(vm.playerAdvanceSearchQuery.playerPermission == "None") {
-                delete apiQuery.playerPermission;
-            }
             $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
             $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
             $("select#selectCredibilityRemark").multipleSelect("enable");
