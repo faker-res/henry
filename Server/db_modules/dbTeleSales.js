@@ -1238,8 +1238,8 @@ let dbTeleSales = {
                 }
                 workloadData[item.adminId._id] = workloadData[item.adminId._id] || {};
                 workloadData[item.adminId._id][item.tsPhoneList._id] = workloadData[item.adminId._id][item.tsPhoneList._id] || {
-                    adminId: item.assignee._id,
-                    adminName: item.assignee.adminName,
+                    adminId: item.adminId._id,
+                    adminName: item.adminId.adminName,
                     phoneListObjId: item.tsPhoneList._id,
                     phoneListName: item.tsPhoneList.name,
                     distributed:0,
