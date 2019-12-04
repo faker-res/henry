@@ -2409,47 +2409,6 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         ).then(
-            async saveRc => {
-                if(saveRc){
-                    console.log('hello there !');
-                    let permission = {
-                        applyBonus: true,
-                        transactionReward: true,
-                        allTopUp: true,
-                        topupOnline: true,
-                        topupManual: true,
-                        topUpCard: true,
-                        phoneCallFeedback: true,
-                        SMSFeedBack: true,
-                        alipayTransaction: true,
-                        quickpayTransaction: true,
-                        banReward: false,
-                        rewardPointsTask: true,
-                        disableWechatPay: false,
-                        forbidPlayerConsumptionReturn: false,
-                        allowPromoCode: true,
-                        forbidPlayerConsumptionIncentive: false,
-                        PlayerTopUpReturn: true,
-                        PlayerDoubleTopUpReturn: true,
-                        forbidPlayerFromLogin: false,
-                        forbidPlayerFromEnteringGame: false,
-                        playerConsecutiveConsumptionReward: true,
-                        PlayerPacketRainReward: true,
-                        PlayerLimitedOfferReward: true,
-                        levelChange: true
-                    }
-                    let saveObj = {
-                        _id: saveRc._id,
-                        permission: permission
-                    };
-                    let savePermission = await new dbconfig.collection_playerPermission(saveObj).save();
-                    if(!savePermission){
-                        return Promise.reject("Save Permission failed");
-                    }
-                    return saveRc;
-                }
-            }
-        ).then(
             data => {
                 if (data) {
                     playerData = data;
@@ -6960,19 +6919,6 @@ let dbPlayerInfo = {
             },
             error => {
                 return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
-            }
-        ).then(
-            async data => {
-                if(data){
-                    console.log('player permi..', data);
-                    let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data._id}).lean();
-                        console.log('permi data..', permissionData);
-                        if(permissionData){
-                            data.permission = permissionData.permission;
-                        }
-                    console.log('return player..', data);
-                    return data;
-                }
             }
         ).then(
             data => {
@@ -31048,26 +30994,27 @@ async function getPlayerTopupChannelPermissionRequestData (player, platformId, u
         if (updateRemark) {
             retObj.remark = updateRemark;
         }
-    }else if(player && !player.permission){
-        //In case, permission didn't pass through by player.js
-        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
-        if(permissionData && permissionData.length > 0){
-            player.permission = permissionData.permission;
-        }
-
-        retObj = {
-            username: player.name,
-            platformId: platformId
-        }
-
-        retObj.topupManual = player.permission.topupManual ? 1 : 0;
-        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
-        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
-        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-        if (updateRemark) {
-            retObj.remark = updateRemark;
-        }
     }
+    // else if(player && !player.permission){
+    //     //In case, permission didn't pass through by player.js
+    //     let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
+    //     if(permissionData && permissionData.length > 0){
+    //         player.permission = permissionData.permission;
+    //     }
+    //
+    //     retObj = {
+    //         username: player.name,
+    //         platformId: platformId
+    //     }
+    //
+    //     retObj.topupManual = player.permission.topupManual ? 1 : 0;
+    //     retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
+    //     retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
+    //     retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
+    //     if (updateRemark) {
+    //         retObj.remark = updateRemark;
+    //     }
+    // }
 
     if (updateObj) {
         if (updateObj.hasOwnProperty('topupManual')) {
@@ -31091,9 +31038,9 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
     return pmsUpdateProm.then(
         updatePMSSuccess => {
             if (updatePMSSuccess) {
-                let updateQuery = {_id: query._id};
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
-                    // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                // let updateQuery = {_id: query._id};
+                // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
                         if (playerData) {
                             return dbconfig.collection_platform.populate(playerData, {
