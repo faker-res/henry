@@ -759,7 +759,7 @@ let dbReport = {
         // new player count
         let newPlayerCountQuery = {
             isRealPlayer: true,
-            registrationTime: {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+            registrationTime: {$gte: new Date(query.startTime), $lt: new Date(query.endTime)}
         };
 
         if (platformListQuery)
