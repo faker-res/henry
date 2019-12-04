@@ -2389,9 +2389,7 @@ let dbPlayerInfo = {
                     if (playerdata.deviceId) {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
-
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
@@ -6924,7 +6922,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    console.log('return player2..', data);
+
                     if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                     }
@@ -8144,6 +8142,10 @@ let dbPlayerInfo = {
 
                         if (inputData.accountPrefix && typeof inputData.accountPrefix === "string") {
                             platformPrefix = inputData.accountPrefix;
+                        }
+
+                        if (!inputData.accountPrefix) {
+                            inputData.accountPrefix = platformPrefix;
                         }
 
                         let userNameProp = {
@@ -30995,26 +30997,6 @@ async function getPlayerTopupChannelPermissionRequestData (player, platformId, u
             retObj.remark = updateRemark;
         }
     }
-    // else if(player && !player.permission){
-    //     //In case, permission didn't pass through by player.js
-    //     let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
-    //     if(permissionData && permissionData.length > 0){
-    //         player.permission = permissionData.permission;
-    //     }
-    //
-    //     retObj = {
-    //         username: player.name,
-    //         platformId: platformId
-    //     }
-    //
-    //     retObj.topupManual = player.permission.topupManual ? 1 : 0;
-    //     retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
-    //     retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
-    //     retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-    //     if (updateRemark) {
-    //         retObj.remark = updateRemark;
-    //     }
-    // }
 
     if (updateObj) {
         if (updateObj.hasOwnProperty('topupManual')) {
