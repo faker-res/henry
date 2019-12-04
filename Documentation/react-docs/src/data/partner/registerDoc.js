@@ -36,11 +36,11 @@ const sampleData = {
         ],
         "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
         "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
-        "parent": null,
-        "children": [],
+        "parent": null, // 上线
+        "children": [], // 下线
         "depthInTree": 0,
         "failMeetingTargetWeeks": 0,
-        "validReward": 0,
+        "validReward": 0, // 有效优惠
         "validConsumptionSum": 0,
         "totalChildrenBalance": 0,
         "totalChildrenDeposit": 0,
@@ -50,7 +50,7 @@ const sampleData = {
         "activePlayers": 0,
         "validPlayers": 0,
         "totalWithdrawalAmt": 0,
-        "totalSettledCommission": 0,
+        "totalSettledCommission": 0, // 已结佣金（总）
         "totalPlayerDownline": 0,
         "totalReferrals": 0,
         "credits": 0,
