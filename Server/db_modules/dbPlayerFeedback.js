@@ -806,7 +806,7 @@ var dbPlayerFeedback = {
                 // for(var i = 0; i < data[0].length; i++){
                 for(var i = data[0].length - 1; i >=0; i--){
                     for(var k = 0; k < playerPermission.length; k++){
-                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === true){
+                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === false){
                             data[0].splice(i, 1);
                             break;
                         }
