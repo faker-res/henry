@@ -2389,9 +2389,7 @@ let dbPlayerInfo = {
                     if (playerdata.deviceId) {
                         playerdata.guestDeviceId = playerdata.deviceId
                     }
-
                     console.log(`Saving player ${playerdata.name} to database.`);
-
                     let player = new dbconfig.collection_players(playerdata);
                     return player.save();
                 } else {
