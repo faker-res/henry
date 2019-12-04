@@ -1289,7 +1289,12 @@ let dbPlayerInfo = {
                         isEnableUseReferralPlayerId = false;
                     }
 
-                    inputData = determineRegistrationInterface(inputData);
+                    if(inputData.inputDevice){
+                        inputData.registrationInterface = inputData.inputDevice;
+                    }
+                    else{
+                        inputData = determineRegistrationInterface(inputData);
+                    } 
 
                     if (adminName && adminId) {
                         // note that it is always backstage create when adminName is exist
