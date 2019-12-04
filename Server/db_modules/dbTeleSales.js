@@ -1214,79 +1214,64 @@ let dbTeleSales = {
 
         if (distributedData && distributedData.length > 0) {
             distributedData.forEach(item => {
-                if (item.assignee != null){
-                    if (item.assignee._id && !workloadData[item.assignee._id]) {
-                        workloadData[item.assignee._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
-                            workloadData[item.assignee._id][item.tsPhoneList._id] = {
-                                adminId: item.assignee._id,
-                                adminName: item.assignee.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
-                    }
+                if (!item.assignee || !item.tsPhoneList) {
+                    return;
                 }
+                workloadData[item.assignee._id] = workloadData[item.assignee._id] || {};
+                workloadData[item.assignee._id][item.tsPhoneList._id] = workloadData[item.assignee._id][item.tsPhoneList._id] || {
+                    adminId: item.assignee._id,
+                    adminName: item.assignee.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed:0,
+                    fulfilled:0,
+                    success:0,
+                    registered:0
+                };
+                workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
             });
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
             phoneFeedbackData.forEach(item => {
-                if (item.adminId != null){
-                    if (item.adminId._id && !workloadData[item.adminId._id]) {
-                        workloadData[item.adminId._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id] = {
-                                adminId: item.adminId._id,
-                                adminName: item.adminId.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
-                        if (definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id].success++;
-                        }
-                    }
+                if (!item.adminId || !item.tsPhoneList) {
+                    return;
+                }
+                workloadData[item.adminId._id] = workloadData[item.adminId._id] || {};
+                workloadData[item.adminId._id][item.tsPhoneList._id] = workloadData[item.adminId._id][item.tsPhoneList._id] || {
+                    adminId: item.assignee._id,
+                    adminName: item.assignee.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed:0,
+                    fulfilled:0,
+                    success:0,
+                    registered:0
+                };
+                workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
+                if (definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                    workloadData[item.adminId._id][item.tsPhoneList._id].success++;
                 }
             });
         }
 
         if (playerData && playerData.length > 0) {
             playerData.forEach(item => {
-                if (item.csOfficer != null){
-                    if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
-                        workloadData[item.csOfficer._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
-                            workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
-                                csOfficer: item.csOfficer._id,
-                                adminId: item.csOfficer._id,
-                                adminName: item.csOfficer.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed: 0,
-                                fulfilled: 0,
-                                success: 0,
-                                registered: 0
-                            };
-                        }
-                        workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
-                    }
+                if (!item.csOfficer || !item.tsPhoneList) {
+                    return;
                 }
+                workloadData[item.csOfficer._id] = workloadData[item.csOfficer._id] || {};
+                workloadData[item.csOfficer._id][item.tsPhoneList._id] = workloadData[item.csOfficer._id][item.tsPhoneList._id] || {
+                    csOfficer: item.csOfficer._id,
+                    adminId: item.csOfficer._id,
+                    adminName: item.csOfficer.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed: 0,
+                    fulfilled: 0,
+                    success: 0,
+                    registered: 0
+                };
+                workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
             });
         }
         return workloadData;
