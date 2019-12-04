@@ -1088,6 +1088,7 @@ let reward = {
             ],
             respondSuccess:{
                 status: 200,
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "4xx",

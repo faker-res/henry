@@ -214,7 +214,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "跳转链接"
+                data: '"http://url"    //跳转链接'
             },
             respondFailure: {
                 status: "4xx",
@@ -254,7 +254,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "{xxx}"
+                data: sampleData.createFKPTopupProposal
             },
             respondFailure: {
                 status: "420",
@@ -282,7 +282,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "带ID 的注册意向记录"
+                data: sampleData.add
             },
             respondFailure: {
                 status: "4xx",
@@ -300,7 +300,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "null"
+                data: sampleData.update
             },
             respondFailure: {
                 status: "4xx",

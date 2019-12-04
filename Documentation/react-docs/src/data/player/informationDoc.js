@@ -232,14 +232,232 @@ const sampleData = {
 
     updatePassword: `{
         "text": "密码修改成功"
-        
 }`,
 
 }
 
+const playerInformationDesc = `
+<b>玩家对象 / Player Object：</b>
+<template>
+{
+    "_id": "5de0e3df211ed9037381dbdd",  //玩家 Object ID
+    "playerId": "7480",   //玩家ID
+    "platform": "5733e26ef8c8a9355caf49d8", //玩家所注册的平台 Object ID
+    "name": "gi0iaon9g",  //玩家账号
+    "password": "$2b$10$9EnCFUNApMAWMEhmTIpqo.Vh5iTs1m4CFlLnabcZs6XLyYoSoN./u",
+    "deviceId": "aWh5WmhTZUlqTzYxY3pSRlRvL2xYZElzVlJzM2hZMGlnM2Y4......==",
+    "registrationDevice": "0",
+    "hasPassword": false,
+    "qnaWrongCount": {
+      "editName": 0,
+      "editBankCard": 0,
+      "updatePhoneNumber": 0,
+      "forgotPassword": 0
+    },
+    "relTsPhoneList": [],
+    "ximaWithdraw": 0,
+    "viewInfo": {
+      "showInfoState": true,
+      "limitedOfferInfo": 1
+    },
+    "loginTimes": 1,
+    "registrationInterface": 1,
+    "valueScore": 0,
+    "gameProviderPlayed": [],
+    "credibilityRemarks": [
+      "5b7fa51c24265f24dad50cb0"
+    ],
+    "applyingEasterEgg": false,
+    "isReferralReward": false,
+    "similarPlayers": [],
+    "favoriteGames": [],
+    "bFirstTopUpReward": false,
+    "forbidLevelMaintainReward": false,
+    "forbidLevelUpReward": false,
+    "forbidPromoCode": false,
+    "forbidRewardEvents": [],
+    "forbidTopUpType": [],
+    "creditWallet": [],
+    "consumptionTimes": 0,
+    "consumptionSum": 0,
+    "pastMonthConsumptionSum": 0,
+    "weeklyConsumptionSum": 0,
+    "dailyConsumptionSum": 0,
+    "bonusAmountSum": 0,
+    "pastMonthBonusAmountSum": 0,
+    "weeklyBonusAmountSum": 0,
+    "dailyBonusAmountSum": 0,
+    "withdrawSum": 0,
+    "pastMonthWithdrawSum": 0,
+    "weeklyWithdrawSum": 0,
+    "dailyWithdrawSum": 0,
+    "withdrawTimes": 0,
+    "topUpTimes": 0,
+    "topUpSum": 0,
+    "pastMonthTopUpSum": 0,
+    "weeklyTopUpSum": 0,
+    "dailyTopUpIncentiveAmount": 0,
+    "dailyTopUpSum": 0,
+    "lockedCredit": 0,
+    "validCredit": 0,
+    "creditBalance": 0,
+    "permission": {
+      "levelChange": true,
+      "PlayerLimitedOfferReward": true,
+      "PlayerPacketRainReward": true,
+      "playerConsecutiveConsumptionReward": true,
+      "forbidPlayerFromEnteringGame": false,
+      "forbidPlayerFromLogin": false,
+      "PlayerDoubleTopUpReturn": true,
+      "PlayerTopUpReturn": true,
+      "forbidPlayerConsumptionIncentive": false,
+      "allowPromoCode": true,
+      "forbidPlayerConsumptionReturn": false,
+      "disableWechatPay": false,
+      "rewardPointsTask": true,
+      "banReward": false,
+      "quickpayTransaction": true,
+      "alipayTransaction": true,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "topUpCard": true,
+      "topupManual": true,
+      "topupOnline": true,
+      "allTopUp": true,
+      "transactionReward": true,
+      "applyBonus": true
+    },
+    "userAgent": [
+      {
+        "os": "Mac OS",
+        "device": "",
+        "browser": "Chrome"
+      },
+      {
+        "os": "Mac OS",
+        "device": "PC",
+        "browser": "Chrome"
+      }
+    ],
+    "games": [],
+    "exp": 0,
+    "forbidPromoCodeList": [],
+    "forbidRewardPointsEvent": [],
+    "forbidProviders": [],
+    "status": 1,
+    "badRecords": [],
+    "trustLevel": "2",
+    "blacklistIp": [],
+    "loginIps": [
+      "::1"
+    ],
+    "lastLoginIp": "::1",
+    "isLogin": true,
+    "lastAccessTime": "2019-11-29T09:24:49.683Z",
+    "registrationTime": "2019-11-29T09:24:47.345Z",
+    "realName": "",
+    "receiveSMS": true,
+    "feedbackTimes": 0,
+    "lastFeedbackTime": null,
+    "isRealPlayer": true,
+    "isTestPlayer": false,
+    "icon": "",
+    "smsSetting": {
+      "PlayerRetentionRewardGroupSuccess": true,
+      "AuctionOpenPromoCodeSuccess": true,
+      "AuctionPromoCodeSuccess": true,
+      "PromoCodeSend": true,
+      "PlayerLevelUpSuccess": true,
+      "PlayerLevelDownMigrationSuccess": true,
+      "PlayerLevelUpMigrationSuccess": true,
+      "PlayerPromoCodeRewardSuccess": true,
+      "PlayerRegisterIntentionSuccess": true,
+      "PlayerFreeTrialRewardGroupSuccess": true,
+      "PlayerConsumptionRewardGroupSuccess": true,
+      "PlayerConsecutiveRewardGroupSuccess": true,
+      "PlayerLoseReturnRewardGroupSuccess": true,
+      "PlayerTopUpReturnGroupSuccess": true,
+      "updatePassword": true,
+      "UpdatePhoneInfoSuccess": true,
+      "UpdateBankInfoSuccess": true,
+      "PlayerLimitedOfferRewardSuccess": true,
+      "WithdrawCancel": true,
+      "WithdrawSuccess": true,
+      "WechatTopupSuccess": true,
+      "AlipayTopupSuccess": true,
+      "OnlineTopupSuccess": true,
+      "ManualTopupSuccess": true,
+      "PlayerConsumptionReturnSuccess": true,
+      "updatePaymentInfo": true,
+      "consumptionReturn": true,
+      "applyReward": true,
+      "cancelBonus": true,
+      "applyBonus": true,
+      "manualTopup": true
+    },
+    "DOB": null,
+    "gender": true,
+    "email": "",
+    "__v": 0,
+    "playerLevel": {
+      "_id": "5733e26ef8c8a9355caf49dc",
+      "name": "普通会员",
+      "value": 0,
+      "platform": "5733e26ef8c8a9355caf49d8",
+      "reward": {
+        "bonusCredit": 20,
+        "isRewardTask": false,
+        "providerGroup": "free",
+        "requiredUnlockTimes": 0,
+        "requiredUnlockAmount": 0
+      },
+      "consumptionLimit": 20000,
+      "topupLimit": 2000,
+      "__v": 0,
+      "levelUpConfig": [
+        {
+          "_id": "573abaefed6da1cf5c398fed",
+          "topupPeriod": "DAY",
+          "consumptionPeriod": "DAY",
+          "consumptionLimit": 0,
+          "consumptionSourceProviderId": [],
+          "topupLimit": 0
+        }
+      ],
+      "levelDownConfig": [
+        {
+          "_id": "5800988c1a8d1645a7091e49",
+          "topupPeriod": "DAY",
+          "consumptionPeriod": "DAY",
+          "consumptionMinimum": 0,
+          "topupMinimum": 0
+        }
+      ],
+      "canApplyConsumptionReturn": true,
+      "playerValueScore": 2
+    },
+    "bankCardGroup": "57b572e45052101945a7cbc7",
+    "merchantGroup": "57ad808bab1d5cb646acd76c",
+    "rewardPointsObjId": {
+      "_id": "5de0e3e1211ed9037381dbdf",
+      "platformObjId": "5733e26ef8c8a9355caf49d8",
+      "playerObjId": "5de0e3df211ed9037381dbdd",
+      "playerName": "gi0iaon9g",
+      "playerLevel": "5733e26ef8c8a9355caf49dc",
+      "progress": [],
+      "lastUpdate": "2019-11-29T09:24:49.599Z",
+      "createTime": "2019-11-29T09:24:49.599Z",
+      "points": 0,
+      "__v": 0
+    },
+    "isRegister": true
+}
+</template>
+`;
+
 let information = {
     name: "玩家信息/资料",
-    desc:``,
+    desc: playerInformationDesc,
     func: {
         get: {
             title: "获取玩家基本信息",
@@ -251,7 +469,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "40x",
@@ -296,7 +514,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "40x",
@@ -469,7 +687,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "4xx",
