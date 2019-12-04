@@ -12333,7 +12333,7 @@ define(['js/app'], function (myApp) {
                             vm.platformOverviewLoginDeviceList[key] = vm.propsosalDeviceList[key];
                         }
                     });
-                    vm.platformOverviewLoginDeviceList['3'] = 'APP';
+                    vm.platformOverviewLoginDeviceList['3'] = 'APP Player';
                     utilService.actionAfterLoaded("#platformOverviewReport", function () {
                         vm.commonInitTime(vm.platformOverviewReport, '#platformOverviewReport', null, true);
                     });
