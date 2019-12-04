@@ -1127,19 +1127,28 @@ let dbTeleSales = {
     },
 
     getTsWorkloadReports: async (platformObjIds, phoneListObjIds, startTime, endTime, adminObjIds) => {
-        let reportsProms = platformObjIds.map(objId => dbTeleSales.getTsWorkloadReport(objId, phoneListObjIds, startTime, endTime, adminObjIds));
-        let reports = await Promise.all(reportsProms);
-        let mergedReport = {};
-        for (let i = 0; i < reports.length; i++) {
-            let report = reports[i];
-            for (admin in report) {
-                if (mergedReport[admin] && mergedReport[admin] instanceof Array) {
-                    mergedReport[admin] = Object.assign({}, mergedReport[admin], report[admin]);
-                } else {
-                    mergedReport[admin] = report[admin];
-                }
+        let reportsProms = platformObjIds.map(async objId => {
+            let platform = await dbconfig.collection_platform.findOne({_id: objId}, {name: 1}).lean();
+            let report = await dbTeleSales.getTsWorkloadReport(objId, phoneListObjIds, startTime, endTime, adminObjIds);
+            return {
+                platformObjId: platform._id,
+                platformName: platform.name,
+                report
             }
-        }
+        });
+        return Promise.all(reportsProms);
+        // let reports = await Promise.all(reportsProms);
+        // let mergedReport = {};
+        // for (let i = 0; i < reports.length; i++) {
+        //     let report = reports[i];
+        //     for (admin in report) {
+        //         if (mergedReport[admin] && mergedReport[admin] instanceof Array) {
+        //             mergedReport[admin] = Object.assign({}, mergedReport[admin], report[admin]);
+        //         } else {
+        //             mergedReport[admin] = report[admin];
+        //         }
+        //     }
+        // }
     },
 
     getTsWorkloadReport: async (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
