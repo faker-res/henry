@@ -11,6 +11,40 @@ body {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
   word-wrap: break-word;
 }
+.code-area.collapse {
+  display: block !important;
+  /* height: 10px; */
+}
+.code-area.collapse > div:not(.indicator) {
+  display: none;
+}
+.code-area > .indicator > i {
+  display: inline-block;
+  transform: rotate(-90deg);
+  font-style: normal;
+  margin: 0 5px;
+}
+.code-area > .indicator.show > i {
+  transform: rotate(90deg);
+}
+.code-area > .indicator {
+  text-align: center;
+  text-decoration: underline;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+.code-area > .indicator:hover {
+  color: rgb(16, 142, 233);
+  text-decoration: none;
+}
+.code-area > .indicator.show,
+.code-area.collapse > .indicator.hide {
+  display: none;
+}
+.code-area > .indicator.hide,
+.code-area.collapse > .indicator.show {
+  display: block;
+}
 
 img {
   max-width: 100%;

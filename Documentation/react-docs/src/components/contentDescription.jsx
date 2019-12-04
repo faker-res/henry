@@ -85,8 +85,8 @@ class Content extends Component{
     drawCodeArea = (text, idx) => {
         let rows = [];
         if(text) {
+            text = text.trim();
             let lines = text.split(/\r?\n/);
-            lines = lines.filter(Boolean);
             lines.forEach((line, index) => {
                 if(index > 0 && index < lines.length - 1) {
                     line = line.replace(/\s/g, "\u00a0");
@@ -97,11 +97,28 @@ class Content extends Component{
             });
         }
         return (
-            <div key={idx} className="code-area bg-light p-1 pl-2">
+            <div key={idx} className="code-area bg-light p-1 pl-2 collapse">
+                <div className="indicator hide" onClick={this.toggleCodeArea}>
+                    <i>></i>less<i>></i>
+                </div>
+                <div className="indicator show" onClick={this.toggleCodeArea}>
+                    <i>></i>more<i>></i>
+                </div>
                 {rows}
             </div>
         )
     };
+
+    toggleCodeArea = (ev) => {
+        let curClassName = ev.currentTarget.parentElement.className;
+        let shown = Boolean(curClassName.indexOf("collapse") > -1);
+        if(shown) {
+            ev.currentTarget.parentElement.className = curClassName.replace("collapse", "").trim();
+        } else {
+            ev.currentTarget.parentElement.className += " collapse";
+        }
+
+    }
 
     render() {
         return (
