@@ -12325,6 +12325,15 @@ define(['js/app'], function (myApp) {
                     vm.platformOverviewReport = {};
                     vm.platformOverviewReportList = [];
                     vm.platformOverviewReportSummary = {};
+                    vm.platformOverviewLoginDeviceList = {};
+                    let tempLoginList = Object.keys(vm.propsosalDeviceList).slice(0,18);
+                    Object.keys(vm.propsosalDeviceList).forEach(key => {
+                        let index = tempLoginList.indexOf(key);
+                        if (index > -1) {
+                            vm.platformOverviewLoginDeviceList[key] = vm.propsosalDeviceList[key];
+                        }
+                    });
+                    vm.platformOverviewLoginDeviceList['3'] = 'APP Player';
                     utilService.actionAfterLoaded("#platformOverviewReport", function () {
                         vm.commonInitTime(vm.platformOverviewReport, '#platformOverviewReport', null, true);
                     });
@@ -13659,9 +13668,19 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 platformList: vm.platformOverviewReport.platformList,
                 startTime: vm.platformOverviewReport.startTime.data('datetimepicker').getLocalDate(),
-                endTime: vm.platformOverviewReport.endTime.data('datetimepicker').getLocalDate(),
-                loginDevice: vm.platformOverviewReport.loginDevice
+                endTime: vm.platformOverviewReport.endTime.data('datetimepicker').getLocalDate()
             };
+
+            let selectedLoginDevice = [];
+            if (vm.platformOverviewReport && vm.platformOverviewReport.loginDevice && vm.platformOverviewReport.loginDevice.length &&
+                vm.platformOverviewReport.loginDevice.length != Object.keys(vm.platformOverviewLoginDeviceList).length) {
+                selectedLoginDevice = vm.platformOverviewReport.loginDevice;
+                if (vm.platformOverviewReport.loginDevice.indexOf("3") > -1) {
+                    selectedLoginDevice.push("4");
+                }
+
+                sendData.loginDevice = selectedLoginDevice;
+            }
 
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'getPlatformOverviewReport', sendData, function (data) {

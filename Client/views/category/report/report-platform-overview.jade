@@ -10,7 +10,7 @@
         .endTime
     .search-filters-item
         label {{"Login Device"|translate}}
-        select.spicker.form-control(ng-model='vm.platformOverviewReport.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
+        select.spicker.form-control(ng-model='vm.platformOverviewReport.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.platformOverviewLoginDeviceList')
 
     .text-right.widthto100
         button.btn.btn-success.btn-space(ng-click='vm.searchPlatformOverviewReport()') {{'SEARCH' | translate}}
