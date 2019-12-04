@@ -994,7 +994,7 @@ let dbReport = {
 
                     let totalTopUp = (details && details.topUpAmount) || 0;
                     let totalBonus = (details && details.bonusAmount) || 0;
-                    details.totalIncome = totalTopUp - totalBonus;
+                    details.totalIncome = dbutility.noRoundTwoDecimalPlaces(totalTopUp - totalBonus);
 
                     result.push(details);
                 }
