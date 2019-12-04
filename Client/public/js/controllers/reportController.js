@@ -3044,7 +3044,7 @@ define(['js/app'], function (myApp) {
                 if (data && data.data && data.data.data) {
                     data.data.data.map(item => {
                         item.platformObjId = vm.gameTypeQuery.platformId;
-                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.propsosalDeviceList[String(item.loginDevice)]) : "";
                         item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
@@ -3152,7 +3152,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.platformName = platformName;
                         item.platformObjId = platformObjId;
-                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.loginDeviceList[String(item.loginDevice)]) : "";
+                        item.loginDevice$ = item && item.loginDevice ? $translate(vm.propsosalDeviceList[String(item.loginDevice)]) : "";
                         item.cpGameType = item && item.cpGameType && typeof item.cpGameType === 'string' ? item.cpGameType : "";
                         return item;
                     })
@@ -13158,7 +13158,7 @@ define(['js/app'], function (myApp) {
                     vm.gameTypeQuery.gameTypeId = 'all';
                     vm.gameTypeQuery.providerId = 'all';
                     vm.gameTypeQuery.loginDevice = [];
-                    Object.keys(vm.loginDeviceList).forEach(key => {
+                    Object.keys(vm.propsosalDeviceList).forEach(key => {
                         if (key) {
                             vm.gameTypeQuery.loginDevice.push(key);
                         }
