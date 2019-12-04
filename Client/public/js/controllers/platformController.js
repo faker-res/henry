@@ -4343,16 +4343,9 @@ define(['js/app'], function (myApp) {
                     $.each(vm.platformPaymentChList, function (i, v) {
                         vm.paymentListCheck[v._id] = true;
                     });
-                    // console.warn('showPlatform', vm.showPlatform)
-                    vm.showPlatform = data.data;
 
-                    var arrayGameProviderInfo =[];
-                    for(var i in data.data.gameProviders)
-                    {arrayGameProviderInfo.push(data.data.gameProviders[i]._id);}
+                    vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
-                    vm.showPlatform.gameProviderInfo = arrayGameProviderInfo;
-                    // console.warn('showPlatform2', vm.showPlatform)
-                    // console.log('showPlatform.gameProviderInfo', arrayTest)
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
                     // $scope.safeApply();
@@ -24017,15 +24010,6 @@ define(['js/app'], function (myApp) {
             vm.getProviderText = function (providerId) {
                 if (!providerId || !vm.allGameProviders) return false;
                 var result = '';
-                
-                let sendData = {
-                    platform: vm.selectedPlatform.id
-                };
-
-                socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {
-                    vm.allGameProviders = data.data;
-                });
-                // console.log('allGameProviders', vm.allGameProviders)
                 $.each(vm.allGameProviders, function (i, v) {
                     if (providerId == v._id || providerId == v.providerId) {
                         result = v.name;
