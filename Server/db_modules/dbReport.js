@@ -757,8 +757,10 @@ let dbReport = {
 
         // registration analysis
         // new player count
-        let newPlayerCountQuery = {};
-        newPlayerCountQuery.registrationTime = {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+        let newPlayerCountQuery = {
+            isRealPlayer: true,
+            registrationTime: {$gte: new Date(query.startTime), $lt: new Date(query.endTime)};
+        };
 
         if (platformListQuery)
             newPlayerCountQuery.platform = platformListQuery;
@@ -817,7 +819,8 @@ let dbReport = {
 
                     let queryObj = {
                         platform: config.platform,
-                        registrationTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)}
+                        registrationTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+                        isRealPlayer: true,
                     };
 
                     queryObj.topUpSum = {$gte: config.validPlayerTopUpAmount};
