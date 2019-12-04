@@ -65,7 +65,47 @@ const SampleData = {
          ]
        }
 ]`,
-
+    updatePartnerCommissionType:`{
+    "_id": "5de77259d208fe090a223f4d",
+    "proposalId": "602477", // 提案号
+    "type": {
+        "_id": "5ae18f0ff3b535bbfc20f055",
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "name": "UpdatePartnerCommissionType",
+        "process": "5ae18f0ff3b535bbfc20f04e",
+        "executionType": "executeUpdatePartnerCommissionType",
+        "rejectionType": "rejectUpdatePartnerCommissionType"
+    },
+    "mainType": "UpdatePartner",
+    "status": "Approved", // 状态
+    "inputDevice": 2,
+    "processedTimes": 0,
+    "settleTime": "2019-12-04T08:46:17.721Z",
+    "expirationTime": "9999-12-31T23:59:59.000Z",
+    "noSteps": true,
+    "userType": "2",
+    "entryType": "1",
+    "priority": "0",
+    "data": {
+        "realNameBeforeEdit": "",
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "playerName": "",
+        "remark": "OPTIONAL_REGISTRATION", // 备注
+        "updateData": {
+            "commissionType": 6
+      },
+      "partnerObjId": "596c93a11f09a77f1fe06210",
+      "parternId": "14355", // 代理ID
+      "partnerName": "riccotest9096", // 代理名称
+      "_id": "596c93a11f09a77f1fe06210"
+    },
+    "createTime": "2019-12-04T08:46:17.721Z", // 创建时间
+    "creator": {
+        "id": "596c93a11f09a77f1fe06210",
+        "name": "riccotest9096",
+        "type": "partner"
+    },
+}`,
     getCommissionRate: `[{
     "providerGroupId": 1, // 锁大厅组1，每个锁大厅有不同的比例。
     "providerGroupName": "group1", // 锁大厅组1的名字
@@ -246,7 +286,7 @@ let commission = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "-"
+                data: SampleData.updatePartnerCommissionType
             },
             respondFailure: {
                 status: "4xx",
