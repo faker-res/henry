@@ -2409,6 +2409,47 @@ let dbPlayerInfo = {
                 return Promise.reject(error);
             }
         ).then(
+            async saveRc => {
+                if(saveRc){
+                    console.log('hello there !');
+                    let permission = {
+                        applyBonus: {type: Boolean, default: true},
+                        transactionReward: {type: Boolean, default: true},
+                        allTopUp: {type: Boolean, default: true},
+                        topupOnline: {type: Boolean, default: true},
+                        topupManual: {type: Boolean, default: true},
+                        topUpCard: {type: Boolean, default: true},
+                        phoneCallFeedback: {type: Boolean, default: true, index: true},
+                        SMSFeedBack: {type: Boolean, default: true},
+                        alipayTransaction: {type: Boolean, default: true},
+                        quickpayTransaction: {type: Boolean, default: true},
+                        banReward: {type: Boolean, default: false},
+                        rewardPointsTask: {type: Boolean, default: true},
+                        disableWechatPay: {type: Boolean, default: false},
+                        forbidPlayerConsumptionReturn: {type: Boolean, default: false},
+                        allowPromoCode: {type: Boolean, default: true, index: true},
+                        forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
+                        PlayerTopUpReturn: {type: Boolean, default: true},
+                        PlayerDoubleTopUpReturn: {type: Boolean, default: true},
+                        forbidPlayerFromLogin: {type: Boolean, default: false},
+                        forbidPlayerFromEnteringGame: {type: Boolean, default: false},
+                        playerConsecutiveConsumptionReward: {type: Boolean, default: true},
+                        PlayerPacketRainReward: {type: Boolean, default: true},
+                        PlayerLimitedOfferReward: {type: Boolean, default: true},
+                        levelChange: {type: Boolean, default: true}
+                    }
+                    let saveObj = {
+                        _id: saveRc._id,
+                        permission: permission
+                    };
+                    let savePermission = await new dbconfig.collection_playerPermission(saveObj).save();
+                    if(!savePermission){
+                        return Promise.reject("Save Permission failed");
+                    }
+                    return saveRc;
+                }
+            }
+        ).then(
             data => {
                 if (data) {
                     playerData = data;
@@ -6448,7 +6489,7 @@ let dbPlayerInfo = {
             })
     },
 
-    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj) {
+    getPagePlayerByAdvanceQuery: function (platformId, data, index, limit, sortObj, playerPermission) {
         limit = Math.min(limit, constSystemParam.REPORT_MAX_RECORD_NUM);
         sortObj = sortObj || (data && data.name ? {registrationTime: 1} : {registrationTime: -1});
         let credibilityRemarksList = [];
@@ -6664,7 +6705,7 @@ let dbPlayerInfo = {
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .read("secondaryPreferred")
                     .lean().then(
-                        playerData => {
+                        async playerData => {
                             var players = [];
                             for (var ind in playerData) {
                                 if (playerData[ind]) {
@@ -6783,6 +6824,15 @@ let dbPlayerInfo = {
                     });
                     playerData = data[0];
                 }
+                if(playerPermission){
+                    for(var index = playerData.length - 1; index >=0; index--){
+                        // for (var index in playerData){
+                        if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
+                            playerData.splice(index, 1);
+                        }
+                    }
+                }
+                // console.log('return data...', playerData);
                 return {data: playerData, size: dataSize}
             },
             err => {
@@ -30969,10 +31019,29 @@ let dbPlayerInfo = {
     }
 };
 
-function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
+async function getPlayerTopupChannelPermissionRequestData (player, platformId, updateObj, updateRemark, topUpSystemName) {
     let retObj = {};
 
     if (player && player.permission) {
+        retObj = {
+            username: player.name,
+            platformId: platformId
+        }
+
+        retObj.topupManual = player.permission.topupManual ? 1 : 0;
+        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
+        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
+        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
+        if (updateRemark) {
+            retObj.remark = updateRemark;
+        }
+    }else if(player && !player.permission){
+        //In case, permission didn't pass through by player.js
+        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
+        if(permissionData && permissionData.length > 0){
+            player.permission = permissionData.permission;
+        }
+
         retObj = {
             username: player.name,
             platformId: platformId
@@ -31009,7 +31078,9 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
     return pmsUpdateProm.then(
         updatePMSSuccess => {
             if (updatePMSSuccess) {
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                let updateQuery = {_id: query._id};
+                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
+                    // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
                         if (playerData) {
                             return dbconfig.collection_platform.populate(playerData, {
