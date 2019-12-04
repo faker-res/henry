@@ -2411,30 +2411,30 @@ let dbPlayerInfo = {
                 if(saveRc){
                     console.log('hello there !');
                     let permission = {
-                        applyBonus: {type: Boolean, default: true},
-                        transactionReward: {type: Boolean, default: true},
-                        allTopUp: {type: Boolean, default: true},
-                        topupOnline: {type: Boolean, default: true},
-                        topupManual: {type: Boolean, default: true},
-                        topUpCard: {type: Boolean, default: true},
-                        phoneCallFeedback: {type: Boolean, default: true, index: true},
-                        SMSFeedBack: {type: Boolean, default: true},
-                        alipayTransaction: {type: Boolean, default: true},
-                        quickpayTransaction: {type: Boolean, default: true},
-                        banReward: {type: Boolean, default: false},
-                        rewardPointsTask: {type: Boolean, default: true},
-                        disableWechatPay: {type: Boolean, default: false},
-                        forbidPlayerConsumptionReturn: {type: Boolean, default: false},
-                        allowPromoCode: {type: Boolean, default: true, index: true},
-                        forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
-                        PlayerTopUpReturn: {type: Boolean, default: true},
-                        PlayerDoubleTopUpReturn: {type: Boolean, default: true},
-                        forbidPlayerFromLogin: {type: Boolean, default: false},
-                        forbidPlayerFromEnteringGame: {type: Boolean, default: false},
-                        playerConsecutiveConsumptionReward: {type: Boolean, default: true},
-                        PlayerPacketRainReward: {type: Boolean, default: true},
-                        PlayerLimitedOfferReward: {type: Boolean, default: true},
-                        levelChange: {type: Boolean, default: true}
+                        applyBonus: true,
+                        transactionReward: true,
+                        allTopUp: true,
+                        topupOnline: true,
+                        topupManual: true,
+                        topUpCard: true,
+                        phoneCallFeedback: true,
+                        SMSFeedBack: true,
+                        alipayTransaction: true,
+                        quickpayTransaction: true,
+                        banReward: false,
+                        rewardPointsTask: true,
+                        disableWechatPay: false,
+                        forbidPlayerConsumptionReturn: false,
+                        allowPromoCode: true,
+                        forbidPlayerConsumptionIncentive: false,
+                        PlayerTopUpReturn: true,
+                        PlayerDoubleTopUpReturn: true,
+                        forbidPlayerFromLogin: false,
+                        forbidPlayerFromEnteringGame: false,
+                        playerConsecutiveConsumptionReward: true,
+                        PlayerPacketRainReward: true,
+                        PlayerLimitedOfferReward: true,
+                        levelChange: true
                     }
                     let saveObj = {
                         _id: saveRc._id,
@@ -6825,7 +6825,7 @@ let dbPlayerInfo = {
                 if(playerPermission){
                     for(var index = playerData.length - 1; index >=0; index--){
                         // for (var index in playerData){
-                        if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === false){
+                        if(playerData[index].permission.hasOwnProperty(playerPermission) && playerData[index].permission[playerPermission] === true){
                             playerData.splice(index, 1);
                         }
                     }
