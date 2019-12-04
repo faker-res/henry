@@ -8,6 +8,9 @@ var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUni
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
+var dbconfig = require('./../modules/dbproperties');
+
+
 
 var playerSchema = new Schema({
     //player id
@@ -136,34 +139,34 @@ var playerSchema = new Schema({
         device: {type: String},
     }],
     //User permission
-    permission: {
-        _id: false,
-        applyBonus: {type: Boolean, default: true},
-        // advanceConsumptionReward: {type: Boolean, default: true},
-        transactionReward: {type: Boolean, default: true},
-        allTopUp: {type: Boolean, default: true},
-        topupOnline: {type: Boolean, default: true},
-        topupManual: {type: Boolean, default: true},
-        topUpCard: {type: Boolean, default: true},
-        phoneCallFeedback: {type: Boolean, default: true, index: true},
-        SMSFeedBack: {type: Boolean, default: true},
-        alipayTransaction: {type: Boolean, default: true},
-        quickpayTransaction: {type: Boolean, default: true},
-        banReward: {type: Boolean, default: false},
-        rewardPointsTask: {type: Boolean, default: true},
-        disableWechatPay: {type: Boolean, default: false},
-        forbidPlayerConsumptionReturn: {type: Boolean, default: false},
-        allowPromoCode: {type: Boolean, default: true, index: true},
-        forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
-        PlayerTopUpReturn: {type: Boolean, default: true},
-        PlayerDoubleTopUpReturn: {type: Boolean, default: true},
-        forbidPlayerFromLogin: {type: Boolean, default: false},
-        forbidPlayerFromEnteringGame: {type: Boolean, default: false},
-        playerConsecutiveConsumptionReward: {type: Boolean, default: true},
-        PlayerPacketRainReward: {type: Boolean, default: true},
-        PlayerLimitedOfferReward: {type: Boolean, default: true},
-        levelChange: {type: Boolean, default: true}
-    },
+    // permission: {
+    //     _id: false,
+    //     applyBonus: {type: Boolean, default: true},
+    //     // advanceConsumptionReward: {type: Boolean, default: true},
+    //     transactionReward: {type: Boolean, default: true},
+    //     allTopUp: {type: Boolean, default: true},
+    //     topupOnline: {type: Boolean, default: true},
+    //     topupManual: {type: Boolean, default: true},
+    //     topUpCard: {type: Boolean, default: true},
+    //     phoneCallFeedback: {type: Boolean, default: true, index: true},
+    //     SMSFeedBack: {type: Boolean, default: true},
+    //     alipayTransaction: {type: Boolean, default: true},
+    //     quickpayTransaction: {type: Boolean, default: true},
+    //     banReward: {type: Boolean, default: false},
+    //     rewardPointsTask: {type: Boolean, default: true},
+    //     disableWechatPay: {type: Boolean, default: false},
+    //     forbidPlayerConsumptionReturn: {type: Boolean, default: false},
+    //     allowPromoCode: {type: Boolean, default: true, index: true},
+    //     forbidPlayerConsumptionIncentive: {type: Boolean, default: false},
+    //     PlayerTopUpReturn: {type: Boolean, default: true},
+    //     PlayerDoubleTopUpReturn: {type: Boolean, default: true},
+    //     forbidPlayerFromLogin: {type: Boolean, default: false},
+    //     forbidPlayerFromEnteringGame: {type: Boolean, default: false},
+    //     playerConsecutiveConsumptionReward: {type: Boolean, default: true},
+    //     PlayerPacketRainReward: {type: Boolean, default: true},
+    //     PlayerLimitedOfferReward: {type: Boolean, default: true},
+    //     levelChange: {type: Boolean, default: true}
+    // },
 
     //country
     country: String,
@@ -489,7 +492,16 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-var playerPostFindUpdate = function (result, bOne) {
+var playerPostFindUpdate = async function(result, bOne) {
+
+    if (result && !result.permission) {
+        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: result._id}).lean();
+        if (permissionData && permissionData.permission) {
+            console.log('schema permission', permissionData.permission);
+            result.permission = permissionData.permission;
+        }
+    }
+
     if (result && result.phoneNumber) {
         if (result.phoneNumber.length > 20) {
             let phoneNumber = result.phoneNumber;
