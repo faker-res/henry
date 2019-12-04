@@ -8185,6 +8185,10 @@ let dbPlayerInfo = {
                             platformPrefix = inputData.accountPrefix;
                         }
 
+                        if (!inputData.accountPrefix) {
+                            inputData.accountPrefix = platformPrefix;
+                        }
+
                         let userNameProp = {
                             length: 8,
                             pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -31077,6 +31081,7 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
         updatePMSSuccess => {
             if (updatePMSSuccess) {
                 let updateQuery = {_id: query._id};
+
                 return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
                     // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
