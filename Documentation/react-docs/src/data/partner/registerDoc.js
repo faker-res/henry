@@ -1,4 +1,74 @@
-
+const sampleData = {
+    register: `{
+        "_id": "5de712a35246ba02e23eb6b4",
+        "partnerId": "14055",
+        "level": "57ff08433f8838c63a7f836f",
+        "realName": "docreal",
+        "password": "$2b$10$ExisaEKFpUggiD83gtbxJ.lcEv9xs.Ujcl4IaVmvEghMrvTNrmrIy",
+        "lastLoginIp": "undefined", // 最后一次登入的IP
+        "partnerName": "pp2docdco",
+        "platform": "a71a6b88616ad166d2b92e30",
+        "isNewSystem": true, // 是否是新系统注册
+        "registrationDevice": "0", // 注册设备
+        "commissionType": 0, // 佣金类型
+        "loginTimes": 1, 
+        "registrationInterface": 1, // 开户设备
+        "status": 1,
+        "permission": {
+          "disableCommSettlement": false,
+          "SMSFeedBack": true,
+          "phoneCallFeedback": true,
+          "forbidPartnerFromLogin": false,
+          "applyBonus": true
+        },
+        "commissionAmountFromChildren": 0, // 下线佣金额
+        "lastChildrenCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+        "lastCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+        "negativeProfitAmount": 0,
+        "commissionHistory": [],
+        "ownDomain": [],
+        "userAgent": [ // 装置
+          {
+            "browser": "Chrome",
+            "device": "",
+            "os": "Mac OS"
+          }
+        ],
+        "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
+        "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
+        "parent": null,
+        "children": [],
+        "depthInTree": 0,
+        "failMeetingTargetWeeks": 0,
+        "validReward": 0,
+        "validConsumptionSum": 0,
+        "totalChildrenBalance": 0,
+        "totalChildrenDeposit": 0,
+        "monthlyActivePlayer": 0,
+        "weeklyActivePlayer": 0,
+        "dailyActivePlayer": 0,
+        "activePlayers": 0,
+        "validPlayers": 0,
+        "totalWithdrawalAmt": 0,
+        "totalSettledCommission": 0,
+        "totalPlayerDownline": 0,
+        "totalReferrals": 0,
+        "credits": 0,
+        "isLogin": false,
+        "lastAccessTime": "2019-12-04T01:57:55.235Z",
+        "registrationTime": "2019-12-04T01:57:55.235Z",
+        "phoneNumber": "112******4556",
+        "email": "",
+        "DOB": null,
+        "gender": true,
+        "commissionHeapCycleStart": "",
+        "commissionHeapCycleEnd": "",
+        "partnerLevel": 1,
+        "downLineLevel": 2
+    }`,
+    registerToken:`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXNzd29yZCI6IiQyYiQxMCRFeGlzYUVLRnBVZ2dpRDgzZ3RieEoubGNFdjl4cy5VamNsNElhVm12RWdoTXJ2VE5ybXJJeSIsImlhdCI6MTU3NTQyNDY3NSwiZXhwIjoxNTc1NDQyNjc1fQ.5Mb90dcqzcUrlpIS0wBa8KjFQu8HIAdarBAH6VGuUac
+    `
+}
 let register = {
     name:"注册",
     func: {
@@ -39,6 +109,8 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
+                data: sampleData.register,
+                token: sampleData.registerToken
             },
             respondFailure: {
                 status: "4xx",
