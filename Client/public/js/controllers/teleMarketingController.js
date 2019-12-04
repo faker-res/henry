@@ -6914,23 +6914,33 @@ define(['js/app'], function (myApp) {
                     vm.workloadResultSummary = [];
                     if(data.data) {
                         vm.workloadResult = data.data;
-                        for(let assigneeObjId in vm.workloadResult) {
-                            let row = {
-                                distributed: 0,
-                                fulfilled: 0,
-                                success: 0,
-                                registered: 0
-                            };
-                            let assignee = vm.workloadResult[assigneeObjId];
-                            for(let phoneList in assignee) {
-                                row.adminObjId = assignee[phoneList].adminId;
-                                row.adminName = assignee[phoneList].adminName;
-                                row.distributed += assignee[phoneList].distributed;
-                                row.fulfilled += assignee[phoneList].fulfilled;
-                                row.success += assignee[phoneList].success;
-                                row.registered += assignee[phoneList].registered;
+                        for (let i = 0; i < vm.workloadResult.length; i++) {
+                            let platformResult = vm.workloadResult[i];
+                            let reportRow = [];
+
+                            for (let assigneeObjId in platformResult.report) {
+                                let row = {
+                                    distributed: 0,
+                                    fulfilled: 0,
+                                    success: 0,
+                                    registered: 0
+                                };
+                                let assignee = platformResult.report[assigneeObjId];
+                                for(let phoneList in assignee) {
+                                    row.adminObjId = assignee[phoneList].adminId;
+                                    row.adminName = assignee[phoneList].adminName;
+                                    row.distributed += assignee[phoneList].distributed;
+                                    row.fulfilled += assignee[phoneList].fulfilled;
+                                    row.success += assignee[phoneList].success;
+                                    row.registered += assignee[phoneList].registered;
+                                }
+                                reportRow.push(row);
                             }
-                            vm.workloadResultSummary.push(row);
+                            if (!reportRow.length) continue;
+                            vm.workloadResultSummary.push({
+                                platformName: platformResult.platformName,
+                                report: reportRow
+                            })
                         }
                     }
                 })
