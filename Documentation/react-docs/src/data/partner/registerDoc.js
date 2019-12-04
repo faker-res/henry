@@ -128,7 +128,7 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "true / false"
+                data: "true"
             },
             respondFailure: {
                 status: "4xx",
