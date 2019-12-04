@@ -6586,7 +6586,7 @@ function getProviderCredit(providers, playerName, platformId) {
     providers.forEach(provider => {
         if (provider) {
             promArr.push(
-                cpmsAPI.player_queryCredit(
+                cpmsAPI.player_queryCredit_NAM(
                     {
                         username: playerName,
                         platformId: platformId,
