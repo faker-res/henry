@@ -21,7 +21,7 @@ let register = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
                 token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ2kwaWFvbjlnIiwicGFzc3dvcmQiOiIkMmIkMTAkOUVuQ0ZVTkFwTUFXTUVobVRJcHFvLlZoNWlUczFtNENGbExuYWJjWnM2WEx5WW9Tb04uL3UiLCJpYXQiOjE1NzUwMTk0OTAsImV4cCI6MTU3NTAzNzQ5MH0.QgNb5qR1BezK6Z-ojIEs9i7rYUejSwP3p3H9b6UB8iI",
                 isHitReferralLimit: "false //是否达到推荐人上限（true/false-给前端处理信息)"
             },
@@ -47,7 +47,7 @@ let register = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
                 token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ2kwaWFvbjlnIiwicGFzc3dvcmQiOiIkMmIkMTAkOUVuQ0ZVTkFwTUFXTUVobVRJcHFvLlZoNWlUczFtNENGbExuYWJjWnM2WEx5WW9Tb04uL3UiLCJpYXQiOjE1NzUwMTk0OTAsImV4cCI6MTU3NTAzNzQ5MH0.QgNb5qR1BezK6Z-ojIEs9i7rYUejSwP3p3H9b6UB8iI",
 
             },
@@ -74,7 +74,7 @@ let register = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
                 token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ2kwaWFvbjlnIiwicGFzc3dvcmQiOiIkMmIkMTAkOUVuQ0ZVTkFwTUFXTUVobVRJcHFvLlZoNWlUczFtNENGbExuYWJjWnM2WEx5WW9Tb04uL3UiLCJpYXQiOjE1NzUwMTk0OTAsImV4cCI6MTU3NTAzNzQ5MH0.QgNb5qR1BezK6Z-ojIEs9i7rYUejSwP3p3H9b6UB8iI",
                 isHitReferralLimit: "false //是否达到推荐人上限（true/false-给前端处理信息)"
             },
@@ -114,7 +114,7 @@ let register = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
                 token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoiZ2kwaWFvbjlnIiwicGFzc3dvcmQiOiIkMmIkMTAkOUVuQ0ZVTkFwTUFXTUVobVRJcHFvLlZoNWlUczFtNENGbExuYWJjWnM2WEx5WW9Tb04uL3UiLCJpYXQiOjE1NzUwMTk0OTAsImV4cCI6MTU3NTAzNzQ5MH0.QgNb5qR1BezK6Z-ojIEs9i7rYUejSwP3p3H9b6UB8iI",
                 isHitReferralLimit: "false //是否达到推荐人上限（true/false-给前端处理信息)"
 
