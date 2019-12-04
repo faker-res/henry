@@ -6962,10 +6962,23 @@ let dbPlayerInfo = {
                 return Promise.reject({name: "DBError", message: "Error in getting player platform data", error: error});
             }
         ).then(
+            async data => {
+                if(data){
+                    console.log('player permi..', data);
+                    let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data._id}).lean();
+                        console.log('permi data..', permissionData);
+                        if(permissionData){
+                            data.permission = permissionData.permission;
+                        }
+                    console.log('return player..', data);
+                    return data;
+                }
+            }
+        ).then(
             data => {
                 if (data) {
                     playerObj = data;
-
+                    console.log('return player2..', data);
                     if (checkLastDeviceId && playerObj.deviceId && playerData.deviceId && playerObj.deviceId != playerData.deviceId) {
                         return Promise.reject({name: "DataError", message: "Player's device changed, please login again"});
                     }
