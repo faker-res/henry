@@ -421,7 +421,7 @@ let dbPlayerInfo = {
         )
     },
 
-    createGuestPlayer: async function (inputData, deviceData) {
+    createGuestPlayer: async function(inputData, deviceData) {
         let newPlayerData;
         let isEnableUseReferralPlayerId = false;
         let referralLog = {};
