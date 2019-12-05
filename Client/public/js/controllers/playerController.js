@@ -8025,6 +8025,15 @@ define(['js/app'], function (myApp) {
             vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
 
+            if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
+                vm.allPlatformData.forEach(e => {
+                    console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
+                    if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
+                        vm.showPlatform = e;
+                    }
+                })
+            }
+
             var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
                 $scope.$evalAsync(() => {
