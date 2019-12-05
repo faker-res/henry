@@ -76,7 +76,14 @@ proto._dispatch = function (conn, message, bClient) {
 
     // Receiving log
     try {
-        console.log(`Received ${serviceName}.${funcName}: ${JSON.stringify(message["data"])}`);
+        let ignoreLogList = [
+            'authenticate', 'login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS',
+            'phoneNumberLoginWithPassword', 'registerByPhoneNumberAndPassword'
+        ];
+
+        if (!ignoreLogList.includes(funcName)) {
+            console.log(`Received ${serviceName}.${funcName}: ${JSON.stringify(message["data"])}`);
+        }
     } catch (e) {
         console.log(`Error occurred when parsing received data`);
     }
