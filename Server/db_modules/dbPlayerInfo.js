@@ -10051,6 +10051,7 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
+        console.log("zm checking start", playerId);
         let playerObj;
         let gameProvider;
         let targetProviderId = [];
@@ -10157,6 +10158,7 @@ let dbPlayerInfo = {
             }
         ).then(
             checkPlayerBonusDoubledRewardResult => {
+                console.log("zm checking 1", playerId, isMultiProvider);
                 if(isMultiProvider){
                     gameProvider.forEach(
                         provider => {
@@ -10193,7 +10195,7 @@ let dbPlayerInfo = {
             function (data) {
                 // Notify client on credit change
                 messageDispatcher.sendMessage('creditUpdate', {recipientId: playerObj._id});
-
+                console.log("zm checking end", playerId);
                 return Promise.resolve(data);
             },
             function (err) {
