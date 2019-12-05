@@ -606,7 +606,8 @@ let dbReport = {
 
         // player login count
         let loginCountQuery = {
-            loginTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)}
+            loginTime : {$gte: new Date(query.startTime), $lt: new Date(query.endTime)},
+            isRealPlayer: true
         };
         if (platformListQuery)
             loginCountQuery.platform = platformListQuery;
