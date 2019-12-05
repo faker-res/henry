@@ -42,11 +42,12 @@ getGameUserInfo: `{ //username, platformId, providerId用于给FPMS进行函数�
     gameUser: “blgSven”, //玩家游戏账号名.
     password: “gswet3fk” //玩家游戏密码
 }`,
-modifyGamePassword: `{ //username, platformId, providerId用于给FPMS进行函数的路由
-    username: “gSven”,
-    platformId: “YunYou”,
-    providerId:“Billizard”
-}`,
+// We have two modifyGamePassword method in service implement, that one return data like below, is no longer use.
+// modifyGamePassword: `{ //username, platformId, providerId用于给FPMS进行函数的路由
+//     username: “gSven”,
+//     platformId: “YunYou”,
+//     providerId:“Billizard”
+// }`,
 
 grabPlayerTransferRecords: `{ 
     // CPMS会调用添加消费记录API来添加新收录到的消费记录。 201–正在收录中，可以通过查看progressContent内容来得到处理内容。
@@ -95,7 +96,7 @@ getGameGroupTreeInfo: `{
     “gameGroupIconUrl”: //游戏组的图标位置（若有 CDN/FTP 相对路径将会拼凑）
 }`,
 getGameProviderCredit: `{ 
-    "providerId": "xxx",
+    "providerId": "20",
     "credit": "0.0"
 }`,
 getLiveGameInfo: `{ 
@@ -130,6 +131,150 @@ notifyLiveGameStatus: `{
     pair： 1，  
 }`,
 
+getGameTypeList: `[
+// 游戏类型列表
+    {
+      "gameTypeId": "1",
+      "code": "CASUAL",
+      "name": "Casual"
+    },
+    {
+      "gameTypeId": "2",
+      "code": "CARD",
+      "name": "Card"
+    },
+    {
+      "gameTypeId": "3",
+      "code": "SPORTS",
+      "name": "Sports"
+    },
+    {
+      "code": "SPORT",
+      "gameTypeId": "6",
+      "name": "体育"
+    },
+    {
+      "code": "SLOT",
+      "gameTypeId": "7",
+      "name": "老虎机"
+    },
+    {
+      "code": "CHESS",
+      "gameTypeId": "8",
+      "name": "棋牌"
+    },
+    {
+      "code": "VIDEO",
+      "gameTypeId": "9",
+      "name": "电子"
+    },
+    {
+      "gameTypeId": "testGameTypeCode1488508292478",
+      "code": "testGameTypeCode21488508292478",
+      "name": "testGameTypeName21488508292478"
+    },
+    {
+      "gameTypeId": "testGameTypeCode1488509959162",
+      "code": "testGameTypeCode21488509959162",
+      "name": "testGameTypeName21488509959162"
+    },
+    {
+      "gameTypeId": "testGameTypeCode1490155321259",
+      "code": "testGameTypeCode21490155321259",
+      "name": "testGameTypeName21490155321259"
+    },
+    {
+      "gameTypeId": "testGameTypeCode1490170048556",
+      "code": "testGameTypeCode21490170048556",
+      "name": "testGameTypeName21490170048556"
+    }
+]`,
+    getProviderList: `[
+    // 游戏提供商信息列表， 返回形式为 ARRAY OBJECT
+    {
+      "providerId": "20",
+      "name": "捕鱼王游戏",
+      "chName": "",
+      "prefix": "",
+      "status": 2
+    }...
+]`,
+    removeFavoriteGame: `{
+     "ok": 1,
+    "nModified": 1,
+    "n": 1
+}`,
+    getFavoriteGames: `[
+    // 游戏信息列表， 返回形式为 ARRAY OBJECT
+    {
+      "_id": "57a0771bf253b2ca4377b9ac",
+      "gameId": "19D207EB-C09C-4E87-8CFE-0C0DF71CE232",
+      "type": "5",
+      "code": "6",
+      "name": "捕鱼王",
+      "title": "",
+      "bigShow": "http://img99.neweb.me/3739bd0b-a296-4514-a479-8791c6f47256.jpg",
+      "smallShow": "http://img99.neweb.me/3739bd0b-a296-4514-a479-8791c6f47256.jpg",
+      "showPriority": 1,
+      "provider": "20",
+      "status": 1,
+      "description": "捕鱼王",
+      "canTrial": false,
+      "visible": true,
+      "__v": 0,
+      "playGameType": "1",
+      "progressivegamecode": "",
+      "isFavorite": true
+    }
+]`,
+    searchGame: `[
+    // 游戏列表， 返回形式为 ARRAY OBJECT
+    {
+      "_id": "57a0771bf253b2ca4377b9ac",
+      "gameId": "19D207EB-C09C-4E87-8CFE-0C0DF71CE232",
+      "type": "5",
+      "code": "6",
+      "name": "捕鱼王",
+      "title": "",
+      "bigShow": "http://img99.neweb.me/3739bd0b-a296-4514-a479-8791c6f47256.jpg",
+      "smallShow": "http://img99.neweb.me/3739bd0b-a296-4514-a479-8791c6f47256.jpg",
+      "showPriority": 1,
+      "provider": "20",
+      "status": 1,
+      "description": "捕鱼王",
+      "canTrial": false,
+      "visible": true,
+      "__v": 0,
+      "playGameType": "1",
+      "progressivegamecode": "",
+      "isFavorite": true
+    }
+]`,
+    searchGameByGroup: `[
+    // 根据游戏组查询游戏， 返回形式为 ARRAY OBJECT
+    {
+      "_id": "57a05c4da7ba70af4263d7f1",
+      "bigShow": "http://img99.neweb.me/FireHawk.jpg",
+      "code": "FireHawk",
+      "gameId": "0796679D-3F00-4993-BFCB-436DF1875423",
+      "name": "FireHawk",
+      "showPriority": 1,
+      "smallShow": "http://img99.neweb.me/FireHawk.jpg",
+      "title": "",
+      "type": "9",
+      "provider": "19",
+      "status": 1,
+      "description": "",
+      "canTrial": true,
+      "visible": true,
+      "__v": 0,
+      "playGameType": "1",
+      "progressivegamecode": "",
+      "gameDisplay": "1"
+    }
+]`,
+    getGamePassword: `[{gameUserObj // 需从CPMS获取}]`,
+    modifyGamePassword: `[{gameUserObj // 需从CPMS获取}]`,
 
 }
 
@@ -147,7 +292,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "游戏类型列表"
+                data: sampleData.getGameTypeList,
             },
             respondFailure: {
                 status: "4xx",
@@ -187,7 +332,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "游戏提供商信息列表"
+                data: sampleData.getProviderList
             },
             respondFailure: {
                 status: "4xx",
@@ -336,7 +481,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data:"收藏成功"
+                data:"true"
             },
             respondFailure: {
                 status: "4xx",
@@ -354,6 +499,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
+                data: sampleData.removeFavoriteGame,
             },
             respondFailure: {
                 status: "4xx",
@@ -374,7 +520,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{[gameObj]}",
+                data: sampleData.getFavoriteGames,
             },
             respondFailure: {
                 status: "4xx",
@@ -459,7 +605,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data:"{[gameObj]}"
+                data: sampleData.searchGame
             },
             respondFailure: {
                 status: "4xx",
@@ -493,7 +639,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{ [gameObj] }"
+                data: sampleData.searchGameByGroup
             },
             respondFailure: {
                 status: "4xx",
@@ -511,7 +657,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{ [gameUserObj] }"
+                data: sampleData.getGamePassword
             },
             respondFailure: {
                 status: "4xx",
@@ -529,7 +675,7 @@ let game = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{ [gameUserObj] }"
+                data: sampleData.modifyGamePassword
             },
             respondFailure: {
                 status: "4xx",
