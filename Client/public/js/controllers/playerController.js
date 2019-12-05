@@ -410,6 +410,33 @@ define(['js/app'], function (myApp) {
             5: 'WEEKLY_CONSUMPTION'
         };
 
+        vm.playerPermission = {
+            None: "none",
+            applyBonus: "applyBonus",
+            allTopUp: "allTopUp",
+            topupOnline: "topupOnline",
+            topupManual: "topupManual",
+            alipayTransaction: "alipayTransaction",
+            disableWechatPay: "disableWechatPay",
+            topUpCard: "topUpCard",
+            forbidPlayerFromLogin: "forbidPlayerFromLogin",
+            forbidPlayerFromEnteringGame: "forbidPlayerFromEnteringGame",
+            phoneCallFeedback: "phoneCallFeedback",
+            SMSFeedBack: "SMSFeedBack",
+            banReward: "banReward",
+            forbidPlayerConsumptionReturn: "forbidPlayerConsumptionReturn",
+            allowPromoCode: "allowPromoCode",
+            rewardPointsTask: "rewardPointsTask",
+            levelChange: "levelChange"
+        };
+
+        vm.creditChangeType = {
+            'abnormal_deduction': "Abnormal Deduction",
+            'limit_deduction': "Limit Deduction",
+            'other_deduction': "Other Deduction",
+            'addition': "Addition"
+        };
+
         vm.partnerCommissionLog= {};
 
         vm.prepareToBeDeletedProviderGroupId = [];
@@ -5098,8 +5125,12 @@ define(['js/app'], function (myApp) {
                 query: vm.advancedQueryObj,
                 index: newSearch ? 0 : (vm.playerTableQuery.index || 0),
                 limit: vm.playerTableQuery.limit,
-                sortCol: vm.playerTableQuery.sortCol
+                sortCol: vm.playerTableQuery.sortCol,
+                playerPermission: vm.playerAdvanceSearchQuery.playerPermission
             };
+            if(vm.playerAdvanceSearchQuery.playerPermission == "None") {
+                delete apiQuery.playerPermission;
+            }
             $("#playerTable-search-filter .form-control").prop("disabled", false).css("background-color", "#fff");
             $("#playerTable-search-filter .form-control input").prop("disabled", false).css("background-color", "#fff");
             $("select#selectCredibilityRemark").multipleSelect("enable");
@@ -10903,6 +10934,7 @@ define(['js/app'], function (myApp) {
             vm.creditChange.finalLockedAmount = null;
             vm.creditChange.remark = '';
             vm.creditChange.updateAmount = 0;
+            vm.creditChange.creditChangeType = null;
 
 
             vm.linkedPlayerTransferId = null;
@@ -10935,7 +10967,8 @@ define(['js/app'], function (myApp) {
                     curAmount: vm.isOneSelectedPlayer().validCredit,
                     realName: vm.isOneSelectedPlayer().realName,
                     remark: vm.creditChange.remark,
-                    adminName: authService.adminName
+                    adminName: authService.adminName,
+                    creditChangeType: vm.creditChange.creditChangeType
                 }
             }
 
@@ -20600,6 +20633,8 @@ define(['js/app'], function (myApp) {
                 }
             } else if (fieldName === 'bankName2' || fieldName === 'bankName3') {
                 result = vm.allBankTypeList && vm.allBankTypeList[val] ? vm.allBankTypeList[val] : (val + " ! " + $translate("not in bank type list"));
+            } else if (fieldName === 'creditChangeType') {
+                result = $translate(vm.creditChangeType[val]);
             }
 
             return $sce.trustAsHtml(result);
@@ -24502,6 +24537,23 @@ define(['js/app'], function (myApp) {
             ];
 
             $scope.safeApply();
+        }
+
+        vm.getPermissionName = function (value) {
+            let name = '';
+            // for (let i = 0; i < Object.keys(vm.allPlayerLevelUpPeriod).length; i++) {
+            //     if (vm.allPlayerLevelUpPeriod[Object.keys(vm.allPlayerLevelUpPeriod)[i]] == value) {
+            //         name = Object.keys(vm.allPlayerLevelUpPeriod)[i];
+            //         break;
+            //     }
+            // }
+            for (let i = 0; i < Object.keys(vm.playerPermission).length; i++) {
+                if (vm.playerPermission[Object.keys(vm.playerPermission)[i]] == value) {
+                    name = Object.keys(vm.playerPermission)[i];
+                    break;
+                }
+            }
+            return name;
         }
 
         vm.getPlayersByAdvanceQueryDebounced = $scope.debounceSearch(vm.getPlayersByAdvanceQuery);

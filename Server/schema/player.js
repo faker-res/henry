@@ -8,6 +8,9 @@ var ensureFieldsAreUnique = require("../db_modules/middleware/ensureFieldsAreUni
 var rsaCrypto = require("../modules/rsaCrypto");
 var dbUtil = require("../modules/dbutility");
 var Schema = mongoose.Schema;
+var dbconfig = require('./../modules/dbproperties');
+
+
 
 var playerSchema = new Schema({
     //player id
@@ -135,7 +138,7 @@ var playerSchema = new Schema({
         os: {type: String},
         device: {type: String},
     }],
-    //User permission
+    // User permission
     permission: {
         _id: false,
         applyBonus: {type: Boolean, default: true},
@@ -489,7 +492,16 @@ playerSchema.methods.comparePassword = function (candidatePassword, cb) {
     });
 };
 
-var playerPostFindUpdate = function (result, bOne) {
+var playerPostFindUpdate = async function(result, bOne) {
+
+    // if (result && !result.permission) {
+    // let permissionData = await dbconfig.collection_playerPermission.findOne({_id: result._id}).lean();
+    // if (permissionData && permissionData.permission) {
+    //     console.log('schema permission', permissionData.permission);
+    //     result.permission = permissionData.permission;
+    // }
+    // }
+
     if (result && result.phoneNumber) {
         if (result.phoneNumber.length > 20) {
             let phoneNumber = result.phoneNumber;

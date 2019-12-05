@@ -652,6 +652,7 @@ var dbPlayerConsumptionRecord = {
             (playerUpdatedData) => {
                 playerData = playerUpdatedData;
                 // Check auto player level up
+
                 dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                 return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
             },
@@ -2791,6 +2792,496 @@ var dbPlayerConsumptionRecord = {
                 let totalSumData = data[1] ? data[1] : [];
                 result = dbPlayerConsumptionRecord.getGameTypeWinRateData(providerId, providerName, participantNumber, totalSumData, participantData);
                 return result;
+            }
+        )
+    },
+
+    gameTypeAnalysisReport: function (startTime, endTime, providerId, platformId, providerName, loginDevice, csPromoteWay, listAllProviders, byProviders) {
+        let loginDeviceQuery;
+
+        let matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId),
+            isDuplicate: {$ne: true},
+        };
+
+        let topUpQuery = {
+            createTime: {$gte: startTime, $lt: endTime},
+            'data.platformId': ObjectId(platformId),
+            mainType: "TopUp",
+            status: constProposalStatus.SUCCESS,
+        };
+
+        let withdrawQuery = {
+            createTime: {$gte: startTime, $lt: endTime},
+            'data.platformId': ObjectId(platformId),
+            mainType: "PlayerBonus",
+            status: constProposalStatus.SUCCESS,
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+            topUpQuery.providerId = ObjectId(providerId);
+        }
+
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            matchObj.loginDevice = {"$exists" : true};
+            topUpQuery['data.loginDevice'] = {"$exists" : true};
+            withdrawQuery['data.loginDevice'] = {"$exists" : true};
+        }
+
+        let groupData = {"loginDevice": "$loginDevice"};
+        let groupObjIdData = {'loginDevice': '$loginDevice'};
+        let groupTopupData = {"loginDevice": "$data.loginDevice"};
+        let groupWithdrawData = {"loginDevice": "$data.loginDevice"};
+
+        if (listAllProviders) {
+            groupData = {"platformId": "$platformId"};
+            groupObjIdData = {"platformId": "$platformId"};
+        }
+        if (byProviders) {
+            groupData = {"providerId": "$providerId", "platformId": "$platformId"};
+            groupObjIdData = {"providerId": "$providerId", "platformId": "$platformId"};
+        }
+
+        if (loginDeviceQuery) {
+            if (loginDevice.length === 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ];
+                topUpQuery['$or'] = [
+                    {'data.loginDevice': loginDeviceQuery},
+                    {'data.loginDevice': {$exists: false}}
+                ];
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+                topUpQuery['data.loginDevice'] = loginDeviceQuery;
+            }
+        }
+
+        let platformNameProm = dbconfig.collection_platform.findOne({_id: platformId}, {name: 1}).lean();
+
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: groupData,
+                    playerId: {
+                        $addToSet: "$playerId"
+                    }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: groupObjIdData,
+                    total_amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                    consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
+                    bonusAmount: {$sum: "$bonusAmount"}
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let topUpProm = dbconfig.collection_proposal.aggregate([
+            {
+                $match: topUpQuery
+            },
+            {
+                $group: {
+                    _id: groupTopupData,
+                    typeId: {$first: "$type"},
+                    count: {$sum: 1},
+                    amount: {$sum: "$data.amount"},
+                    playerId: {
+                        $addToSet: "$data.playerObjId"
+                    }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let withdrawProm = dbconfig.collection_proposal.aggregate([
+            {
+                $match: withdrawQuery
+            },
+            {
+                $group: {
+                    _id: groupWithdrawData,
+                    amount: {$sum: "$data.amount"},
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let gameProvidersProm = dbPlatform.getProviderListByPlatform({platformObjIdList: ObjectId(platformId)}).then(data => {
+            return data ? data : [];
+        });
+
+        let allPlatformGameProvidersProm = dbPlatform.getAllProviderListByPlatform({platformObjIdList: ObjectId(platformId)}).then(data => {
+            return data ? data : [];
+        });
+
+        return Promise.all([platformNameProm, participantsProm, totalAmountProm, topUpProm, withdrawProm, gameProvidersProm, allPlatformGameProvidersProm]).then(
+            data => {
+                let participantNumber = 0;
+                let result = [];
+                let platformName = data[0] && data[0].name ? data[0].name : "";
+                let participantData = data[1] ? data[1] : [];
+                let totalSumData = data[2] ? data[2] : [];
+                let topupData = data[3] ? data[3] : [];
+                let withdrawData = data[4] ? data[4] : [];
+                let gameProviders = data[5] ? data[5] : [];
+                let allPlatformGameProviders = data[6] ? data[6] : [];
+
+                if (byProviders) {
+                    result = dbPlayerConsumptionRecord.getGameTypeAnalysisByProviders(platformId, allPlatformGameProviders, participantData, totalSumData);
+                } else {
+                    result = dbPlayerConsumptionRecord.getGameTypeAnalysisData(platformName, gameProviders, providerId, providerName, participantNumber, totalSumData, participantData, topupData, withdrawData, listAllProviders);
+                }
+
+                return result;
+            }
+        )
+    },
+
+    getGameTypeAnalysisData: function (platformName, gameProviders, providerId, providerName, participantNumber, totalSumData, participantData, topupData, withdrawData, listAllProviders) {
+        let participantArr = [];
+        let summaryData = {
+            consumptionTimes: 0,
+            totalAmount: 0,
+            validAmount: 0,
+            topupPlayerCount: 0,
+            topupSuccessCount: 0,
+            topupAmount: 0,
+            withdrawAmount: 0,
+            bonusAmount: 0,
+            profit: 0,
+            averagePaymentAllPlayer: 0,
+            averagePaymentAllTopupPlayer: 0,
+            averageTopupCountAllPlayer: 0,
+            averageTopupCountAllTopupPlayer: 0,
+            averageIncomeAllPlayer: 0,
+            averageIncomeAllTopupPlayer: 0,
+        };
+
+        let gameProviderName = gameProviders.filter(provider => {
+            if (provider._id.equals(ObjectId(providerId))) {
+                return provider
+            }
+        });
+        gameProviderName = (gameProviderName && gameProviderName[0] && gameProviderName[0].name) ? gameProviderName[0].name : '';
+        if (!providerId) {
+            gameProviderName = 'AllProviders';
+        }
+
+        if (participantData && totalSumData && topupData && withdrawData && totalSumData.length > 0) {
+            let participant;
+            let participantNumber = 0;
+            let topupStat;
+            let withdrawStat;
+            let topupPlayerCount = 0;
+            let topupSuccessCount = 0;
+            let topupAmount = 0;
+            let withdrawAmount = 0;
+
+            totalSumData.forEach(item => {
+                if (participantData && participantData.length > 0) {
+                    if (listAllProviders) {
+                        participant = participantData.filter(party => {
+                            if (party._id && item._id && item._id.platformId && party._id.platformId && (party._id.platformId.toString() === item._id.platformId.toString())) {
+                                return item;
+                            }
+                        });
+                    } else {
+                        participant = participantData.filter(party => {
+                            if (party._id && item._id && item._id.loginDevice && party._id.loginDevice && (party._id.loginDevice.toString() === item._id.loginDevice.toString())) {
+                                return item;
+                            }
+                            // old data that does not have login device
+                            if (party._id && item._id && !item._id.loginDevice && !party._id.loginDevice) {
+                                return item;
+                            }
+                        });
+                    }
+                    participant = (participant && participant.length) ? participant[0] : null;
+                    participantNumber = (participant && participant.playerId && participant.playerId.length) ? participant.playerId.length : 0;
+
+                    if (participant && participant.playerId && participant.playerId.length) {
+                        participant.playerId.forEach(player => {
+                            participantArr.push(player);
+                        })
+                    }
+                }
+                if (topupData && topupData.length > 0) {
+                    if (listAllProviders) {
+                        topupStat = topupData.filter(topup => {
+                            if (topup._id && item._id && item._id.platformId && topup._id.platformId && (topup._id.platformId.toString() === item._id.platformId.toString())) {
+                                return item;
+                            }
+                        });
+                    } else {
+                        topupStat = topupData.filter(topup => {
+                            if (topup._id && item._id && item._id.loginDevice && topup._id.loginDevice && (topup._id.loginDevice.toString() === item._id.loginDevice.toString())) {
+                                return item;
+                            }
+                            // old data that does not have login device
+                            if (topup._id && item._id && !item._id.loginDevice && !topup._id.loginDevice) {
+                                return item;
+                            }
+                        });
+                    }
+                    topupStat = (topupStat && topupStat.length) ? topupStat[0] : null;
+                    topupPlayerCount = (topupStat && topupStat.playerId && topupStat.playerId.length) ? topupStat.playerId.length : 0;
+                    topupSuccessCount = (topupStat && topupStat.count) ? topupStat.count : 0;
+                    topupAmount = (topupStat && topupStat.amount) ? topupStat.amount : 0;
+                }
+                if (withdrawData && withdrawData.length > 0) {
+                    if (listAllProviders) {
+                        withdrawStat = withdrawData.filter(withdraw => {
+                            if (withdraw._id && item._id && item._id.platformId && withdraw._id.platformId && (withdraw._id.platformId.toString() === item._id.platformId.toString())) {
+                                return item;
+                            }
+                        });
+                    } else {
+                        withdrawStat = withdrawData.filter(withdraw => {
+                            if (withdraw._id && item._id && item._id.loginDevice && withdraw._id.loginDevice && (withdraw._id.loginDevice.toString() === item._id.loginDevice.toString())) {
+                                return item;
+                            }
+                            if (withdraw._id && item._id && !item._id.loginDevice && !withdraw._id.loginDevice) {
+                                return item;
+                            }
+                        });
+                    }
+                    withdrawStat = (withdrawStat && withdrawStat.length) ? withdrawStat[0] : null;
+                    withdrawAmount = (withdrawStat && withdrawStat.amount) ? withdrawStat.amount : 0;
+                }
+                if (item && item._id && item._id.loginDevice) {
+                    item.loginDevice = item._id.loginDevice;
+                }
+                item.totalAmount = item.total_amount;
+                item.providerName = gameProviderName;
+                item.platformName = platformName;
+                item.participantNumber = participantNumber;
+                item.providerId = providerId;
+                item.topupPlayerCount = topupPlayerCount;
+                item.topupSuccessCount = topupSuccessCount;
+                item.topupAmount = topupAmount;
+                item.withdrawAmount = withdrawAmount;
+                item.profit = (-item.bonusAmount / item.validAmount * 100);
+                item.profit = Math.round(item.profit * 100) / 100;
+                item.averagePaymentAllPlayer = (item.topupAmount / item.participantNumber);
+                item.averagePaymentAllPlayer = Number.isFinite(item.averagePaymentAllPlayer) ? item.averagePaymentAllPlayer : 0;
+                item.averagePaymentAllTopupPlayer = (item.topupAmount / item.topupPlayerCount);
+                item.averagePaymentAllTopupPlayer = Number.isFinite(item.averagePaymentAllTopupPlayer) ? item.averagePaymentAllTopupPlayer : 0;
+                item.averageTopupCountAllPlayer = (item.topupSuccessCount / item.participantNumber);
+                item.averageTopupCountAllPlayer = Number.isFinite(item.averageTopupCountAllPlayer) ? item.averageTopupCountAllPlayer : 0;
+                item.averageTopupCountAllTopupPlayer = (item.topupSuccessCount / item.topupPlayerCount);
+                item.averageTopupCountAllTopupPlayer = Number.isFinite(item.averageTopupCountAllTopupPlayer) ? item.averageTopupCountAllTopupPlayer : 0;
+                item.averageIncomeAllPlayer = (item.profit / item.participantNumber);
+                item.averageIncomeAllPlayer = Number.isFinite(item.averageIncomeAllPlayer) ? item.averageIncomeAllPlayer : 0;
+                item.averageIncomeAllTopupPlayer = (item.profit / item.topupPlayerCount);
+                item.averageIncomeAllTopupPlayer = Number.isFinite(item.averageIncomeAllTopupPlayer) ? item.averageIncomeAllTopupPlayer : 0;
+
+                summaryData.consumptionTimes += item.consumptionTimes;
+                summaryData.totalAmount += item.total_amount;
+                summaryData.validAmount += item.validAmount;
+                summaryData.topupPlayerCount += item.topupPlayerCount;
+                summaryData.topupSuccessCount += item.topupSuccessCount;
+                summaryData.topupAmount += item.topupAmount;
+                summaryData.bonusAmount += item.bonusAmount;
+                summaryData.averagePaymentAllPlayer += item.averagePaymentAllPlayer;
+                summaryData.averagePaymentAllTopupPlayer += item.averagePaymentAllTopupPlayer;
+                summaryData.averageTopupCountAllPlayer += item.averageTopupCountAllPlayer;
+                summaryData.averageTopupCountAllTopupPlayer += item.averageTopupCountAllTopupPlayer;
+                summaryData.averageIncomeAllPlayer += item.averageIncomeAllPlayer;
+                summaryData.averageIncomeAllTopupPlayer += item.averageIncomeAllTopupPlayer;
+                return item;
+            });
+        }
+        summaryData.profit = ((-summaryData.bonusAmount / summaryData.validAmount * 100));
+        summaryData.participantArr = participantArr;
+        return {
+            data: totalSumData,
+            summaryData: summaryData
+        }
+    },
+
+    getGameTypeAnalysisByProviders: function (platformId, gameProviders, participantData, totalSumData) {
+        let result = [];
+        if (gameProviders && gameProviders.length > 0) {
+            gameProviders.forEach(provider => {
+                if (provider && provider.platformObjId && platformId && provider.platformObjId.toString() === platformId.toString()) {
+
+                    let providerSum;
+                    let participant;
+                    let participantNumber = 0;
+                    if (participantData && participantData.length > 0) {
+                        participant = participantData.filter(item => {
+                            return item._id.providerId.equals(provider._id) && item._id.platformId.equals(provider.platformObjId);
+                        });
+                        participant = (participant && participant[0]) ? participant[0] : null;
+                        participantNumber = (participant && participant.playerId) ? participant.playerId.length : 0;
+                    }
+                    let sumData = totalSumData.filter(sum => {
+                        if (sum._id.providerId.equals(provider._id) && sum._id.platformId.equals(provider.platformObjId)) {
+                            return sum;
+                        }
+                    });
+                    sumData = (sumData && sumData[0]) ? sumData[0] : [];
+                    providerSum = {
+                        platformObjId: provider.platformObjId,
+                        platformName: provider.platformName,
+                        providerId: provider._id,
+                        providerName: provider.name,
+                        participantNumber: participantNumber || 0,
+                        consumptionTimes: sumData.consumptionTimes || 0,
+                        totalAmount: sumData.total_amount || 0,
+                        validAmount: sumData.validAmount || 0,
+                        bonusAmount: sumData.bonusAmount || 0,
+                        profit: (-sumData.bonusAmount / sumData.validAmount * 100) || 0
+                    };
+                    providerSum.profit = (Math.round(providerSum.profit * 100) / 100) || 0;
+                    result.push(providerSum);
+                }
+            })
+        }
+        return result;
+    },
+
+    getGameTypeAnalysisByGameType: function (startTime, endTime, providerId, platformId, providerName, loginDevice) {
+        let loginDeviceQuery;
+
+        let matchObj = {
+            createTime: {$gte: startTime, $lt: endTime},
+            platformId: ObjectId(platformId),
+            isDuplicate: {$ne: true}
+        };
+
+        if (providerId && providerId !== 'all') {
+            matchObj.providerId = ObjectId(providerId);
+        }
+
+        if (loginDevice && loginDevice.length > 0) {
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
+            matchObj.loginDevice = {"$exists" : true};
+        }
+
+        let groupData = {"cpGameType": "$cpGameType", "loginDevice": "$loginDevice"};
+        let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
+
+        if (loginDeviceQuery) {
+            if (loginDevice.length === 4) {
+                matchObj['$or'] = [
+                    {loginDevice: loginDeviceQuery},
+                    {loginDevice: {$exists: false}}
+                ]
+            } else {
+                matchObj.loginDevice = loginDeviceQuery;
+            }
+        }
+
+        let participantsProm = dbconfig.collection_playerConsumptionRecord.aggregate([{
+            $match: matchObj
+        },
+            {
+                $group: {
+                    _id: groupData,
+                    playerId: {
+                        $addToSet: "$playerId"
+                    }
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let totalAmountProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: matchObj
+            },
+            {
+                $group: {
+                    _id: groupObjIdData,
+                    total_amount: {$sum: "$amount"},
+                    validAmount: {$sum: "$validAmount"},
+                    consumptionTimes: {$sum: {$cond: ["$count", "$count", 1]}},
+                    bonusAmount: {$sum: "$bonusAmount"}
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        return Promise.all([participantsProm, totalAmountProm]).then(
+            data => {
+                let participant;
+                let participantNumber = 0;
+                let participantData = data[0] ? data[0] : [];
+                let totalSumData = data[1] ? data[1] : [];
+                let participantArr = [];
+                let summaryData = {
+                    consumptionTimes: 0,
+                    totalAmount: 0,
+                    validAmount: 0,
+                    bonusAmount: 0,
+                    profit: 0
+                };
+
+                if (participantData && totalSumData && totalSumData.length > 0) {
+                    totalSumData.forEach(item => {
+                        if (participantData && participantData.length > 0) {
+                            participant = participantData.filter(party => {
+                                if (party._id && party._id.cpGameType && item._id && item._id.cpGameType && item._id.loginDevice && party._id.loginDevice
+                                    && (party._id.cpGameType.toString() === item._id.cpGameType.toString()) && (party._id.loginDevice.toString() === item._id.loginDevice.toString())) {
+                                    return item;
+                                } else if (party._id && party._id.cpGameType && !party._id.loginDevice && item._id && item._id.cpGameType && !item._id.loginDevice
+                                    && (party._id.cpGameType.toString() === item._id.cpGameType.toString())) {
+                                    return item;
+                                } else if (party._id && !party._id.cpGameType && party._id.providerId && !item._id.cpGameType
+                                    && (party._id.providerId.toString() === providerId.toString())) {
+                                    return item;
+                                }
+                            });
+                            participant = (participant && participant.length) ? participant[0] : null;
+                            participantNumber = (participant && participant.playerId && participant.playerId.length) ? participant.playerId.length : 0;
+
+                            if (participant && participant.playerId && participant.playerId.length) {
+                                participant.playerId.forEach(player => {
+                                    participantArr.push(player);
+                                })
+                            }
+                        }
+                        if (item && item._id && item._id.cpGameType) {
+                            item.cpGameType = item._id.cpGameType;
+                        } else if (item && item._id && !item._id.cpGameType) {
+                            item.cpGameType = item._id;
+                        }
+                        if (item && item._id && item._id.loginDevice) {
+                            item.loginDevice = item._id.loginDevice;
+                        }
+                        item.totalAmount = item.total_amount;
+                        item.providerName = providerName;
+                        item.participantNumber = participantNumber;
+                        item.providerId = providerId;
+                        item.profit = (-item.bonusAmount / item.validAmount * 100);
+                        item.profit = Math.round(item.profit * 100) / 100;
+
+                        summaryData.consumptionTimes += item.consumptionTimes;
+                        summaryData.totalAmount += item.total_amount;
+                        summaryData.validAmount += item.validAmount;
+                        summaryData.bonusAmount += item.bonusAmount;
+                        return item;
+                    });
+                }
+                summaryData.profit = ((-summaryData.bonusAmount / summaryData.validAmount * 100));
+                summaryData.participantArr = participantArr;
+                return {
+                    data: totalSumData,
+                    summaryData: summaryData
+                }
             }
         )
     },

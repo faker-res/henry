@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var playerConsumptionRecordSchema = new Schema({
     //player id
-    playerId: {type: Schema.ObjectId, required: true, index: true},
+    playerId: {type: Schema.ObjectId, required: true},
     // platform Id
     platformId: {type: Schema.ObjectId, required: true},
     // provider ID
@@ -13,7 +13,7 @@ var playerConsumptionRecordSchema = new Schema({
     // game type
     gameType: {type: String, required: true},
     // cp game type
-    cpGameType: {type: String, index: true},
+    cpGameType: {type: String},
     // bet type
     betType: {type: String},
     // gameRound
@@ -21,7 +21,7 @@ var playerConsumptionRecordSchema = new Schema({
     // gameRound
     playNo: {type: String, index: true},
     // payment time
-    createTime: {type: Date, default: Date.now, index: true},
+    createTime: {type: Date, default: Date.now},
     //total amount for statistics
     amount: {type: Number, required: true, default: 0, index: true},
     //total amount for statistics
@@ -51,15 +51,15 @@ var playerConsumptionRecordSchema = new Schema({
     // had been used for which proposal
     usedProposal: {type: Schema.ObjectId},
     //check if record has been used for other reward
-    bDirty: {type: Boolean, default: false, index: true},
+    bDirty: {type: Boolean, default: false},
     // check if record is duplicate
-    isDuplicate: {type: Boolean, default: false, index: true},
+    isDuplicate: {type: Boolean, default: false},
     // record insert time
     insertTime: {type: Date, default: Date.now},
     // last update time
     updateTime: {type: Date, default: Date.now},
     // source for dba
-    source: {type: String, index: true},
+    source: {type: String},
     // Number of comsumption (compressed records)
     count: {type: Number, default: 1},
     // win ratio (bonusAmount / validAmount)
@@ -67,15 +67,14 @@ var playerConsumptionRecordSchema = new Schema({
     // seperate bet type and bet amount for EA and EBET
     betDetails: {type: []},
     // constPlayerLoginDevice
-    loginDevice: {type: String, index: true}
+    loginDevice: {type: String}
 });
 
 //record is unique by playerId platformId and date
 playerConsumptionRecordSchema.index({playerId: 1, platformId: 1, gameId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({playerId: 1, createTime: 1, isDuplicate: 1});
 playerConsumptionRecordSchema.index({platformId: 1, playerId: 1, createTime: 1});
-playerConsumptionRecordSchema.index({createTime: 1, platformId: 1, _id: 1});
+playerConsumptionRecordSchema.index({createTime: 1, platformId: 1});
 playerConsumptionRecordSchema.index({platformId:1, providerId:1, createTime:1});
 playerConsumptionRecordSchema.index({providerId:1, createTime:1, isDuplicate:1});
 

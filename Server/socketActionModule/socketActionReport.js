@@ -742,7 +742,38 @@ function socketActionReport(socketIO, socket) {
             var platformObjId = ObjectId(data.platformObjId);
 
             socketUtil.emitter(self.socket, dbReport.getReferralRewardReport, [platformObjId, data.query, data.index, data.limit, data.sortCol], actionName, isValidData);
-        }
+        },
+
+        gameTypeAnalysisReport: function gameTypeAnalysisReport(query) {
+            let actionName = arguments.callee.name;
+            let time = dbUtil.getYesterdaySGTime();
+            let startTime = query.startTime ? new Date(query.startTime) : time.startTime;
+            let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
+            query.limit = query.limit || 10;
+            query.index = query.index || 0;
+            let isValidData = Boolean(query);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.gameTypeAnalysisReport, [startTime, endTime, query.providerId, query.platformId, query.providerName, query.loginDevice, query.csPromoteWay, query.listAllProviders, query.byProviders], actionName, isValidData);
+        },
+
+        getGameTypeAnalysisByGameType: function getGameTypeAnalysisByGameType(query) {
+            let actionName = arguments.callee.name;
+            let time = dbUtil.getYesterdaySGTime();
+            let startTime = query.startTime ? new Date(query.startTime) : time.startTime;
+            let endTime = query.endTime ? new Date(query.endTime) : time.endTime;
+            query.limit = query.limit || 10;
+            query.index = query.index || 0;
+            let isValidData = Boolean(query && query.platformId);
+            socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getGameTypeAnalysisByGameType, [startTime, endTime, query.providerId, query.platformId, query.providerName, query.loginDevice], actionName, isValidData);
+        },
+
+        getPlatformOverviewReport: function getPlatformOverviewReport(data) {
+            var actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime));
+
+            socketUtil.emitter(self.socket, dbReport.getPlatformOverviewReport, [data], actionName, isValidData);
+        },
     };
     socketActionReport.actions = this.actions;
 };

@@ -1,19 +1,159 @@
 const sampleData = {
+    register: `{
+    "_id": "5de712a35246ba02e23eb6b4",
+    "partnerId": "14055",
+    "level": "57ff08433f8838c63a7f836f",
+    "realName": "docreal",
+    "password": "$2b$10$ExisaEKFpUggiD83gtbxJ.lcEv9xs.Ujcl4IaVmvEghMrvTNrmrIy",
+    "lastLoginIp": "undefined", // 最后一次登入的IP
+    "partnerName": "pp2docdco",
+    "platform": "a71a6b88616ad166d2b92e30",
+    "isNewSystem": true, // 是否是新系统注册
+    "registrationDevice": "0", // 注册设备
+    "commissionType": 0, // 佣金类型
+    "loginTimes": 1, 
+    "registrationInterface": 1, // 开户设备
+    "status": 1,
+    "permission": {
+      "disableCommSettlement": false,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "forbidPartnerFromLogin": false,
+      "applyBonus": true
+    },
+    "commissionAmountFromChildren": 0, // 下线佣金额
+    "lastChildrenCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "lastCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "negativeProfitAmount": 0,
+    "commissionHistory": [],
+    "ownDomain": [],
+    "userAgent": [ // 装置
+      {
+        "browser": "Chrome",
+        "device": "",
+        "os": "Mac OS"
+      }
+    ],
+    "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
+    "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
+    "parent": null, // 上线
+    "children": [], // 下线
+    "depthInTree": 0,
+    "failMeetingTargetWeeks": 0,
+    "validReward": 0, // 有效优惠
+    "validConsumptionSum": 0,
+    "totalChildrenBalance": 0,
+    "totalChildrenDeposit": 0,
+    "monthlyActivePlayer": 0,
+    "weeklyActivePlayer": 0,
+    "dailyActivePlayer": 0,
+    "activePlayers": 0,
+    "validPlayers": 0,
+    "totalWithdrawalAmt": 0,
+    "totalSettledCommission": 0, // 已结佣金（总）
+    "totalPlayerDownline": 0,
+    "totalReferrals": 0,
+    "credits": 0,
+    "isLogin": false,
+    "lastAccessTime": "2019-12-04T01:57:55.235Z",
+    "registrationTime": "2019-12-04T01:57:55.235Z",
+    "phoneNumber": "112******4556",
+    "email": "",
+    "DOB": null,
+    "gender": true,
+    "commissionHeapCycleStart": "",
+    "commissionHeapCycleEnd": "",
+    "partnerLevel": 1,
+    "downLineLevel": 2
+    }`,
+    registerToken:`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXNzd29yZCI6IiQyYiQxMCRFeGlzYUVLRnBVZ2dpRDgzZ3RieEoubGNFdjl4cy5VamNsNElhVm12RWdoTXJ2VE5ybXJJeSIsImlhdCI6MTU3NTQyNDY3NSwiZXhwIjoxNTc1NDQyNjc1fQ.5Mb90dcqzcUrlpIS0wBa8KjFQu8HIAdarBAH6VGuUac
+    `,
     createDownLinePartner: `{
-    "data": [{
-        "playerName": "yu***nceplatinumdragon", // 玩家名称
-        "playerLevel": "普通会员", // 玩家等级
-        "lastUpdate": "2017-12-01T09:27:55.916Z",  // 最后更新时间
-        "points": 67  // 分数
-    },{
-        "playerName": "yu***ncetopazdragon",
-        "playerLevel": "普通会员",
-        "lastUpdate": "2017-12-18T07:02:38.172Z",
-        "points": 9
-    },… // 重复次数根据totalRank
-}`,
+    "_id": "5de8789386e22505cdf6954a",
+    "partnerId": "14058",
+    "level": "5733e26ef8c8a9355caf49d9",
+    "partnerName": "yundownline",
+    "platform": "5733e26ef8c8a9355caf49d8",
+    "isNewSystem": true, // 是否为新系统注册
+    "registrationDevice": "0", // 注册的设备
+    "commissionType": 2, // 佣金类型: 1 - 1天输赢, 2 - 7天输赢, 3 - 半月输赢, 4 - 1月输赢, 5 - 7天投注额
+    "loginTimes": 0,
+    "registrationInterface": 0,
+    "status": 1,
+    "permission": {
+      "disableCommSettlement": false,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "forbidPartnerFromLogin": false,
+      "applyBonus": true
+    },
+    "commissionAmountFromChildren": 0, // 下线佣金额
+    "lastChildrenCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "lastCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "negativeProfitAmount": 0,
+    "commissionHistory": [],
+    "ownDomain": [],
+    "userAgent": [],
+    "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
+    "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
+    "parent": "5de866a6fa9b1303eed868a2", // 上线
+    "children": [], // 下线
+    "depthInTree": 0,
+    "failMeetingTargetWeeks": 0,
+    "validReward": 0, // 有效优惠
+    "validConsumptionSum": 0, // 有效投注额（总）
+    "totalChildrenBalance": 0, // 下线总（余额）
+    "totalChildrenDeposit": 0, // 下线总（存-提）
+    "monthlyActivePlayer": 0, // 活跃玩家（月）
+    "weeklyActivePlayer": 0, // 活跃玩家（周）
+    "dailyActivePlayer": 0, // 活跃玩家（日）
+    "activePlayers": 0, 
+    "validPlayers": 0,
+    "totalWithdrawalAmt": 0,
+    "totalSettledCommission": 0, // 已结佣金（总）
+    "totalPlayerDownline": 0, // 下线总数（玩家)
+    "totalReferrals": 0,
+    "credits": 0,
+    "isLogin": false,
+    "lastAccessTime": "2019-12-05T03:25:07.142Z",
+    "registrationTime": "2019-12-05T03:25:07.142Z",
+    "phoneNumber": "11223344555",
+    "email": "",
+    "DOB": null,
+    "gender": true,
+    "__v": 0,
+    "multiLevelCommissionRate": [
+      {
+        "platform": "5733e26ef8c8a9355caf49d8",
+        "provider": "5a3ca547f091840688490021",
+        "commissionType": "2",
+        "commissionSetting": [
+          {
+            "playerConsumptionAmountFrom": 10,
+            "playerConsumptionAmountTo": 100,
+            "activePlayerValueFrom": 10,
+            "activePlayerValueTo": 100,
+            "commissionRate": 0.5
+          }
+        ]
+      },
+      {
+        "platform": "5733e26ef8c8a9355caf49d8",
+        "provider": "5a3ca547f091840688490022",
+        "commissionType": "2",
+        "commissionSetting": [
+          {
+            "playerConsumptionAmountFrom": 10,
+            "playerConsumptionAmountTo": 100,
+            "activePlayerValueFrom": 10,
+            "activePlayerValueTo": 100,
+            "commissionRate": 0.5
+          }
+        ]
+      }
+    ]
+}`
 }
-
 let register = {
     name:"注册",
     func: {
@@ -23,13 +163,13 @@ let register = {
             functionName: "register",
             desc:"代理会员注册接口",
             requestContent:[
-                { param: "name", mandatory: "是", type: "int", content: "代理账号" },
-                { param: "platformId", mandatory: "否", type: "int", content: "平台id" },
-                { param: "password", mandatory: "是", type: "int", content: "注册的密码" },
-                { param: "realName", mandatory: "否", type: "int", content: "代理真实姓名" },
-                { param: "phoneNumber", mandatory: "否", type: "String", content: "代理手机号" },
+                { param: "name", mandatory: "是", type: "String", content: "代理账号" },
+                { param: "platformId", mandatory: "是", type: "String", content: "平台id" },
+                { param: "password", mandatory: "是", type: "String", content: "注册的密码" },
+                { param: "realName", mandatory: "否", type: "String", content: "代理真实姓名" },
+                { param: "phoneNumber", mandatory: "是", type: "Number", content: "代理手机号" },
                 { param: "captcha", mandatory: "否", type: "String", content: "使用图片验证码，不需短信验证直接开户" },
-                { param: "deviceType", mandatory: "否", type: "String", content: `装置: 
+                { param: "deviceType", mandatory: "否", type: "Number", content: `装置: 
                                                                                   1-浏览器(browser)
                                                                                   2-h5
                                                                                   3-安卓APP 
@@ -37,10 +177,25 @@ let register = {
                 { param: "subPlatformId", mandatory: "否", type: "String", content: `子平台ID:
                                                                                     401 - 易游棋牌
                                                                                     402 - v68 
-                                                                                    403 - 易游` }
+                                                                                    403 - 易游` },
+                { param: "smsCode", mandatory: "否", type: "String", content: "使用短信验证码，则不用图片验证（5/29 目前尚无）" },
+                { param: "email", mandatory: "否", type: "String", content: "代理邮箱" },
+                { param: "gender", mandatory: "否", type: "int", content: `代理性别
+                                                                           1-男
+                                                                           0-女` },
+                { param: "DOB", mandatory: "否", type: "Date", content: "代理生日" },
+                { param: "qq", mandatory: "否", type: "String", content: "代理qq号码" },
+                { param: "commissionType", mandatory: "否", type: "String", content: `(5/29 尚无) 当代理基础数据的『佣金设置』＝前端自选时 ，可请求:
+                                                                                      1天输赢:1
+                                                                                      7天输赢:2
+                                                                                      半月输赢:3
+                                                                                      1月输赢:4
+                                                                                      7天投注额:5`},
             ],
             respondSuccess:{
                 status: 200,
+                data: sampleData.register,
+                token: sampleData.registerToken
             },
             respondFailure: {
                 status: "4xx",
@@ -58,7 +213,7 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "true/false"
+                data: "true"
             },
             respondFailure: {
                 status: "4xx",
@@ -81,12 +236,12 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "代理信息数据"
+                data: sampleData.createDownLinePartner
             },
             respondFailure: {
                 status: "4xx",
                 data: "null",
-                errorMessage: "-"
+                errorMessage: '""'
             }
         },
 
@@ -101,7 +256,7 @@ let register = {
                 data: "验证码base64字符串"
             },
             respondFailure: {
-                status: "4xx",
+                status: "40x",
                 data: "null"
             }
         },

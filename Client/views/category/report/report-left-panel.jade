@@ -25,8 +25,8 @@
                                 text {{'TOPUP_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PROPOSAL_REPORT}}" ng-click='vm.loadPage("PROPOSAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROPOSAL_REPORT')")
                                 text {{'PROPOSAL_REPORT' | translate}}
-                            li.list-group-item(class="{{vm.seleDataType.PROVIDER_REPORT}}" ng-click='vm.loadPage("PROVIDER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROVIDER_REPORT')")
-                                text {{'PROVIDER_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
+                            //- li.list-group-item(class="{{vm.seleDataType.PROVIDER_REPORT}}" ng-click='vm.loadPage("PROVIDER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PROVIDER_REPORT')")
+                            //-     text {{'PROVIDER_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_EXPENSE_REPORT}}" ng-click='vm.loadPage("PLAYER_EXPENSE_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_EXPENSE_REPORT')")
                                 text {{'PLAYER_EXPENSE_REPORT' | translate}} ({{'Non Real Time' | translate}}、{{'Recorded Once Daily' | translate}})
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_REPORT}}" ng-click='vm.loadPage("PLAYER_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_REPORT')")
@@ -70,6 +70,10 @@
                                 text {{'PLAYER_ALIPAY_ACCOUNT_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.FINANCIAL_REPORT}}" ng-click='vm.loadPage("FINANCIAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FINANCIAL_REPORT')")
                                 text {{'FINANCIAL_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.GAME_TYPE_ANALYSIS_REPORT}}" ng-click='vm.loadPage("GAME_TYPE_ANALYSIS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'GAME_TYPE_ANALYSIS_REPORT')")
+                                text {{'GAME_TYPE_ANALYSIS_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLATFORM_OVERVIEW_REPORT}}" ng-click='vm.loadPage("PLATFORM_OVERVIEW_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLATFORM_OVERVIEW_REPORT')")
+                                text {{'PLATFORM_OVERVIEW_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')

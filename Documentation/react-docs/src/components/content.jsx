@@ -11,7 +11,7 @@ respondSuccess: text/JSON description for API response payload in the event of s
 respondSuccessContent: table description for API response payload (related to respondSuccess)
 respondFailure: text/JSON description for API response payload in the event of failed operation
 */
-const htmlTags = ['<img','<b>','<u>','<i>','<h1>','<h2>','<h3>'];
+const htmlTags = ['<img','<b>','<u>','<i>','<h1>','<h2>','<h3>','<h4>','<h5>','<h6>'];
 
 class Content extends Component{
     state = {};
@@ -24,18 +24,42 @@ class Content extends Component{
                         isHTML = true;
                     }
                 })
+                let nbsp = '';
+                for (let c = 0; c < v.length; c++) {
+                    if(v.charAt(c)!==" ") {
+                        break;
+                    }
+                    nbsp += "\u00a0";
+                }
+                v = nbsp + v.trim();
+                
                 if(isHTML) {
                     return (
                         <div key={i} dangerouslySetInnerHTML={{__html: v}}></div>
                     )
                 } else {
-                    return <p key={i} className="text-justify">{v}</p>
+                    return <div key={i} className="text-justify">{v}<br/></div>
                 }
             });
         } else {
             return <p></p>
         }
     };
+
+    drawExampleCode = () => {
+        let area = [];
+        if(this.props.exampleCode) {
+            for(let key in this.props.exampleCode) {
+                area.push(this.drawExampleCodeArea(key, this.props.exampleCode[key]));
+            }
+            return (
+                <div>
+                <h4><b>示例：</b></h4>
+                    {area}
+                </div>
+            )
+        }
+    }
 
     drawRequestContent = () => {
         if(this.props.requestContent && this.props.requestContent.length) {
@@ -74,7 +98,7 @@ class Content extends Component{
             return (
                 <div>
                     <h5><b>操作成功:</b></h5>
-                    <div className="bg-light p-1 pl-2 mb-1">
+                    <div className="respond-area bg-light p-1 pl-2 mb-1">
                         {this.drawRespondArea(this.props.respondSuccess)}
                     </div>
                 </div>
@@ -116,6 +140,26 @@ class Content extends Component{
                 </div>
             )
         }
+    };
+
+    drawExampleCodeArea = (name, content) => {
+        let rows = [];
+        let lines = content.split(/\r?\n/);
+        lines.forEach((line, index) => {
+            line = line.replace(/\s/g, "\u00a0");
+            rows.push(
+                <div key={index}>{line}</div>
+            )
+        });
+        return (
+            <div key={name}>
+                <div className="code-area bg-light p-1 pl-2 mb-1">
+                    {rows}
+                </div>
+                <div>{name}</div>
+                <br /><br />
+            </div>
+        );
     };
 
     drawRespondArea = (inputObj) => {
@@ -203,13 +247,17 @@ class Content extends Component{
 
     render() {
         return (
-            <div className="mb-5 p-2 ">
+            <div id={this.props.functionName} className="mb-5 p-2 ">
                 <div className="mt-3">
-                    <h2><b>{this.props.title}</b></h2>
+                    <h3><b>{this.props.title}</b></h3>
                 </div>
 
                 <div className="mt-3">
                     {this.drawDescription()}
+                </div>
+
+                <div className="mt-3">
+                    {this.drawExampleCode()}
                 </div>
 
                 <div className="mt-3">

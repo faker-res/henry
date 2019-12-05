@@ -1636,10 +1636,14 @@
                         table.col-md-12.paddingTbl.text-center.datatable-sm
                             tbody
                                 tr
+                                    td.col-md-2 {{'Type' | translate}}
                                     td.col-md-4.oblique {{'curData' | translate}}
                                     td.col-md-4.oblique {{'CHANGE_AMOUNT' | translate}}
                                     td.col-md-4.oblique {{'updateData' | translate}}
                                 tr
+                                    td
+                                        select.form-control(ng-model='vm.creditChange.creditChangeType')
+                                            option(ng-repeat='(i,v) in vm.creditChangeType', value='{{i}}') {{v | translate}}
                                     td {{vm.creditChange.validCredit}}
                                     //td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
@@ -1653,7 +1657,7 @@
                             .col-md-12.textareaDetail
                                 textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
             .modal-footer
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.creditChange.updateAmount || vm.creditChange.finalValidAmount<0 || !vm.creditChange.creditChangeType', ng-click="vm.updatePlayerCredit();") {{"UPDATE" | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', aria-labelledby='myModalLabel', aria-hidden='true')
