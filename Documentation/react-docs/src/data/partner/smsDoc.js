@@ -14,7 +14,7 @@ let smsCode = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "true // 发送验证码成功",
             },
             respondFailure: {
                 status: "40x",

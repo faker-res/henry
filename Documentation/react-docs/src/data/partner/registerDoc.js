@@ -1,4 +1,159 @@
-
+const sampleData = {
+    register: `{
+    "_id": "5de712a35246ba02e23eb6b4",
+    "partnerId": "14055",
+    "level": "57ff08433f8838c63a7f836f",
+    "realName": "docreal",
+    "password": "$2b$10$ExisaEKFpUggiD83gtbxJ.lcEv9xs.Ujcl4IaVmvEghMrvTNrmrIy",
+    "lastLoginIp": "undefined", // 最后一次登入的IP
+    "partnerName": "pp2docdco",
+    "platform": "a71a6b88616ad166d2b92e30",
+    "isNewSystem": true, // 是否是新系统注册
+    "registrationDevice": "0", // 注册设备
+    "commissionType": 0, // 佣金类型
+    "loginTimes": 1, 
+    "registrationInterface": 1, // 开户设备
+    "status": 1,
+    "permission": {
+      "disableCommSettlement": false,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "forbidPartnerFromLogin": false,
+      "applyBonus": true
+    },
+    "commissionAmountFromChildren": 0, // 下线佣金额
+    "lastChildrenCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "lastCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "negativeProfitAmount": 0,
+    "commissionHistory": [],
+    "ownDomain": [],
+    "userAgent": [ // 装置
+      {
+        "browser": "Chrome",
+        "device": "",
+        "os": "Mac OS"
+      }
+    ],
+    "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
+    "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
+    "parent": null, // 上线
+    "children": [], // 下线
+    "depthInTree": 0,
+    "failMeetingTargetWeeks": 0,
+    "validReward": 0, // 有效优惠
+    "validConsumptionSum": 0,
+    "totalChildrenBalance": 0,
+    "totalChildrenDeposit": 0,
+    "monthlyActivePlayer": 0,
+    "weeklyActivePlayer": 0,
+    "dailyActivePlayer": 0,
+    "activePlayers": 0,
+    "validPlayers": 0,
+    "totalWithdrawalAmt": 0,
+    "totalSettledCommission": 0, // 已结佣金（总）
+    "totalPlayerDownline": 0,
+    "totalReferrals": 0,
+    "credits": 0,
+    "isLogin": false,
+    "lastAccessTime": "2019-12-04T01:57:55.235Z",
+    "registrationTime": "2019-12-04T01:57:55.235Z",
+    "phoneNumber": "112******4556",
+    "email": "",
+    "DOB": null,
+    "gender": true,
+    "commissionHeapCycleStart": "",
+    "commissionHeapCycleEnd": "",
+    "partnerLevel": 1,
+    "downLineLevel": 2
+    }`,
+    registerToken:`eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwYXNzd29yZCI6IiQyYiQxMCRFeGlzYUVLRnBVZ2dpRDgzZ3RieEoubGNFdjl4cy5VamNsNElhVm12RWdoTXJ2VE5ybXJJeSIsImlhdCI6MTU3NTQyNDY3NSwiZXhwIjoxNTc1NDQyNjc1fQ.5Mb90dcqzcUrlpIS0wBa8KjFQu8HIAdarBAH6VGuUac
+    `,
+    createDownLinePartner: `{
+    "_id": "5de8789386e22505cdf6954a",
+    "partnerId": "14058",
+    "level": "5733e26ef8c8a9355caf49d9",
+    "partnerName": "yundownline",
+    "platform": "5733e26ef8c8a9355caf49d8",
+    "isNewSystem": true, // 是否为新系统注册
+    "registrationDevice": "0", // 注册的设备
+    "commissionType": 2, // 佣金类型: 1 - 1天输赢, 2 - 7天输赢, 3 - 半月输赢, 4 - 1月输赢, 5 - 7天投注额
+    "loginTimes": 0,
+    "registrationInterface": 0,
+    "status": 1,
+    "permission": {
+      "disableCommSettlement": false,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "forbidPartnerFromLogin": false,
+      "applyBonus": true
+    },
+    "commissionAmountFromChildren": 0, // 下线佣金额
+    "lastChildrenCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "lastCommissionSettleTime": "1970-01-01T00:00:00.000Z",
+    "negativeProfitAmount": 0,
+    "commissionHistory": [],
+    "ownDomain": [],
+    "userAgent": [],
+    "dateConsumptionReturnRewardWasLastAwarded": "1970-01-01T00:00:00.000Z",
+    "datePartnerLevelMigrationWasLastProcessed": "1970-01-01T00:00:00.000Z",
+    "parent": "5de866a6fa9b1303eed868a2", // 上线
+    "children": [], // 下线
+    "depthInTree": 0,
+    "failMeetingTargetWeeks": 0,
+    "validReward": 0, // 有效优惠
+    "validConsumptionSum": 0, // 有效投注额（总）
+    "totalChildrenBalance": 0, // 下线总（余额）
+    "totalChildrenDeposit": 0, // 下线总（存-提）
+    "monthlyActivePlayer": 0, // 活跃玩家（月）
+    "weeklyActivePlayer": 0, // 活跃玩家（周）
+    "dailyActivePlayer": 0, // 活跃玩家（日）
+    "activePlayers": 0, 
+    "validPlayers": 0,
+    "totalWithdrawalAmt": 0,
+    "totalSettledCommission": 0, // 已结佣金（总）
+    "totalPlayerDownline": 0, // 下线总数（玩家)
+    "totalReferrals": 0,
+    "credits": 0,
+    "isLogin": false,
+    "lastAccessTime": "2019-12-05T03:25:07.142Z",
+    "registrationTime": "2019-12-05T03:25:07.142Z",
+    "phoneNumber": "11223344555",
+    "email": "",
+    "DOB": null,
+    "gender": true,
+    "__v": 0,
+    "multiLevelCommissionRate": [
+      {
+        "platform": "5733e26ef8c8a9355caf49d8",
+        "provider": "5a3ca547f091840688490021",
+        "commissionType": "2",
+        "commissionSetting": [
+          {
+            "playerConsumptionAmountFrom": 10,
+            "playerConsumptionAmountTo": 100,
+            "activePlayerValueFrom": 10,
+            "activePlayerValueTo": 100,
+            "commissionRate": 0.5
+          }
+        ]
+      },
+      {
+        "platform": "5733e26ef8c8a9355caf49d8",
+        "provider": "5a3ca547f091840688490022",
+        "commissionType": "2",
+        "commissionSetting": [
+          {
+            "playerConsumptionAmountFrom": 10,
+            "playerConsumptionAmountTo": 100,
+            "activePlayerValueFrom": 10,
+            "activePlayerValueTo": 100,
+            "commissionRate": 0.5
+          }
+        ]
+      }
+    ]
+}`
+}
 let register = {
     name:"注册",
     func: {
@@ -39,6 +194,8 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
+                data: sampleData.register,
+                token: sampleData.registerToken
             },
             respondFailure: {
                 status: "4xx",
@@ -56,7 +213,7 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "true / false"
+                data: "true"
             },
             respondFailure: {
                 status: "4xx",
@@ -79,7 +236,7 @@ let register = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "代理信息数据"
+                data: sampleData.createDownLinePartner
             },
             respondFailure: {
                 status: "4xx",
