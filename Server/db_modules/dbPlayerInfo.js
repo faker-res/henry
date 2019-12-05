@@ -5263,7 +5263,9 @@ let dbPlayerInfo = {
                         });
                     }
                 }
-            ).then(() => dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount))
+            ).then(async ()=> {
+                await dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount);
+            });
         }
 
         let player = {};
@@ -5333,7 +5335,6 @@ let dbPlayerInfo = {
                                     }
 
                                     if (data.referral) {
-                                        referralRecord
                                         return dbconfig.collection_players.findOne({_id: data.referral}).then(
                                             referral => {
                                                 if (referral) {
@@ -5419,7 +5420,7 @@ let dbPlayerInfo = {
                 return Promise.reject({name: "DBError", message: "Error finding player.", error: error});
             }
         ).then(
-            function (data) {
+            async function (data) {
                 console.log('JY check 1::');
                 if (data && data[0]) {
                     let topupRecordData = data[0];
@@ -5430,7 +5431,7 @@ let dbPlayerInfo = {
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
-                    topupUpdateRTG(player, platform, amount).then(
+                    await topupUpdateRTG(player, platform, amount).then(
                         () => {
 
                             console.log('before RTG...', player + '/' + platform + '/' + amount);
