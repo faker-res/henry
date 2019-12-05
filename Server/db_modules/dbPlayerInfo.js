@@ -17153,7 +17153,7 @@ let dbPlayerInfo = {
 
     cancelBonusRequest: function (playerId, proposalId) {
         // region temperory disable
-        return Promise.reject("temporary disabled");
+        return Promise.reject({name: "DBError", message:"temporary disabled"});
         //endregion
         let proposal = null;
         let bonusId = null;
