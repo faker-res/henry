@@ -146,7 +146,7 @@ style.
         tr
             td(style='text-align:left')
                 label {{"BANNED_FROM_THESE_PROVIDERS" | translate}}
-                div(ng-repeat='(i,v) in vm.showPlatform.gameProviders')
+                div(ng-repeat='(i,v) in vm.showPlatform.gameProviderInfo')
                     label {{vm.getProviderText(v)}}
                         input.playerStatusProviderForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{v}}',ng-change='vm.forbidModification(v, isTrue, "forbidGameAddList", "forbidGameRemoveList")', ng-model="isTrue", ng-checked='vm.prohibitGamePopover.forbidProviders.indexOf(v)>-1')
                         span(id="{{'c-'+v}}")
