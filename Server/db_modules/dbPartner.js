@@ -12467,7 +12467,7 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
         topUpSum: 1,
         topUpTimes: 1,
     }).lean();
-    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform);
+    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform, providerGroups);
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
         data => {
