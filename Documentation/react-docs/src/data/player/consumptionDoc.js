@@ -160,7 +160,6 @@ let consumption = {
             functionName: "getLastConsumptions",
             desc: "获取玩家最近的15条消费记录",
             requestContent: [
-                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
                 { param: "startIndex", mandatory: "否", type: 'Int', content: '查询记录总数量，用于分页' },
                 { param: "requestCount", mandatory: "否", type: 'Int', content: '请求最近的消费记录条数' },
             ],
