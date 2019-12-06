@@ -120,11 +120,10 @@ let loginLogout = {
             ],
             respondSuccess:{
                 status: 200,
-                partnerId: "渠道ID"
             },
             respondFailure: {
                 status: "40x",
-                partnerId: "渠道ID"
+                data: "null"
 
             }
         },

@@ -215,7 +215,7 @@ function socketActionTeleSales(socketIO, socket) {
         getTsWorkloadReport: function getTsWorkloadReport(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjIds && data.phoneListObjIds && data.startTime && data.endTime && data.adminObjIds);
-            socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjIds, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReports, [data.platformObjIds, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
         },
 
         bulkSendSmsToFailCallee: function bulkSendSmsToFailCallee(data) {

@@ -42,6 +42,7 @@ var constPlayerCreditTransferStatus = require("./../const/constPlayerCreditTrans
 var constReferralStatus = require("./../const/constReferralStatus");
 var constPlayerRegistrationInterface = require("../const/constPlayerRegistrationInterface");
 let constMessageType = require("../const/constMessageType");
+const constDevice = require("../const/constDevice");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
 const extConfig = require('../config/externalPayment/paymentSystems');
 const rp = require('request-promise');
@@ -421,7 +422,7 @@ let dbPlayerInfo = {
         )
     },
 
-    createGuestPlayer: async function (inputData, deviceData) {
+    createGuestPlayer: async function(inputData, deviceData) {
         let newPlayerData;
         let isEnableUseReferralPlayerId = false;
         let referralLog = {};
@@ -1279,7 +1280,12 @@ let dbPlayerInfo = {
                         isEnableUseReferralPlayerId = false;
                     }
 
-                    inputData = determineRegistrationInterface(inputData);
+                    if(inputData.inputDevice){
+                        inputData.registrationInterface = inputData.inputDevice;
+                    }
+                    else{
+                        inputData = determineRegistrationInterface(inputData);
+                    } 
 
                     if (adminName && adminId) {
                         // note that it is always backstage create when adminName is exist
@@ -2405,47 +2411,6 @@ let dbPlayerInfo = {
                     });
                 }
                 return Promise.reject(error);
-            }
-        ).then(
-            async saveRc => {
-                if(saveRc){
-                    console.log('hello there !');
-                    let permission = {
-                        applyBonus: true,
-                        transactionReward: true,
-                        allTopUp: true,
-                        topupOnline: true,
-                        topupManual: true,
-                        topUpCard: true,
-                        phoneCallFeedback: true,
-                        SMSFeedBack: true,
-                        alipayTransaction: true,
-                        quickpayTransaction: true,
-                        banReward: false,
-                        rewardPointsTask: true,
-                        disableWechatPay: false,
-                        forbidPlayerConsumptionReturn: false,
-                        allowPromoCode: true,
-                        forbidPlayerConsumptionIncentive: false,
-                        PlayerTopUpReturn: true,
-                        PlayerDoubleTopUpReturn: true,
-                        forbidPlayerFromLogin: false,
-                        forbidPlayerFromEnteringGame: false,
-                        playerConsecutiveConsumptionReward: true,
-                        PlayerPacketRainReward: true,
-                        PlayerLimitedOfferReward: true,
-                        levelChange: true
-                    }
-                    let saveObj = {
-                        _id: saveRc._id,
-                        permission: permission
-                    };
-                    let savePermission = await new dbconfig.collection_playerPermission(saveObj).save();
-                    if(!savePermission){
-                        return Promise.reject("Save Permission failed");
-                    }
-                    return saveRc;
-                }
             }
         ).then(
             data => {
@@ -5299,7 +5264,9 @@ let dbPlayerInfo = {
                         });
                     }
                 }
-            ).then(() => dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount))
+            ).then(async ()=> {
+                await dbPlayerInfo.checkFreeAmountRewardTaskGroup(player._id, player.platform, amount);
+            });
         }
 
         let player = {};
@@ -5369,7 +5336,6 @@ let dbPlayerInfo = {
                                     }
 
                                     if (data.referral) {
-                                        referralRecord
                                         return dbconfig.collection_players.findOne({_id: data.referral}).then(
                                             referral => {
                                                 if (referral) {
@@ -5455,7 +5421,7 @@ let dbPlayerInfo = {
                 return Promise.reject({name: "DBError", message: "Error finding player.", error: error});
             }
         ).then(
-            function (data) {
+            async function (data) {
                 console.log('JY check 1::');
                 if (data && data[0]) {
                     let topupRecordData = data[0];
@@ -5466,7 +5432,7 @@ let dbPlayerInfo = {
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
-                    topupUpdateRTG(player, platform, amount).then(
+                    await topupUpdateRTG(player, platform, amount).then(
                         () => {
 
                             console.log('before RTG...', player + '/' + platform + '/' + amount);
@@ -8185,6 +8151,10 @@ let dbPlayerInfo = {
                             platformPrefix = inputData.accountPrefix;
                         }
 
+                        if (!inputData.accountPrefix) {
+                            inputData.accountPrefix = platformPrefix;
+                        }
+
                         let userNameProp = {
                             length: 8,
                             pool: 'abcdefghijklmnopqrstuvwxyz0123456789'
@@ -10088,6 +10058,7 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
+        console.log("zm checking start", playerId);
         let playerObj;
         let gameProvider;
         let targetProviderId = [];
@@ -10194,6 +10165,7 @@ let dbPlayerInfo = {
             }
         ).then(
             checkPlayerBonusDoubledRewardResult => {
+                console.log("zm checking 1", playerId, isMultiProvider);
                 if(isMultiProvider){
                     gameProvider.forEach(
                         provider => {
@@ -10230,7 +10202,7 @@ let dbPlayerInfo = {
             function (data) {
                 // Notify client on credit change
                 messageDispatcher.sendMessage('creditUpdate', {recipientId: playerObj._id});
-
+                console.log("zm checking end", playerId);
                 return Promise.resolve(data);
             },
             function (err) {
@@ -17189,6 +17161,9 @@ let dbPlayerInfo = {
     },
 
     cancelBonusRequest: function (playerId, proposalId) {
+        // region temperory disable
+        return Promise.reject({name: "DBError", message:"temporary disabled"});
+        //endregion
         let proposal = null;
         let bonusId = null;
 
@@ -23211,7 +23186,7 @@ let dbPlayerInfo = {
                     outputResult = result;
                 }
 
-                return {size: outputResult.length, data: outputResult};
+                return {size: result && result.length ? result.length : 0, data: outputResult};
             }
         );
     },
@@ -30879,6 +30854,23 @@ let dbPlayerInfo = {
             )
         }
 
+        let iOSDevice = [];
+        let androidDevice = [];
+        let appDevices = [];
+
+        for (let key in constDevice) {
+            if (key.startsWith("APP")) {
+                appDevices.push(constDevice[key]);
+            }
+            if (key.startsWith("APP_PLAYER_ANDROID")) {
+                androidDevice.push(constDevice[key]);
+            }
+            if (key.startsWith("APP_PLAYER_IOS")) {
+                iOSDevice.push(constDevice[key]);
+            }
+        }
+
+
         return promoteWayProm.then(
             promoteWayData => {
                 let timeSlot = dbUtil.splitTimeFrameToDaily(startDate, endDate)
@@ -30892,13 +30884,29 @@ let dbPlayerInfo = {
                             platform: platformId
                         };
 
-                        if (deviceType && (deviceType !== 'all')) {
-                            matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
+                        if (deviceType == 'iOS') {
+                            matchObj.loginDevice = {$in: iOSDevice}
+                        } else if (deviceType == "Android") {
+                            matchObj.loginDevice = {$in: androidDevice}
+                        } else {
+                            matchObj.loginDevice = {$in: appDevices}
                         }
 
+                        // if (deviceType && (deviceType !== 'all')) {
+                        //     matchObj.osType = {'$in': [deviceType, deviceType.toLowerCase(), deviceType.toUpperCase()]};
+                        // }
+
                         if (playerType && (playerType === 'new_registration')) {
-                            matchObj.guestDeviceId = {$exists: true, $ne: null};
+                            // matchObj.guestDeviceId = {$exists: true, $ne: null};
                             matchObj.registrationTime = {$gte: startTime, $lt: endTime};
+                            delete matchObj.loginDevice;
+                            if (deviceType == 'iOS') {
+                                matchObj.registrationDevice = {$in: iOSDevice}
+                            } else if (deviceType == "Android") {
+                                matchObj.registrationDevice = {$in: androidDevice}
+                            } else {
+                                matchObj.registrationDevice = {$in: appDevices}
+                            }
 
                             if (domain && promoteWayData && promoteWayData.length > 0) {
                                 matchObj.promoteWay = {$in: promoteWayData};
@@ -31033,25 +31041,6 @@ async function getPlayerTopupChannelPermissionRequestData (player, platformId, u
         if (updateRemark) {
             retObj.remark = updateRemark;
         }
-    }else if(player && !player.permission){
-        //In case, permission didn't pass through by player.js
-        let permissionData = await dbconfig.collection_playerPermission.findOne({_id: player._id}).lean();
-        if(permissionData && permissionData.length > 0){
-            player.permission = permissionData.permission;
-        }
-
-        retObj = {
-            username: player.name,
-            platformId: platformId
-        }
-
-        retObj.topupManual = player.permission.topupManual ? 1 : 0;
-        retObj.topupOnline = player.permission.topupOnline ? 1 : 0;
-        retObj.alipay = player.permission.alipayTransaction ? 1 : 0;
-        retObj.wechatpay = player.permission.disableWechatPay ? 0 : 1;
-        if (updateRemark) {
-            retObj.remark = updateRemark;
-        }
     }
 
     if (updateObj) {
@@ -31076,9 +31065,9 @@ function startUpdatePlayerPermission(pmsUpdateProm, query, updateObj, permission
     return pmsUpdateProm.then(
         updatePMSSuccess => {
             if (updatePMSSuccess) {
-                let updateQuery = {_id: query._id};
-                return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
-                    // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
+                // let updateQuery = {_id: query._id};
+                // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_playerPermission, updateQuery, updateObj, constShardKeys.collection_playerPermission, false).then(
+                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateObj, constShardKeys.collection_players, false).then(
                     playerData => {
                         if (playerData) {
                             return dbconfig.collection_platform.populate(playerData, {

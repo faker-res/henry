@@ -1,3 +1,4 @@
+
 let smsCode = {
     name: "短信验证码",
     func: {
@@ -18,7 +19,7 @@ let smsCode = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "true //发送验证码成功",
             },
             respondFailure: {
                 status: "40x",
@@ -42,7 +43,7 @@ let smsCode = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "true //发送验证码成功",
             },
             respondFailure: {
                 status: "4xx",
@@ -60,7 +61,7 @@ let smsCode = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "成功验证",
+                data: "true // 成功验证",
             },
             respondFailure: {
                 status: "4xx",

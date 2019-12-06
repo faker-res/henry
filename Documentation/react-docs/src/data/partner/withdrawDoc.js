@@ -12,7 +12,9 @@ const SampleData = {
     },
     createTime: “2016-08-15 12:00:00”,... // 创建时间
 }`,
-
+    cancelBonusRequest: `{
+    "proposalId": "602470"
+}`,
     getBonusRequestList: `{
         stats: {
             totalCount: 20,
@@ -67,6 +69,7 @@ let withdraw = {
             ],
             respondSuccess:{
                 status: 200,
+                data: SampleData.cancelBonusRequest
             },
             respondFailure: {
                 status: "4xx",
