@@ -958,6 +958,7 @@ var dbPlayerFeedback = {
         //original block
 
         if (query.callPermission === 'true') {
+            sendQuery['phoneNumber'] = {$exists: true};
             sendQuery['permission.phoneCallFeedback'] = {$ne: false};
         } else if (query.callPermission === 'false') {
             sendQuery['permission.phoneCallFeedback'] = false;
