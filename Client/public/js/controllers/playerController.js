@@ -5891,6 +5891,7 @@ define(['js/app'], function (myApp) {
                                 'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
+                                'ng-click': 'vm.playerTableRowClicked(' + JSON.stringify(row) + ');',
                                 // 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                                 'data-trigger': 'focus',
