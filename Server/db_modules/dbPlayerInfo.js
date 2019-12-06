@@ -17162,7 +17162,7 @@ let dbPlayerInfo = {
 
     cancelBonusRequest: function (playerId, proposalId) {
         // region temperory disable
-        return Promise.reject({name: "DBError", message:"temporary disabled"});
+        // return Promise.reject({name: "DBError", message:"temporary disabled"});
         //endregion
         let proposal = null;
         let bonusId = null;
@@ -17181,14 +17181,46 @@ let dbPlayerInfo = {
                             message: 'This proposal has been processed'
                         });
                     }
-                    proposal = proposalData;
-                    bonusId = proposalData.data.bonusId;
 
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposalData._id, createTime: proposalData.createTime},
-                        {$inc: {processedTimes: 1}},
-                        {new: true}
-                    ).lean()
+                    if (proposalData.data && proposalData.data.bonusSystemName && proposalData.data.bonusSystemName === 'PMS2') {
+                        let reqData = {
+                            proposalIds: [proposalData.proposalId]
+                        }
+                        return RESTUtils.getPMS2Services('postPMSWithdrawalProposal', reqData).then(
+                            data => {
+                                return data && data.data ? data.data : [];
+                            }, err => {
+                                return [];
+                            }
+                        ).then(pmsData => {
+                            console.log('pmsData ===>',pmsData)
+                            if (pmsData && pmsData.length > 0) {
+                                return Promise.reject({
+                                    status: constServerCode.DATA_INVALID,
+                                    name: "DBError",
+                                    message: 'This proposal has been processed'
+                                });
+                            } else {
+                                proposal = proposalData;
+                                bonusId = proposalData.data.bonusId;
+
+                                return dbconfig.collection_proposal.findOneAndUpdate(
+                                    {_id: proposalData._id, createTime: proposalData.createTime},
+                                    {$inc: {processedTimes: 1}},
+                                    {new: true}
+                                ).lean()
+                            }
+                        });
+                    } else {
+                        proposal = proposalData;
+                        bonusId = proposalData.data.bonusId;
+
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {$inc: {processedTimes: 1}},
+                            {new: true}
+                        ).lean()
+                    }
                 }
                 else {
                     return Promise.reject({name: "DBError", message: 'Cannot find proposal'});
