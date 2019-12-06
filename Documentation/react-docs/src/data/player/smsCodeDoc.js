@@ -14,7 +14,6 @@ let smsCode = {
                 {param: "purpose", mandatory: "否", type: 'String', content: '请参考 【定义】-->【手机验证码 验证用途】列表'},
                 {param: "name", mandatory: "否", type: 'String', content: '玩家帐号，请注意只有『注册』、『重置密码』才可以发'},
                 {param: "captcha", mandatory: "否", type: 'String', content: '图片验证码'},
-                {param: "playerId", mandatory: "否", type: 'String', content: '玩家ID，登入的情况发送'},
                 {param: "useVoiceCode", mandatory: "否", type: 'Boolean', content: '是否使用语音验证码'},
             ],
             respondSuccess: {
