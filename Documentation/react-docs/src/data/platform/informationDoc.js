@@ -356,7 +356,7 @@ const sampleData = {
    "_id": "5bc59fb8aed7af825a9e0248",
    "page": 1,
    "platform": "5733e26ef8c8a9355caf49d8",
-   "data": "abc"
+   "data": "Test data string"
 }`,
     getFrontEndConfig: `{
     "navList": [
@@ -592,7 +592,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "abc"
+                data: '"Test data string"  //字符串 String， 请参考上一个接口【前端保存数据接口】内的 data 栏位。'
             },
             respondFailure: {
                 status: "4xx",
