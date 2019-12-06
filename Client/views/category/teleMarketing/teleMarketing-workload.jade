@@ -34,6 +34,7 @@
                     table.simple-table.common-table(style='width:auto;min-width:99.9%;white-space:normal;')
                         thead
                             tr
+                                th {{'PLATFORM' | translate }}
                                 th {{'Connected list' | translate}}
                                 th {{'csOfficer' | translate}}
                                 th {{'Amount of Phone list' | translate}}
@@ -45,9 +46,10 @@
                                 th {{'Amount of Success Account Opening' | translate}}
                                 th {{'DETAILS' | translate}}
 
-                        tbody
-                            tr(ng-repeat='(i, v) in vm.workloadResultSummary')
-                                td(ng-if='i==0' rowspan="{{vm.workloadResultSummary.length}}")
+                        tbody(ng-repeat='(bi, bv) in vm.workloadResultSummary')
+                            tr(ng-repeat="(i, v) in bv.report")
+                                td(ng-if='i==0' rowspan="{{bv.report.length}}") {{bv.platformName}}
+                                td(ng-if='i==0' rowspan="{{bv.report.length}}")
                                     div(ng-repeat='phoneListName in vm.workloadSearch.phoneListNames')
                                         span {{phoneListName}}
                                     span(ng-if="vm.workloadSearch.phoneListNames.length == 0") ({{'All Phone Lists' | translate}})

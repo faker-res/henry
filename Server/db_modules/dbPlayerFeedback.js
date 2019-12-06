@@ -793,14 +793,14 @@ var dbPlayerFeedback = {
                 }
             }
             //In case the permission didn't pass through in player.js,
-            for(var index in data[0]){
-                if(data[0][index] && !data[0][index].permission){
-                    let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
-                    if (permissionData && permissionData.permission) {
-                        data[0][index].permission = permissionData.permission;
-                    }
-                }
-            }
+            // for(var index in data[0]){
+            //     if(data[0][index] && !data[0][index].permission){
+            //         let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
+            //         if (permissionData && permissionData.permission) {
+            //             data[0][index].permission = permissionData.permission;
+            //         }
+            //     }
+            // }
             if(playerPermission && playerPermission.length > 0){
                 let minus = 0;
                 // for(var i = 0; i < data[0].length; i++){
