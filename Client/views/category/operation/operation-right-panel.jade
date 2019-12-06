@@ -333,7 +333,7 @@ style.
                 button.btn.btn-danger.common-button(ng-if='checkViewPermission("Operation", "Proposal", "Force Pairing") && vm.selectedProposal.status=="Pending" ' +
                 '&& (vm.selectedProposal.type.name == "ManualPlayerTopUp" || vm.selectedProposal.type.name == "PlayerAlipayTopUp" || vm.selectedProposal.type.name == "PlayerWechatTopUp")'
                 data-toggle="modal", data-target="#modalProposalTopUpForcePairing") {{"Force Pairing" | translate}}
-                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.enableSyncWithdraw && vm.selectedProposal.status==="approved" && (vm.selectedProposal.type.name === "PlayerBonus" || vm.selectedProposal.type.name === "PartnerBonus")' data-toggle="modal", data-target="#modalSyncWithdrawalProposal" ng-click="vm.initSyncWithdrawalProposal()") {{"Sync" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.enableSyncWithdraw && (vm.selectedProposal.status==="approved" || vm.selectedProposal.status==="Sending") && (vm.selectedProposal.type.name === "PlayerBonus" || vm.selectedProposal.type.name === "PartnerBonus")' data-toggle="modal", data-target="#modalSyncWithdrawalProposal" ng-click="vm.initSyncWithdrawalProposal()") {{"Sync" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
