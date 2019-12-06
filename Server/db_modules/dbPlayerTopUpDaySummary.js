@@ -331,15 +331,31 @@ var dbPlayerTopUpDaySummary = {
         if (!data) {
             return [];
         }
-        let proms = data.map(sum => {
+
+        // change from Promise.all to async loop, while it increase the logic server memory cost and calculation time,
+        // it heavily reduce the workload that db handle at a time, hence lower db error rate and higher consistency
+        let results = [];
+        for (let i = 0; i < data.length; i++) {
+            let sum = data[i];
             sum.date = startTime;
             sum.createTime = new Date();
-            return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
+            let res = await dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
                 console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary sum and err", sum, err)
             });
-        });
+            results.push(res)
+        }
 
-        return Promise.all(proms);
+        return results;
+
+        // let proms = data.map(sum => {
+        //     sum.date = startTime;
+        //     sum.createTime = new Date();
+        //     return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
+        //         console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary sum and err", sum, err)
+        //     });
+        // });
+        //
+        // return Promise.all(proms);
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
