@@ -497,6 +497,41 @@ getPartnerPoster:`{
     poster: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgCMnl9X1Q4eFRpkwZ' // base64 图片
 }`,
 
+bindPartnerPlayer:{
+    "_id": "5de7366bbc9b0003b09e099e",
+    "proposalId": "602476", // 提案号
+    "type": {
+        "_id": "5860aa5b8b006df743f06918",
+        "platformId": "5733e26ef8c8a9355caf49d8",
+        "name": "UpdatePartnerInfo",
+        "process": "5860aa5b8b006df743f06911",
+        "executionType": "executeUpdatePartnerInfo",
+        "rejectionType": "rejectUpdatePartnerInfo"
+    },
+    "mainType": "UpdatePartner",
+    "process": "5de7366bbc9b0003b09e099d",
+    "status": "Pending", //状态
+    "inputDevice": 0,
+    "processedTimes": 0,
+    "settleTime": "2019-12-04T04:30:35.072Z",
+    "expirationTime": "9999-12-31T23:59:59.000Z",
+    "noSteps": false,
+    "userType": "2",
+    "entryType": "1",
+    "priority": "0",
+    "data": {
+        "realNameBeforeEdit": "",
+        "platformId": "5733e26ef8c8a9355caf49d8", // 平台ID
+        "playerName": "riccotest9096", // 玩家账号
+        "updateData": {
+            "player": "5c0e3457e3c4bc102baa2cc6"
+        },
+        "name": "riccotest9096", // 代理名字
+        "partnerObjId": "596c93a11f09a77f1fe06210"
+    },
+    "createTime": "2019-12-04T04:30:35.072Z", // 创建时间
+},
+
 getPartnerBillBoard:`{
    // 1：累积存款排行
    "allCrewDeposit": {
@@ -758,7 +793,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: `{}`
+                data: "true"
             },
             respondFailure: {
                 status: "4xx",

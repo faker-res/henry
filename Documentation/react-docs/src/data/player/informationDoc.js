@@ -1,4 +1,6 @@
 const sampleData = {
+
+    get: `{}`,
     getWithdrawalInfo: `{
         freeTimes: 免手续费提款剩余次数
         serviceCharge: 手续费
@@ -15,8 +17,52 @@ const sampleData = {
         //第一次绑定，没填qq
         {}
         
-        //编辑，有填qq
-        {提案资料........}
+        //编辑，有填qq, 提案信息
+        {
+            "_id": "5de0db78b488a3058921bcab", // 提案Obj ID
+            "proposalId": "409210", // 提案ID
+            "type": { // 提案类型信息
+              "_id": "5d156e8fcb1be97463ab051b", // 类型ID
+              "platformId": "a71a6b88616ad166d2b92e30", // 平台ID
+              "name": "UpdatePlayerQQ", // 类型名称
+              "process": "5d156e8fcb1be97463ab0514",
+              "executionType": "executeUpdatePlayerQQ",
+              "rejectionType": "rejectUpdatePlayerQQ"
+            },
+            "mainType": "UpdatePlayer",
+            "status": "Approved",
+            "inputDevice": 1, // 装置
+            "processedTimes": 0, // 处理的次数
+            "settleTime": "2019-11-29T08:48:56.882Z", // 处理完毕的时间
+            "expirationTime": "9999-12-31T23:59:59.000Z", // 过期日期
+            "noSteps": true,
+            "userType": "0",
+            "entryType": "0",
+            "priority": "0",
+            "data": {
+              "realNameBeforeEdit": "测试名字", // 更改前的真实姓名
+              "proposalPlayerLevel": "Normal",
+              "playerLevelName": "Normal",
+              "proposalPlayerLevelValue": 0,
+              "curData": {
+                "qq": "556****8qq9"
+              },
+              "updateData": {
+                "qq": "55667788qq0"
+              },
+              "playerName": "pp2doc",
+              "playerObjId": "5ddf76f108d86c02c8cdb34d",
+              "platformId": "a71a6b88616ad166d2b92e30",
+              "playerId": "8833",
+              "_id": "5ddf76f108d86c02c8cdb34d"
+            },
+            "createTime": "2019-11-29T08:48:56.882Z",
+            "creator": {
+              "id": "5ddf76f108d86c02c8cdb34d",
+              "name": "pp2doc",
+              "type": "player"
+            },
+        }
 }`,
     updatePlayerQQFailure: `{ 
         //编辑，没有有填qq
@@ -26,11 +72,52 @@ const sampleData = {
         
 }`,
     updatePlayerWeChatSuccess: `{
-        //第一次绑定，没填wechat
-        {}
-        
-        //编辑，有填wechat
-        {提案资料........}
+    //第一次绑定，没填wechat
+    {}
+    
+    //编辑，有填wechat
+    {
+        "_id": "5de5cfcc641b2c035a1ca6ed",
+        "proposalId": "409214",
+        "type": { // 提案类型
+          "_id": "5de5cfa285cd94377bc41c8d",
+          "platformId": "a71a6b88616ad166d2b92e30",
+          "name": "UpdatePlayerWeChat",
+          "process": "5de5cfa285cd94377bc41c86",
+          "executionType": "executeUpdatePlayerWeChat",
+          "rejectionType": "rejectUpdatePlayerWeChat"
+        },
+        "mainType": "UpdatePlayer",
+        "status": "Approved",
+        "inputDevice": 1, // 设备
+        "processedTimes": 0, // 处理的次数
+        "settleTime": "2019-12-03T03:00:28.483Z", // 处理完毕的时间
+        "expirationTime": "9999-12-31T23:59:59.000Z", // 过期日期
+        "noSteps": true,
+        "userType": "0",
+        "entryType": "0",
+        "priority": "0",
+        "data": {
+          "realNameBeforeEdit": "docdocreal", // 更改前的真实姓名
+          "proposalPlayerLevel": "Normal",
+          "playerLevelName": "Normal",
+          "proposalPlayerLevelValue": 0,
+          "updateData": {
+            "wechat": "wechataddtest1"
+          },
+          "playerName": "pp2docdco",
+          "playerObjId": "5ddf7a6508d86c02c8cdb35e",
+          "platformId": "a71a6b88616ad166d2b92e30",
+          "playerId": "8834",
+          "_id": "5ddf7a6508d86c02c8cdb35e"
+        },
+        "createTime": "2019-12-03T03:00:28.483Z",
+        "creator": {
+          "id": "5ddf7a6508d86c02c8cdb35e",
+          "name": "pp2docdco",
+          "type": "player"
+        },
+    }
 
 }`,
     updatePlayerWeChatFailure: `{
@@ -45,7 +132,51 @@ const sampleData = {
         {}
         
         //编辑，有填email
-        {提案资料........}
+        {
+            "_id": "5de0e625b488a3058921bcb2",
+            "proposalId": "409211", // 提案ID
+            "type": { // 提案类型
+              "_id": "57b6c9b1c1106be2f321fb66",
+              "platformId": "5733e26ef8c8a9355caf49d8",
+              "name": "UpdatePlayerEmail",
+              "process": "5733e26ef8c8a9355caf49e4",
+              "executionType": "executeUpdatePlayerEmail",
+              "rejectionType": "rejectUpdatePlayerEmail"
+            },
+            "mainType": "UpdatePlayer", // 提案母类型
+            "status": "Approved", // 状态
+            "inputDevice": 1, // 设备
+            "processedTimes": 0, // 处理次数
+            "settleTime": "2019-11-29T09:34:29.243Z", // 处理完毕的时间
+            "expirationTime": "9999-12-31T23:59:59.000Z", // 过期日期
+            "noSteps": true,
+            "userType": "0",
+            "entryType": "0",
+            "priority": "0",
+            "data": {
+              "realNameBeforeEdit": "unlockreal", // 更改前的真实姓名
+              "proposalPlayerLevel": "特邀贵宾", // 玩家等级
+              "playerLevelName": "特邀贵宾", // 等级名称
+              "proposalPlayerLevelValue": 3,
+              "curData": {
+                "email": "admin****in.cm"
+              },
+              "updateData": {
+                "email": "admin@admin.com"
+              },
+              "playerName": "yunvinceunlock", // 玩家姓名
+              "playerObjId": "5db29decbfeab910d829a614",
+              "platformId": "5733e26ef8c8a9355caf49d8", // 平台ID
+              "playerId": "8828", // 玩家ID
+              "_id": "5db29decbfeab910d829a614"
+            },
+            "createTime": "2019-11-29T09:34:29.243Z",
+            "creator": {
+              "id": "5db29decbfeab910d829a614",
+              "name": "yunvinceunlock",
+              "type": "player"
+            },
+        }
 }`,
     updatePlayerEmailFailure: `{
         //编辑，没有有填email
@@ -54,12 +185,279 @@ const sampleData = {
         "errorMessage": "数据无效"
         
 }`,
+    changeBirthdayDate: `{
+    "_id": "5de5baf5641b2c035a1ca6eb",
+    "proposalId": "409213",
+    "type": {
+      "_id": "57ff08433f8838c63a7f8399",
+      "platformId": "a71a6b88616ad166d2b92e30",
+      "name": "UpdatePlayerInfo",
+      "process": "57ff08433f8838c63a7f8384",
+      "executionType": "executeUpdatePlayerInfo",
+      "rejectionType": "rejectUpdatePlayerInfo",
+      "__v": 0
+    },
+    "mainType": "UpdatePlayer",
+    "status": "Approved",
+    "inputDevice": 1,
+    "processedTimes": 0,
+    "settleTime": "2019-12-03T01:31:33.565Z",
+    "expirationTime": "9999-12-31T23:59:59.000Z",
+    "noSteps": true,
+    "userType": "0",
+    "entryType": "0",
+    "priority": "0",
+    "data": {
+      "realNameBeforeEdit": "docdocreal",
+      "proposalPlayerLevel": "Normal",
+      "playerLevelName": "Normal",
+      "proposalPlayerLevelValue": 0,
+      "isIgnoreAudit": true,
+      "remark": "生日",
+      "DOB": "1995-11-16T08:44:00.000Z",
+      "playerName": "pp2docdco",
+      "playerObjId": "5ddf7a6508d86c02c8cdb35e",
+      "platformId": "a71a6b88616ad166d2b92e30",
+      "playerId": "8834",
+      "_id": "5ddf7a6508d86c02c8cdb35e"
+    },
+    "createTime": "2019-12-03T01:31:33.565Z",
+    "creator": {
+      "id": "5ddf7a6508d86c02c8cdb35e",
+      "name": "pp2docdco",
+      "type": "player"
+    }
+}`,
+    updatePlayerAvatar: `{}`,
 
+    updatePassword: `{
+        "text": "密码修改成功"
+}`,
 
 }
 
+const playerInformationDesc = `
+<b>玩家对象 / Player Object：</b>
+<template>
+{
+    "_id": "5de0e3df211ed9037381dbdd",  //玩家 Object ID
+    "playerId": "7480",   //玩家ID
+    "platform": "5733e26ef8c8a9355caf49d8", //玩家所注册的平台 Object ID
+    "name": "gi0iaon9g",  //玩家账号
+    "password": "$2b$10$9EnCFUNApMAWMEhmTIpqo.Vh5iTs1m4CFlLnabcZs6XLyYoSoN./u",
+    "deviceId": "aWh5WmhTZUlqTzYxY3pSRlRvL2xYZElzVlJzM2hZMGlnM2Y4......==",
+    "registrationDevice": "0",
+    "hasPassword": false,
+    "qnaWrongCount": {
+      "editName": 0,
+      "editBankCard": 0,
+      "updatePhoneNumber": 0,
+      "forgotPassword": 0
+    },
+    "relTsPhoneList": [],
+    "ximaWithdraw": 0,
+    "viewInfo": {
+      "showInfoState": true,
+      "limitedOfferInfo": 1
+    },
+    "loginTimes": 1,
+    "registrationInterface": 1,
+    "valueScore": 0,
+    "gameProviderPlayed": [],
+    "credibilityRemarks": [
+      "5b7fa51c24265f24dad50cb0"
+    ],
+    "applyingEasterEgg": false,
+    "isReferralReward": false,
+    "similarPlayers": [],
+    "favoriteGames": [],
+    "bFirstTopUpReward": false,
+    "forbidLevelMaintainReward": false,
+    "forbidLevelUpReward": false,
+    "forbidPromoCode": false,
+    "forbidRewardEvents": [],
+    "forbidTopUpType": [],
+    "creditWallet": [],
+    "consumptionTimes": 0,
+    "consumptionSum": 0,
+    "pastMonthConsumptionSum": 0,
+    "weeklyConsumptionSum": 0,
+    "dailyConsumptionSum": 0,
+    "bonusAmountSum": 0,
+    "pastMonthBonusAmountSum": 0,
+    "weeklyBonusAmountSum": 0,
+    "dailyBonusAmountSum": 0,
+    "withdrawSum": 0,
+    "pastMonthWithdrawSum": 0,
+    "weeklyWithdrawSum": 0,
+    "dailyWithdrawSum": 0,
+    "withdrawTimes": 0,
+    "topUpTimes": 0,
+    "topUpSum": 0,
+    "pastMonthTopUpSum": 0,
+    "weeklyTopUpSum": 0,
+    "dailyTopUpIncentiveAmount": 0,
+    "dailyTopUpSum": 0,
+    "lockedCredit": 0,
+    "validCredit": 0,
+    "creditBalance": 0,
+    "permission": {
+      "levelChange": true,
+      "PlayerLimitedOfferReward": true,
+      "PlayerPacketRainReward": true,
+      "playerConsecutiveConsumptionReward": true,
+      "forbidPlayerFromEnteringGame": false,
+      "forbidPlayerFromLogin": false,
+      "PlayerDoubleTopUpReturn": true,
+      "PlayerTopUpReturn": true,
+      "forbidPlayerConsumptionIncentive": false,
+      "allowPromoCode": true,
+      "forbidPlayerConsumptionReturn": false,
+      "disableWechatPay": false,
+      "rewardPointsTask": true,
+      "banReward": false,
+      "quickpayTransaction": true,
+      "alipayTransaction": true,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "topUpCard": true,
+      "topupManual": true,
+      "topupOnline": true,
+      "allTopUp": true,
+      "transactionReward": true,
+      "applyBonus": true
+    },
+    "userAgent": [
+      {
+        "os": "Mac OS",
+        "device": "",
+        "browser": "Chrome"
+      },
+      {
+        "os": "Mac OS",
+        "device": "PC",
+        "browser": "Chrome"
+      }
+    ],
+    "games": [],
+    "exp": 0,
+    "forbidPromoCodeList": [],
+    "forbidRewardPointsEvent": [],
+    "forbidProviders": [],
+    "status": 1,
+    "badRecords": [],
+    "trustLevel": "2",
+    "blacklistIp": [],
+    "loginIps": [
+      "::1"
+    ],
+    "lastLoginIp": "::1",
+    "isLogin": true,
+    "lastAccessTime": "2019-11-29T09:24:49.683Z",
+    "registrationTime": "2019-11-29T09:24:47.345Z",
+    "realName": "",
+    "receiveSMS": true,
+    "feedbackTimes": 0,
+    "lastFeedbackTime": null,
+    "isRealPlayer": true,
+    "isTestPlayer": false,
+    "icon": "",
+    "smsSetting": {
+      "PlayerRetentionRewardGroupSuccess": true,
+      "AuctionOpenPromoCodeSuccess": true,
+      "AuctionPromoCodeSuccess": true,
+      "PromoCodeSend": true,
+      "PlayerLevelUpSuccess": true,
+      "PlayerLevelDownMigrationSuccess": true,
+      "PlayerLevelUpMigrationSuccess": true,
+      "PlayerPromoCodeRewardSuccess": true,
+      "PlayerRegisterIntentionSuccess": true,
+      "PlayerFreeTrialRewardGroupSuccess": true,
+      "PlayerConsumptionRewardGroupSuccess": true,
+      "PlayerConsecutiveRewardGroupSuccess": true,
+      "PlayerLoseReturnRewardGroupSuccess": true,
+      "PlayerTopUpReturnGroupSuccess": true,
+      "updatePassword": true,
+      "UpdatePhoneInfoSuccess": true,
+      "UpdateBankInfoSuccess": true,
+      "PlayerLimitedOfferRewardSuccess": true,
+      "WithdrawCancel": true,
+      "WithdrawSuccess": true,
+      "WechatTopupSuccess": true,
+      "AlipayTopupSuccess": true,
+      "OnlineTopupSuccess": true,
+      "ManualTopupSuccess": true,
+      "PlayerConsumptionReturnSuccess": true,
+      "updatePaymentInfo": true,
+      "consumptionReturn": true,
+      "applyReward": true,
+      "cancelBonus": true,
+      "applyBonus": true,
+      "manualTopup": true
+    },
+    "DOB": null,
+    "gender": true,
+    "email": "",
+    "__v": 0,
+    "playerLevel": {
+      "_id": "5733e26ef8c8a9355caf49dc",
+      "name": "普通会员",
+      "value": 0,
+      "platform": "5733e26ef8c8a9355caf49d8",
+      "reward": {
+        "bonusCredit": 20,
+        "isRewardTask": false,
+        "providerGroup": "free",
+        "requiredUnlockTimes": 0,
+        "requiredUnlockAmount": 0
+      },
+      "consumptionLimit": 20000,
+      "topupLimit": 2000,
+      "__v": 0,
+      "levelUpConfig": [
+        {
+          "_id": "573abaefed6da1cf5c398fed",
+          "topupPeriod": "DAY",
+          "consumptionPeriod": "DAY",
+          "consumptionLimit": 0,
+          "consumptionSourceProviderId": [],
+          "topupLimit": 0
+        }
+      ],
+      "levelDownConfig": [
+        {
+          "_id": "5800988c1a8d1645a7091e49",
+          "topupPeriod": "DAY",
+          "consumptionPeriod": "DAY",
+          "consumptionMinimum": 0,
+          "topupMinimum": 0
+        }
+      ],
+      "canApplyConsumptionReturn": true,
+      "playerValueScore": 2
+    },
+    "bankCardGroup": "57b572e45052101945a7cbc7",
+    "merchantGroup": "57ad808bab1d5cb646acd76c",
+    "rewardPointsObjId": {
+      "_id": "5de0e3e1211ed9037381dbdf",
+      "platformObjId": "5733e26ef8c8a9355caf49d8",
+      "playerObjId": "5de0e3df211ed9037381dbdd",
+      "playerName": "gi0iaon9g",
+      "playerLevel": "5733e26ef8c8a9355caf49dc",
+      "progress": [],
+      "lastUpdate": "2019-11-29T09:24:49.599Z",
+      "createTime": "2019-11-29T09:24:49.599Z",
+      "points": 0,
+      "__v": 0
+    },
+    "isRegister": true
+}
+</template>
+`;
+
 let information = {
     name: "玩家信息/资料",
+    desc: playerInformationDesc,
     func: {
         get: {
             title: "获取玩家基本信息",
@@ -71,7 +469,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "玩家对象 hasPassword: 玩家是否有修改过密码",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "40x",
@@ -116,7 +514,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "40x",
@@ -137,7 +535,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: sampleData.updatePassword,
             },
             respondFailure: {
                 status: "40x",
@@ -158,7 +556,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "",
+                data: "true",
             },
             respondFailure: {
                 status: "4xx",
@@ -230,7 +628,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data:"玩家对象",
+                data: sampleData.changeBirthdayDate,
             },
             respondFailure: {
                 status: "4xx",
@@ -289,7 +687,7 @@ let information = {
             ],
             respondSuccess: {
                 status: 200,
-                data:"玩家资料",
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】",
             },
             respondFailure: {
                 status: "4xx",
