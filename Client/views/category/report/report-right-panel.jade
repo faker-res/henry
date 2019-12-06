@@ -1964,7 +1964,7 @@
                         option(ng-repeat='(i,v) in vm.allProviders', value='{{v._id}}') {{v.name || translate}}
                 .search-filters-item
                     label {{'Login Device' | translate}}
-                    select.spicker.form-control(ng-model='vm.gameTypeQuery.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.propsosalDeviceList')
+                    select.spicker.form-control(ng-model='vm.gameTypeQuery.loginDevice', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.loginDeviceList')
                 .search-filters-item
                     label {{"csPromoteWay" | translate}}
                     select.spicker.form-control(ng-model='vm.gameTypeQuery.csPromoteWay', multiple, data-actions-box='true')

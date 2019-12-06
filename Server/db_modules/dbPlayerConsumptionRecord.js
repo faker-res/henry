@@ -2835,7 +2835,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice};
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
             matchObj.loginDevice = {"$exists" : true};
             topUpQuery['data.loginDevice'] = {"$exists" : true};
             withdrawQuery['data.loginDevice'] = {"$exists" : true};
@@ -2856,7 +2856,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDeviceQuery) {
-            if (loginDevice.length === 36) {
+            if (loginDevice.length === 4) {
                 matchObj['$or'] = [
                     {loginDevice: loginDeviceQuery},
                     {loginDevice: {$exists: false}}
@@ -3179,7 +3179,7 @@ var dbPlayerConsumptionRecord = {
         }
 
         if (loginDevice && loginDevice.length > 0) {
-            loginDeviceQuery = {$in: loginDevice};
+            loginDeviceQuery = {$in: loginDevice.map(item => Number(item))};
             matchObj.loginDevice = {"$exists" : true};
         }
 
@@ -3187,7 +3187,7 @@ var dbPlayerConsumptionRecord = {
         let groupObjIdData = {'cpGameType': '$cpGameType', 'loginDevice': '$loginDevice'};
 
         if (loginDeviceQuery) {
-            if (loginDevice.length === 36) {
+            if (loginDevice.length === 4) {
                 matchObj['$or'] = [
                     {loginDevice: loginDeviceQuery},
                     {loginDevice: {$exists: false}}
