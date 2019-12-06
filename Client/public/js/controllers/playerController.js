@@ -61,7 +61,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "approved"
+            APPROVED: "approved",
+            SENDING: "Sending"
         };
         vm.allProposalStatus = [
             "PrePending",
@@ -78,7 +79,8 @@ define(['js/app'], function (myApp) {
             "Recover",
             "CsPending",
             "NoVerify",
-            "approved"
+            "approved",
+            "Sending"
         ];
 
         vm.constProposalType = {

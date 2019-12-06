@@ -52,7 +52,8 @@ define(['js/app'], function (myApp) {
             MANUAL: "Manual",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "approved"
+            APPROVED: "approved",
+            SENDING: "Sending"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
