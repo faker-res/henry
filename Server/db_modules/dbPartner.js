@@ -1879,7 +1879,17 @@ let dbPartner = {
             }
         });
 
-        return deferred.promise;
+        return deferred.promise.then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                conn.isAuth = false;
+                conn.partnerId = null;
+                conn.partnerObjId = null;
+                return Promise.reject(err);
+            }
+        );
     },
 
     partnerLogout: function (partnerData) {
@@ -2761,12 +2771,13 @@ let dbPartner = {
                                     };
 
                                     if(partner && partner.platform && partner.platform.partnerEnableAutoApplyBonus) {
-                                        proposalData.isAutoApproval = partner.platform.enableAutoApplyBonus;
+                                        proposalData.isAutoApproval = partner.platform.partnerEnableAutoApplyBonus;
                                     }
 
                                     if (!partner.permission.applyBonus && partner.platform.partnerForbidApplyBonusNeedCsApproval) {
                                         proposalData.remark = "禁用提款" + lastBonusRemark;
-                                        proposalData.needCsApproved = true;
+                                        // proposalData.needCsApproved = true; BUG #714 FPMS代理提案异常 2019/11/12 要求更改逻辑为普通审核
+                                        proposalData.isAutoApproval = false;
                                     }
 
                                     if (partner.platform.bonusSystemType && bonusSystemConfig) {
@@ -2790,7 +2801,6 @@ let dbPartner = {
 
                                     };
                                     newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
-
 
                                     return getPartnerAllCommissionAmount(partner.platform._id, partner._id, new Date()).then(
                                         partnerCommission => {
@@ -8613,18 +8623,17 @@ let dbPartner = {
             }
         ]).read("secondaryPreferred");
 
-        console.log('calculatePartnerCommissionBillBoard partnerData', partnerData);
+        partnerData = partnerData || [];
 
-        if (!(partnerData && partnerData.length)) {
-            return;
+        let populatedData = [];
+        if (partnerData && partnerData.length) {
+            // populate partner
+            populatedData = await dbconfig.collection_partner.populate(partnerData, {
+                path: '_id',
+                model: dbconfig.collection_partner,
+                select: "partnerName"
+            });
         }
-
-        // populate partner
-        let populatedData = await dbconfig.collection_partner.populate(partnerData, {
-            path: '_id',
-            model: dbconfig.collection_partner,
-            select: "partnerName"
-        });
 
         // save to record
         for (let i = 0; i < populatedData.length; i++) {

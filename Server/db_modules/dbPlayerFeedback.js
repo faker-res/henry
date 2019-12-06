@@ -441,6 +441,7 @@ var dbPlayerFeedback = {
     },
 
     getPlayerFeedbackReportAdvance: async function (platform, query, index, limit, sortCol) {
+        console.log('start getPlayerFeedbackReportAdvance');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -515,8 +516,6 @@ var dbPlayerFeedback = {
                         stream: stream,
                         batchSize: 50,
                         makeRequest: function (feedbackIdObjs, request) {
-
-                            console.log('make request');
                             request("player", "getConsumptionDetailOfPlayers", {
                                 platformId: platform,
                                 startTime: query.start,
@@ -744,7 +743,7 @@ var dbPlayerFeedback = {
         });
     },
 
-    getPlayerFeedbackQuery: async function (query, index, isMany, startTime, endTime) {
+    getPlayerFeedbackQuery: async function (query, index, isMany, startTime, endTime, playerPermission) {
 
         let searchQuery = await dbPlayerFeedback.getFeedbackSearchQuery(query, index, isMany,startTime, endTime);
         console.log('Search Query', searchQuery);
@@ -784,7 +783,7 @@ var dbPlayerFeedback = {
         }
 
         let total;
-        return Q.all([players, count]).then(data => {
+        return Q.all([players, count]).then(async data => {
             if(isMany.searchType === "one"){
                 total = data[1];
             }else{
@@ -793,7 +792,30 @@ var dbPlayerFeedback = {
                     console.log('=CallOutMission= callout query result', data[0].length);
                 }
             }
-            console.log('return data', data);
+            //In case the permission didn't pass through in player.js,
+            // for(var index in data[0]){
+            //     if(data[0][index] && !data[0][index].permission){
+            //         let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
+            //         if (permissionData && permissionData.permission) {
+            //             data[0][index].permission = permissionData.permission;
+            //         }
+            //     }
+            // }
+            if(playerPermission && playerPermission.length > 0){
+                let minus = 0;
+                // for(var i = 0; i < data[0].length; i++){
+                for(var i = data[0].length - 1; i >=0; i--){
+                    for(var k = 0; k < playerPermission.length; k++){
+                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === false){
+                            data[0].splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            console.log('return data', data[0]);
+
             return {
                 backEndQuery: JSON.stringify(searchQuery),
                 data: data[0] ? data[0] : {},
@@ -808,16 +830,20 @@ var dbPlayerFeedback = {
         let sendQuery = {platform: query.selectedPlatform};
         let sendQueryOr = [];
         let isBothFilter = false;
-        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length > 0 && query.filterFeedback){
+        if (query.filterFeedbackTopic && query.filterFeedbackTopic.length) {
             isBothFilter = true;
-            let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
-            let filteredPlayer = await dbconfig.collection_playerFeedback.find({
-                createTime: {$gte: new Date(feedbackTimes)},
+            let feedbackQuery = {
                 platform: query.selectedPlatform,
-                topic: query.filterFeedbackTopic,
-            }).lean();
+                topic: {$in: query.filterFeedbackTopic},
+            }
+            if (query.filterFeedback) {
+                let feedbackTimes = dbutility.setLocalDayEndTime(dbutility.setNDaysAgo(new Date(), query.filterFeedback));
+                feedbackQuery.createTime = {$gte: new Date(feedbackTimes)};
+            }
+
+            let filteredPlayer = await dbconfig.collection_playerFeedback.find(feedbackQuery).lean();
             let filteredUniquePlayersObjId = [];
-            console.log('Filter Feedback', filteredPlayer);
+            console.log('Filter Feedback', filteredPlayer, feedbackQuery);
             for(i =0; i < filteredPlayer.length; i++){
                 filteredUniquePlayersObjId.push(filteredPlayer[i].playerId);
             }

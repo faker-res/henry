@@ -74,6 +74,20 @@ proto._dispatch = function (conn, message, bClient) {
         bClient = service ? true : false;
     }
 
+    // Receiving log
+    try {
+        let ignoreLogList = [
+            'authenticate', 'login', 'create', 'createGuestPlayer', 'playerLoginOrRegisterWithSMS',
+            'phoneNumberLoginWithPassword', 'registerByPhoneNumberAndPassword'
+        ];
+
+        if (!ignoreLogList.includes(funcName)) {
+            console.log(`Received ${serviceName}.${funcName}: ${JSON.stringify(message["data"])}`);
+        }
+    } catch (e) {
+        console.log(`Error occurred when parsing received data`);
+    }
+
     if (service) {
         var wsFunc = service.getFunction(funcName);
         //在此进行验证.

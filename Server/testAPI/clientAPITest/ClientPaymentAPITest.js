@@ -327,6 +327,12 @@
         this._service.createCommonTopupProposal.once(callback);
     };
 
+    proto.createFixedTopupProposal = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.createFixedTopupProposal.request(data);
+        this._service.createFixedTopupProposal.once(callback);
+    };
+
     proto.createFKPTopupProposal = function (callback, requestData) {
         let data = requestData || {};
         this._service.createFKPTopupProposal.request(data);
@@ -343,6 +349,13 @@
         let data = requestData || {};
         this._service.getPlayerConsumptionSum.request(data);
         this._service.getPlayerConsumptionSum.once(callback);
+    };
+
+    proto.notifyCreditChange = function(callback, requestData) {
+        let responseFunc = function(data) {
+            callback(data);
+        };
+        this._service.notifyCreditChange.addListener(responseFunc);
     };
 
     if (isNode) {

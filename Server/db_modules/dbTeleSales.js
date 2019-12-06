@@ -30,6 +30,10 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.find({platform: platformObjId}).lean();
     },
 
+    getAllTSPhoneListFromPlatforms: function (platformObjIds) {
+        return dbconfig.collection_tsPhoneList.find({platform: {$in: platformObjIds}}).lean();
+    },
+
     getOneTsNewList: function (query) {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
@@ -989,138 +993,162 @@ let dbTeleSales = {
         )
     },
 
-    getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
+    getDistributionDetails: async (platformObjId, tsPhoneListObjId, adminNames) => {
+        async function updateTsAssigneeRecord(platformObjId, assignees, phoneList) {
+            let partnerLevelConfigData = await dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean();
+            if (!partnerLevelConfigData) {
+                return Promise.reject({name: "DataError", message: "Cannot find active player"});
+            }
+            let proms = [];
+
+            for (let i = 0; i < assignees.length; i++) {
+                let assignee = assignees[i];
+
+                let prom = async function () {
+                    let playerValidCount = await dbconfig.collection_players.find({
+                        tsPhoneList: phoneList._id,
+                        tsAssignee: assignee.admin,
+                        csOfficer: assignee.admin, // new requirement, player must registered by tsAssignee (by zm)
+                        platform: platformObjId,
+                        topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                        topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                        consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                        consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                    }).count();
+
+                    let registrationCount = await dbconfig.collection_players.find({
+                        tsPhoneList: phoneList._id,
+                        tsAssignee: assignee.admin,
+                        platform: platformObjId,
+                    }).count();
+                    await dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerValidCount, registrationCount: registrationCount}).catch(errorUtils.reportError);
+                }
+                proms.push(prom);
+            }
+            return Promise.all(proms);
+        }
+
         let returnData = {};
         let distributionDetails = [];
         let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
         let assigneeProm = dbconfig.collection_tsAssignee.find({
             platform: platformObjId,
             tsPhoneList: tsPhoneListObjId,
-            // noDistribute: {$in: [null, true]},
             adminName: {
                 $in: adminNames
             }
         });
         let assigneeAdminList = [];
 
-        return Promise.all([phoneListProm, assigneeProm]).then(data => {
-            let phoneList = data[0];
-            let assignees = data[1];
-            let currentHoldingCountProm = [];
+        let [phoneList, assignees] = await Promise.all([phoneListProm, assigneeProm]);
+        let currentHoldingCountProm = [];
 
-            if(assignees && assignees.length > 0 && phoneList) {
+        if(assignees && assignees.length > 0 && phoneList) {
 
-                //count total valid player
-                dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
-                    partnerLevelConfigData => {
-                        if (!partnerLevelConfigData) {
-                            return Promise.reject({name: "DataError", message: "Cannot find active player"});
-                        }
-                        let promArr = [];
-                        assignees.forEach(assignee => {
-                        let updateProm = dbconfig.collection_players.find({
-                            tsPhoneList: phoneList._id,
-                            tsAssignee: assignee.admin,
-                            csOfficer: assignee.admin, // new requirement, player must registered by tsAssignee
-                            platform: platformObjId,
-                            topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
-                            topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
-                            consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
-                            consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
-                        }).count().then(
-                            playerCount => {
-                                return dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerCount});
-                            }
-                        );
-                        promArr.push(updateProm);
-                        });
-                        return Promise.all(promArr);
-                    }
-                ).catch(errorUtils.reportError);
+            //count total valid player
+            updateTsAssigneeRecord(platformObjId, assignees, phoneList).catch(errorUtils.reportError);
 
 
-                for (let i = 0; i < assignees.length; i++) {
-                    assigneeAdminList.push(assignees[i].admin);
-                }
+            for (let i = 0; i < assignees.length; i++) {
+                assigneeAdminList.push(assignees[i].admin);
+            }
 
-                assignees.forEach(assignee => {
-                    currentHoldingCountProm.push(
-                        dbconfig.collection_tsDistributedPhone.find({
-                            assignee: assignee.admin,
-                            tsPhoneList: tsPhoneListObjId,
-                            startTime: {$lt: new Date()},
-                            endTime: {$gt: new Date()},
-                            registered: {$ne: true}
-                        }, {
-                            _id: 1,
-                            assignee: 1
-                        }).lean()
-                    );
-                    let assigneeDistributionDetail = {
-                        assigneeObjId: assignee.admin,
-                        adminName: assignee.adminName,
-                        distributedCount: assignee.assignedCount,
-                        fulfilledCount: assignee.phoneUsedCount,
-                        successCount: assignee.successfulCount,
-                        registeredCount: assignee.registrationCount,
-                        topUpCount: assignee.singleTopUpCount,
-                        multipleTopUpCount: assignee.multipleTopUpCount,
-                        validPlayerCount: assignee.effectivePlayerCount,
-                        currentListSize: 0
-                    };
-                    distributionDetails.push(assigneeDistributionDetail);
-                });
-
-                returnData = {
-                    distributionDetails: distributionDetails,
+            assignees.forEach(assignee => {
+                currentHoldingCountProm.push(
+                    dbconfig.collection_tsDistributedPhone.find({
+                        assignee: assignee.admin,
+                        tsPhoneList: tsPhoneListObjId,
+                        startTime: {$lt: new Date()},
+                        endTime: {$gt: new Date()},
+                        registered: {$ne: true}
+                    }, {
+                        _id: 1,
+                        assignee: 1
+                    }).lean()
+                );
+                let assigneeDistributionDetail = {
+                    assigneeObjId: assignee.admin,
+                    adminName: assignee.adminName,
+                    distributedCount: assignee.assignedCount,
+                    fulfilledCount: assignee.phoneUsedCount,
+                    successCount: assignee.successfulCount,
+                    registeredCount: assignee.registrationCount,
+                    topUpCount: assignee.singleTopUpCount,
+                    multipleTopUpCount: assignee.multipleTopUpCount,
+                    validPlayerCount: assignee.effectivePlayerCount,
+                    currentListSize: 0
                 };
-
-                return Promise.all(currentHoldingCountProm);
-            }
-            return null;
-        }).then(currentHoldingCount => {
-            if (currentHoldingCount) {
-                currentHoldingCount.forEach(currentHolding => {
-                    if(currentHolding && currentHolding.length > 0) {
-                        distributionDetails.forEach(detail => {
-                            if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
-                                detail.currentListSize = currentHolding.length;
-                            }
-                        })
-                    }
-                });
-            }
-
-            let totalDistributedProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
+                distributionDetails.push(assigneeDistributionDetail);
             });
 
-            let totalFulfilledProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
-                isUsed: true
+            returnData = {
+                distributionDetails: distributionDetails,
+            };
+        }
+        let currentHoldingCount = await Promise.all(currentHoldingCountProm);
+        if (currentHoldingCount) {
+            currentHoldingCount.forEach(currentHolding => {
+                if(currentHolding && currentHolding.length > 0) {
+                    distributionDetails.forEach(detail => {
+                        if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
+                            detail.currentListSize = currentHolding.length;
+                        }
+                    })
+                }
             });
+        }
 
-            let totalSuccessProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
-                assignee: {$in: assigneeAdminList},
-                tsPhoneList: tsPhoneListObjId,
-                startTime: {$lt: new Date()},
-                isSucceedBefore: true
-            });
+        let totalDistributedProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+        });
 
-            return Promise.all([totalDistributedProm, totalFulfilledProm, totalSuccessProm]);
-        }).then(
-            ([totalDistributedTsPhone, totalFulfilledTsPhone, totalSuccessTsPhone]) => {
-                returnData.totalDistributed = totalDistributedTsPhone.length;
-                returnData.totalFulfilled = totalFulfilledTsPhone.length;
-                returnData.totalSuccess = totalSuccessTsPhone.length;
+        let totalFulfilledProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+            isUsed: true
+        });
 
-                return returnData;
+        let totalSuccessProm = dbconfig.collection_tsDistributedPhone.distinct("tsPhone", {
+            assignee: {$in: assigneeAdminList},
+            tsPhoneList: tsPhoneListObjId,
+            startTime: {$lt: new Date()},
+            isSucceedBefore: true
+        });
+
+        let [totalDistributedTsPhone, totalFulfilledTsPhone, totalSuccessTsPhone] = await Promise.all([totalDistributedProm, totalFulfilledProm, totalSuccessProm]);
+        returnData.totalDistributed = totalDistributedTsPhone.length;
+        returnData.totalFulfilled = totalFulfilledTsPhone.length;
+        returnData.totalSuccess = totalSuccessTsPhone.length;
+
+        return returnData;
+    },
+
+    getTsWorkloadReports: async (platformObjIds, phoneListObjIds, startTime, endTime, adminObjIds) => {
+        let reportsProms = platformObjIds.map(async objId => {
+            let platform = await dbconfig.collection_platform.findOne({_id: objId}, {name: 1}).lean();
+            let report = await dbTeleSales.getTsWorkloadReport(objId, phoneListObjIds, startTime, endTime, adminObjIds);
+            return {
+                platformObjId: platform._id,
+                platformName: platform.name,
+                report
             }
-        );
+        });
+        return Promise.all(reportsProms);
+        // let reports = await Promise.all(reportsProms);
+        // let mergedReport = {};
+        // for (let i = 0; i < reports.length; i++) {
+        //     let report = reports[i];
+        //     for (admin in report) {
+        //         if (mergedReport[admin] && mergedReport[admin] instanceof Array) {
+        //             mergedReport[admin] = Object.assign({}, mergedReport[admin], report[admin]);
+        //         } else {
+        //             mergedReport[admin] = report[admin];
+        //         }
+        //     }
+        // }
     },
 
     getTsWorkloadReport: async (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
@@ -1186,79 +1214,64 @@ let dbTeleSales = {
 
         if (distributedData && distributedData.length > 0) {
             distributedData.forEach(item => {
-                if (item.assignee != null){
-                    if (item.assignee._id && !workloadData[item.assignee._id]) {
-                        workloadData[item.assignee._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
-                            workloadData[item.assignee._id][item.tsPhoneList._id] = {
-                                adminId: item.assignee._id,
-                                adminName: item.assignee.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
-                    }
+                if (!item.assignee || !item.tsPhoneList) {
+                    return;
                 }
+                workloadData[item.assignee._id] = workloadData[item.assignee._id] || {};
+                workloadData[item.assignee._id][item.tsPhoneList._id] = workloadData[item.assignee._id][item.tsPhoneList._id] || {
+                    adminId: item.assignee._id,
+                    adminName: item.assignee.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed:0,
+                    fulfilled:0,
+                    success:0,
+                    registered:0
+                };
+                workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
             });
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
             phoneFeedbackData.forEach(item => {
-                if (item.adminId != null){
-                    if (item.adminId._id && !workloadData[item.adminId._id]) {
-                        workloadData[item.adminId._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id] = {
-                                adminId: item.adminId._id,
-                                adminName: item.adminId.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed:0,
-                                fulfilled:0,
-                                success:0,
-                                registered:0
-                            };
-                        }
-                        workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
-                        if (definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
-                            workloadData[item.adminId._id][item.tsPhoneList._id].success++;
-                        }
-                    }
+                if (!item.adminId || !item.tsPhoneList) {
+                    return;
+                }
+                workloadData[item.adminId._id] = workloadData[item.adminId._id] || {};
+                workloadData[item.adminId._id][item.tsPhoneList._id] = workloadData[item.adminId._id][item.tsPhoneList._id] || {
+                    adminId: item.adminId._id,
+                    adminName: item.adminId.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed:0,
+                    fulfilled:0,
+                    success:0,
+                    registered:0
+                };
+                workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
+                if (definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                    workloadData[item.adminId._id][item.tsPhoneList._id].success++;
                 }
             });
         }
 
         if (playerData && playerData.length > 0) {
             playerData.forEach(item => {
-                if (item.csOfficer != null){
-                    if (item.csOfficer._id && !workloadData[item.csOfficer._id]) {
-                        workloadData[item.csOfficer._id] = {};
-                    }
-                    if (item.tsPhoneList != null) {
-                        if (item.tsPhoneList._id && !workloadData[item.csOfficer._id][item.tsPhoneList._id]) {
-                            workloadData[item.csOfficer._id][item.tsPhoneList._id] = {
-                                csOfficer: item.csOfficer._id,
-                                adminId: item.csOfficer._id,
-                                adminName: item.csOfficer.adminName,
-                                phoneListObjId: item.tsPhoneList._id,
-                                phoneListName: item.tsPhoneList.name,
-                                distributed: 0,
-                                fulfilled: 0,
-                                success: 0,
-                                registered: 0
-                            };
-                        }
-                        workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
-                    }
+                if (!item.csOfficer || !item.tsPhoneList) {
+                    return;
                 }
+                workloadData[item.csOfficer._id] = workloadData[item.csOfficer._id] || {};
+                workloadData[item.csOfficer._id][item.tsPhoneList._id] = workloadData[item.csOfficer._id][item.tsPhoneList._id] || {
+                    csOfficer: item.csOfficer._id,
+                    adminId: item.csOfficer._id,
+                    adminName: item.csOfficer.adminName,
+                    phoneListObjId: item.tsPhoneList._id,
+                    phoneListName: item.tsPhoneList.name,
+                    distributed: 0,
+                    fulfilled: 0,
+                    success: 0,
+                    registered: 0
+                };
+                workloadData[item.csOfficer._id][item.tsPhoneList._id].registered++;
             });
         }
         return workloadData;

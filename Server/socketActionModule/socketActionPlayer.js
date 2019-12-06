@@ -425,7 +425,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data.query && data.platformId && data.index != null && data.limit);
             var query = utility.buildPlayerQueryString(data.query);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [data.platformId, query, data.index, data.limit, data.sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPagePlayerByAdvanceQuery, [data.platformId, query, data.index, data.limit, data.sortCol, data.playerPermission], actionName, isValidData);
         },
         getPlayerForAttachGroup: function getPlayerForAttachGroup(data) {
             var actionName = arguments.callee.name;
@@ -1171,7 +1171,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerCredibilityRemark: function updatePlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerObjId && data.remarks);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment, data.changedRemarks], actionName, isValidData);
         },
         updateBatchPlayerCredibilityRemark: function updateBatchPlayerCredibilityRemark(data) {
             let actionName = arguments.callee.name;

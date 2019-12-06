@@ -47,6 +47,8 @@
                         span {{"Player Credibility" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "providerGroup"}', ng-click='vm.configTabClicked("providerGroup");vm.newProviderGroup={ebetWallet:"0"};')
                         span {{"Lock Lobby Group" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "gameTypeConfig"}', ng-click='vm.configTabClicked("gameTypeConfig")')
+                        span {{"Game Type Config" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "smsGroup"}', ng-click='vm.configTabClicked("smsGroup")')
                         span {{"sms group setting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "keywordFilter"}', ng-click='vm.configTabClicked("keywordFilter")')
@@ -1253,6 +1255,11 @@
                                 td
                                     input(type='checkbox', ng-model='vm.platformBasic.isPhoneNumberBoundToPlayerBeforeApplyBonus', ng-disabled='!vm.configTableEdit')
 
+                            tr
+                                td {{'Transfer from last provider to apply reward' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.platformBasic.useTransferFromLastProvider', ng-disabled='!vm.configTableEdit')
+
                         tr
                             td {{'Ebet4.0 User (Create CPMS User When User is Create)' | translate}}
                             td
@@ -2024,7 +2031,7 @@
                                 td
                                     input.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.name')
                                 td
-                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providers', multiple data-width="600px")
+                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providers', multiple data-width="600px" data-size="15", data-dropup-auto='false')
                                         option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkProviderGrouped(v._id, group.providers)") {{v.name}}
                                 td
                                     select.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.ebetWallet' ng-options="+(i) as v | translate for (i,v) in vm.ebetWalletList")
@@ -2049,6 +2056,41 @@
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
                         label(ng-if="vm.providerGroupConfig.showWarning") {{"Update successful, unallocated providers exist" | translate}}
+
+                div(ng-if='vm.selectedConfigTab=="gameTypeConfig"')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'ConfigEdit', 'gameTypeConfigEdit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("gameTypeConfig")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("gameTypeConfig")') {{"CONFIRM" | translate}}
+                    label(ng-if="vm.gameTypeConfigShowWarning") {{"Update successful, unallocated providers exist" | translate}}
+
+                    table#gameTypeConfigTable.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{"GAME_TYPE" | translate}}
+                                th {{"Provider" | translate}}
+                                th(ng-if='vm.configTableEdit') {{"add to group" | translate}}
+                        tbody
+                            tr(ng-repeat='group in vm.gameTypeConfig')
+                                td
+                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.gameTypeId')
+                                        option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v._id}}' ng-disabled="vm.checkGameTypeConfig(v._id, group.providers)") {{v.name}}
+                                td
+                                    select.spicker.form-control(ng-disabled = "!vm.configTableEdit" ng-model='group.providers', multiple)
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkGameTypeConfig(v._id, group.providers)") {{v.name}}
+                                td(ng-if='vm.configTableEdit')
+                                    button.btn.btn-danger.common-button(ng-click='vm.deleteGameTypeConfig($index,group)') {{"Delete" | translate}}
+                            tr(ng-if='vm.configTableEdit')
+                                td
+                                    select.spicker.form-control(ng-model='vm.newGameTypeConfig.gameTypeId', data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(ng-repeat='(i,v) in vm.allGameTypesList', value='{{v._id}}' ng-disabled="vm.checkGameTypeConfig(v._id, group.providers)") {{v.name}}
+                                td
+                                    select.spicker.form-control(ng-model='vm.newGameTypeConfig.providers', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                        option(ng-repeat='(i,v) in vm.platformProviderList', value='{{v._id}}' ng-disabled="vm.checkGameTypeConfig(v._id, group.providers)") {{v.name}}
+                                td
+                                    i.fa.fa-plus(ng-click='vm.gameTypeConfig.push(vm.newGameTypeConfig); vm.newGameTypeConfig={};')
+
                 div(ng-if='vm.selectedConfigTab=="smsGroup" && checkViewPermission("Platform", "ConfigRead", "smsGroupRead")')
                     .col-md-4
                         table.common-table.playerLvlTable
@@ -3209,18 +3251,18 @@
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteSmsGroup(vm.deletingSmsGroup)') {{"DELETE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'ConfigRead', 'DownloadTranslationCSVRead')")
-    .col-md-3
-    .col-md-9(style="padding-left:0;padding-right:15px")
-        .panel.panel-primary
-            .panel-heading.panel-heading-sm
-                label {{"CHINESE_TRANSLATION_CSV" | translate}}
-            .panel-body
-                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
-                    button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
-                        i.fa.fa-cog
-                        text {{"PREPARE_CSV" | translate}}
-                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
-                    button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
-                        i.fa.fa-download
-                        text {{"DOWNLOAD_CSV" | translate}}
+//.row(ng-if="vm.selectedConfigTab=='platformBasic' && checkViewPermission('Platform', 'ConfigRead', 'DownloadTranslationCSVRead')")
+//    .col-md-3
+//    .col-md-9(style="padding-left:0;padding-right:15px")
+//        .panel.panel-primary
+//            .panel-heading.panel-heading-sm
+//                label {{"CHINESE_TRANSLATION_CSV" | translate}}
+//            .panel-body
+//                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
+//                    button.btn.btn-primary.common-button(type='button', ng-show='!vm.prepareTranslationCSV', ng-click='vm.downloadTranslationCSV()')
+//                        i.fa.fa-cog
+//                        text {{"PREPARE_CSV" | translate}}
+//                div(ng-if="checkViewPermission('Platform', 'ConfigEdit', 'DownloadTranslationCSVEdit')")
+//                    button.btn.btn-success.common-button(type='button', ng-show='vm.prepareTranslationCSV', ng-click='vm.prepareTranslationCSV=!vm.prepareTranslationCSV', ng-csv='vm.exportTranslationCSV', filename='{{vm.fileNameCSV}}.csv')
+//                        i.fa.fa-download
+//                        text {{"DOWNLOAD_CSV" | translate}}

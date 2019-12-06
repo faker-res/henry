@@ -107,744 +107,571 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
-    getPlayerReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds = []) {
-        let consumptionReturnTypeId;
-        let onlineTopUpTypeId;
+    getPlayerReportDataForTimeFrame: async function (startTime, endTime, platformId, playerIds = []) {
+        let consumptionReturnTypeId, onlineTopUpTypeId, manualTopUpTypeId, weChatTopUpTypeId, aliPayTopUpTypeId;
         let playerReportSummary;
-        let merchantList;
+        let playerReportDaySummary = [];
         let consumptionDetailArr = [];
 
-        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
-            platformData => {
-                if (platformData && platformData.platformId) {
-                    return RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType).then(
-                        data => {
-                            console.log('getConsumptionDetailOfPlayers - 2');
-                            return data.merchants || [];
-                        }
-                    )
-                }
+        let platformData = await dbconfig.collection_platform.findOne({_id: platformId}).lean();
+        if (!platformData || !platformData.platformId) {
+            return Promise.reject({message: "Platform not found!"});
+        }
+
+        let pms2MerchantData = await RESTUtils.getPMS2Services("postMerchantList", {platformId: platformData.platformId}, platformData.topUpSystemType);
+        let merchantList = pms2MerchantData && pms2MerchantData.merchants || [];
+
+        let proposalTypes = await dbconfig.collection_proposalType.find({platformId: platformId}, {_id: 1, name: 1}).lean();
+        for (let i = 0; i < proposalTypes.length; i++) {
+            if (proposalTypes[i].name == constProposalType.PLAYER_CONSUMPTION_RETURN) {
+                consumptionReturnTypeId = proposalTypes[i]._id
             }
-        ).then(
-            merchantData => {
-                merchantList = merchantData;
-
-                return dbconfig.collection_proposalType.find({platformId: platformId, name: {$in: [constProposalType.PLAYER_CONSUMPTION_RETURN, constProposalType.PLAYER_TOP_UP]}}, {_id: 1, name: 1}).lean();
+            else if (proposalTypes[i].name == constProposalType.PLAYER_TOP_UP) {
+                onlineTopUpTypeId = proposalTypes[i]._id
             }
-        ).then(
-            proposalTypeData => {
-                if(proposalTypeData && proposalTypeData.length > 0){
-                    proposalTypeData.forEach(
-                        proposalType => {
-                            if(proposalType && proposalType.name == constProposalType.PLAYER_CONSUMPTION_RETURN){
-                                consumptionReturnTypeId = proposalType._id;
-                            }else if(proposalType && proposalType.name == constProposalType.PLAYER_TOP_UP){
-                                onlineTopUpTypeId = proposalType._id;
-                            }
-                        }
-                    )
-                }
+            else if (proposalTypes[i].name == constProposalType.PLAYER_MANUAL_TOP_UP) {
+                manualTopUpTypeId = proposalTypes[i]._id
+            }
+            else if (proposalTypes[i].name == constProposalType.PLAYER_WECHAT_TOP_UP) {
+                weChatTopUpTypeId = proposalTypes[i]._id
+            }
+            else if (proposalTypes[i].name == constProposalType.PLAYER_ALIPAY_TOP_UP) {
+                aliPayTopUpTypeId = proposalTypes[i]._id
+            }
+        }
 
-                let stringPlayerId = [];
+        let stringPlayerId = [];
 
-                playerIds.forEach( id => {
-                    stringPlayerId.push(String(id));
-                });
+        playerIds.forEach( id => {
+            stringPlayerId.push(String(id));
+        });
 
-                //concat both string type playerObjId and Object type playerObjId for searching in reward proposal
-                playerIds = playerIds.concat(stringPlayerId);
-                console.log("LH check player report 1------", startTime);
-                console.log("LH check player report 2------", endTime);
+        //concat both string type playerObjId and Object type playerObjId for searching in reward proposal
+        playerIds = playerIds.concat(stringPlayerId);
+        console.log("LH check player report 1------", startTime);
+        console.log("LH check player report 2------", endTime);
 
-                async function catchQueryRetry (model, playerIds, getAggregateInput, err) {
-                    await promiseUtils.delay(30000); // delay 30 sec to try to wait out the busy moment just in case too many db request are sent in a short time
-                    let playerIdsGroupA = playerIds.slice(0, playerIds.length/2);
-                    let playerIdsGroupB = playerIds.slice(playerIds.length/2, playerIds.length);
+        async function catchQueryRetry (model, playerIds, getAggregateInput, err) {
+            await promiseUtils.delay(30000); // delay 30 sec to try to wait out the busy moment just in case too many db request are sent in a short time
+            let playerIdsGroupA = playerIds.slice(0, playerIds.length/2);
+            let playerIdsGroupB = playerIds.slice(playerIds.length/2, playerIds.length);
 
-                    let topUpDetailsA = await model.aggregate(getAggregateInput(playerIdsGroupA)).read("secondaryPreferred").allowDiskUse(true);
-                    let topUpDetailsB = await model.aggregate(getAggregateInput(playerIdsGroupB)).read("secondaryPreferred").allowDiskUse(true);
-                    if (!topUpDetailsA || !topUpDetailsB) {
-                        return Promise.reject(err);
-                    }
+            let topUpDetailsA = await model.aggregate(getAggregateInput(playerIdsGroupA)).read("secondaryPreferred").allowDiskUse(true);
+            let topUpDetailsB = await model.aggregate(getAggregateInput(playerIdsGroupB)).read("secondaryPreferred").allowDiskUse(true);
+            if (!topUpDetailsA || !topUpDetailsB) {
+                return Promise.reject(err);
+            }
 
-                    return topUpDetailsA.concat(topUpDetailsB);
-                }
+            return topUpDetailsA.concat(topUpDetailsB);
+        }
 
-                let topUpProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                $match: {
-                                    platformId: platformId,
-                                    createTime: {
-                                        $gte: startTime,
-                                        $lt: endTime
-                                    },
-                                    playerId: {$in: playerIds}
-                                }
+        let topUpProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        $match: {
+                            mainType: "TopUp",
+                            status: constProposalStatus.SUCCESS,
+                            createTime: {
+                                $gte: startTime,
+                                $lt: endTime
                             },
-                            {
-                                $group: {
-                                    _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType", loginDevice: "$loginDevice"},
-                                    amount: {$sum: "$amount"},
-                                    oriAmount: {$sum: "$oriAmount"},
-                                    times: {$sum: 1},
-                                }
-                            }
-                        ];
-                    }
-
-                    return dbconfig.collection_playerTopUpRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            // mongoose query promise does not support .catch() (?)
-                            // source: https://stackoverflow.com/a/30672821
-                            return catchQueryRetry(dbconfig.collection_playerTopUpRecord, playerIds, getAggregateInput, err);
+                            'data.playerObjId': {$in: playerIds},
+                            'data.platformId': platformId,
                         }
-                    );
-                };
-
-                let consumptionProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                $match: {
-                                    platformId: platformId,
-                                    createTime: {
-                                        $gte: new Date(startTime),
-                                        $lt: new Date(endTime)
-                                    },
-                                    playerId: {$in: playerIds},
-                                    isDuplicate: {$ne: true}
-                                }
+                    }, {
+                        $group: {
+                            _id: {
+                                playerId: "$data.playerObjId",
+                                platformId: "$data.platformId",
+                                typeId: "$type",
+                                merchantName: "$data.merchantName",
+                                merchantNo: "$data.merchantNo"
                             },
-                            {
-                                $group: {
-                                    _id: {
-                                        playerId: "$playerId",
-                                        gameId: "$gameId",
-                                        platformId: "$platformId",
-                                        loginDevice: "$loginDevice"
-                                    },
-                                    gameId: {"$first": "$gameId"},
-                                    providerId: {"$first": "$providerId"},
-                                    count: {$sum: {$cond: ["$count", "$count", 1]}},
-                                    amount: {$sum: "$amount"},
-                                    validAmount: {$sum: "$validAmount"},
-                                    bonusAmount: {$sum: "$bonusAmount"}
-                                }
-                            }
-                        ]
-                    }
-
-                    return dbconfig.collection_playerConsumptionRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            return catchQueryRetry(dbconfig.collection_playerConsumptionRecord, playerIds, getAggregateInput, err);
+                            times: {"$sum": 1},
+                            amount: {"$sum": "$data.amount"}
                         }
-                    )
+                    }
+                ];
+
+                return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                    data => data,
+                    err => {
+                        // mongoose query promise does not support .catch() (?)
+                        // source: https://stackoverflow.com/a/30672821
+                        return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                    }
+                );
+            }
+        };
+
+        let consumptionProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        $match: {
+                            platformId: platformId,
+                            createTime: {
+                                $gte: new Date(startTime),
+                                $lt: new Date(endTime)
+                            },
+                            playerId: {$in: playerIds},
+                            isDuplicate: {$ne: true}
+                        }
+                    },
+                    {
+                        $group: {
+                            _id: {
+                                playerId: "$playerId",
+                                gameId: "$gameId",
+                                platformId: "$platformId",
+                                loginDevice: "$loginDevice"
+                            },
+                            gameId: {"$first": "$gameId"},
+                            providerId: {"$first": "$providerId"},
+                            count: {$sum: {$cond: ["$count", "$count", 1]}},
+                            amount: {$sum: "$amount"},
+                            validAmount: {$sum: "$validAmount"},
+                            bonusAmount: {$sum: "$bonusAmount"}
+                        }
+                    }
+                ]
+            }
+
+            return dbconfig.collection_playerConsumptionRecord.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    return catchQueryRetry(dbconfig.collection_playerConsumptionRecord, playerIds, getAggregateInput, err);
                 }
+            )
+        };
 
-                let bonusProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                "$match": {
-                                    "data.playerObjId": {$in: playerIds},
-                                    "createTime": {
-                                        "$gte": new Date(startTime),
-                                        "$lt": new Date(endTime)
-                                    },
-                                    "mainType": "PlayerBonus",
-                                    "status": constProposalStatus.SUCCESS
-                                }
+        let bonusProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        "$match": {
+                            "data.playerObjId": {$in: playerIds},
+                            "createTime": {
+                                "$gte": new Date(startTime),
+                                "$lt": new Date(endTime)
                             },
-                            {
-                                "$group": {
-                                    "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
-                                    "count": {"$sum": 1},
-                                    "amount": {"$sum": "$data.amount"}
-                                }
-                            }
-                        ]
+                            "mainType": "PlayerBonus",
+                            "status": constProposalStatus.SUCCESS
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": {playerId: "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
+                            "count": {"$sum": 1},
+                            "amount": {"$sum": "$data.amount"}
+                        }
+                    }
+                ]
+            };
+
+            return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                }
+            );
+        };
+
+        let consumptionReturnProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        "$match": {
+                            "data.playerObjId": {$in: playerIds},
+                            "createTime": {
+                                "$gte": new Date(startTime),
+                                "$lt": new Date(endTime)
+                            },
+                            "type": ObjectId(consumptionReturnTypeId),
+                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
+                            "amount": {"$sum": "$data.rewardAmount"}
+                        }
+                    }
+                ]
+            }
+
+            return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                }
+            );
+        };
+
+        let rewardProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        "$match": {
+                            "data.playerObjId": {$in: playerIds},
+                            "createTime": {
+                                "$gte": new Date(startTime),
+                                "$lt": new Date(endTime)
+                            },
+                            "mainType": "Reward",
+                            "type": {"$ne": ObjectId(consumptionReturnTypeId)},
+                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
+
+                            "amount": {"$sum": "$data.rewardAmount"}
+                        }
+                    }
+                ];
+            }
+
+            return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                }
+            );
+        };
+
+        let onlineTopUpByMerchantProm = () => {
+            let getAggregateInput = (playerIds) => {
+                return [
+                    {
+                        "$match": {
+                            "type": ObjectId(onlineTopUpTypeId),
+                            "data.playerObjId": {$in: playerIds},
+                            "createTime": {
+                                "$gte": new Date(startTime),
+                                "$lt": new Date(endTime)
+                            },
+                            "mainType": "TopUp",
+                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": {
+                                "playerId": "$data.playerObjId",
+                                "platformId": "$data.platformId",
+                                "merchantName": "$data.merchantName",
+                                "merchantNo": "$data.merchantNo",
+                                "loginDevice": "$device"
+                            },
+                            "amount": {"$sum": "$data.amount"}
+                        }
+                    },
+                    {
+                        "$project": {
+                            _id: 0,
+                            playerId: "$_id.playerId",
+                            platformId: "$_id.platformId",
+                            merchantName: "$_id.merchantName",
+                            merchantNo: "$_id.merchantNo",
+                            loginDevice: "$_id.loginDevice",
+                            amount: 1
+                        }
+                    }
+                ];
+            }
+
+            return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                }
+            );
+        };
+
+        let [
+            topUpDetails,
+            consumptionDetails,
+            bonusDetails,
+            consumptionReturnDetails,
+            rewardDetails,
+            onlineTopUpByMerchantDetails
+        ] = await Promise.all([
+            topUpProm(),
+            consumptionProm(),
+            bonusProm(),
+            consumptionReturnProm(),
+            rewardProm(),
+            onlineTopUpByMerchantProm()
+        ]);
+
+        topUpDetails = topUpDetails || [];
+        topUpDetails.forEach(topUp => {
+            if (topUp._id.typeId.toString() === onlineTopUpTypeId) {
+                playerReportDaySummary.onlineTopUpAmount += topUp.amount || 0;
+
+                if (topUp._id.merchantNo && topUp._id.merchantName && merchantList && merchantList.length) {
+                    let index = merchantList.findIndex(x =>
+                        x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name')
+                        && x.merchantNo && x.name && (x.merchantNo == topUp._id.merchantNo)
+                        && (x.name == topUp._id.merchantName));
+
+                    let onlineTopUpAmount = e && topUp.amount ? topUp.amount : 0;
+                    let rate = 0;
+                    let onlineTopUpFee = 0;
+
+                    let detailObj = {
+                        merchantName: topUp._id.merchantName,
+                        merchantNo: topUp._id.merchantNo,
+                        amount: topUp.amount,
                     };
 
-                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
-                        }
-                    );
-                };
+                    if (index !== -1) {
+                        rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
+                        onlineTopUpFee = onlineTopUpAmount * rate;
 
-                let consumptionReturnProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                "$match": {
-                                    "data.playerObjId": {$in: playerIds},
-                                    "createTime": {
-                                        "$gte": new Date(startTime),
-                                        "$lt": new Date(endTime)
-                                    },
-                                    "type": ObjectId(consumptionReturnTypeId),
-                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                                }
-                            },
-                            {
-                                "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
-                                    "amount": {"$sum": "$data.rewardAmount"}
-                                }
-                            }
-                        ]
+                        detailObj.onlineToUpFee = onlineTopUpFee;
+                        detailObj.onlineTopUpServiceChargeRate = rate;
+                    } else {
+                        onlineTopUpFee = onlineTopUpAmount * rate;
+
+                        detailObj.onlineToUpFee = onlineTopUpFee;
+                        detailObj.onlineTopUpServiceChargeRate = rate;
                     }
 
-                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
-                        }
-                    );
+                    playerReportDaySummary.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
+                    playerReportDaySummary.onlineTopUpFeeDetail.push(detailObj);
                 }
-
-                let rewardProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                "$match": {
-                                    "data.playerObjId": {$in: playerIds},
-                                    "createTime": {
-                                        "$gte": new Date(startTime),
-                                        "$lt": new Date(endTime)
-                                    },
-                                    "mainType": "Reward",
-                                    "type": {"$ne": ObjectId(consumptionReturnTypeId)},
-                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                }
-                            },
-                            {
-                                "$group": {
-                                    "_id": {playerId : "$data.playerObjId", platformId: "$data.platformId", loginDevice: "$device"},
-
-                                    "amount": {"$sum": "$data.rewardAmount"}
-                                }
-                            }
-                        ];
-                    }
-
-                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
-                        }
-                    );
-                }
-
-                let onlineTopUpByMerchantProm = () => {
-                    let getAggregateInput = (playerIds) => {
-                        return [
-                            {
-                                "$match": {
-                                    "type": ObjectId(onlineTopUpTypeId),
-                                    "data.playerObjId": {$in: playerIds},
-                                    "createTime": {
-                                        "$gte": new Date(startTime),
-                                        "$lt": new Date(endTime)
-                                    },
-                                    "mainType": "TopUp",
-                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                                }
-                            },
-                            {
-                                "$group": {
-                                    "_id": {
-                                        "playerId": "$data.playerObjId",
-                                        "platformId": "$data.platformId",
-                                        "merchantName": "$data.merchantName",
-                                        "merchantNo": "$data.merchantNo",
-                                        "loginDevice": "$device"
-                                    },
-                                    "amount": {"$sum": "$data.amount"}
-                                }
-                            },
-                            {
-                                "$project": {
-                                    _id: 0,
-                                    playerId: "$_id.playerId",
-                                    platformId: "$_id.platformId",
-                                    merchantName: "$_id.merchantName",
-                                    merchantNo: "$_id.merchantNo",
-                                    loginDevice: "$_id.loginDevice",
-                                    amount: 1
-                                }
-                            }
-                        ];
-                    }
-
-                    return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                        data => data,
-                        err => {
-                            return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
-                        }
-                    );
-                }
-
-                return Promise.all([topUpProm(), consumptionProm(), bonusProm(), consumptionReturnProm(), rewardProm(), onlineTopUpByMerchantProm()]).then(
-                    result => {
-                        console.log("LH check player report 3------");
-                        let topUpDetails = result[0];
-                        let consumptionDetails = result[1];
-                        let bonusDetails = result[2];
-                        let consumptionReturnDetails = result[3];
-                        let rewardDetails = result[4];
-                        let onlineTopUpByMerchantDetails = result[5];
-                        let playerReportDaySummary = [];
-
-                        if(topUpDetails && topUpDetails.length > 0){
-                            console.log("LH check player report 4------", topUpDetails.length);
-                            topUpDetails.forEach(
-                                topUp => {
-                                    if(topUp && topUp._id && topUp._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && topUp._id && topUp._id.playerId && p.playerId.toString() == topUp._id.playerId.toString() && p.loginDevice == topUp._id.loginDevice);
-
-                                        if(indexNo == -1){
-                                            let topUpObj = {
-                                                playerId: topUp._id.playerId,
-                                                platformId: topUp._id.platformId,
-                                                topUpTimes: topUp.times,
-                                                loginDevice: topUp._id.loginDevice || null
-                                            }
-
-                                            if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                topUpObj.manualTopUpAmount = topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                topUpObj.onlineTopUpAmount = topUp.oriAmount || topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                topUpObj.alipayTopUpAmount = topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                topUpObj.wechatpayTopUpAmount = topUp.amount;
-                                            }
-
-                                            playerReportDaySummary.push(topUpObj);
-                                        }else{
-                                            playerReportDaySummary[indexNo].topUpTimes += topUp.times;
-
-                                            if(topUp._id.topUpType == constPlayerTopUpType.MANUAL){
-                                                playerReportDaySummary[indexNo].manualTopUpAmount = topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.ONLINE){
-                                                playerReportDaySummary[indexNo].onlineTopUpAmount = topUp.oriAmount || topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.ALIPAY){
-                                                playerReportDaySummary[indexNo].alipayTopUpAmount = topUp.amount;
-                                            }else if(topUp._id.topUpType == constPlayerTopUpType.WECHAT){
-                                                playerReportDaySummary[indexNo].wechatpayTopUpAmount = topUp.amount;
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        if(consumptionDetails && consumptionDetails.length > 0){
-                            console.log("LH check player report 5------", consumptionDetails.length);
-                            consumptionDetails.forEach(
-                                consumption => {
-                                    if(consumption && consumption._id && consumption._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
-                                        let providerDetail = {};
-                                        let providerId = consumption.providerId.toString();
-                                        consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
-
-                                        if (!providerDetail.hasOwnProperty(providerId)) {
-                                            providerDetail[providerId] = {
-                                                count: 0,
-                                                amount: 0,
-                                                validAmount: 0,
-                                                bonusAmount: 0
-                                            };
-                                        }
-
-                                        providerDetail[providerId].count += consumption.count;
-                                        providerDetail[providerId].amount += consumption.amount;
-                                        providerDetail[providerId].validAmount += consumption.validAmount;
-                                        providerDetail[providerId].bonusAmount += consumption.bonusAmount;
-                                        providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
-
-                                        if(indexNo == -1){
-                                            playerReportDaySummary.push({
-                                                playerId: consumption._id.playerId,
-                                                platformId: consumption._id.platformId,
-                                                consumptionTimes: consumption.count,
-                                                consumptionAmount: consumption.amount,
-                                                consumptionValidAmount: consumption.validAmount,
-                                                consumptionBonusAmount: consumption.bonusAmount,
-                                                providerDetail: providerDetail,
-                                                gameDetail: [consumption],
-                                                loginDevice: consumption._id.loginDevice || null,
-                                            });
-                                        }else{
-                                            if(typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined"){
-                                                playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
-                                            }else{
-                                                playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
-                                            }
-
-                                            if(typeof playerReportDaySummary[indexNo].consumptionAmount != "undefined"){
-                                                playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
-                                            }else{
-                                                playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
-                                            }
-
-                                            if(typeof playerReportDaySummary[indexNo].consumptionValidAmount != "undefined"){
-                                                playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
-                                            }else{
-                                                playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
-                                            }
-
-                                            if(typeof playerReportDaySummary[indexNo].consumptionBonusAmount != "undefined"){
-                                                playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
-                                            }else{
-                                                playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
-                                            }
-
-                                            if(typeof playerReportDaySummary[indexNo].providerDetail != "undefined"){
-                                                let providerId = providerDetail && Object.keys(providerDetail) && Object.keys(providerDetail).length ? Object.keys(providerDetail)[0] : null;
-                                                if(providerId && playerReportDaySummary[indexNo].providerDetail[providerId]){
-                                                    playerReportDaySummary[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
-                                                    playerReportDaySummary[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
-                                                    playerReportDaySummary[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
-                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
-                                                    playerReportDaySummary[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
-                                                }else{
-                                                    playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
-                                                }
-                                            }else{
-                                                playerReportDaySummary[indexNo].providerDetail = providerDetail;
-                                            }
-
-                                            // Push game detail
-                                            if (playerReportDaySummary[indexNo].gameDetail && playerReportDaySummary[indexNo].gameDetail.length) {
-                                                let idx = playerReportDaySummary[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
-
-                                                if (idx !== -1){
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].amount += consumption.amount;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].count += consumption.count;
-                                                    playerReportDaySummary[indexNo].gameDetail[idx].bonusRatio = (playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount / playerReportDaySummary[indexNo].gameDetail[idx].validAmount);
-                                                } else {
-                                                    playerReportDaySummary[indexNo].gameDetail.push(consumption);
-                                                }
-                                            } else {
-                                                playerReportDaySummary[indexNo].gameDetail = [consumption];
-                                            }
-
-                                        }
-                                    }
-                                    // to get the consumption array without categorized by login device for calculating platform fee for involved game provider
-                                    if(consumption && consumption._id && consumption._id.playerId){
-                                        let indexNo = consumptionDetailArr.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString());
-                                        let providerDetail = {};
-                                        let providerId = consumption.providerId.toString();
-                                        consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
-
-                                        if (!providerDetail.hasOwnProperty(providerId)) {
-                                            providerDetail[providerId] = {
-                                                count: 0,
-                                                amount: 0,
-                                                validAmount: 0,
-                                                bonusAmount: 0
-                                            };
-                                        }
-
-                                        providerDetail[providerId].count += consumption.count;
-                                        providerDetail[providerId].amount += consumption.amount;
-                                        providerDetail[providerId].validAmount += consumption.validAmount;
-                                        providerDetail[providerId].bonusAmount += consumption.bonusAmount;
-                                        providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
-
-                                        if(indexNo == -1){
-                                            consumptionDetailArr.push({
-                                                playerId: consumption._id.playerId,
-                                                platformId: consumption._id.platformId,
-                                                consumptionTimes: consumption.count,
-                                                consumptionAmount: consumption.amount,
-                                                consumptionValidAmount: consumption.validAmount,
-                                                consumptionBonusAmount: consumption.bonusAmount,
-                                                providerDetail: providerDetail,
-                                                gameDetail: [consumption],
-                                            });
-                                        }else{
-                                            if(typeof consumptionDetailArr[indexNo].consumptionTimes != "undefined"){
-                                                consumptionDetailArr[indexNo].consumptionTimes += consumption.count;
-                                            }else{
-                                                consumptionDetailArr[indexNo].consumptionTimes = consumption.count;
-                                            }
-
-                                            if(typeof consumptionDetailArr[indexNo].consumptionAmount != "undefined"){
-                                                consumptionDetailArr[indexNo].consumptionAmount += consumption.amount;
-                                            }else{
-                                                consumptionDetailArr[indexNo].consumptionAmount = consumption.amount;
-                                            }
-
-                                            if(typeof consumptionDetailArr[indexNo].consumptionValidAmount != "undefined"){
-                                                consumptionDetailArr[indexNo].consumptionValidAmount += consumption.validAmount;
-                                            }else{
-                                                consumptionDetailArr[indexNo].consumptionValidAmount = consumption.validAmount;
-                                            }
-
-                                            if(typeof consumptionDetailArr[indexNo].consumptionBonusAmount != "undefined"){
-                                                consumptionDetailArr[indexNo].consumptionBonusAmount += consumption.bonusAmount;
-                                            }else{
-                                                consumptionDetailArr[indexNo].consumptionBonusAmount = consumption.bonusAmount;
-                                            }
-
-                                            if(typeof consumptionDetailArr[indexNo].providerDetail != "undefined"){
-                                                let providerId = providerDetail && Object.keys(providerDetail) && Object.keys(providerDetail).length ? Object.keys(providerDetail)[0] : null;
-                                                if(providerId && consumptionDetailArr[indexNo].providerDetail[providerId]){
-                                                    consumptionDetailArr[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
-                                                    consumptionDetailArr[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
-                                                    consumptionDetailArr[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
-                                                    consumptionDetailArr[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
-                                                    consumptionDetailArr[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
-                                                }else{
-                                                    consumptionDetailArr[indexNo].providerDetail = Object.assign(consumptionDetailArr[indexNo].providerDetail, providerDetail);
-                                                }
-                                            }else{
-                                                consumptionDetailArr[indexNo].providerDetail = providerDetail;
-                                            }
-
-                                            // Push game detail
-                                            if (consumptionDetailArr[indexNo].gameDetail && consumptionDetailArr[indexNo].gameDetail.length) {
-                                                let idx = consumptionDetailArr[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
-
-                                                if (idx !== -1){
-                                                    consumptionDetailArr[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
-                                                    consumptionDetailArr[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
-                                                    consumptionDetailArr[indexNo].gameDetail[idx].amount += consumption.amount;
-                                                    consumptionDetailArr[indexNo].gameDetail[idx].count += consumption.count;
-                                                    consumptionDetailArr[indexNo].gameDetail[idx].bonusRatio = (consumptionDetailArr[indexNo].gameDetail[idx].bonusAmount / consumptionDetailArr[indexNo].gameDetail[idx].validAmount);
-                                                } else {
-                                                    consumptionDetailArr[indexNo].gameDetail.push(consumption);
-                                                }
-                                            } else {
-                                                consumptionDetailArr[indexNo].gameDetail = [consumption];
-                                            }
-
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        if(bonusDetails && bonusDetails.length > 0){
-                            console.log("LH check player report 6------", bonusDetails.length);
-                            bonusDetails.forEach(
-                                bonus => {
-                                    if(bonus && bonus._id && bonus._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && bonus._id && bonus._id.playerId && p.playerId.toString() == bonus._id.playerId.toString() && p.loginDevice == bonus._id.loginDevice);
-
-                                        if(indexNo == -1){
-                                            playerReportDaySummary.push({
-                                                playerId: bonus._id.playerId,
-                                                platformId: bonus._id.platformId,
-                                                bonusTimes: bonus.count,
-                                                bonusAmount: bonus.amount,
-                                                loginDevice: bonus._id.loginDevice || null
-                                            });
-                                        }else{
-                                            playerReportDaySummary[indexNo].bonusTimes = bonus.count;
-                                            playerReportDaySummary[indexNo].bonusAmount = bonus.amount;
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        if(consumptionReturnDetails && consumptionReturnDetails.length > 0){
-                            console.log("LH check player report 7------", consumptionReturnDetails.length);
-                            consumptionReturnDetails.forEach(
-                                consumptionReturn => {
-                                    if(consumptionReturn && consumptionReturn._id && consumptionReturn._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumptionReturn._id && consumptionReturn._id.playerId && p.playerId.toString() == consumptionReturn._id.playerId.toString() && p.loginDevice == consumptionReturn._id.loginDevice);
-
-                                        if(indexNo == -1){
-                                            playerReportDaySummary.push({
-                                                playerId: consumptionReturn._id.playerId,
-                                                platformId: consumptionReturn._id.platformId,
-                                                consumptionReturnAmount: consumptionReturn.amount,
-                                                loginDevice: consumptionReturn._id.loginDevice || null
-                                            });
-                                        }else{
-                                            playerReportDaySummary[indexNo].consumptionReturnAmount = consumptionReturn.amount;
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        if(rewardDetails && rewardDetails.length > 0){
-                            console.log("LH check player report 8------", rewardDetails.length);
-                            rewardDetails.forEach(
-                                reward => {
-                                    if(reward && reward._id && reward._id.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && reward._id && reward._id.playerId && p.playerId.toString() == reward._id.playerId.toString() && p.loginDevice == reward._id.loginDevice);
-
-                                        if(indexNo == -1) {
-                                            playerReportDaySummary.push({
-                                                playerId: reward._id.playerId,
-                                                platformId: reward._id.platformId,
-                                                rewardAmount: parseFloat(reward.amount),
-                                                loginDevice: reward._id.loginDevice
-                                            })
-                                        }else if(typeof playerReportDaySummary[indexNo].rewardAmount != "undefined"){
-                                            playerReportDaySummary[indexNo].rewardAmount += parseFloat(reward.amount);
-                                        }else{
-                                            playerReportDaySummary[indexNo].rewardAmount = parseFloat(reward.amount);
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        if(onlineTopUpByMerchantDetails && onlineTopUpByMerchantDetails.length > 0){
-                            console.log("LH check player report 9------", onlineTopUpByMerchantDetails.length);
-                            onlineTopUpByMerchantDetails.forEach(
-                                onlineTopUpByMerchant => {
-                                    if(onlineTopUpByMerchant && onlineTopUpByMerchant.playerId){
-                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId && onlineTopUpByMerchant.playerId && p.playerId.toString() == onlineTopUpByMerchant.playerId.toString() && p.loginDevice == onlineTopUpByMerchant.loginDevice);
-
-                                        if (onlineTopUpByMerchant && merchantList && merchantList.length > 0) {
-                                            let onlineTopUpDetail = onlineTopUpByMerchant;
-
-                                            if (onlineTopUpDetail && onlineTopUpDetail.hasOwnProperty('merchantNo') && onlineTopUpDetail.merchantNo
-                                                && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
-                                                let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
-
-                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
-                                                let rate = 0;
-                                                let onlineTopUpFee = 0;
-
-                                                if (index != -1) {
-                                                    rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
-                                                    onlineTopUpFee = onlineTopUpAmount * rate;
-
-                                                    onlineTopUpDetail.onlineTopUpFee = onlineTopUpFee;
-                                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
-                                                } else {
-                                                    onlineTopUpFee = onlineTopUpAmount * rate;
-
-                                                    onlineTopUpDetail.onlineTopUpFee = onlineTopUpFee;
-                                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
-                                                }
-                                            }
-                                        }
-
-                                        if(indexNo == -1){
-                                            playerReportDaySummary.push({
-                                                playerId: onlineTopUpByMerchant.playerId,
-                                                platformId: onlineTopUpByMerchant.platformId,
-                                                totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
-                                                onlineTopUpFeeDetail: [onlineTopUpByMerchant],
-                                                loginDevice: onlineTopUpByMerchant.loginDevice || null
-                                            })
-                                        }else{
-                                            if(typeof playerReportDaySummary[indexNo].totalOnlineTopUpFee != "undefined"){
-                                                playerReportDaySummary[indexNo].totalOnlineTopUpFee += parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0;
-                                            }else{
-                                                playerReportDaySummary[indexNo].totalOnlineTopUpFee = parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0;
-                                            }
-
-                                            if(typeof playerReportDaySummary[indexNo].onlineTopUpFeeDetail != "undefined"){
-                                                playerReportDaySummary[indexNo].onlineTopUpFeeDetail = playerReportDaySummary[indexNo].onlineTopUpFeeDetail.concat(onlineTopUpByMerchant);
-                                            }else{
-                                                playerReportDaySummary[indexNo].onlineTopUpFeeDetail = [onlineTopUpByMerchant];
-                                            }
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        console.log("LH check player report 10------", playerReportDaySummary.length);
-                        return playerReportDaySummary;
-                    },
-                    error => {
-                        console.log("player report data summary error 1- ", error);
-                        return Promise.reject({
-                            name: "DataError",
-                            errorMessage: "player report data summary error 1",
-                            error: error
-                        });
-                    }
-                ).then(
-                    playerReportDaySummary => {
-                        console.log("LH check player report 11------");
-                        playerReportSummary = playerReportDaySummary;
-                        let platformFeeProm = [];
-                        if(consumptionDetailArr  && consumptionDetailArr.length > 0){
-                            consumptionDetailArr .forEach(
-                                summary => {
-                                    if(summary){
-                                        platformFeeProm.push(dbPlayerTopUpRecord.countPlatformFeeByPlayer(platformId, summary.playerId, summary.providerDetail));
-                                    }
-                                }
-                            );
-                        }
-
-                        console.log("LH check player report 12------", platformFeeProm.length);
-                        return Promise.all(platformFeeProm);
-                    },
-                    error => {
-                        console.log("player report data summary error 2- ", error);
-                        return Promise.reject({
-                            name: "DataError",
-                            errorMessage: "player report data summary error 2",
-                            error: error
-                        });
-                    }
-                ).then(
-                    playerPlatformFeeDetail => {
-                        console.log("LH check player report 13------");
-                        if(playerPlatformFeeDetail && playerPlatformFeeDetail.length > 0){
-                            console.log("LH check player report 14------", playerPlatformFeeDetail.length);
-                            playerPlatformFeeDetail.forEach(
-                                platformFee => {
-                                    if(platformFee){
-                                        // just append the platformFee onto one of the record with the same playerId, without considering loginDevice
-                                        let indexNo = playerReportSummary.findIndex(p => p.playerId.toString() == platformFee.playerId.toString());
-
-                                        if(indexNo > -1){
-                                            playerReportSummary[indexNo].platformFeeEstimate = platformFee.platformFeeEstimate;
-                                            playerReportSummary[indexNo].totalPlatformFeeEstimate = platformFee.totalPlatformFeeEstimate;
-                                        }
-                                    }
-                                }
-                            )
-                        }
-
-                        return playerReportSummary;
-                    },
-                    error => {
-                        console.log("player report data summary error 3- ", error);
-                        return Promise.reject({
-                            name: "DataError",
-                            errorMessage: "player report data summary error 3",
-                            error: error
-                        });
-                    }
-                ).catch(
-                    error => {
-                        console.log("player report data summary error - ", error);
-                        return Promise.reject({
-                            name: "DataError",
-                            errorMessage: "player report data summary error",
-                            error: error
-                        });
-                    }
-                )
+            } else if (topUp._id.typeId.toString() === manualTopUpTypeId) {
+                playerReportDaySummary.manualTopUpAmount = topUp.amount;
+            } else if (topUp._id.typeId.toString() === weChatTopUpTypeId) {
+                playerReportDaySummary.weChatTopUpAmount = topUp.amount;
+            } else if (topUp._id.typeId.toString() === aliPayTopUpTypeId) {
+                playerReportDaySummary.aliPayTopUpAmount = topUp.amount;
             }
-        );
+
+            playerReportDaySummary.topUpAmount += topUp.amount;
+            playerReportDaySummary.topUpTimes += topUp.count;
+        });
+
+        consumptionDetails = consumptionDetails || []
+        console.log("LH check player report 5------", consumptionDetails.length);
+        consumptionDetails.forEach(consumption => {
+            if (!consumption || !consumption._id || !consumption._id.playerId) {
+                return;
+            }
+            console.log("debug #C8AD00 grouped consumption", consumption)
+            let providerDetail = {};
+            let providerId = consumption.providerId.toString();
+            providerDetail[providerId] = {
+                count: 0,
+                amount: 0,
+                validAmount: 0,
+                bonusAmount: 0
+            };
+            consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
+
+            providerDetail[providerId].count += consumption.count;
+            providerDetail[providerId].amount += consumption.amount;
+            providerDetail[providerId].validAmount += consumption.validAmount;
+            providerDetail[providerId].bonusAmount += consumption.bonusAmount;
+            providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
+
+            let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString() && p.loginDevice == consumption._id.loginDevice);
+            if (indexNo == -1) {
+                playerReportDaySummary.push({
+                    playerId: consumption._id.playerId,
+                    platformId: consumption._id.platformId,
+                    consumptionTimes: consumption.count,
+                    consumptionAmount: consumption.amount,
+                    consumptionValidAmount: consumption.validAmount,
+                    consumptionBonusAmount: consumption.bonusAmount,
+                    providerDetail: providerDetail,
+                    gameDetail: [consumption],
+                    loginDevice: consumption._id.loginDevice || null,
+                });
+            } else {
+                // set default if not exist
+                playerReportDaySummary[indexNo].consumptionTimes = playerReportDaySummary[indexNo].consumptionTimes || 0;
+                playerReportDaySummary[indexNo].consumptionAmount = playerReportDaySummary[indexNo].consumptionAmount || 0;
+                playerReportDaySummary[indexNo].consumptionValidAmount = playerReportDaySummary[indexNo].consumptionValidAmount || 0;
+                playerReportDaySummary[indexNo].consumptionBonusAmount = playerReportDaySummary[indexNo].consumptionBonusAmount || 0;
+                playerReportDaySummary[indexNo].providerDetail = playerReportDaySummary[indexNo].providerDetail || {};
+                playerReportDaySummary[indexNo].providerDetail[providerId] = playerReportDaySummary[indexNo].providerDetail[providerId] || {
+                    count: 0,
+                    amount: 0,
+                    validAmount: 0,
+                    bonusAmount: 0,
+                    // bonusRatio: 0
+                };
+                playerReportDaySummary[indexNo].gameDetail = playerReportDaySummary[indexNo].gameDetail || [];
+
+                // assign values
+                playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
+                playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
+                playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
+                playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
+                playerReportDaySummary[indexNo].providerDetail[providerId].count += providerDetail[providerId].count;
+                playerReportDaySummary[indexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
+                playerReportDaySummary[indexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
+                playerReportDaySummary[indexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
+                playerReportDaySummary[indexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
+
+                // Push game detail
+                let idx = playerReportDaySummary[indexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
+                if (idx !== -1) {
+                    playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
+                    playerReportDaySummary[indexNo].gameDetail[idx].validAmount += consumption.validAmount;
+                    playerReportDaySummary[indexNo].gameDetail[idx].amount += consumption.amount;
+                    playerReportDaySummary[indexNo].gameDetail[idx].count += consumption.count;
+                    playerReportDaySummary[indexNo].gameDetail[idx].bonusRatio = (playerReportDaySummary[indexNo].gameDetail[idx].bonusAmount / playerReportDaySummary[indexNo].gameDetail[idx].validAmount);
+                } else {
+                    playerReportDaySummary[indexNo].gameDetail.push(consumption);
+                }
+            }
+
+            // to get the consumption array without categorized by login device for calculating platform fee for involved game provider
+            let cIndexNo = consumptionDetailArr.findIndex(p => p.playerId && consumption._id && consumption._id.playerId && p.playerId.toString() == consumption._id.playerId.toString());
+            if (cIndexNo == -1) {
+                consumptionDetailArr.push({
+                    playerId: consumption._id.playerId,
+                    platformId: consumption._id.platformId,
+                    consumptionTimes: consumption.count,
+                    consumptionAmount: consumption.amount,
+                    consumptionValidAmount: consumption.validAmount,
+                    consumptionBonusAmount: consumption.bonusAmount,
+                    providerDetail: providerDetail,
+                    gameDetail: [consumption],
+                    loginDevice: consumption._id.loginDevice || null,
+                });
+            } else {
+                // set default if not exist
+                consumptionDetailArr[cIndexNo].consumptionTimes = consumptionDetailArr[cIndexNo].consumptionTimes || 0;
+                consumptionDetailArr[cIndexNo].consumptionAmount = consumptionDetailArr[cIndexNo].consumptionAmount || 0;
+                consumptionDetailArr[cIndexNo].consumptionValidAmount = consumptionDetailArr[cIndexNo].consumptionValidAmount || 0;
+                consumptionDetailArr[cIndexNo].consumptionBonusAmount = consumptionDetailArr[cIndexNo].consumptionBonusAmount || 0;
+                consumptionDetailArr[cIndexNo].providerDetail = consumptionDetailArr[cIndexNo].providerDetail || {};
+                consumptionDetailArr[cIndexNo].providerDetail[providerId] = consumptionDetailArr[cIndexNo].providerDetail[providerId] || {
+                    count: 0,
+                    amount: 0,
+                    validAmount: 0,
+                    bonusAmount: 0,
+                    // bonusRatio: 0
+                };
+                consumptionDetailArr[cIndexNo].gameDetail = consumptionDetailArr[cIndexNo].gameDetail || [];
+
+                // assign values
+                consumptionDetailArr[cIndexNo].consumptionTimes += consumption.count;
+                consumptionDetailArr[cIndexNo].consumptionAmount += consumption.amount;
+                consumptionDetailArr[cIndexNo].consumptionValidAmount += consumption.validAmount;
+                consumptionDetailArr[cIndexNo].consumptionBonusAmount += consumption.bonusAmount;
+                consumptionDetailArr[cIndexNo].providerDetail[providerId].count += providerDetail[providerId].count;
+                consumptionDetailArr[cIndexNo].providerDetail[providerId].amount += providerDetail[providerId].amount;
+                consumptionDetailArr[cIndexNo].providerDetail[providerId].validAmount += providerDetail[providerId].validAmount;
+                consumptionDetailArr[cIndexNo].providerDetail[providerId].bonusAmount += providerDetail[providerId].bonusAmount;
+                consumptionDetailArr[cIndexNo].providerDetail[providerId].bonusRatio = providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount;
+
+                // Push game detail
+                let idx = consumptionDetailArr[cIndexNo].gameDetail.findIndex(obj => obj.gameId === consumption.gameId && obj.providerId === consumption.providerId);
+                if (idx !== -1) {
+                    consumptionDetailArr[cIndexNo].gameDetail[idx].bonusAmount += consumption.bonusAmount;
+                    consumptionDetailArr[cIndexNo].gameDetail[idx].validAmount += consumption.validAmount;
+                    consumptionDetailArr[cIndexNo].gameDetail[idx].amount += consumption.amount;
+                    consumptionDetailArr[cIndexNo].gameDetail[idx].count += consumption.count;
+                    consumptionDetailArr[cIndexNo].gameDetail[idx].bonusRatio = (consumptionDetailArr[cIndexNo].gameDetail[idx].bonusAmount / consumptionDetailArr[cIndexNo].gameDetail[idx].validAmount);
+                } else {
+                    consumptionDetailArr[cIndexNo].gameDetail.push(consumption);
+                }
+            }
+        });
+
+        bonusDetails = bonusDetails || [];
+        console.log("LH check player report 6------", bonusDetails.length);
+        bonusDetails.forEach(bonus => {
+            if (!bonus || !bonus._id || !bonus._id.playerId) {
+                return;
+            }
+            let indexNo = playerReportDaySummary.findIndex(p => p.playerId && bonus._id && bonus._id.playerId && p.playerId.toString() == bonus._id.playerId.toString() && p.loginDevice == bonus._id.loginDevice);
+
+            if(indexNo == -1){
+                playerReportDaySummary.push({
+                    playerId: bonus._id.playerId,
+                    platformId: bonus._id.platformId,
+                    bonusTimes: bonus.count,
+                    bonusAmount: bonus.amount,
+                    loginDevice: bonus._id.loginDevice || null
+                });
+            }else{
+                playerReportDaySummary[indexNo].bonusTimes = bonus.count;
+                playerReportDaySummary[indexNo].bonusAmount = bonus.amount;
+            }
+        });
+
+        consumptionReturnDetails = consumptionReturnDetails || [];
+        console.log("LH check player report 7------", consumptionReturnDetails.length);
+        consumptionReturnDetails.forEach(consumptionReturn => {
+            if(!(consumptionReturn && consumptionReturn._id && consumptionReturn._id.playerId)) {
+                return;
+            }
+            let indexNo = playerReportDaySummary.findIndex(p => p.playerId && consumptionReturn._id && consumptionReturn._id.playerId && p.playerId.toString() == consumptionReturn._id.playerId.toString() && p.loginDevice == consumptionReturn._id.loginDevice);
+
+            if(indexNo == -1){
+                playerReportDaySummary.push({
+                    playerId: consumptionReturn._id.playerId,
+                    platformId: consumptionReturn._id.platformId,
+                    consumptionReturnAmount: consumptionReturn.amount,
+                    loginDevice: consumptionReturn._id.loginDevice || null
+                });
+            }else{
+                playerReportDaySummary[indexNo].consumptionReturnAmount = consumptionReturn.amount;
+            }
+        });
+
+        rewardDetails = rewardDetails || [];
+        rewardDetails.forEach(reward => {
+            if (!(reward && reward._id && reward._id.playerId)) {
+                return;
+            }
+
+            let indexNo = playerReportDaySummary.findIndex(p => p.playerId && reward._id && reward._id.playerId && p.playerId.toString() == reward._id.playerId.toString() && p.loginDevice == reward._id.loginDevice);
+            if(indexNo == -1) {
+                playerReportDaySummary.push({
+                    playerId: reward._id.playerId,
+                    platformId: reward._id.platformId,
+                    rewardAmount: parseFloat(reward.amount),
+                    loginDevice: reward._id.loginDevice
+                });
+            } else {
+                playerReportDaySummary[indexNo].rewardAmount = playerReportDaySummary[indexNo].rewardAmount || 0;
+                playerReportDaySummary[indexNo].rewardAmount = parseFloat(reward.amount);
+            }
+        });
+
+        let platformFeeProm = [];
+        consumptionDetailArr.forEach(summary => {
+            if (summary && summary.playerId && summary.providerDetail) {
+                let prom = dbPlayerTopUpRecord.countPlatformFeeByPlayer(platformId, summary.playerId, summary.providerDetail);
+                platformFeeProm.push(prom);
+            }
+        });
+
+        playerReportSummary = playerReportDaySummary;
+        let playerPlatformFeeDetail = await Promise.all(platformFeeProm);
+        playerPlatformFeeDetail.forEach(platformFee => {
+            if (!platformFee) {
+                return;
+            }
+
+            let indexNo = playerReportSummary.findIndex(p => p.playerId.toString() == platformFee.playerId.toString());
+            if(indexNo > -1){
+                playerReportSummary[indexNo].platformFeeEstimate = platformFee.platformFeeEstimate;
+                playerReportSummary[indexNo].totalPlatformFeeEstimate = platformFee.totalPlatformFeeEstimate;
+            }
+        });
+
+        return playerReportSummary;
     },
 
     countPlatformFeeByPlayer: function(platformId, playerId, providerDetail){
@@ -992,8 +819,6 @@ var dbPlayerTopUpRecord = {
             queryObj = await getProposalQ(query);
         }
 
-        console.log('TOP UP Report queryObj', queryObj ? JSON.stringify(queryObj) : "NULL");
-
         let totalCountProm = dbconfig.collection_proposal.find(queryObj).count();
         let totalPlayerProm = dbconfig.collection_proposal.distinct('data.playerName', queryObj); //some playerObjId in proposal save in ObjectId/ String
         let totalAmountProm = dbconfig.collection_proposal.aggregate({$match: queryObj}, {
@@ -1003,39 +828,16 @@ var dbPlayerTopUpRecord = {
             }
         }).read("secondaryPreferred").allowDiskUse(true);
 
-        let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
-            .populate({path: 'type', model: dbconfig.collection_proposalType})
-            .populate({path: "data.playerObjId", model: dbconfig.collection_players})
-            .populate({path: 'data.platformId', model: dbconfig.collection_platform}).lean();
-
-        let stream = prom.cursor({batchSize: 500});
-        let balancer = new SettlementBalancer();
-
-        let topupRecordProm = balancer.initConns().then(function () {
-            return Q(
-                balancer.processStream(
-                    {
-                        stream: stream,
-                        batchSize: 100,
-                        makeRequest: function (proposals, request) {
-                            request("player", "topupRecordInsertRepeatCount", {
-                                proposals: proposals,
-                                platformId: query.platformId,
-                                query: query
-                            });
-                        },
-                        processResponse: function (record) {
-                            topupRecords = topupRecords.concat(record.data);
-                        }
-                    }
-                )
-            );
-        });
+        let topupRecordProm = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
+            .populate({path: 'type', model: dbconfig.collection_proposalType, select: 'name'})
+            .populate({path: "data.playerObjId", model: dbconfig.collection_players, select: 'realName'})
+            .populate({path: 'data.platformId', model: dbconfig.collection_platform, select: 'name'}).lean();
 
         return Promise.all([totalCountProm, totalAmountProm, topupRecordProm, totalPlayerProm]).then(
             data => {
                 let totalCount = data[0];
                 let totalAmountResult = data[1][0];
+                topupRecords = data[2];
                 let totalPlayerResult = data[3] && data[3].length || 0;
 
                 topupRecords = topupRecords.map(item => {
@@ -1044,7 +846,6 @@ var dbPlayerTopUpRecord = {
                     }
                     return item;
                 });
-
 
                 if (isExport) {
                     return dbReportUtil.generateExcelFile("TopupReport", topupRecords);

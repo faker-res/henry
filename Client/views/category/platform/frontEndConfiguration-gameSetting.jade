@@ -6,26 +6,34 @@ div(style="background: #d3d3d34d; padding: 10px; margin: 10px; position:relative
     btn.btn.btn-success(style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);" ng-click="vm.addNewGameSetting(true)")
         span.fa.fa-pencil-square-o {{"ADD" | translate}}
 
+div.text-right(style="margin-top: 40px;")
+    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.loadGameSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
+    button#gameSettingSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndGameSetting()") {{'SAVE' | translate}}
+
 div.col-md-4.fronendConfigDiv.gameSetting
     span(style='font-weight: bold;') {{'PC' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area1
-            li(ng-repeat="pc in vm.frontEndGameSettingData", ng-if="pc.device == 1", ng-dblclick="vm.editGameSetting(pc._id)", id="{{pc._id}}")
+            li(ng-repeat="pc in vm.frontEndGameSettingData", ng-if="pc.device == 1", id="{{pc._id}}")
                 div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                     span(style="vertical-align: -webkit-baseline-middle;") {{pc.title}}
                     div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
-                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(pc._id, vm.frontEndGameSettingData)")
+                        button.btn.btn-primary.btn-in-row(ng-click="vm.editGameSetting(pc._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-in-row(ng-click="vm.deleteFrontEndSetting(pc._id, vm.frontEndGameSettingData)")
                             span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
     span(style='font-weight: bold;') {{'H5' | translate}}
     div.fronendConfigScrollDiv
         ul.connected-sortable.droppable-area2
-            li(ng-repeat="h5 in vm.frontEndGameSettingData", ng-if="h5.device == 2", ng-dblclick="vm.editGameSetting(h5._id)", id="{{h5._id}}")
+            li(ng-repeat="h5 in vm.frontEndGameSettingData", ng-if="h5.device == 2", id="{{h5._id}}")
                 div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                     span(style="vertical-align: -webkit-baseline-middle;") {{h5.title}}
                     div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
-                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(h5._id, vm.frontEndGameSettingData)")
+                        button.btn.btn-primary.btn-in-row(ng-click="vm.editGameSetting(h5._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-in-row(ng-click="vm.deleteFrontEndSetting(h5._id, vm.frontEndGameSettingData)")
                             span.fa.fa-trash-o
 
 div.col-md-4.fronendConfigDiv.carousel
@@ -36,9 +44,7 @@ div.col-md-4.fronendConfigDiv.carousel
                 div(style="padding: 0.5em; background-color: white; border-radius: 4px; margin: 1em 0; border: 1px solid rgb(190,190,190); text-align: center; position: relative;")
                     span(style="vertical-align: -webkit-baseline-middle;") {{app.title}}
                     div(style="display: inline-block; position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 100;")
-                        button.btn.btn-danger.btn-delete(ng-click="vm.deleteFrontEndSetting(app._id, vm.frontEndGameSettingData)")
+                        button.btn.btn-primary.btn-in-row(ng-click="vm.editGameSetting(app._id)")
+                            span.fa.fa-pencil
+                        button.btn.btn-danger.btn-in-row(ng-click="vm.deleteFrontEndSetting(app._id, vm.frontEndGameSettingData)")
                             span.fa.fa-trash-o
-
-div.text-right
-    button.btn-danger.btn.btn-space(ng-click="vm.rewardDeletedList=[];vm.loadGameSetting(vm.filterFrontEndSettingPlatform)") {{'CANCEL' | translate}}
-    button#gameSettingSaveButton.btn-primary.btn.btn-space(ng-click="vm.updateFrontEndGameSetting()") {{'SAVE' | translate}}

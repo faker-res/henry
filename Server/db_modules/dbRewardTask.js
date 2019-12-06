@@ -335,6 +335,7 @@ const dbRewardTask = {
 
     deductTargetConsumptionFromFreeAmountProviderGroup: (rewardData, proposalData) => {
         // Search available reward task group for this reward & this player
+        console.log('LK checking deduct free amount data--', rewardData.playerId);
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
             playerId: rewardData.playerId,
@@ -355,12 +356,13 @@ const dbRewardTask = {
                     } else {
                         updObj.$inc.targetConsumption = -rewardData.applyAmount;
                     }
-
+                    console.log('LK checking RTG detail--', freeProviderGroup.targetConsumption + "/" + freeProviderGroup.curConsumption);
                     // if(freeProviderGroup.targetConsumption && freeProviderGroup.targetConsumption - rewardData.applyAmount <= 0){
                     if(freeProviderGroup.targetConsumption && freeProviderGroup.curConsumption >= (freeProviderGroup.targetConsumption + freeProviderGroup.forbidXIMAAmt - rewardData.applyAmount)){
                         updObj.status = constRewardTaskStatus.ACHIEVED;
                     }
 
+                    console.log('LK checking RTG update obj--', updObj);
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: freeProviderGroup._id
@@ -508,7 +510,7 @@ const dbRewardTask = {
                 result[0].map(item => {
                     if (rewardTaskGroup) {
                         item.data['createTime$'] = item.createTime;
-                        item.data.useConsumption = rewardTaskGroup.useConsumption;
+                        // item.data.useConsumption = rewardTaskGroup.useConsumption;
                         if(!item.data.topUpProposal) {
                             item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
                         }
@@ -595,7 +597,15 @@ const dbRewardTask = {
                 totalAmount = 0;
             }
 
-            proposalProm.push(dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(item._id), createTime: item.createTime}, {'data.bonusProgress': item.data.bonusProgress, 'data.consumptionProgress': item.data.consumptionProgress}, {new: true}).exec());
+            proposalProm.push(
+                dbconfig.collection_proposal.findOneAndUpdate({
+                    _id: ObjectId(item._id),
+                    createTime: item.createTime
+                }, {
+                    'data.bonusProgress': item.data.bonusProgress,
+                    'data.consumptionProgress': item.data.consumptionProgress
+                }, {new: true}).exec()
+            );
         });
 
         return Promise.all(proposalProm).then( (a) => {
@@ -613,8 +623,7 @@ const dbRewardTask = {
         })
 
     },
-    updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId) {
-
+    updateUnlockedRewardTasksRecord: function (rewards, status, playerId, platformId, realUnlockAmount) {
         let proms = [];
         if (rewards && rewards.length > 0){
             rewards.forEach( rewardTask => {
@@ -641,7 +650,7 @@ const dbRewardTask = {
                     },
                     currentConsumption: rewardTask.data.consumptionProgress,
                     maxConsumption: rewardTask.data.amount ? rewardTask.data.amount : rewardTask.data.spendingAmount || rewardTask.data.requiredUnlockAmount,
-                    currentAmount: rewardTask.data.bonusProgress,
+                    currentAmount: realUnlockAmount || rewardTask.data.bonusProgress,
                     targetAmount: targetAmount,
                     topupAmount: rewardTask.data.topUpAmount,
                     proposalId: rewardTask._id,
@@ -692,106 +701,103 @@ const dbRewardTask = {
 
     unlockRewardTaskInRewardTaskGroup: function (reward, playerObjId) {
         let sortCol = {"createTime": 1};
-        let rewardTaskProposalQuery = {};
+        let createTime = reward.createTime ? reward.createTime : null;
 
+        if (!createTime) {
+            return Promise.reject({
+                name: "DataError",
+                message: "createTime is not available"
+            });
+        }
 
-            let createTime = reward.createTime ? reward.createTime :null;
-            if (!createTime) {
-                return Q.reject({
-                    name: "DataError",
-                    message: "createTime is not available"
+        let lastSecond = new Date(createTime);
+        lastSecond.setSeconds(lastSecond.getSeconds() - 1);
+
+        let rewardTaskProposalQuery = {
+            'data.playerObjId': {$in: [ObjectId(playerObjId), String(playerObjId)]},
+            settleTime: {
+                $gte: new Date(lastSecond),
+                $lt: new Date()
+            },
+            mainType: {$in: ["TopUp","Reward"]},
+            status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+        };
+
+        if (!reward.providerGroup) {
+            rewardTaskProposalQuery.$or = [
+                {'data.providerGroup': {$exists: true, $eq: null}},
+                {'data.providerGroup': {$exists: true, $size: 0}},
+                {'data.providerGroup': {$exists: false}},
+                {'data.providerGroup': ""},
+            ]
+        }
+        else if (reward.providerGroup._id) {
+            rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup._id), String(reward.providerGroup._id)]};
+        }
+        else{
+            rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup), String(reward.providerGroup)]};
+        }
+
+        return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
+            path: "type",
+            model: dbconfig.collection_proposalType
+        }).lean().sort(sortCol).then(udata => {
+            if (udata) {
+                udata.map(item => {
+                    if (!item.data.topUpProposal) {
+                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                    }
+
+                    if (item.type.name) {
+                        item.data.rewardType = item.type.name;
+                    }
                 });
-            }
 
-            let lastSecond = new Date(createTime);
-            lastSecond.setSeconds(lastSecond.getSeconds()-1);
-
-
-            rewardTaskProposalQuery = {
-                'data.playerObjId': {$in: [ObjectId(playerObjId), String(playerObjId)]},
-                settleTime: {
-                    $gte: new Date(lastSecond),
-                    $lt: new Date()
-                },
-                mainType: {$in: ["TopUp","Reward"]},
-                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-            };
-
-            if (!reward.providerGroup) {
-                rewardTaskProposalQuery.$or = [
-                    {'data.providerGroup': {$exists: true, $eq: null}},
-                    {'data.providerGroup': {$exists: true, $size: 0}},
-                    {'data.providerGroup': {$exists: false}},
-                    {'data.providerGroup': ""},
-                ]
-            }
-            else if (reward.providerGroup._id) {
-                rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup._id), String(reward.providerGroup._id)]};
+                return dbRewardTask.getTopUpProposal(udata);
             }
             else{
-                rewardTaskProposalQuery['data.providerGroup'] = {$in: [ObjectId(reward.providerGroup), String(reward.providerGroup)]};
+                return Promise.reject({
+                    name: "DBError",
+                    message: "could not get the proposal data"
+                })
             }
+        }).then(result => {
 
-            return dbconfig.collection_proposal.find(rewardTaskProposalQuery).populate({
-                path: "type",
-                model: dbconfig.collection_proposalType
-            }).lean().sort(sortCol).then(udata => {
-                if (udata) {
-                    udata.map(item => {
-                        if (!item.data.topUpProposal) {
+            if (result && result.length){
+                result.map(item => {
+                    if (reward) {
+                        item.data['createTime$'] = item.createTime;
+
+                        if(!item.data.topUpProposal) {
                             item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
                         }
-
-                        if (item.type.name) {
-                            item.data.rewardType = item.type.name;
+                        item.data.curConsumption = reward.curConsumption;
+                        if (reward.providerGroup) {
+                            item.data.provider$ = reward.providerGroup ? reward.providerGroup.name :"" ;
                         }
-                    });
+                        else{
 
-                    return dbRewardTask.getTopUpProposal(udata);
-                }
-                else{
-                    return Promise.reject({
-                        name: "DBError",
-                        message: "could not get the proposal data"
-                    })
-                }
-            }).then(result => {
-
-                if (result && result.length){
-                    result.map(item => {
-                        if (reward) {
-                            item.data['createTime$'] = item.createTime;
-                            item.data.useConsumption = reward.useConsumption;
-                            if(!item.data.topUpProposal) {
-                                item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                            }
-                            item.data.curConsumption = reward.curConsumption;
-                            if (reward.providerGroup) {
-                                item.data.provider$ = reward.providerGroup ? reward.providerGroup.name :"" ;
-                            }
-                            else{
-
-                                item.data.topUpProposalId = item.data ? item.data.proposalId : '';
-                                item.data.bonusAmount = 0;
-                                item.data.currentAmount = item.data.currentAmt;
-                                item.data.requiredBonusAmount = 0;
-                                item.data['provider$'] = 'LOCAL_CREDIT'
-                            }
-                            item.data.topUpAmount= 0;
-                            if (item.data) {
-                                item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
-                            }
-                            if(reward.providerGroup === ''){
-                                item.data.providerGroup = null;
-                            }
-                            return item;
+                            item.data.topUpProposalId = item.data ? item.data.proposalId : '';
+                            item.data.bonusAmount = 0;
+                            item.data.currentAmount = item.data.currentAmt;
+                            item.data.requiredBonusAmount = 0;
+                            item.data['provider$'] = 'LOCAL_CREDIT'
                         }
-                    });
+                        item.data.topUpAmount= 0;
+                        if (item.data) {
+                            item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                        }
+                        if(reward.providerGroup === ''){
+                            item.data.providerGroup = null;
+                        }
+                        return item;
+                    }
+                });
 
-                }
-                return result ? result : []
+            }
+            return result ? result : []
 
-            });
+        });
     },
 
     getRewardProposalId: function(query, index, limit, sortCol, useProviderGroup, providerGroups, queryObj){
@@ -2380,6 +2386,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                 console.log("LH Check RTG unlock 0.2-------------", remainBonusAmt);
                 console.log("LH Check RTG unlock 0.3-------------", updObj);
 
+                console.log('LK checking RTG"s player"s id --', consumptionRecord.playerId);
                 return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                     {_id: rewardTaskGroup._id},
                     updObj,
@@ -2388,13 +2395,15 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                     async updatedRTG => {
                         // RTG updated successfully
                         if (updatedRTG) {
+                            console.log('LK checking updatedRTG --', updatedRTG.status);
                             // update the locked reward tasks
-                            rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
-                                if (rewards){
-
-                                    return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
+                            rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then(
+                                rewards => {
+                                    if (rewards){
+                                        return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
+                                    }
                                 }
-                            });
+                            );
 
                             updatedRTG.targetConsumption = updatedRTG.targetConsumption || 0;
                             updatedRTG.forbidXIMAAmt = updatedRTG.forbidXIMAAmt || 0;
@@ -2505,6 +2514,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                             }
 
                             if (statusUpdObj.status) {
+                                console.log('LK checking updated RTG status--', statusUpdObj.status);
                                 // update the rewardTaskGroupUnlockRecord
                                let updateProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                    {_id: updatedRTG._id, status: constRewardTaskStatus.STARTED},
@@ -2526,11 +2536,16 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                         console.log("LH Check RTG unlock 7-------------", res[1]);
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
+
+                                            // Get the real RTG unlock amount
+                                            let unlockedRTG = res[1];
+                                            let realUnlockAmount = unlockedRTG.currentAmt - unlockedRTG.initAmt;
+
                                             console.log("checking---UnlockedRewardTasksRecord", res[0] || "could not find the record");
                                             if (res[0]){
                                                 console.log("yH checking---unlockedRTG-status", statusUpdObj.status)
                                                 console.log("yH checking---unlockedRTG-playerId", updatedRTG.playerId)
-                                                dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
+                                                dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId, realUnlockAmount).catch(errorUtils.reportError);
                                             }
 
                                             return res[1];

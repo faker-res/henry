@@ -256,19 +256,19 @@ var dbGameProvider = {
     },
 
     getPlayerCreditInProvider: function (userName, platformId, providerId) {
-        var queryObj = {
+        let queryObj = {
             username: userName,
             platformId: platformId,
             providerId: providerId,
         };
-        return cpmsAPI.player_queryCredit(queryObj).then(
-            function (creditData) {
+        return cpmsAPI.player_queryCredit_NAM(queryObj).then(
+            function(creditData) {
                 return {
                     providerId: creditData.providerId,
                     gameCredit: parseFloat(creditData.credit).toFixed(2) || 0,
                 };
             },
-            function (err) {
+            function(err) {
                 //todo::for debug, to be removed
                 return {
                     providerId: providerId,

@@ -358,6 +358,7 @@ const dbPlayerUtility = {
     },
 
     getProviderCreditByObjId: (playerObjId, providerId) => {
+        console.log('getProviderCreditByObjId start', providerId);
         return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -376,6 +377,7 @@ const dbPlayerUtility = {
         ).then(
             data => {
                 if (data) {
+                    console.log('getProviderCreditByObjId end', data && data.credit);
                     return {
                         providerId: providerId,
                         credit: Math.floor(parseFloat(data.credit))
@@ -403,7 +405,7 @@ const dbPlayerUtility = {
 
     //endregion
 
-    //region Permission
+    // region Permission
 
     /**
      *
@@ -452,7 +454,24 @@ const dbPlayerUtility = {
         return dbconfig.collection_playerPermissionLog(query).save();
     },
 
-    //endregion
+    // endregion
+
+    // region Name Utility
+    savePlayerName: (platform, name) => {
+        let playerName = new dbconfig.collection_playerName({
+            name: name,
+            platform: platform
+        });
+        return playerName.save();
+    },
+
+    removePlayerName: (platform, name) => {
+        return dbconfig.collection_playerName.remove({
+            name: name,
+            platform: platform
+        });
+    },
+    // endregion
 };
 
 var proto = dbPlayerUtilFunc.prototype;

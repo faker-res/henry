@@ -415,6 +415,7 @@ var dbRewardEvent = {
                     });
                 }
                 let intervalTime;
+                console.log('JY check rewardEvent.type.name', rewardEvent.type.name)
                 switch (rewardEvent.type.name) {
                     case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                         let todayTime = dbUtil.getTodaySGTime();
@@ -640,13 +641,13 @@ var dbRewardEvent = {
                                 let topUpAfterConsumption = [];
                                 let playerRetentionRecord = data[3];
 
-                                let todayTime = dbUtil.getTodaySGTime();
+                                let todayDateTime = dbUtil.getTodaySGTime();
                                 // check if the player retention record is expired
                                 if (playerRetentionRecord && playerRetentionRecord.lastApplyDate && rewardEvent.condition && rewardEvent.condition.hasOwnProperty('definePlayerLoginMode') && rewardEvent.condition.definePlayerLoginMode == 3){
                                     let newDefinedIntervalTime = dbRewardUtil.getRewardEventIntervalTimeByApplicationDate(playerRetentionRecord.lastApplyDate, rewardEvent);
                                     // set the player retention record to be null if it is expired
-                                    if (newDefinedIntervalTime.endTime <= todayTime.startTime){
-                                        playerRetentionRecord.lastApplyDate = todayTime.startTime;
+                                    if (newDefinedIntervalTime.endTime <= todayDateTime.startTime){
+                                        playerRetentionRecord.lastApplyDate = todayDateTime.startTime;
                                         playerRetentionRecord.accumulativeDay = null;
                                     }
                                 }
@@ -680,6 +681,27 @@ var dbRewardEvent = {
                                             if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
+
+                                            // Check reward apply limit in the life time of the whole event
+                                            if (rewardEvent.condition && rewardEvent.condition.applyLimit && checkRewardData.eventInLifeTimeCount && rewardEvent.condition.applyLimit <= checkRewardData.eventInLifeTimeCount) {
+                                                checkRewardData.status = 3; // 已达到玩家可申请次数
+                                            }
+                                            delete checkRewardData.eventInLifeTimeCount;
+
+                                            // Check reward apply limit in period
+                                            if (rewardEvent.condition && rewardEvent.condition.quantityLimitInInterval && checkRewardData.eventInPeriodCount && rewardEvent.condition.quantityLimitInInterval <= checkRewardData.eventInPeriodCount) {
+                                                checkRewardData.status = 3; // 已达到周期内释出的优惠总数量上限
+                                            }
+                                            delete checkRewardData.eventInPeriodCount;
+
+                                            // Check if player has already applied in period
+                                            if (checkRewardData.matchPlayerId || checkRewardData.matchIPAddress || checkRewardData.matchPhoneNum || checkRewardData.matchMobileDevice) {
+                                                checkRewardData.status = 3; // 玩家周期内已申请, 此帐号已经达到了该优惠周期内的申请上限
+                                            }
+                                            delete checkRewardData.matchPlayerId;
+                                            delete checkRewardData.matchIPAddress;
+                                            delete checkRewardData.matchPhoneNum;
+                                            delete checkRewardData.matchMobileDevice;
 
                                             if (rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
                                                 if (checkRewardData.condition.deposit.status == 1 || checkRewardData.condition.bet.status == 1) {
@@ -1041,6 +1063,7 @@ var dbRewardEvent = {
 
     checkRewardEventGroupApplicable: function (playerData, eventData, rewardData, playerRetentionRecord) {
         let todayTime = dbUtil.getTodaySGTime();
+        console.log('JY check todayTime here==>', todayTime);
         let intervalTime;
         let selectedRewardParam = {};
         rewardData = rewardData || {};
@@ -1171,6 +1194,7 @@ var dbRewardEvent = {
                 };
 
                 // check reward apply restriction on ip, phone and IMEI
+                console.log('JY check intervalTime here==>', intervalTime);
                 checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
 
                 promArr.push(dbProposalUtil.getOneProposalDataOfType(playerData.platform._id, constProposalType.PLAYER_BONUS, withdrawPropQuery));
@@ -1251,12 +1275,55 @@ var dbRewardEvent = {
 
                 forbidRewardProm = dbRewardUtil.checkForbidReward(eventData, intervalTime, playerData);
             }
+
+            // check the application limit has reached of the whole event
+            let eventInLifeTimeProm = Promise.resolve([]);
+            if (eventData.condition && eventData.condition.applyLimit) {
+                let query = {
+                    lastApplyDate: {
+                        $gte: eventData.validStartTime,
+                        $lte: eventData.validEndTime
+                    },
+                    rewardEventObjId: eventData._id,
+                    platformObjId: playerData.platform._id,
+                    playerObjId: playerData._id
+                };
+                eventInLifeTimeProm = dbconfig.collection_playerRetentionRewardGroupRecord.find(query).count().lean();
+            }
+
+            // check the application limit has reached
+            let eventInPeriodProm = Promise.resolve([]);
+            if (eventData.condition && eventData.condition.quantityLimitInInterval) {
+                if (eventData.condition && eventData.condition.interval) {
+                    intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
+                }
+                let todayTime = dbUtil.getTodaySGTime();
+
+                // check the total application number
+                let eventQuery = {
+                    lastApplyDate: {$gte: todayTime.startTime, $lte: todayTime.endTime},
+                    rewardEventObjId: eventData._id,
+                    platformObjId: playerData.platform._id
+                };
+
+                if (intervalTime) {
+                    eventQuery.lastApplyDate = {
+                        $gte: intervalTime.startTime,
+                        $lte: intervalTime.endTime
+                    };
+                }
+
+                eventInPeriodProm = dbconfig.collection_playerRetentionRewardGroupRecord.find(eventQuery).count().lean();
+            }
+
             promArr.push(appliedCountProm);
             promArr.push(withdrawalProm);
             promArr.push(consumptionProm);
             promArr.push(accumulativeCountProm);
             promArr.push(checkHasReceivedProm);
             promArr.push(todayHasAppliedProm);
+            promArr.push(eventInLifeTimeProm);
+            promArr.push(eventInPeriodProm);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
@@ -2357,6 +2424,11 @@ var dbRewardEvent = {
                             matchIPAddress = eventData.condition && eventData.condition.checkSameIP ? (rewardSpecificData[4].sameIPAddressHasReceived || false) : false;
                             matchPhoneNum = eventData.condition && eventData.condition.checkSamePhoneNumber ? (rewardSpecificData[4].samePhoneNumHasReceived || false) : false;
                             matchMobileDevice = eventData.condition && eventData.condition.checkSameDeviceId ? (rewardSpecificData[4].sameDeviceIdHasReceived || false) : false;
+
+                            returnData.matchPlayerId = matchPlayerId;
+                            returnData.matchIPAddress = matchIPAddress;
+                            returnData.matchPhoneNum = matchPhoneNum;
+                            returnData.matchMobileDevice = matchMobileDevice;
                         }
 
                         if (!returnData.condition.deposit.hasOwnProperty('list')){
@@ -2481,6 +2553,9 @@ var dbRewardEvent = {
                         else{
                             returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
                         }
+
+                        returnData.eventInLifeTimeCount = rewardSpecificData[6] || 0;
+                        returnData.eventInPeriodCount = rewardSpecificData[7] || 0;
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:

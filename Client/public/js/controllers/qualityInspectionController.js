@@ -4139,12 +4139,27 @@ define(['js/app'], function (myApp) {
 
                     let drawData = data.data.data.map(item => {
                         let index = vm.allCsList.findIndex(p => p.callerId == item.agent_num)
-                        if (index != -1){
+                        if (index != -1) {
                             item.adminName = vm.allCsList[index].adminName;
-                            item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
+                            if (item.billsec){
+                                item.billSec$ = utilService.convertSecondsToStandardFormat(item.billsec);
+                            }
+                            // if there is no billsec, the duration is calculated from begintime and endtime
+                            else{
+                                if (item.begintime && item.endtime){
+                                    let startTime = new Date(item.begintime).getTime();
+                                    let endTime = new Date(item.endtime).getTime();
+                                    let duration = (endTime - startTime) / 1000;
+                                    item.billSec$ = utilService.convertSecondsToStandardFormat(duration);
+                                }
+                            }
                         }
-                        if(item.call_type == 1 && item.caller_num) {
+                        if (item.call_type == 1 && item.caller_num) {
                             item.platformName = vm.audioRecordPlatformMap[item.caller_num];
+                        }
+                        // missing of recordId from cti_cdr_call, use id from cti_record
+                        if (!item.recordId) {
+                            item.recordId = item.id || null;
                         }
                         item.platformName = item.platformName || "";
                         return item;
@@ -4439,6 +4454,7 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedCS && vm.selectedCS.length){
                     searchQuery.adminObjId = vm.selectedCS
                 }
+                console.log('searchQuery', searchQuery);
 
                 socketService.$socket($scope.AppSocket, 'getManualProcessRecord', searchQuery, function (data) {
                     console.log('manaulProcessRecord', data);

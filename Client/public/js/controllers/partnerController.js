@@ -1197,7 +1197,16 @@ define(['js/app'], function (myApp) {
         };
 
         /* Check for no remark entry if settleMethod is not normal settlement */
-        vm.checkPartnerCommissionLogRemark = function () {
+        vm.checkPartnerCommissionLogRemark = function (isConfirm) {
+            if (Number(vm.selectedSettlePartnerCommPrev.totalCommPreview) < Number(vm.selectedSettlePartnerCommPrev.totalValidPartnerCount) && !isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Partner Commission Calculation has yet to complete.");
+                vm.modalYesNo.modalText = $translate("Are you sure to settle partner commission without complete calculation?");
+                vm.modalYesNo.actionYes = () => vm.checkPartnerCommissionLogRemark(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
             delete vm.partnerCommVar.checkedRemark;
             let applyPartnerCommSettlementArray = [];
             vm.partnerCommissionLog.forEach(partner => {
@@ -7783,6 +7792,7 @@ define(['js/app'], function (myApp) {
                         platformPageName: vm.platformPageName,
                         prepareEditCritical: vm.prepareEditCritical,
                         submitCriticalUpdate: vm.submitCriticalUpdate,
+                        isEditingPartnerBankAccountName: vm.isEditingPartnerBankAccountName,
                         isEditingPartnerPayment: vm.isEditingPartnerPayment,
                         checkPartnerField: vm.checkPartnerField,
                         partnerValidity: vm.partnerValidity,
@@ -7835,6 +7845,7 @@ define(['js/app'], function (myApp) {
                         today: new Date().toISOString(),
                         commissionType: vm.constPartnerCommisionType,
                         partnerId: selectedPartner._id,
+                        partnerRealName: selectedPartner.realName,
                         isIdInList: commonService.isIdInList,
                         partnerBeforeEditing: _.clone(editPartner),
                         newPartner: _.clone(editPartner),
@@ -7894,6 +7905,7 @@ define(['js/app'], function (myApp) {
                 option.childScope.prepareEditPartnerPayment = function () {
                     vm.prepareEditPartnerPayment();
                     this.isEditingPartnerPayment = vm.isEditingPartnerPayment;
+                    this.isEditingPartnerBankAccountName = vm.isEditingPartnerBankAccountName;
                     this.partnerPayment = vm.partnerPayment;
                     this.allBankTypeList = vm.allBankTypeList;
                     this.filteredBankTypeList = vm.filteredBankTypeList;
@@ -7982,6 +7994,7 @@ define(['js/app'], function (myApp) {
                 }
                 vm.isEditingPartnerPayment = false;
                 vm.isEditingPartnerPaymentShowVerify = false;
+                vm.isEditingPartnerBankAccountName = false;
                 vm.partnerPayment = utilService.assignObjKeys(vm.isOneSelectedPartner(), vm.partnerPaymentKeys);
                 vm.partnerPayment.bankAccountName = (vm.partnerPayment.bankAccountName) ? vm.partnerPayment.bankAccountName : vm.isOneSelectedPartner().realName;
                 vm.partnerPayment.newBankAccount = vm.partnerPayment.encodedBankAccount;
@@ -17425,10 +17438,10 @@ define(['js/app'], function (myApp) {
                             vm.subPlatformIdList[text] = vm.platformId + counter;
                         }
 
-                        // hardcode 03 as the product itself
+                        // hardcode 10 as the product itself
                         if (vm.subPlatformIdList) {
-                            let text = vm.platformName + " (" + vm.platformId + '03' + ")";
-                            vm.subPlatformIdList[text] = vm.platformId + '03';
+                            let text = vm.platformName + " (" + vm.platformId + '10' + ")";
+                            vm.subPlatformIdList[text] = vm.platformId + '10';
                         }
                     }
                 }
@@ -17568,19 +17581,6 @@ define(['js/app'], function (myApp) {
                 vm.fakeRecordQuery.fluctuationLow = valHolder;
             }
 
-            if (validationFailed) {
-                return;
-            }
-
-            // implementations
-            if (!isConfirm) {
-                vm.modalYesNo = {};
-                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
-                vm.modalYesNo.modalText = $translate("Are you sure");
-                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
-                $('#modalYesNo').modal();
-                return;
-            }
             let query = {
                 platform: vm.platformInSetting._id,
                 period: vm.commissionBillboardPeriod,
@@ -17604,6 +17604,34 @@ define(['js/app'], function (myApp) {
                 flucOnFriday: $('#fakeCommChangeOnFriday').prop('checked'),
                 flucOnSaturday: $('#fakeCommChangeOnSaturday').prop('checked')
             };
+
+            if (query.useFluctuation && !(
+                query.flucOnSunday ||
+                query.flucOnMonday ||
+                query.flucOnTuesday ||
+                query.flucOnWednesday ||
+                query.flucOnThursday ||
+                query.flucOnFriday ||
+                query.flucOnSaturday
+            )) {
+                socketService.showErrorMessage($translate("useFluctuation have to at least trigger a day"));
+                validationFailed = true;
+            }
+
+            if (validationFailed) {
+                return;
+            }
+
+            // implementations
+            if (!isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("GENERATE") + vm.fakeRecordQuery.recordAmount + $translate("fake_record");
+                vm.modalYesNo.modalText = $translate("Are you sure");
+                vm.modalYesNo.actionYes = () => vm.generateFakeRecord(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
             $scope.$socketPromise('createFakeCommissionBBRecord', query).then(
                 data => {
                     console.log('createFakeCommissionBBRecord data', data)

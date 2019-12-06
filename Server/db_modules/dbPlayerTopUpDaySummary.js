@@ -327,44 +327,35 @@ var dbPlayerTopUpDaySummary = {
             date: {$gte: startTime, $lt: endTime}
         });
 
-        return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
-            function(data){
-                console.log("LH check player report 15------");
-                if(data && data.length > 0){
-                    console.log("LH check player report 16------", data.length);
-                    return data;
-                }
-                // else{
-                //     return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
-                // }
-            },
-            function (error){
-                return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
-            }
-        ).then(
-            function (data){
-                if (data) {
-                    var proms = data.map(
-                        sum => {
-                            sum.date = startTime;
-                            sum.createTime = new Date();
-                            return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum);
-                        }
-                    );
-                    return Q.all(proms);
-                }
-            },
-            function (error){
-                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
-            }
-        ).then(
-            function (data) {
-                return data;
-            },
-            function (error) {
-                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
-            }
-        );
+        let data = await dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds);
+        if (!data) {
+            return [];
+        }
+
+        // change from Promise.all to async loop, while it increase the logic server memory cost and calculation time,
+        // it heavily reduce the workload that db handle at a time, hence lower db error rate and higher consistency
+        let results = [];
+        for (let i = 0; i < data.length; i++) {
+            let sum = data[i];
+            sum.date = startTime;
+            sum.createTime = new Date();
+            let res = await dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
+                console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary sum and err", sum, err)
+            });
+            results.push(res)
+        }
+
+        return results;
+
+        // let proms = data.map(sum => {
+        //     sum.date = startTime;
+        //     sum.createTime = new Date();
+        //     return dbPlayerTopUpDaySummary.upsertPlayerReportDataDaySummary(sum).catch(err => {
+        //         console.log("playerReportDaySummary_calculatePlatformDaySummaryForPlayers upsertPlayerReportDataDaySummary sum and err", sum, err)
+        //     });
+        // });
+        //
+        // return Promise.all(proms);
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {

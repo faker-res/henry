@@ -232,9 +232,11 @@
                 "requestBankTypeByUserName",
                 "getMinMaxCommonTopupAmount",
                 "createCommonTopupProposal",
+                "createFixedTopupProposal",
                 "createFKPTopupProposal",
                 "applyFKPWithdraw",
-                "getPlayerConsumptionSum"
+                "getPlayerConsumptionSum",
+                "notifyCreditChange"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -140,14 +140,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             authService.updateRoleDataFromServer($scope, $cookies, $state);
         });
 
-        // 6 seconds interval to poll server status and ping
-        setInterval(() => {
-            $scope.AppSocket.emit('getAPIServerStatus', {});
-
-            for (let server in WSCONFIG) {
-                pingServer(server);
-            }
-        }, 30000);
+        // Ping connections
+        for (let server in WSCONFIG) {
+            pingServer(server);
+        }
 
         // internal function to ping server
         function pingServer(server) {
@@ -157,25 +153,18 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 urlToPing = CONFIG[CONFIG.NODE_ENV].MANAGEMENT_SERVER_URL.substr(7);
             }
 
-            return new Promise((resolve, reject) => {
-                let serverPing = io.connect(urlToPing, {
-                    query: 'token=' + authService.token,
-                    timeout: 50000,
-                    reconnection: false,
-                    "transports": ["websocket"]
-                });
+            let serverPing = io.connect(urlToPing, {
+                query: 'token=' + authService.token,
+                timeout: 50000,
+                reconnection: false,
+                "transports": ["websocket"]
+            });
 
-                serverPing.on('pong', (latency) => {
-                    WSCONFIG[server].latency = latency * 2;
+            serverPing.on('pong', (latency) => {
+                WSCONFIG[server].latency = latency * 2;
+            });
 
-                    setTimeout(() => {
-                        serverPing.disconnect();
-                        resolve(serverPing.close());
-                    }, 30000);
-                });
-
-                serverPing.emit('ping');
-            })
+            serverPing.emit('ping');
         }
     };
 
@@ -857,32 +846,40 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         "0": "BACKSTAGE",
         // for player
         "1": "WEB_PLAYER",
-        "1403": "WEB_PLAYER_EU",
+        "1403": "WEB_PLAYER_EU_OLD",
+        "1410": "WEB_PLAYER_EU",
         "1402": "WEB_PLAYER_V68",
         "1401": "WEB_PLAYER_EU_CHESS",
         "2": "H5_PLAYER",
-        "2403": "H5_PLAYER_EU",
+        "2403": "H5_PLAYER_EU_OLD",
+        "2410": "H5_PLAYER_EU",
         "2402": "H5_PLAYER_V68",
         "2401": "H5_PLAYER_EU_CHESS",
-        "3403": "APP_PLAYER_ANDROID_EU",
+        "3403": "APP_PLAYER_ANDROID_EU_OLD",
+        "3410": "APP_PLAYER_ANDROID_EU",
         "3401": "APP_PLAYER_ANDROID_EU_CHESS",
         "3402": "APP_PLAYER_ANDROID_V68",
-        "4403": "APP_PLAYER_IOS_EU",
+        "4403": "APP_PLAYER_IOS_EU_OLD",
+        "4410": "APP_PLAYER_IOS_EU",
         "4401": "APP_PLAYER_IOS_EU_CHESS",
         "4402": "APP_PLAYER_IOS_V68",
         // for partner
         "P1": "WEB_PARTNER",
-        "P1403": "WEB_PARTNER_EU",
+        "P1403": "WEB_PARTNER_EU_OLD",
+        "P1410": "WEB_PARTNER_EU",
         "P1402": "WEB_PARTNER_V68",
         "P1401": "WEB_PARTNER_EU_CHESS",
         "P2": "H5_PARTNER",
-        "P2403": "H5_PARTNER_EU",
+        "P2403": "H5_PARTNER_EU_OLD",
+        "P2410": "H5_PARTNER_EU",
         "P2402": "H5_PARTNER_V68",
         "P2401": "H5_PARTNER_EU_CHESS",
-        "P3403": "APP_PARTNER_ANDROID_EU",
+        "P3403": "APP_PARTNER_ANDROID_EU_OLD",
+        "P3410": "APP_PARTNER_ANDROID_EU",
         "P3401": "APP_PARTNER_ANDROID_EU_CHESS",
         "P3402": "APP_PARTNER_ANDROID_V68",
-        "P4403": "APP_PARTNER_IOS_EU",
+        "P4403": "APP_PARTNER_IOS_EU_OLD",
+        "P4410": "APP_PARTNER_IOS_EU",
         "P4401": "APP_PARTNER_IOS_EU_CHESS",
         "P4402": "APP_PARTNER_IOS_V6"
     };
