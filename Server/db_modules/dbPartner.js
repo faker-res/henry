@@ -12509,13 +12509,13 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                             platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
                         }
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
-                        platformFee = platformFee >= 0 ? platformFee : 0;
+                        // platformFee = platformFee >= 0 ? platformFee : 0;
                         totalPlatformFee += platformFee;
                     });
                 } else {
                     let platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
                     let platformFee =  platformFeeRate * -consumptionDetail.bonusAmount / 100;
-                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
                 }
             }
