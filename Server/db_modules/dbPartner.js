@@ -12497,7 +12497,7 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                 if (gameProviderGroupRate && gameProviderGroupRate.length > 0 && consumptionDetail && consumptionDetail.consumptionProviderDetail && Object.keys(consumptionDetail.consumptionProviderDetail).length > 0) {
                     gameProviderGroupRate.forEach(groupRate => {
                         let totalBonusAmount = 0;
-                        console.log("pFR ZZ", playerObj.name, consumptionDetail.consumptionProviderDetail)
+                        console.log("pFR ZZ", playerObj.name, consumptionDetail.consumptionProviderDetail, groupRate)
                         if (consumptionDetail && consumptionDetail.consumptionProviderDetail &&
                             consumptionDetail.consumptionProviderDetail[groupRate.name] && consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount) {
                             totalBonusAmount = -consumptionDetail.consumptionProviderDetail[groupRate.name].bonusAmount;
