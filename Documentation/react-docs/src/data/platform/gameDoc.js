@@ -670,7 +670,7 @@ let game = {
             functionName: "modifyGamePassword",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
+                { param: "providerId", mandatory: "是", type: "String", content: "提供商ID" },
                 { param: "newPassword", mandatory: "是", type: "String", content: "新密碼" },
             ],
             respondSuccess:{
@@ -688,7 +688,7 @@ let game = {
             functionName: "getLiveGameInfo",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
+                // { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "count", mandatory: "否", type: "String", content: "" },
                 { param: "switchNotify", mandatory: "否", type: "Boolean", content: `notifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
 ],

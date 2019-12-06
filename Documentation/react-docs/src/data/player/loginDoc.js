@@ -155,9 +155,7 @@ let loginLogout = {
             serviceName: "player",
             functionName: "logout",
             desc: "",
-            requestContent: [
-                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
             },
