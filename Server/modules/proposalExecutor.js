@@ -2306,14 +2306,18 @@ var proposalExecutor = {
                                 async function (bonusData) {
                                     console.log('bonus post success', bonusData);
                                     if (bonusData) {
-                                        await dbconfig.collection_proposal.findOneAndUpdate({
+                                        let updateStatusData = await dbconfig.collection_proposal.findOneAndUpdate({
                                             _id: proposalData._id,
                                             createTime: proposalData.createTime
                                         }, {
                                             status: constProposalStatus.APPROVED
                                         }, {new: true});
 
+                                        console.log('updateStatusData ==>', updateStatusData)
+
                                         increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+
+                                        console.log('JY check here 1')
 
                                         return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
                                             platformData => {
@@ -2339,6 +2343,7 @@ var proposalExecutor = {
                                                 }
 
                                                 dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                                console.log('JY check here')
                                                 return bonusData;
                                             });
                                     }
