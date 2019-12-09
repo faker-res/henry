@@ -5891,7 +5891,6 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                                 'data-trigger': 'focus',
                                 'type': 'button',
-                                'ng-click': 'vm.playerTableRowClicked(' + JSON.stringify(row) + ');',
                                 'data-html': true,
                                 'href': '#',
                                 'style': "z-index: auto; min-width:23px",
@@ -8021,16 +8020,6 @@ define(['js/app'], function (myApp) {
             vm.selectedPlayers[rowData._id] = rowData;
             vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
-
-            if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
-                vm.allPlatformData.forEach(e => {
-                    // console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
-                    if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
-                        vm.showPlatform = e;
-                        console.log('showPlatform', e)
-                    }
-                })
-            }
 
             var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
@@ -18738,15 +18727,6 @@ define(['js/app'], function (myApp) {
         vm.getProviderText = function (providerId) {
             if (!providerId || !vm.allGameProviders) return false;
             var result = '';
-
-            let sendData = {
-                platform: vm.selectedPlatform.id
-            };
-
-            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {
-                vm.allGameProviders = data.data;
-            });
-            // console.log('allGameProviders', vm.allGameProviders)
             $.each(vm.allGameProviders, function (i, v) {
                 if (providerId == v._id || providerId == v.providerId) {
                     result = v.name;

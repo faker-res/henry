@@ -4318,7 +4318,7 @@ define(['js/app'], function (myApp) {
                     _id: platformId
                 }
                 socketService.$socket($scope.AppSocket, 'getPlatform', sendData, function (data) {
-                    // console.log('getPlatform', data.data);
+                    console.log('getPlatform', data.data);
                     if (data && data.data && data.data.frontendConfigurationDomainName && vm.selectedPlatform && vm.selectedPlatform.data){
                         vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
                     }
@@ -4346,16 +4346,6 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
-                    if(data.data && data.data._id){
-                        vm.allPlatformData.forEach(e => {
-                            // console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
-                            if (String(data.data._id) === String(e._id)) {
-                                vm.showPlatform = e;
-                                console.log('showPlatform', e)
-                            }
-                        })
-                    }
-    
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
                     // $scope.safeApply();
@@ -24020,15 +24010,6 @@ define(['js/app'], function (myApp) {
             vm.getProviderText = function (providerId) {
                 if (!providerId || !vm.allGameProviders) return false;
                 var result = '';
-
-                let sendData = {	
-                    platform: vm.selectedPlatform.id	
-                };	
-
-                socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {	
-                    vm.allGameProviders = data.data;	
-                });	
-                // console.log('allGameProviders', vm.allGameProviders)
                 $.each(vm.allGameProviders, function (i, v) {
                     if (providerId == v._id || providerId == v.providerId) {
                         result = v.name;
