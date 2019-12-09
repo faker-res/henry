@@ -153,12 +153,6 @@ function login() {
 document.getElementById("login").addEventListener("click", login);
 `};
 
-/*
-    func.*.desc:
-    for description of each function, it takes a string and convert '\n' to line break.
-
-*/
-
 let guide = {
     name: "使用说明",
     text,
