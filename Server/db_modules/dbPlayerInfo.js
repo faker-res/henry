@@ -5242,6 +5242,9 @@ let dbPlayerInfo = {
                                     console.log('JY check rtg ---', rtg);
 
                                     console.log('unlock rtg due to consumption clear in other location A', rtg._id);
+
+                                    let realUnlockAmount = rtg.totalCredit - rtg.initAmt;
+
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then(rewards => {
@@ -5251,7 +5254,7 @@ let dbPlayerInfo = {
                                         }
                                     }).then(records => {
                                         if (records) {
-                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId, realUnlockAmount).catch(errorUtils.reportError);
                                         }
                                     })
                                 }
@@ -10058,7 +10061,6 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
-        console.log("zm checking start", playerId);
         let playerObj;
         let gameProvider;
         let targetProviderId = [];
@@ -10165,7 +10167,6 @@ let dbPlayerInfo = {
             }
         ).then(
             checkPlayerBonusDoubledRewardResult => {
-                console.log("zm checking 1", playerId, isMultiProvider);
                 if(isMultiProvider){
                     gameProvider.forEach(
                         provider => {
@@ -10202,7 +10203,6 @@ let dbPlayerInfo = {
             function (data) {
                 // Notify client on credit change
                 messageDispatcher.sendMessage('creditUpdate', {recipientId: playerObj._id});
-                console.log("zm checking end", playerId);
                 return Promise.resolve(data);
             },
             function (err) {
@@ -12403,7 +12403,7 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     },
-                                    {createTime: 1, validAmount: 1}
+                                    {createTime: 1, validAmount: 1, providerId: 1}
                                 ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                     if (doc._doc) {
                                         consumptionArr.push(doc._doc);
@@ -12843,7 +12843,7 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 },
-                                {createTime: 1, validAmount: 1}
+                                {createTime: 1, validAmount: 1, providerId: 1}
                             ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                 if (doc._doc) {
                                     consumptionArr.push(doc._doc);
@@ -31688,7 +31688,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     for (let c = 0; c < queryRecord.length; c++) {
         if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
             if (consumptionProvider) {
-                if (consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
+                if (queryRecord[c].providerId && consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
                     recordSum += queryRecord[c][queryAmountField];
                 }
             } else {

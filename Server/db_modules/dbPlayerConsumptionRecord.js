@@ -4,6 +4,7 @@ var dbPlayerConsumptionRecordFunc = function () {
 module.exports = new dbPlayerConsumptionRecordFunc();
 
 const Q = require('q');
+const env = require('../config/env');
 const moment = require('moment-timezone');
 const dbconfig = require('./../modules/dbproperties');
 const dbPlayerInfo = require('../db_modules/dbPlayerInfo');
@@ -22,12 +23,15 @@ const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require('./../const/constProposalStatus');
 const errorUtils = require('./../modules/errorUtils');
+const constGameStatus = require('../const/constGameStatus');
 let dbUtility = require('./../modules/dbutility');
+
+let dbGameProvider = require('../db_modules/dbGameProvider');
 let dbPlayerReward = require('../db_modules/dbPlayerReward');
 let dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 let dbPlatform = require("../db_modules/dbPlatform.js");
 const dbPlayerConsumptionHourSummary = require("../db_modules/dbPlayerConsumptionHourSummary");
-const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
 
 function attemptOperationWithRetries(operation, maxAttempts, delayBetweenAttempts) {
     // Defaults
@@ -609,11 +613,15 @@ var dbPlayerConsumptionRecord = {
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         let playerData;
         let referralRecord;
-
+        if (data && data.playerId) {
+            console.log("zm check consumption save start", data.playerId)
+        }
         return newRecord.save().then(
             res => {
                 record = res;
-
+                if (data && data.playerId) {
+                    console.log("zm check consumption save end", data.playerId)
+                }
                 if (record) {
                     // Update player consumption sum
                     dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
@@ -647,23 +655,9 @@ var dbPlayerConsumptionRecord = {
         ).then(
             (playerUpdatedData) => {
                 playerData = playerUpdatedData;
-
                 // Check auto player level up
-                dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", true, "lastApplyLevelUp").then(
-                    playerState => {
-                        if (playerState) {
-                            dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(
-                                () => {
-                                    dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", false, "lastApplyLevelUp");
-                                }
-                            ).catch(err => {
-                                dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", false, "lastApplyLevelUp");
-                                errorUtils.reportError(err);
-                            });
-                        }
-                    }
-                );
 
+                dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
                 return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
             },
             error => {

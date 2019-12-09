@@ -61,7 +61,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "approved"
+            APPROVED: "approved",
+            SENDING: "Sending"
         };
         vm.allProposalStatus = [
             "PrePending",
@@ -78,7 +79,8 @@ define(['js/app'], function (myApp) {
             "Recover",
             "CsPending",
             "NoVerify",
-            "approved"
+            "approved",
+            "Sending"
         ];
 
         vm.constProposalType = {
@@ -5138,6 +5140,7 @@ define(['js/app'], function (myApp) {
             $('#loadingPlayerTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
                 setPlayerTableData(reply.data.data);
+                console.log('Done setting player table data...');
                 vm.searchPlayerCount = reply.data.size;
                 console.log("getPlayersByAdvanceQueryDebounced response", reply);
                 utilService.hideAllPopoversExcept();
@@ -5193,6 +5196,7 @@ define(['js/app'], function (myApp) {
         });
 
         var setPlayerTableData = function (data) {
+            console.log('Setting player table data...');
             vm.getTotalPlayerCountByPlatformList();
             return setTableData(vm.playerTable, data);
         };
@@ -5235,13 +5239,16 @@ define(['js/app'], function (myApp) {
                         // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
+                            console.log('Adding row...', rowData);
                             table.row.add(rowData);
                         }
                     }
                 });
             }
             if (table) {
+                console.log('Drawing player table...');
                 table.draw();
+                console.log('Done drawing player table...');
             }
         };
 
@@ -5273,6 +5280,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
+                    },
+                    {
+                        title: $translate('ID'),
+                        data: 'playerId'
                     },
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
@@ -5918,6 +5929,7 @@ define(['js/app'], function (myApp) {
                                 'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
+                                'ng-click': 'vm.playerTableRowClicked(' + JSON.stringify(row) + ');',
                                 // 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                                 'data-trigger': 'focus',
@@ -8051,6 +8063,15 @@ define(['js/app'], function (myApp) {
             vm.selectedPlayers[rowData._id] = rowData;
             vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
+
+            if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
+                vm.allPlatformData.forEach(e => {
+                    console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
+                    if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
+                        vm.showPlatform = e;
+                    }
+                })
+            }
 
             var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
@@ -23585,6 +23606,7 @@ define(['js/app'], function (myApp) {
                         setPlayerTableData(result);
                         utilService.hideAllPopoversExcept();
                         vm.searchPlayerCount = size;
+                        console.log('size...', size);
                         vm.playerTableQuery.pageObj.init({maxCount: size}, true);
 
                         if (!found) {
