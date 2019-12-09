@@ -5204,7 +5204,7 @@ define(['js/app'], function (myApp) {
         // Clears the table data and shows the provided data instead, without re-creating the table object itself.
         var setTableData = function (table, data) {
             if (table) {
-                table.clear();
+                // table.clear();
             }
             if (data) {
                 data.forEach(function (rowData) {
@@ -5239,6 +5239,7 @@ define(['js/app'], function (myApp) {
                         // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
+                            console.log('Adding row...', rowData);
                             table.row.add(rowData);
                         }
                     }
@@ -5246,7 +5247,7 @@ define(['js/app'], function (myApp) {
             }
             if (table) {
                 console.log('Drawing player table...');
-                //table.draw();
+                table.draw();
                 console.log('Done drawing player table...');
             }
         };
