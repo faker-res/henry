@@ -5242,6 +5242,9 @@ let dbPlayerInfo = {
                                     console.log('JY check rtg ---', rtg);
 
                                     console.log('unlock rtg due to consumption clear in other location A', rtg._id);
+
+                                    let realUnlockAmount = rtg.totalCredit - rtg.initAmt;
+
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then(rewards => {
@@ -5251,7 +5254,7 @@ let dbPlayerInfo = {
                                         }
                                     }).then(records => {
                                         if (records) {
-                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId, realUnlockAmount).catch(errorUtils.reportError);
                                         }
                                     })
                                 }
