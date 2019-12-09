@@ -327,6 +327,12 @@
         this._service.createCommonTopupProposal.once(callback);
     };
 
+    proto.createFixedTopupProposal = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.createFixedTopupProposal.request(data);
+        this._service.createFixedTopupProposal.once(callback);
+    };
+
     proto.createFKPTopupProposal = function (callback, requestData) {
         let data = requestData || {};
         this._service.createFKPTopupProposal.request(data);

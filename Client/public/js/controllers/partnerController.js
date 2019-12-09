@@ -1197,7 +1197,16 @@ define(['js/app'], function (myApp) {
         };
 
         /* Check for no remark entry if settleMethod is not normal settlement */
-        vm.checkPartnerCommissionLogRemark = function () {
+        vm.checkPartnerCommissionLogRemark = function (isConfirm) {
+            if (Number(vm.selectedSettlePartnerCommPrev.totalCommPreview) < Number(vm.selectedSettlePartnerCommPrev.totalValidPartnerCount) && !isConfirm) {
+                vm.modalYesNo = {};
+                vm.modalYesNo.modalTitle = $translate("Partner Commission Calculation has yet to complete.");
+                vm.modalYesNo.modalText = $translate("Are you sure to settle partner commission without complete calculation?");
+                vm.modalYesNo.actionYes = () => vm.checkPartnerCommissionLogRemark(true);
+                $('#modalYesNo').modal();
+                return;
+            }
+
             delete vm.partnerCommVar.checkedRemark;
             let applyPartnerCommSettlementArray = [];
             vm.partnerCommissionLog.forEach(partner => {

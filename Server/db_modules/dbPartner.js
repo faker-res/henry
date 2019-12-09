@@ -1879,7 +1879,17 @@ let dbPartner = {
             }
         });
 
-        return deferred.promise;
+        return deferred.promise.then(
+            data => {
+                return Promise.resolve(data);
+            },
+            err => {
+                conn.isAuth = false;
+                conn.partnerId = null;
+                conn.partnerObjId = null;
+                return Promise.reject(err);
+            }
+        );
     },
 
     partnerLogout: function (partnerData) {
@@ -12457,7 +12467,7 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
         topUpSum: 1,
         topUpTimes: 1,
     }).lean();
-    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform);
+    let commRateProm = dbPartnerCommissionConfig.getPartnerCommRate(partnerRecord._id, partnerRecord.platform, providerGroups);
 
     return Promise.all([consumptionDetailProm, topUpDetailProm, withdrawalDetailProm, rewardDetailProm, namesProm, commRateProm]).then(
         data => {
@@ -12499,13 +12509,13 @@ function getAllPlayerDetails (playerObjId, commissionType, startTime, endTime, p
                             platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
                         }
                         let platformFee =  platformFeeRate * totalBonusAmount / 100;
-                        platformFee = platformFee >= 0 ? platformFee : 0;
+                        // platformFee = platformFee >= 0 ? platformFee : 0;
                         totalPlatformFee += platformFee;
                     });
                 } else {
                     let platformFeeRate = commRate.rateAfterRebatePlatform ? Number(commRate.rateAfterRebatePlatform) : 0;
                     let platformFee =  platformFeeRate * -consumptionDetail.bonusAmount / 100;
-                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
                 }
             }

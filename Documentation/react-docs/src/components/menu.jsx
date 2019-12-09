@@ -12,31 +12,46 @@ class Menu extends Component{
     }
 
     drawNav = () => {
-        let list = this.props.list;
+        let category = this.props.list;
         let navList = []
-        for(let categoryName in list) {
-            let subList = list[categoryName];
+        for(let categoryName in category) {
+            let list = category[categoryName];
             if(categoryName === "noCat") {
-                subList.forEach(item => {
+                list.forEach(item => {
                     let className = "nav-item";
                     className += item.key === this.state.curNav ? " active" : "";
                     navList.push(
                         <li className={className} key={item.key} name={item.key} onClick={this.props.onClick}>
-                            {item.name}
+                            <div className="title nocat">
+                                <span>{item.name}</span>
+                            </div>
                         </li>
                     );
                 })
             } else {
                 navList.push(
-                    <span style={{fontSize:'24px'}} key={categoryName}><b><u>{categoryTranslate[categoryName]}: </u></b></span>
+                    <span className="category" key={categoryName}>{categoryTranslate[categoryName]}</span>
                 )
-                subList.forEach(item => {
+                list.forEach(item => {
                     let className = "nav-item";
                     className += item.key === this.state.curNav ? " active" : "";
                     let childKey = (categoryName || '') + item.key;
+                    let subList = item.subList;
+                    let subListLink = [];
+                    subList.forEach(subItem => {
+                        subListLink.push(
+                            <a href={'#'+subItem.funcKey} key={subItem.funcKey} >{subItem.title}</a>
+                        )
+                    })
                     navList.push(
                         <li className={className} key={childKey} name={item.key} category={categoryName} onClick={this.props.onClick}>
-                            {item.name}
+                            <div className="title">
+                                <span>{item.name}</span>
+                                <span>></span>
+                            </div>
+                            <div className="functions">
+                                {subListLink}
+                            </div>
                         </li>
                     );
                 })

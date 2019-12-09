@@ -1477,6 +1477,8 @@
   "PARTNERCOMMISSION_REPORT": "Partner Commission Report",
   "PLAYERDOMAIN_REPORT": "Player Domain Report",
   "WINRATE_REPORT": "Win Rate Report",
+  "GAME_TYPE_ANALYSIS_REPORT": "Game Type Analysis Report",
+  "DEPOSIT_SUCCESS_COUNT": "Deposit Success Count",
   "PAYMENT_MONITOR": "Payment Monitor",
   "ADD_ALL_PLAYER": "Add All Player",
   "NO_WECHATPAY_GROUP_MESSAGE": "No Wechat Pay Group Message",

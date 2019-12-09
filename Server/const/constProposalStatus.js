@@ -18,7 +18,8 @@ const constProposalStatus = {
     MANUAL: "Manual",
     CSPENDING: "CsPending",
     NOVERIFY: "NoVerify",
-    APPROVE: "approved"
+    APPROVE: "approved",
+    SENDING: "Sending"
 };
 
 module.exports = constProposalStatus;

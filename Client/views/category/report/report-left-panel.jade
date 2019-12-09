@@ -70,6 +70,10 @@
                                 text {{'PLAYER_ALIPAY_ACCOUNT_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.FINANCIAL_REPORT}}" ng-click='vm.loadPage("FINANCIAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FINANCIAL_REPORT')")
                                 text {{'FINANCIAL_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.GAME_TYPE_ANALYSIS_REPORT}}" ng-click='vm.loadPage("GAME_TYPE_ANALYSIS_REPORT")', ng-if="checkViewPermission('Report', 'General', 'GAME_TYPE_ANALYSIS_REPORT')")
+                                text {{'GAME_TYPE_ANALYSIS_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.PLATFORM_OVERVIEW_REPORT}}" ng-click='vm.loadPage("PLATFORM_OVERVIEW_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLATFORM_OVERVIEW_REPORT')")
+                                text {{'PLATFORM_OVERVIEW_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')

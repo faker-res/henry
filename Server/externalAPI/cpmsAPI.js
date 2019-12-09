@@ -15,7 +15,7 @@ const dbUtil = require('../modules/dbutility');
 const m1chatAPI= require('../modules/m1chatAPI');
 let wsConn;
 
-function callCPMSAPI(service, functionName, data, fileData) {
+function callCPMSAPI(service, functionName, data, isFromBackend) {
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
@@ -37,7 +37,8 @@ function callCPMSAPI(service, functionName, data, fileData) {
             });
         }
     }, 60 * 1000);
-    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI", null, platformId).then(
+
+    clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI", null, platformId, isFromBackend).then(
         wsClient => {
             bOpen = true;
             // var reqTime = new Date().getTime();
@@ -398,6 +399,12 @@ const cpmsAPI = {
         data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
         // return callCPMSAPI("player", "queryCredit", data);
         return callCPMSAPIWithAutoMaintenance("player", "queryCredit", data);
+    },
+
+    player_queryCredit_NAM: function(data) {
+        data.requestId = data.username + "_" + data.providerId + "_" + new Date().getTime();
+        // return callCPMSAPI("player", "queryCredit", data);
+        return callCPMSAPI("player", "queryCredit", data, true);
     },
 
     player_transferOut: function (data) {
