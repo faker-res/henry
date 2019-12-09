@@ -20,7 +20,7 @@ var frontEndRewardSettingSchema = new Schema({
     // promo code
     promoCode: {type: String},
     // this reward is ended or not
-    hasEnded: {type: Boolean, default: false, index: true},
+    hasEnded: {type: Boolean, default: false},
     pc: {
         // 1： 打开新页面; 2: 活动详情; 3: 跳转站指定优惠页面; 4: 跳转至官网某页面; 5: 启动游戏; 6: 啥都不干, 7: 自定义文本
         onClickAction: {type: Number},
