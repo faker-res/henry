@@ -5181,6 +5181,7 @@
   "(bonus amount/consumption amount)": "（输赢值/投注额）",
   "Partner Commission Calculation has yet to complete.": "代理佣金计算还未完成！",
   "Are you sure to settle partner commission without complete calculation?": "确定要在佣金计算未完成前结算代理佣金？（关掉代理佣金预估窗口重开可查看佣金计算是否已完成）",
+  "Verification code send failure, please contact customer service": "验证码发送失败，请联系客服人员",
 
   "Please enter the player name that you wanted to update bank info:": "请输入您需要银行资料修改的玩家帐号：",
   "Please enter your account's phone number, note that you wil receive SMS verification code afterward.": "请输入该帐号绑定电话号码，将发送短信验证码",
