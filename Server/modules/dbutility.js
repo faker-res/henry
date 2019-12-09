@@ -1865,6 +1865,17 @@ var dbUtility = {
         return provider.status;
     },
 
+    sortPlatform: (a, b) => {
+        if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+            let dataA = parseInt(a.platformId);
+            let dataB = parseInt(b.platformId);
+            if (!isNaN(dataA) && !isNaN(dataB)) {
+                return dataA - dataB;
+            }
+        }
+        return 0;
+    },
+
     noRoundTwoDecimalPlaces: (value) => {
         value = value || 0;
         let splitString =  value.toString().split(".");

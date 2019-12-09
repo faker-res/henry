@@ -677,6 +677,25 @@ define(['js/app'], function (myApp) {
                 6: '#festivalItemModal'
             };
 
+            vm.playerPermission = {
+                applyBonus: "applyBonus",
+                allTopUp: "allTopUp",
+                topupOnline: "topupOnline",
+                topupManual: "topupManual",
+                alipayTransaction: "alipayTransaction",
+                disableWechatPay: "disableWechatPay",
+                topUpCard: "topUpCard",
+                forbidPlayerFromLogin: "forbidPlayerFromLogin",
+                forbidPlayerFromEnteringGame: "forbidPlayerFromEnteringGame",
+                phoneCallFeedback: "phoneCallFeedback",
+                SMSFeedBack: "SMSFeedBack",
+                banReward: "banReward",
+                forbidPlayerConsumptionReturn: "forbidPlayerConsumptionReturn",
+                allowPromoCode: "allowPromoCode",
+                rewardPointsTask: "rewardPointsTask",
+                levelChange: "levelChange"
+            };
+
             vm.createInnerTable = function (id) {
                 var content = $('<div>', {
                     style: "display:inline-block"
@@ -17284,6 +17303,18 @@ define(['js/app'], function (myApp) {
             vm.feedbackPlatformChanged = ()=>{
                 vm.hasFeedbackPlatformChange = true;
             };
+
+            vm.getPermissionName = function (value) {
+                let name = '';
+                for (let i = 0; i < Object.keys(vm.playerPermission).length; i++) {
+                    if (vm.playerPermission[Object.keys(vm.playerPermission)[i]] == value) {
+                        name = Object.keys(vm.playerPermission)[i];
+                        break;
+                    }
+                }
+                return name;
+            }
+
             vm.searchPlayerFeedback = (isNewSearch, currentTimeBoolean) => {
                 if (!vm.playerFeedbackQuery || !vm.playerFeedbackQuery.selectedPlatform) {
                     return socketService.showErrorMessage($translate('Product Name is Mandatory'));
@@ -17343,7 +17374,8 @@ define(['js/app'], function (myApp) {
                     //new block
                     isMany: isMany,
                     startTime: startTime,
-                    endTime: endTime
+                    endTime: endTime,
+                    playerPermission: vm.playerFeedbackQuery.playerPermission
                     //new Block
                 };
                 let admins = [];
@@ -26195,6 +26227,28 @@ define(['js/app'], function (myApp) {
                             }
                         });
                     }
+
+                    let endArr = $('#EndedReward .endedDragDrop').sortable('toArray');
+
+                    if (endArr && endArr.length) {
+                        endArr.forEach((v, i) => {
+                            if (v) {
+                                // try to get from the updated list to update the orderNumber
+                                let index = updateSetting.findIndex(p => p._id.toString() == v.toString());
+                                if (index != -1) {
+                                    updateSetting[index].orderNumber = i + 1;
+                                } else {
+                                    // if cant find the record from the updated list, get it from the original data
+                                    let index = vm.expiredRewardSettingData.findIndex(p => p._id.toString() == v.toString());
+                                    if (index != -1) {
+                                        let selectSetting = vm.expiredRewardSettingData[index];
+                                        selectSetting.orderNumber = i + 1;
+                                        updateSetting.push(selectSetting);
+                                    }
+                                }
+                            }
+                        });
+                    }
                     console.log("arr", arr);
                     return  $scope.$socketPromise('updateRewardSetting', {dataList: updateSetting, deletedList: vm.rewardDeletedList, deletedCategoryList: vm.rewardCategoryDeletedList}).then(
                         (data) =>{
@@ -26216,14 +26270,16 @@ define(['js/app'], function (myApp) {
                             console.log('getFrontEndRewardCategory', data.data);
                             if (data && data.data) {
                                 let tempAllWithDefault = data.data;
-                                let tempAll = data.data.filter(p => p && p.categoryName && p.categoryName != "全部分类");
-                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类");
+                                let tempAll = data.data.filter(p => p && p.categoryName && (p.categoryName != "全部分类" && p.categoryName != "已结束") );
+                                let tempOne = data.data.filter(p => p && p.categoryName && p.categoryName == "全部分类" );
+                                let tempEnd = data.data.filter(p => p && p.categoryName && p.categoryName == "已结束" );
 
                                 vm.frontEndRewardDefaultCategory = tempOne && tempOne.length ? tempOne[0] : null;
+                                vm.frontEndRewardEndedCategory = tempEnd && tempEnd.length ? tempEnd[0] : null;
                                 vm.frontEndRewardCategory = tempAll;
                                 vm.allFrontEndRewardCategory = tempAll;
                                 vm.categorySelectionList = [];
-                                vm.categorySelectionList = vm.categorySelectionList.concat(tempOne, tempAll);
+                                vm.categorySelectionList = vm.categorySelectionList.concat(tempOne, tempAll, tempEnd);
                                 vm.displayCategory= [];
                                 tempAllWithDefault.forEach(
                                     p => {
@@ -26231,7 +26287,7 @@ define(['js/app'], function (myApp) {
                                             if (p.defaultShow){
                                                 vm.selectedCategoryForFrontEndDisplay = p._id;
                                             }
-                                            if (p && p.categoryName && p.categoryName != '全部分类'){
+                                            if (p && p.categoryName && p.categoryName != '全部分类' && p.categoryName != '已结束'){
                                                 vm.displayCategory.push(p._id);
                                             }
                                         }
@@ -26256,7 +26312,8 @@ define(['js/app'], function (myApp) {
                           frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
                               vm.rewardSettingData = data.data;
-                              vm.allRewardSettingData = data.data;
+                              vm.allRewardSettingData = data.data.filter( p => p && (p.hasEnded == false || !p.hasOwnProperty('hasEnded')));
+                              vm.expiredRewardSettingData = data.data.filter( p => p && p.hasEnded == true);
 
                               if (vm.rewardSettingData && vm.rewardSettingData.length){
                                   vm.rewardSettingData.map(
@@ -26305,6 +26362,7 @@ define(['js/app'], function (myApp) {
                                   connectWith: ".connected-sortable"
                               });
                               $(".ownDragDrop").sortable({});
+                              $(".endedDragDrop").sortable({});
                           });
                       })
                     }, function (err) {
@@ -26372,7 +26430,7 @@ define(['js/app'], function (myApp) {
                 };
             };
 
-            vm.editRewardCategory = function (categoryObjId, isNew, isDefault) {
+            vm.editRewardCategory = function (categoryObjId, isNew, isDefault, isEnded) {
                 if (categoryObjId && vm.allFrontEndRewardCategory && vm.allFrontEndRewardCategory.length){
                      let temp = vm.frontEndRewardCategory.filter( p => {
                         return p && p._id && p._id.toString() == categoryObjId.toString();
@@ -26401,6 +26459,19 @@ define(['js/app'], function (myApp) {
                     }
                     else{
                         vm.newRewardCategoryData = {categoryName: "全部分类"};
+                    }
+                    $('#rewardCategoryModal').modal();
+                }
+                else if (isEnded){
+                    vm.isDefaultRewardCategory = true;
+                    if (vm.frontEndRewardEndedCategory && vm.frontEndRewardEndedCategory._id){
+                        vm.newRewardCategoryData = Object.assign({}, vm.frontEndRewardEndedCategory);
+                        if (vm.newRewardCategoryData && vm.newRewardCategoryData.displayFormat){
+                            vm.newRewardCategoryData.displayFormat = vm.newRewardCategoryData.displayFormat.toString();
+                        }
+                    }
+                    else{
+                        vm.newRewardCategoryData = {categoryName: "已结束"};
                     }
                     $('#rewardCategoryModal').modal();
                 }
@@ -31062,18 +31133,6 @@ define(['js/app'], function (myApp) {
                 }
             };
             // player level codes==============end===============================
-
-            // vm.downloadTranslationCSV = function () {
-            //     vm.prepareTranslationCSV = false;
-            //     let platformId = vm.selectedPlatform.data.platformId;
-
-            //     socketService.$socket($scope.AppSocket, 'downloadTranslationCSV', {platformId: platformId}, function (data) {
-            //         vm.fileNameCSV = "ch_SP" + "_" + platformId;
-            //         vm.prepareTranslationCSV = true;
-            //         vm.exportTranslationCSV = data.data;
-            //         $scope.safeApply();
-            //     });
-            // };
 
             // phone number filter codes==============start===============================
             vm.phoneNumFilterClicked = function () {

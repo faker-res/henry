@@ -153,7 +153,7 @@ class Content extends Component{
         });
         return (
             <div key={name}>
-                <div className="respond-area bg-light p-1 pl-2 mb-1">
+                <div className="code-area bg-light p-1 pl-2 mb-1">
                     {rows}
                 </div>
                 <div>{name}</div>

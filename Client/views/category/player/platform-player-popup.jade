@@ -1636,10 +1636,14 @@
                         table.col-md-12.paddingTbl.text-center.datatable-sm
                             tbody
                                 tr
+                                    td.col-md-2 {{'Type' | translate}}
                                     td.col-md-4.oblique {{'curData' | translate}}
                                     td.col-md-4.oblique {{'CHANGE_AMOUNT' | translate}}
                                     td.col-md-4.oblique {{'updateData' | translate}}
                                 tr
+                                    td
+                                        select.form-control(ng-model='vm.creditChange.creditChangeType')
+                                            option(ng-repeat='(i,v) in vm.creditChangeType', value='{{i}}') {{v | translate}}
                                     td {{vm.creditChange.validCredit}}
                                     //td {{vm.selectedSinglePlayer.validCredit | number:2}}
                                     td
@@ -1647,14 +1651,6 @@
                                     td
                                         label.text-danger {{vm.creditChange.finalValidAmount || 0 | number:2}}
                                         .text-danger(ng-show='vm.creditChange.finalValidAmount<0') {{'Player credit cannot be less than 0' | translate}}
-                        .row
-                            .col-md-3
-                                label.control-label {{'Credit Change Type' | translate}}
-                        .row
-                            .col-md-3
-                                select.form-control(ng-model='vm.creditChange.creditChangeType')
-                                    option(ng-repeat='(i,v) in vm.creditChangeType', value='{{i}}') {{v | translate}}
-                                <br/>
                         .row
                             .col-md-6
                                 label.control-label {{'REMARKS' | translate}}

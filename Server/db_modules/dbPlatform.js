@@ -6743,10 +6743,12 @@ var dbPlatform = {
             else if (settingList && settingList.length && code && (code == "reward" || code == "registrationGuidance")) {
                 let objList = {};
                 let allObjList = {name: "全部", list: [], defaultShow: false};
+                let endedObjList = {name: "已结束", list: [], defaultShow: false};
                 let arrayList = [];
                 let allCategory = null;
                 let defaultCategory = null;
                 let listedCategory = null;
+                let endedCategory = null;
 
                 if (code == "reward"){
                     allCategory = await dbconfig.collection_frontEndRewardCategory.find({platformObjId: ObjectId(platformObjId), status: 1}).lean();
@@ -6764,7 +6766,16 @@ var dbPlatform = {
                     if (defaultCategory.displayFormat){
                         allObjList.displayFormat = defaultCategory.displayFormat;
                     }
-                    listedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName != "全部分类"});
+                    listedCategory = allCategory.filter( p => {return p && p.categoryName && (p.categoryName != "全部分类" && p.categoryName != "已结束")});
+                    endedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "已结束"});
+                    if (endedCategory && endedCategory.length){
+                        endedCategory = endedCategory[0];
+                    }
+                    endedObjList.defaultShow = endedCategory.defaultShow || false;
+                    if (endedCategory.displayFormat){
+                        endedObjList.displayFormat = endedCategory.displayFormat;
+                    }
+
                 }
 
                 if (listedCategory && listedCategory.length){
@@ -6783,10 +6794,18 @@ var dbPlatform = {
                             // if (objList && !objList[p.categoryObjId.categoryName]){
                             //     objList[p.categoryObjId.categoryName] = [];
                             // }
-                            objList[p.categoryObjId.categoryName].push(p);
-                            if (allObjList && allObjList.list){
-                                allObjList.list.push(p);
+                            if(p.hasEnded){
+                                if (endedObjList && endedObjList.list){
+                                    endedObjList.list.push(p);
+                                }
                             }
+                            else{
+                                objList[p.categoryObjId.categoryName].push(p);
+                                if (allObjList && allObjList.list){
+                                    allObjList.list.push(p);
+                                }
+                            }
+
                         }
                     }
                 )
@@ -6811,6 +6830,21 @@ var dbPlatform = {
                     let isShow = objList[key] && objList[key].length && objList[key][0] && objList[key][0].categoryObjId && objList[key][0].categoryObjId.hasOwnProperty('defaultShow') ? objList[key][0].categoryObjId.defaultShow : false;
                     arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
+
+                if (arrayList && endedObjList){
+                    // sort allObjList based on orderNumber
+                    if (endedObjList && endedObjList.list && endedObjList.list.length){
+                        endedObjList.list.sort(function (a, b) {
+                            if (a.orderNumber < b.orderNumber) {
+                                return -1;
+                            }
+                            if (a.orderNumber > b.orderNumber) {
+                                return 1;
+                            }
+                        });
+                    }
+                    arrayList.push(endedObjList);
+                }
 
                 return arrayList
             }

@@ -1506,6 +1506,7 @@
             .clearfix
             label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#dxNewPlayerReportTable.display(style="width:100% ;overflow-x: scroll")
+            #dxNewPlayerReportTablePage
             table.common-table#dxNewPlayerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
         div(ng-if='vm.showPageName=="PLAYERPARTNER_REPORT"')
@@ -2042,6 +2043,8 @@
                 table#gameTypeAnalysisLayer4Table.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 table.common-table.simple-table#gameTypeSummaryLayer4Table(style='margin-top:10px;font-size:12px')
 
+        div(ng-if='vm.showPageName=="PLATFORM_OVERVIEW_REPORT"')
+            include ./report-platform-overview
         // rewards report
         div#rewardProposalPage(ng-if='vm.currentRewardCode && vm.showPageName=="RewardReport"')
             .panel.panel-primary

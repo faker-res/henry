@@ -765,6 +765,15 @@ function socketActionReport(socketIO, socket) {
             let isValidData = Boolean(query && query.platformId);
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getGameTypeAnalysisByGameType, [startTime, endTime, query.providerId, query.platformId, query.providerName, query.loginDevice], actionName, isValidData);
         },
+
+        getPlatformOverviewReport: function getPlatformOverviewReport(data) {
+            var actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime));
+
+            socketUtil.emitter(self.socket, dbReport.getPlatformOverviewReport, [data], actionName, isValidData);
+        },
     };
     socketActionReport.actions = this.actions;
 };

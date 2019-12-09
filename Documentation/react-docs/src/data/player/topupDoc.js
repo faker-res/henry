@@ -58,6 +58,44 @@ getMinMaxCommonTopupAmount: `{
     maxDepositAmount: 最高充值额
 }`,
 
+createFKPTopupProposal:`{
+    "postUrl": "https://api.fukuaipay.com/gateway/bank",
+    "postData": {
+        "charset": "UTF-8",
+        "merchantCode": "M310018",
+        "orderNo": "602461",
+        "amount": 50000,
+        "channel": "BANK",
+        "bankCode": "CASHIER",
+        "remark": "test remark",
+        "notifyUrl": "http://devtest.wsweb.me:3000/fkpNotify",
+        "returnUrl": "",
+        "extraReturnParam": "",
+        "sign": "CL+ACv/7qdRR0nmVQeuTSERkIh+GY1L62TFkdwJLOwv2A8YL3pURBP5xTZ5rr8/8I/C7cQWxleKw+kIBWl12bm2oC7Utau7Yux9SdAu6tBMpMpNCg0WvtAXkIBZpEDSdOHwoiljEXzHhLyiONgZYOIgZNJqtBdVf6khaoP5z5cE=",
+        "signType": "RSA"
+    }
+}`,
+
+add: `{
+    "playerId": "5c0e3457e3c4bc102baa2cc6", //玩家ID 
+    "topupChannel": "5733f5b78e12a75e05e09e75", //充值渠道
+    "platformId": "5733e26ef8c8a9355caf49d8", //平台ID
+    "topUpAmount": 10, //充值金额
+    "_id": "5de0cfa0211ed9037381dbc7",
+    "status": "1", //(充值的状态):* 1--意向 * 2--充值中 * 3--成功 * 4--失败
+    "operationList": [], //作记录， 以数组方式保存操作列表
+    "createTime": "2019-11-29T07:58:24.878Z" //创建时间
+}`,
+update: `{
+    "_id": "5de0cfa0211ed9037381dbc7", //充值意向记录ID
+    "playerId": "5c0e3457e3c4bc102baa2cc6", //家ID
+    "topupChannel": "5733f5b78e12a75e05e09e75", //充值渠道
+    "platformId": "5733e26ef8c8a9355caf49d8", //平台ID
+    "topUpAmount": 10, //充值金额
+    "status": "1", //(充值的状态):* 1--意向 * 2--充值中 * 3--成功 * 4--失败
+    "operationList": [], //作记录， 以数组方式保存操作列表
+    "createTime": "2019-11-29T07:58:24.878Z" //创建时间
+}`,
 }
 
 /*
@@ -176,7 +214,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "跳转链接"
+                data: '"http://url"    //跳转链接'
             },
             respondFailure: {
                 status: "4xx",
@@ -216,7 +254,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "{xxx}"
+                data: sampleData.createFKPTopupProposal
             },
             respondFailure: {
                 status: "420",
@@ -244,7 +282,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "带ID 的注册意向记录"
+                data: sampleData.add
             },
             respondFailure: {
                 status: "4xx",
@@ -262,7 +300,7 @@ let topup = {
             ],
             respondSuccess: {
                 status: 200,
-                data: "null"
+                data: sampleData.update
             },
             respondFailure: {
                 status: "4xx",
