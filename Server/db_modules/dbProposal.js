@@ -946,7 +946,7 @@ var proposal = {
                     let withdrawalProposalIds = [];
 
                     if (data && data.type && data.type.name && (data.type.name === constProposalType.PLAYER_BONUS || data.type.name === constProposalType.PARTNER_BONUS)
-                        && data.status === 'Approved' && data.data.bonusSystemName === 'PMS2') {
+                        && (data.status === 'Approved' || data.status === 'Sending') && data.data.bonusSystemName === 'PMS2') {
                         withdrawalProposalIds.push(data.proposalId);
                     }
 
@@ -1350,8 +1350,8 @@ var proposal = {
         }).lean().then(
             proposalData => {
                 if (proposalData && (proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.CSPENDING
-                    || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT
-                        || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data) {
+                    || proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.AUTOAUDIT || proposalData.status == constProposalStatus.SENDING
+                    || proposalData.status == constProposalStatus.PROCESSING || proposalData.status == constProposalStatus.UNDETERMINED || proposalData.status == constProposalStatus.RECOVER) && proposalData.data) {
                     proposalTypeName = proposalData.type && proposalData.type.name || "";
                     return proposalData;
                 }
@@ -9454,16 +9454,19 @@ var proposal = {
 
                     console.log('check status before syncWithdrawalProposalToPMS:', proposalData.status);
                     if (proposalData.data && proposalData.data.playerObjId) {
-                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
+                        return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId})
+                            .populate({path: "multipleBankDetailInfo", model: dbconfig.collection_playerMultipleBankDetailInfo}).lean().then(
                             playerData => {
                                 if (playerData) {
-                                    message.bankTypeId = playerData.bankName || "";
-                                    message.accountName = playerData.bankAccountName || "";
-                                    message.accountCity = playerData.bankAccountCity || "";
-                                    message.accountProvince = playerData.bankAccountProvince || "";
-                                    message.accountNo = playerData.bankAccount ? playerData.bankAccount.replace(/\s/g, '') : "";
-                                    message.bankAddress = playerData.bankAddress || "";
-                                    message.bankName = playerData.bankName || "";
+                                    let bankDetail = getWithdrawalBankInfo(playerData, playerData.multipleBankDetailInfo, proposalData);
+                                    console.log('from sync - bankDetail ==>', bankDetail);
+                                    message.bankTypeId = (bankDetail && bankDetail.bankName) || "";
+                                    message.accountName = (bankDetail && bankDetail.bankAccountName) || "";
+                                    message.accountCity = (bankDetail && bankDetail.bankAccountCity) || "";
+                                    message.accountProvince = (bankDetail && bankDetail.bankAccountProvince) || "";
+                                    message.accountNo = (bankDetail && bankDetail.bankAccount) || "";
+                                    message.bankAddress = (bankDetail && bankDetail.bankAddress) || "";
+                                    message.bankName = (bankDetail && bankDetail.bankName) || "";
                                     message.loginName = playerData.name || "";
 
                                     console.log('player -- syncWithdrawalProposalToPMS req:', message);
@@ -9511,6 +9514,56 @@ var proposal = {
                 }
             }
         );
+
+        function getWithdrawalBankInfo (player, multipleBankDetailInfo, proposalData) {
+            let bankInfo = {
+                bankAccountName: player.bankAccountName,
+                bankAccountCity: player.bankAccountCity,
+                bankAccountProvince: player.bankAccountProvince,
+                bankAccount: player.bankAccount,
+                bankAddress: player.bankAddress,
+                bankName: player.bankName
+            };
+
+            if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount2
+                && multipleBankDetailInfo.bankName2
+                && multipleBankDetailInfo.bankAccountName2
+                && proposalData
+                && proposalData.data.decodedBankAccountWhenSubmit
+                && proposalData.data.bankNameWhenSubmit
+                && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount2 &&
+                    proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName2 &&
+                    proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName2)) {
+                bankInfo = {
+                    bankAccountName: multipleBankDetailInfo.bankAccountName2,
+                    bankAccountCity: multipleBankDetailInfo.bankAccountCity2,
+                    bankAccountProvince: multipleBankDetailInfo.bankAccountProvince2,
+                    bankAccount: multipleBankDetailInfo.bankAccount2,
+                    bankAddress: multipleBankDetailInfo.bankAddress2,
+                    bankName: multipleBankDetailInfo.bankName2
+                };
+
+            } else if (multipleBankDetailInfo && multipleBankDetailInfo.bankAccount3
+                && multipleBankDetailInfo.bankName3
+                && multipleBankDetailInfo.bankAccountName3
+                && proposalData
+                && proposalData.data.decodedBankAccountWhenSubmit
+                && proposalData.data.bankNameWhenSubmit
+                && (proposalData.data.decodedBankAccountWhenSubmit === multipleBankDetailInfo.bankAccount3 &&
+                    proposalData.data.bankNameWhenSubmit === multipleBankDetailInfo.bankName3 &&
+                    proposalData.data.bankAccountNameWhenSubmit === multipleBankDetailInfo.bankAccountName3)) {
+                bankInfo = {
+                    bankAccountName: multipleBankDetailInfo.bankAccountName3,
+                    bankAccountCity: multipleBankDetailInfo.bankAccountCity3,
+                    bankAccountProvince: multipleBankDetailInfo.bankAccountProvince3,
+                    bankAccount: multipleBankDetailInfo.bankAccount3,
+                    bankAddress: multipleBankDetailInfo.bankAddress3,
+                    bankName: multipleBankDetailInfo.bankName3
+                };
+            }
+
+            return bankInfo;
+        };
     },
 
     createUpdatePlayerCreditProposal: async (platformId, typeName, data) => {
@@ -12086,7 +12139,7 @@ function populateProposalData (data) {
     return getPMSWithdrawalProposal(withdrawalProposalIds).then(pmsWithdrawalProposal => {
         return data.map(item => {
             if (item && item.type && item.type.name && (item.type.name === constProposalType.PLAYER_BONUS || item.type.name === constProposalType.PARTNER_BONUS)
-                && item.status === 'Approved' && item.data.bonusSystemName === 'PMS2') {
+                && (item.status === 'Approved' || item.status === 'Sending') && item.data.bonusSystemName === 'PMS2') {
                 let index = pmsWithdrawalProposal.map(pmsData => pmsData && pmsData.proposalId).indexOf(item.proposalId);
 
                 if (index === -1) {

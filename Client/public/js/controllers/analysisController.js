@@ -131,7 +131,7 @@ define(['js/app'], function (myApp) {
             '中国':'CN',
             '哥伦比亚':'CO',
             '哥斯达黎加':'CR',
-            '捷克':'CS',
+            '捷克斯洛伐克':'CS',
             '古巴':'CU',
             '塞浦路斯':'CY',
             '捷克':'CZ',
@@ -5300,16 +5300,16 @@ define(['js/app'], function (myApp) {
 
             switch (vm.queryPara.playerRetention.device){
                 case 'app':
-                    sendData.devices = ["5","6","7","8",5,6,7,8];
+                    sendData.devices = vm.inputDevice.APP_PLAYER;
                     break;
                 case 'web':
-                    sendData.devices = ["1","2",1,2];
+                    sendData.devices = vm.inputDevice.WEB_PLAYER;
                     break;
                 case 'h5':
-                    sendData.devices = ["3","4",3,4];
+                    sendData.devices = vm.inputDevice.H5_PLAYER;
                     break;
                 case 'backstage':
-                    sendData.devices = ["0",0];
+                    sendData.devices = vm.inputDevice.BACKSTAGE;
                     break;
             }
 

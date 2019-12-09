@@ -54,7 +54,8 @@ define(['js/app'], function (myApp) {
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
             APPROVED: "approved",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            SENDING: "Sending"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -6994,7 +6995,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0)),
-                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || null),
+                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || 20),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1}
             };
 
@@ -7298,6 +7299,8 @@ define(['js/app'], function (myApp) {
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
+
+                vm.dxNewPlayerQuery.pageObj.init({maxCount: size}, newSearch);
             }
 
         };
@@ -12083,7 +12086,7 @@ define(['js/app'], function (myApp) {
 
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;
-                    utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
+                    utilService.actionAfterLoaded('#dxNewPlayerReportTablePage', function () {
                         let yesterday = utilService.setNDaysAgo(new Date(), 1);
                         let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         let todayEndTime = utilService.getTodayEndTime();
@@ -12154,6 +12157,10 @@ define(['js/app'], function (myApp) {
                         vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.queryEnd = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .queryEndTime');
                         vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                        vm.dxNewPlayerQuery.pageObj = utilService.createPageForPagingTable("#dxNewPlayerReportTablePage", {pageSize: 20}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "dxNewPlayerQuery", vm.searchDXNewPlayerReport);
+                        });
                     });
                     break;
                 case "PLAYERDOMAIN_REPORT":
