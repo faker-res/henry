@@ -26311,7 +26311,7 @@ define(['js/app'], function (myApp) {
                           let frontEndRewardSettingOnClickAction = Object.assign({}, vm.frontEndSettingOnClickAction);
                           frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
-                              vm.rewardSettingData = data.data.filter( p => p && (p.hasEnded == false || !p.hasOwnProperty('hasEnded')));
+                              vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data.filter( p => p && (p.hasEnded == false || !p.hasOwnProperty('hasEnded')));
                               vm.expiredRewardSettingData = data.data.filter( p => p && p.hasEnded == true);
 
