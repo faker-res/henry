@@ -5140,6 +5140,7 @@ define(['js/app'], function (myApp) {
             $('#loadingPlayerTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
                 setPlayerTableData(reply.data.data);
+                console.log('Done setting player table data...');
                 vm.searchPlayerCount = reply.data.size;
                 console.log("getPlayersByAdvanceQueryDebounced response", reply);
                 utilService.hideAllPopoversExcept();
