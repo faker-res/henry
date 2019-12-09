@@ -23599,6 +23599,7 @@ define(['js/app'], function (myApp) {
                         setPlayerTableData(result);
                         utilService.hideAllPopoversExcept();
                         vm.searchPlayerCount = size;
+                        console.log('size...', size);
                         vm.playerTableQuery.pageObj.init({maxCount: size}, true);
 
                         if (!found) {
