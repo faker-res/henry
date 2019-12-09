@@ -5195,6 +5195,7 @@ define(['js/app'], function (myApp) {
         });
 
         var setPlayerTableData = function (data) {
+            console.log('Setting player table data...');
             vm.getTotalPlayerCountByPlatformList();
             return setTableData(vm.playerTable, data);
         };
@@ -5243,6 +5244,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             if (table) {
+                console.log('Drawing player table...');
                 table.draw();
             }
         };
