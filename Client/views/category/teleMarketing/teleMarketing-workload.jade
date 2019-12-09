@@ -59,7 +59,7 @@
                                 td {{v.success}}
                                 td {{v.registered}}
                                 td
-                                    a(href="#modalWorkloadList", data-toggle="modal", data-target='#modalWorkloadList', ng-click="vm.populateWorkloadResultDetail(v.adminObjId)") {{'DETAILS' | translate}}
+                                    a(href="#modalWorkloadList", data-toggle="modal", data-target='#modalWorkloadList', ng-click="vm.populateWorkloadResultDetail(bi, v.adminObjId)") {{'DETAILS' | translate}}
 
 //ModalWorkloadList
 #modalWorkloadList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')

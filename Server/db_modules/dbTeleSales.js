@@ -1191,19 +1191,19 @@ let dbTeleSales = {
         }
 
         let distributedPhoneProm = dbconfig.collection_tsDistributedPhone.find(distributedPhoneQuery).populate({
-            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: 'id name platform'
         }).populate({
             path: "assignee", model: dbconfig.collection_admin
         }).lean();
 
         let phoneFeedbackProm = dbconfig.collection_tsPhoneFeedback.find(phoneFeedbackQuery).populate({
-            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: 'id name platform'
         }).populate({
             path: "adminId", model: dbconfig.collection_admin
         }).lean();
 
         let playerProm = dbconfig.collection_players.find(playerQuery, {tsPhoneList: 1, csOfficer: 1}).populate({
-            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+            path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: 'id name platform'
         }).populate({
             path: "csOfficer", model: dbconfig.collection_admin, select: 'adminName'
         }).lean();
@@ -1214,7 +1214,7 @@ let dbTeleSales = {
 
         if (distributedData && distributedData.length > 0) {
             distributedData.forEach(item => {
-                if (!item.assignee || !item.tsPhoneList) {
+                if (!item.assignee || !item.tsPhoneList || String(item.tsPhoneList.platform) !== String(platformObjId)) {
                     return;
                 }
                 workloadData[item.assignee._id] = workloadData[item.assignee._id] || {};
@@ -1233,7 +1233,7 @@ let dbTeleSales = {
         }
         if (phoneFeedbackData && phoneFeedbackData.length > 0) {
             phoneFeedbackData.forEach(item => {
-                if (!item.adminId || !item.tsPhoneList) {
+                if (!item.adminId || !item.tsPhoneList || String(item.tsPhoneList.platform) !== String(platformObjId)) {
                     return;
                 }
                 workloadData[item.adminId._id] = workloadData[item.adminId._id] || {};
@@ -1256,7 +1256,7 @@ let dbTeleSales = {
 
         if (playerData && playerData.length > 0) {
             playerData.forEach(item => {
-                if (!item.csOfficer || !item.tsPhoneList) {
+                if (!item.csOfficer || !item.tsPhoneList || String(item.tsPhoneList.platform) !== String(platformObjId)) {
                     return;
                 }
                 workloadData[item.csOfficer._id] = workloadData[item.csOfficer._id] || {};
