@@ -5239,6 +5239,7 @@ define(['js/app'], function (myApp) {
                         // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
+                            console.log('Adding row...', rowData);
                             table.row.add(rowData);
                         }
                     }
