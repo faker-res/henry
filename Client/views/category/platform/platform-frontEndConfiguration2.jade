@@ -378,7 +378,10 @@ style.
                                 label(style="width: 30%;") {{"PromoCode"|translate}}
                                 div.inline-block(style="width: 70%;")
                                     input.form-control.inline-block(ng-model="vm.rewardSetting.promoCode")
-
+                            .full-width-input-block
+                                label(style="width: 30%;") {{"Ended"|translate}}
+                                div.inline-block(style="width: 70%;")
+                                    input.form-control.inline-block(type="checkbox", ng-model="vm.rewardSetting.hasEnded")
                             div.frontendConfigSeperator
                             .full-width-input-block
                                 label(style="width: 30%;") PC {{"ENTRANCE IMAGE"|translate}}
