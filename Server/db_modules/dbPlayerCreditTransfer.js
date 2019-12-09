@@ -1238,10 +1238,8 @@ let dbPlayerCreditTransfer = {
                                 if (useEbetWallet === true) {
                                     playerTransferOutRequestData.wallet = eBetWalletObj;
                                 }
-                                console.log("zm checking 4", playerId);
                                 return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                     res => {
-                                        console.log("zm checking 5", playerId);
                                         // misleading console log message, it just mean transfer out success no matter ebetwallet or not
                                         console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                         return res;
@@ -1852,7 +1850,6 @@ let dbPlayerCreditTransfer = {
                                 if((providerName && ebetWalletProviders.includes(providerName)) ||
                                     (hasEbet && gameCredit.wallet[group.ebetWallet] > 0)) {
                                     transferOut = transferOut.then(() => {
-                                        console.log("zm checking 3", playerId);
                                         return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(group, playerObjId, platform, providerId,
                                             amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
                                             transferOutSuccessData.push(ret);
@@ -1884,14 +1881,12 @@ let dbPlayerCreditTransfer = {
                     //     console.log("checkRTG for free credit", RTG);
                     //     if(RTG && RTG.lastPlayedProvider && RTG.lastPlayedProvider.name &&
                     //         (RTG.lastPlayedProvider.name.toUpperCase() === "EBET" || RTG.lastPlayedProvider.name.toUpperCase() === "EBETSLOTS")) {
-                    console.log("zm checking 6", playerId);
                     return Promise.all(checkRTGProm).then(() => {
                         console.log('playerCreditTransferFromEbetWallets gameCredit.wallet[0]', gameCredit.wallet[0]) // debug log #22332F
                         if(gameCredit.wallet[0] > 0) {
                             transferOut = transferOut.then(() => {
                                 return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallet(freeCreditGroupData, playerObjId, platform, providerId,
                                     amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync).then(ret => {
-                                    console.log("zm checking 7", playerId);
                                     transferOutSuccessData.push(ret);
                                 }).catch(err => {
                                     transferOutErrorData.push(err);
