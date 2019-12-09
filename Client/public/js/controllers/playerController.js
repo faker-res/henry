@@ -5282,6 +5282,10 @@ define(['js/app'], function (myApp) {
                         data: 'platform$'
                     },
                     {
+                        title: $translate('ID'),
+                        data: 'playerId'
+                    },
+                    {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
                         render: function (data, type, row) {
                             let perm = (row && row.permission) ? row.permission : {};
