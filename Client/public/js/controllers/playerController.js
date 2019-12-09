@@ -5246,7 +5246,7 @@ define(['js/app'], function (myApp) {
             }
             if (table) {
                 console.log('Drawing player table...');
-                table.draw();
+                //table.draw();
                 console.log('Done drawing player table...');
             }
         };
