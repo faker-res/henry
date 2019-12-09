@@ -2269,83 +2269,89 @@ var proposalExecutor = {
                             });
                         }
 
-                        let updateSendingProposalData = await dbconfig.collection_proposal.findOneAndUpdate({
+                        let updateStatusPropData = await dbconfig.collection_proposal.findOneAndUpdate({
                                 _id: proposalData._id,
-                                createTime: proposalData.createTime
+                                createTime: proposalData.createTime,
+                                status: {$ne: constProposalStatus.APPROVED}
                             }, {
                                 status: constProposalStatus.SENDING
                             }, {new: true});
 
-                        if (updateSendingProposalData) {
-                            console.log('check status before postWithdraw player:', updateSendingProposalData.status);
-                            let bankDetail = getWithdrawalBankInfo(player, player.multipleBankDetailInfo, proposalData);
-                            console.log('bankDetail ==>', bankDetail);
-                            let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
-                            let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                            let message = {
-                                proposalId: proposalData.proposalId,
-                                platformId: player.platform.platformId,
-                                amount: proposalData.data.amount,
-                                bankTypeId: (bankDetail && bankDetail.bankName) || player.bankName || "",
-                                accountName: (bankDetail && bankDetail.bankAccountName) || player.bankAccountName || "",
-                                accountCity: (bankDetail && bankDetail.bankAccountCity) || player.bankAccountCity || "",
-                                accountProvince: (bankDetail && bankDetail.bankAccountProvince) || player.bankAccountProvince || "",
-                                accountNo: (bankDetail && bankDetail.bankAccount) || (player.bankAccount ? player.bankAccount.replace(/\s/g, '') : ""),
-                                bankAddress: (bankDetail && bankDetail.bankAddress) || player.bankAddress || "",
-                                bankName: (bankDetail && bankDetail.bankName) || player.bankName || "",
-                                loginName: player.name || "",
-                                applyTime: cTimeString,
-                                clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                                entryType: proposalData.entryType,
-                                remark: proposalData.data && proposalData.data.honoreeDetail
-                            };
+                        console.log('check after update status postWithdraw player:', updateStatusPropData);
+                        let bankDetail = getWithdrawalBankInfo(player, player.multipleBankDetailInfo, proposalData);
+                        console.log('bankDetail ==>', bankDetail);
+                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        let message = {
+                            proposalId: proposalData.proposalId,
+                            platformId: player.platform.platformId,
+                            amount: proposalData.data.amount,
+                            bankTypeId: (bankDetail && bankDetail.bankName) || player.bankName || "",
+                            accountName: (bankDetail && bankDetail.bankAccountName) || player.bankAccountName || "",
+                            accountCity: (bankDetail && bankDetail.bankAccountCity) || player.bankAccountCity || "",
+                            accountProvince: (bankDetail && bankDetail.bankAccountProvince) || player.bankAccountProvince || "",
+                            accountNo: (bankDetail && bankDetail.bankAccount) || (player.bankAccount ? player.bankAccount.replace(/\s/g, '') : ""),
+                            bankAddress: (bankDetail && bankDetail.bankAddress) || player.bankAddress || "",
+                            bankName: (bankDetail && bankDetail.bankName) || player.bankName || "",
+                            loginName: player.name || "",
+                            applyTime: cTimeString,
+                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
+                            entryType: proposalData.entryType,
+                            remark: proposalData.data && proposalData.data.honoreeDetail
+                        };
 
-                            console.log('withdrawAPIAddr player req:', message);
+                        console.log('withdrawAPIAddr player req:', message);
 
-                            return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
-                                async function (bonusData) {
-                                    console.log('bonus post success', bonusData);
-                                    if (bonusData) {
-                                        increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
+                        return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                            async function (bonusData) {
+                                console.log('bonus post success', bonusData);
+                                if (bonusData) {
+                                    await dbconfig.collection_proposal.findOneAndUpdate({
+                                        _id: proposalData._id,
+                                        createTime: proposalData.createTime
+                                    }, {
+                                        status: constProposalStatus.APPROVED
+                                    }, {new: true});
 
-                                        return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
-                                            platformData => {
-                                                if (!platformData) {
-                                                    return Q.reject({
-                                                        name: "DataError",
-                                                        errorMessage: "Cannot find platform"
-                                                    });
-                                                }
-                                                let dataToUpdate = {
-                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                                };
+                                    increasePlayerWithdrawalData(player._id, player.platform._id, proposalData.data.amount).catch(errorUtils.reportError);
 
-                                                if (proposalData && proposalData.data &&
-                                                    !proposalData.data.bankAccountWhenApprove && !proposalData.data.bankNameWhenApprove &&
-                                                    proposalData.data.decodedBankAccountWhenSubmit && proposalData.data.bankNameWhenSubmit &&
-                                                    bankDetail && bankDetail.bankName && bankDetail.bankAccount &&
-                                                    (bankDetail.bankName === proposalData.data.bankNameWhenSubmit) &&
-                                                    (bankDetail.bankAccount === proposalData.data.decodedBankAccountWhenSubmit)) {
-                                                    dataToUpdate["data.bankAccountWhenApprove"] = dbUtil.encodeBankAcc(bankDetail.bankAccount);
-                                                    dataToUpdate["data.bankNameWhenApprove"] = bankDetail.bankName;
-                                                }
+                                    console.log('JY check here 1')
 
-                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                                return bonusData;
-                                            });
-                                    }
-                                    else {
-                                        return Q.reject({
-                                            name: "DataError",
-                                            errorMessage: "Cannot request bonus"
+                                    return dbPlatform.changePlatformFinancialPoints(player.platform._id, -proposalData.data.amount).then(
+                                        platformData => {
+                                            if (!platformData) {
+                                                return Q.reject({
+                                                    name: "DataError",
+                                                    errorMessage: "Cannot find platform"
+                                                });
+                                            }
+                                            let dataToUpdate = {
+                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                            };
+
+                                            if (proposalData && proposalData.data &&
+                                                !proposalData.data.bankAccountWhenApprove && !proposalData.data.bankNameWhenApprove &&
+                                                proposalData.data.decodedBankAccountWhenSubmit && proposalData.data.bankNameWhenSubmit &&
+                                                bankDetail && bankDetail.bankName && bankDetail.bankAccount &&
+                                                (bankDetail.bankName === proposalData.data.bankNameWhenSubmit) &&
+                                                (bankDetail.bankAccount === proposalData.data.decodedBankAccountWhenSubmit)) {
+                                                dataToUpdate["data.bankAccountWhenApprove"] = dbUtil.encodeBankAcc(bankDetail.bankAccount);
+                                                dataToUpdate["data.bankNameWhenApprove"] = bankDetail.bankName;
+                                            }
+
+                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                            console.log('JY check here')
+                                            return bonusData;
                                         });
-                                    }
-                                });
-                        } else {
-                            console.log('failed to update proposal - sending status')
-                            deferred.reject({name: "DataError", message: "Error in updating proposal"});
-                        }
+                                }
+                                else {
+                                    return Q.reject({
+                                        name: "DataError",
+                                        errorMessage: "Cannot request bonus"
+                                    });
+                                }
+                            });
                     }
                 ).then(deferred.resolve, deferred.reject);
 
@@ -2423,64 +2429,67 @@ var proposalExecutor = {
                             });
                         }
 
-                        let updateSendingProposalData = await dbconfig.collection_proposal.findOneAndUpdate({
-                            _id: proposalData._id
+                        let updateStatusPropData = await dbconfig.collection_proposal.findOneAndUpdate({
+                            _id: proposalData._id,
+                            status: {$ne: constProposalStatus.APPROVED}
                         }, {
                             status: constProposalStatus.SENDING
                         }, {new: true});
 
-                        if (updateSendingProposalData) {
-                            console.log('check status before postWithdraw partner:', updateSendingProposalData.status);
+                        console.log('check after update status postWithdraw partner:', updateStatusPropData);
 
-                            let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
-                            let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
-                            var message = {
-                                proposalId: proposalData.proposalId,
-                                platformId: partner.platform.platformId,
-                                amount: proposalData.data.amount,
-                                bankTypeId: partner.bankName || "",
-                                accountName: partner.bankAccountName || "",
-                                accountCity: partner.bankAccountCity || "",
-                                accountProvince: partner.bankAccountProvince || "",
-                                accountNo: partner.bankAccount ? partner.bankAccount.replace(/\s/g, '') : "",
-                                bankAddress: partner.bankAddress || "",
-                                bankName: partner.bankName || "",
-                                loginName: partner.partnerName || "",
-                                applyTime: cTimeString,
-                                clientType: dbUtil.pmsClientType(proposalData.inputDevice),
-                                entryType: proposalData.entryType,
-                                remark: proposalData.data && proposalData.data.honoreeDetail
-                            };
+                        let cTime = proposalData && proposalData.createTime ? new Date(proposalData.createTime) : new Date();
+                        let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
+                        var message = {
+                            proposalId: proposalData.proposalId,
+                            platformId: partner.platform.platformId,
+                            amount: proposalData.data.amount,
+                            bankTypeId: partner.bankName || "",
+                            accountName: partner.bankAccountName || "",
+                            accountCity: partner.bankAccountCity || "",
+                            accountProvince: partner.bankAccountProvince || "",
+                            accountNo: partner.bankAccount ? partner.bankAccount.replace(/\s/g, '') : "",
+                            bankAddress: partner.bankAddress || "",
+                            bankName: partner.bankName || "",
+                            loginName: partner.partnerName || "",
+                            applyTime: cTimeString,
+                            clientType: dbUtil.pmsClientType(proposalData.inputDevice),
+                            entryType: proposalData.entryType,
+                            remark: proposalData.data && proposalData.data.honoreeDetail
+                        };
 
-                            console.log('withdrawAPIAddr partner req:', message);
+                        console.log('withdrawAPIAddr partner req:', message);
 
-                            return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
-                                async function (bonusData) {
-                                    console.log('partner bonus post success', bonusData);
-                                    if (bonusData) {
-                                        return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
-                                            platformData => {
-                                                if (!platformData) {
-                                                    return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
-                                                }
+                        return RESTUtils.getPMS2Services('postWithdraw', message, proposalData.data.bonusSystemType).then(
+                            async function (bonusData) {
+                                console.log('partner bonus post success', bonusData);
+                                if (bonusData) {
 
-                                                let dataToUpdate = {
-                                                    "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
-                                                    "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
-                                                };
-                                                dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
-                                                return bonusData;
+                                    await dbconfig.collection_proposal.findOneAndUpdate({
+                                        _id: proposalData._id
+                                    }, {
+                                        status: constProposalStatus.APPROVED
+                                    }, {new: true});
+
+                                    return dbPlatform.changePlatformFinancialPoints(partner.platform._id, -proposalData.data.amount).then(
+                                        platformData => {
+                                            if (!platformData) {
+                                                return Q.reject({name: "DataError", errorMessage: "Cannot find platform"});
                                             }
-                                        )
-                                    }
-                                    else {
-                                        return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
-                                    }
-                                })
-                        } else {
-                            console.log('failed to update partner proposal - sending status')
-                            deferred.reject({name: "DataError", message: "Error in updating proposal"});
-                        }
+
+                                            let dataToUpdate = {
+                                                "data.pointsBefore": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints),
+                                                "data.pointsAfter": dbUtil.noRoundTwoDecimalPlaces(platformData.financialPoints - proposalData.data.amount)
+                                            };
+                                            dbProposal.updateProposalData({_id: proposalData._id}, dataToUpdate).catch(errorUtils.reportError);
+                                            return bonusData;
+                                        }
+                                    )
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", errorMessage: "Cannot request bonus"});
+                                }
+                            })
                     }
                 ).then(deferred.resolve, deferred.reject);
             },

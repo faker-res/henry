@@ -54,7 +54,8 @@ define(['js/app'], function (myApp) {
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
             APPROVED: "approved",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            SENDING: "Sending"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
