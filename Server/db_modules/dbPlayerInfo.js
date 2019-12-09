@@ -5242,6 +5242,9 @@ let dbPlayerInfo = {
                                     console.log('JY check rtg ---', rtg);
 
                                     console.log('unlock rtg due to consumption clear in other location A', rtg._id);
+
+                                    let realUnlockAmount = rtg.totalCredit - rtg.initAmt;
+
                                     rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
 
                                     dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then(rewards => {
@@ -5251,7 +5254,7 @@ let dbPlayerInfo = {
                                         }
                                     }).then(records => {
                                         if (records) {
-                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                            return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId, realUnlockAmount).catch(errorUtils.reportError);
                                         }
                                     })
                                 }
@@ -12403,7 +12406,7 @@ let dbPlayerInfo = {
                                         },
                                         playerId: ObjectId(playerObj._id)
                                     },
-                                    {createTime: 1, validAmount: 1}
+                                    {createTime: 1, validAmount: 1, providerId: 1}
                                 ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                     if (doc._doc) {
                                         consumptionArr.push(doc._doc);
@@ -12843,7 +12846,7 @@ let dbPlayerInfo = {
                                     },
                                     playerId: ObjectId(playerObj._id)
                                 },
-                                {createTime: 1, validAmount: 1}
+                                {createTime: 1, validAmount: 1, providerId: 1}
                             ).cursor({batchSize: constSystemParam.BATCH_SIZE}).eachAsync((doc) => {
                                 if (doc._doc) {
                                     consumptionArr.push(doc._doc);
@@ -31688,7 +31691,7 @@ function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, to
     for (let c = 0; c < queryRecord.length; c++) {
         if (queryRecord[c].createTime >= periodTime.startTime && queryRecord[c].createTime < periodTime.endTime) {
             if (consumptionProvider) {
-                if (consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
+                if (queryRecord[c].providerId && consumptionProvider.toString() == queryRecord[c].providerId.toString()) {
                     recordSum += queryRecord[c][queryAmountField];
                 }
             } else {

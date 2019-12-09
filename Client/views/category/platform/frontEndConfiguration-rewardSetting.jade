@@ -35,6 +35,7 @@ div.text-right
     button#rewardSettingSaveBtn.btn-primary.btn.btn-space(style="margin-top: 15px;" ng-click="vm.updateRewardSetting()") {{'SAVE' | translate}}
 
 div.col-xs-12.row(style="padding-right: 0;")
+    // predefined group for all the rewards except ended rewards
     div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
         div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
             span(style='font-weight: bold;') {{'ALL CATEGORY' | translate}}
@@ -46,6 +47,32 @@ div.col-xs-12.row(style="padding-right: 0;")
                 ul.ownDragDrop(style="min-height: 90%; list-style: none; padding: 0px;")
                     li.draggable-item(ng-repeat="event in vm.allRewardSettingData | orderBy: 'orderNumber'" id="{{event._id}}" style="text-align: left; background: white; margin: 0.5em; width: 95%; height: 40px;")
                         span {{event.title}}
+    // predefined group for rewards that are ended
+    div.col-md-4(style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
+        div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
+            span(style='font-weight: bold;') {{'EXPIRED REWARD' | translate}}
+            p.text-danger 正式站、测试站点击可切换
+                button.btn.btn-success.btn-delete(style="margin-left: 5px;", ng-click="vm.editRewardCategory(null, null, null, true)")
+                    span.fa.fa-edit
+            hr
+            div#EndedReward(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;")
+                ul.endedDragDrop(style="min-height: 90%; list-style: none; padding: 0px;")
+                    li.draggable-item(ng-repeat="event in vm.expiredRewardSettingData | orderBy: 'orderNumber'" id="{{event._id}}" )
+                        div.detailDivLeft
+                            span.detailDivSpan {{ event.title }}
+                            <br/>
+                            span {{ event.onClickAction$ | translate}}
+                            <br/>
+                            span {{ event.displayRoute$ }}
+                        div.detailDivRight
+                            .tab-btngroup
+                                button.btn.btn-success(style="width: 90px;" ng-if="event.isVisible" ng-click="event.isVisible = false") on
+                                button.btn.btn-danger(style="width: 90px;" ng-if="!event.isVisible", ng-click="event.isVisible = true") off
+                            .tab-btngroup
+                                button.btn.btn-primary.btn-delete(ng-click="vm.editRewardSetting(event._id)")
+                                    span.fa.fa-pencil
+                                button.btn.btn-danger.btn-delete(ng-click="vm.deleteRewardSetting(event._id, 'rewardSettingData', 'allRewardSettingData')")
+                                    span.fa.fa-trash-o
 
     div.col-md-4(ng-repeat="data in vm.frontEndRewardCategory" style="height: 60vh; min-height: 500px; box-sizing: border-box; margin-top: 2em; text-align: center;")
         div.eventSettingDiv.col-md-12.text-center(style="height:100%;")
@@ -58,7 +85,7 @@ div.col-xs-12.row(style="padding-right: 0;")
             hr
             div(style="height: calc(100% - 70px); background: #d3d3d34d; overflow: auto;" id="{{data._id}}")
                 ul.connected-sortable.droppable-area(style="min-height: 90%;")
-                    li.draggable-item(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id" id="{{event._id}}" )
+                    li.draggable-item(ng-repeat="event in vm.rewardSettingData" ng-if="event.categoryObjId == data._id && (event.hasEnded == false || !event.hasOwnProperty('hasEnded'))" id="{{event._id}}" )
                         div.detailDivLeft
                             span.detailDivSpan {{ event.title }}
                             <br/>
