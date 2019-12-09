@@ -4598,6 +4598,8 @@ define(['js/app'], function (myApp) {
                     item['targetProviderGroup'] = $translate(item.targetProviderGroup);
                     item.creator.name = $translate(item.creator.name);
                     item.status = $translate(item.status == 'NoCredit' ? 'NoCreditUnlock' : item.status == 'Achieved' ? 'AchievedUnlock': item.status);
+                    item.bonusAmount = $noRoundTwoDecimalPlaces(item.bonusAmount);
+                    item.maxConsumption = $noRoundTwoDecimalPlaces(item.maxConsumption);
                 });
 
                 $scope.$evalAsync(vm.drawRewardTaskUnlockedTable(newSearch, result, vm.playerRewardTaskLog.totalCount));

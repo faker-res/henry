@@ -5140,6 +5140,7 @@ define(['js/app'], function (myApp) {
             $('#loadingPlayerTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
                 setPlayerTableData(reply.data.data);
+                console.log('Done setting player table data...');
                 vm.searchPlayerCount = reply.data.size;
                 console.log("getPlayersByAdvanceQueryDebounced response", reply);
                 utilService.hideAllPopoversExcept();
@@ -5195,6 +5196,7 @@ define(['js/app'], function (myApp) {
         });
 
         var setPlayerTableData = function (data) {
+            console.log('Setting player table data...');
             vm.getTotalPlayerCountByPlatformList();
             return setTableData(vm.playerTable, data);
         };
@@ -5237,13 +5239,16 @@ define(['js/app'], function (myApp) {
                         // rowData.lockedCredit = Math.floor(rowData.lockedCredit);
 
                         if (table) {
+                            console.log('Adding row...', rowData);
                             table.row.add(rowData);
                         }
                     }
                 });
             }
             if (table) {
+                console.log('Drawing player table...');
                 table.draw();
+                console.log('Done drawing player table...');
             }
         };
 
@@ -5275,6 +5280,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
+                    },
+                    {
+                        title: $translate('ID'),
+                        data: 'playerId'
                     },
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
@@ -23597,6 +23606,7 @@ define(['js/app'], function (myApp) {
                         setPlayerTableData(result);
                         utilService.hideAllPopoversExcept();
                         vm.searchPlayerCount = size;
+                        console.log('size...', size);
                         vm.playerTableQuery.pageObj.init({maxCount: size}, true);
 
                         if (!found) {
