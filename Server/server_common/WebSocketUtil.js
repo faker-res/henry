@@ -182,8 +182,6 @@ var WebSocketUtility = {
                                 status: errorCode,
                                 errorMessage: $translate(err.message || err.errorMessage),
                                 data: serverInstance.getServerType() === "dataMigration" ? reqData : null,
-                                player: err.player,
-                                playerId: err.playerId
                             };
                             resObj.errorMessage = err.errMessage || resObj.errorMessage;
                             wsFunc.response(conn, resObj, reqData);
