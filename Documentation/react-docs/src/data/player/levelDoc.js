@@ -136,9 +136,7 @@ let level = {
             serviceName: "playerLevel",
             functionName: "getAllLevel",
             desc:"获取全部玩家等级",
-            requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "平台ID" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getAllLevel

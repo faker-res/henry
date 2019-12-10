@@ -265,8 +265,11 @@ class Content extends Component{
                 </div>
 
                 <div className="mt-3">
-                    {this.props.serviceName ? <h5><b>服务:</b> {this.props.serviceName}</h5> : null}
-                    {this.props.functionName ? <h5><b>接口:</b> {this.props.functionName}</h5> : null}
+                    {
+                        this.props.serviceName && this.props.functionName ? 
+                        <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}({"{param}"})</h5> : 
+                        null
+                    }
                 </div>
 
                 <div className="mt-3">
