@@ -6,7 +6,7 @@ var testlogSchema = new Schema({
         createTime: {type: Date, default: Date.now}
     },
     {
-        writeConcern: {
+        safe: {
             w: 4,
             j: true,
             wtimeout: 2000
