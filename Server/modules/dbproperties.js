@@ -400,6 +400,9 @@ var playerTopUpWeekSummaryModel = dbLogs.model('playerTopUpWeekSummary', playerT
 var playerConsumptionRecordSchema = require('./../schema/playerConsumptionRecord');
 var playerConsumptionRecordModel = dbLogs.model('playerConsumptionRecord', playerConsumptionRecordSchema, 'playerConsumptionRecord');
 
+var testlogSchema = require('./../schema/testlog');
+var testlogModel = dbLogs2.model('testlog', testlogSchema, 'testlog');
+
 var playerConsumptionSummarySchema = require('./../schema/playerConsumptionSummary');
 var playerConsumptionSummaryModel = dbLogs.model('playerConsumptionSummary', playerConsumptionSummarySchema, 'playerConsumptionSummary');
 
@@ -893,6 +896,7 @@ var dbProperties = {
     collection_playerTopUpDaySummary: playerTopUpDaySummaryModel,
     collection_playerTopUpWeekSummary: playerTopUpWeekSummaryModel,
     collection_playerConsumptionRecord: playerConsumptionRecordModel,
+    collection_testlog: testlogModel,
     collection_playerConsumptionSummary: playerConsumptionSummaryModel,
     collection_playerConsumptionHourSummary: playerConsumptionHourSummaryModel,
     collection_playerConsumptionDaySummary: playerConsumptionDaySummaryModel,
