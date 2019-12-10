@@ -8060,7 +8060,6 @@ define(['js/app'], function (myApp) {
             console.log('player', rowData);
             vm.selectedPlayers = {};
             vm.selectedPlayers[rowData._id] = rowData;
-            vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
 
             var sendData = {_id: rowData._id};
@@ -8068,6 +8067,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     var player = retData.data;
                     console.log('updated info');
+                    vm.selectedSinglePlayer = rowData;
                     if (!vm.selectedSinglePlayer) return;
                     if (player._id != vm.selectedSinglePlayer._id) {
                         console.log('click rowId is not equal to resultId');
@@ -8309,14 +8309,19 @@ define(['js/app'], function (myApp) {
                 param.push(row);
             }
 
-            if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId) {
-                callback.apply(null, param);
-            }
-            else {
-                setTimeout(function () {
-                    vm.onClickPlayerCheck(recordId, callback, param);
-                }, 50);
-            }
+            let playerWatch = $scope.$watch(
+                () => vm.selectedSinglePlayer,
+                (newV, oldV) => {
+                    console.log('watching...');
+                    if (newV && newV._id === recordId) {
+                        playerWatch();
+                        console.log('done watch!');
+                        callback.apply(null, param);
+                    }
+                }
+            );
+
+
         };
 
 
@@ -8348,11 +8353,14 @@ define(['js/app'], function (myApp) {
                 let allPartner = vm.partnerIdObj;
                 let allPlayerLevel = vm.allPlayerLvl;
 
+                console.log('selectedPlayer', selectedPlayer);
+                console.log('vm.editPlayer', vm.editPlayer);
+
                 let option = {
                     $scope: $scope,
                     $compile: $compile,
                     childScope: {
-                        // vm: vm,
+                        // vm: vm,coll
                         playerTopUpGroupQuery: {
                             index: 0,
                             limit: 10
@@ -13036,7 +13044,6 @@ define(['js/app'], function (myApp) {
         ];
         vm.prepareEditPlayerPayment = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity) {
                     vm.currentCity = {};
                 }
@@ -13063,7 +13070,6 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince(false);
                         vm.changeCity(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList);
                     }
                 }, null, true);
@@ -13082,12 +13088,10 @@ define(['js/app'], function (myApp) {
                     vm.currentCity.city = vm.playerPayment.bankAccountCity;
                     vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
                 })
-                $scope.safeApply();
             })
         }
         vm.prepareEditPlayerPayment2 = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity2) {
                     vm.currentCity2 = {};
                 }
@@ -13134,16 +13138,13 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince2(false);
                         vm.changeCity2(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList2);
                     }
                 }, null, true);
-                $scope.safeApply();
             })
         }
         vm.prepareEditPlayerPayment3 = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity3) {
                     vm.currentCity3 = {};
                 }
@@ -13190,11 +13191,9 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince3(false);
                         vm.changeCity3(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList3);
                     }
                 }, null, true);
-                $scope.safeApply();
             })
         }
 

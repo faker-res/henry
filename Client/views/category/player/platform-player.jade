@@ -97,9 +97,9 @@
         thead
     #playerTablePage
 .col-md-12.playerBtn
-    hr.margin-top-bottom-small
-    .btn-group.margin-small
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
+hr.margin-top-bottom-small
+.btn-group.margin-small
+    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'Create')", ng-disabled="!vm.selectedPlatform", ng-click='vm.prepareCreatePlayer()', data-toggle="modal", data-target='#modalCreatePlayer')
             text {{"CREATE_NEW_PLAYER" | translate}}
             img.img-create
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Player', 'Player', 'NewPlayerList')", ng-disabled='!vm.selectedPlatform' data-toggle="modal", ng-click='vm.initPlayerModal()', data-target='#modalNewPlayerList')
