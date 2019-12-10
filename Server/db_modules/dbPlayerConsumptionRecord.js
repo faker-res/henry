@@ -651,9 +651,23 @@ var dbPlayerConsumptionRecord = {
         ).then(
             (playerUpdatedData) => {
                 playerData = playerUpdatedData;
-                // Check auto player level up
 
-                dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).catch(errorUtils.reportError);
+                // Check auto player level up
+                dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", true, "lastApplyLevelUp").then(	
+                    playerState => {	
+                        if (playerState) {	
+                            dbPlayerInfo.checkPlayerLevelUp(record.playerId, record.platformId).then(	
+                                () => {	
+                                    dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", false, "lastApplyLevelUp");	
+                                }	
+                            ).catch(err => {	
+                                dbPlayerUtil.setPlayerBState(record.playerId, "playerLevelMigration", false, "lastApplyLevelUp");	
+                                errorUtils.reportError(err);	
+                            });	
+                        }	
+                    }	
+                );
+
                 return dbRewardTask.checkPlayerRewardTaskGroupForConsumption(record, platformObj);
             },
             error => {
