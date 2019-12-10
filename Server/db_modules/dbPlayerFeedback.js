@@ -783,8 +783,6 @@ var dbPlayerFeedback = {
                 );
 
             count = dbconfig.collection_players.count(searchQuery);
-            console.log('query', searchQuery);
-            console.log('count', count);
         }else{
             players = dbconfig.collection_players.find(searchQuery).skip(index).limit(isMany.limit)
                 .populate({path: "partner", model: dbconfig.collection_partner})
@@ -795,8 +793,7 @@ var dbPlayerFeedback = {
 
         let total;
         return Q.all([players, count]).then(async data => {
-
-            console.log('length', data[0].length);
+            
             if(isMany.searchType === "one"){
                 total = data[1];
             }else{
