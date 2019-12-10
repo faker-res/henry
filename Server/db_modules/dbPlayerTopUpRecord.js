@@ -127,16 +127,16 @@ var dbPlayerTopUpRecord = {
                 consumptionReturnTypeId = proposalTypes[i]._id
             }
             else if (proposalTypes[i].name == constProposalType.PLAYER_TOP_UP) {
-                onlineTopUpTypeId = proposalTypes[i]._id
+                onlineTopUpTypeId = String(proposalTypes[i]._id);
             }
             else if (proposalTypes[i].name == constProposalType.PLAYER_MANUAL_TOP_UP) {
-                manualTopUpTypeId = proposalTypes[i]._id
+                manualTopUpTypeId = String(proposalTypes[i]._id);
             }
             else if (proposalTypes[i].name == constProposalType.PLAYER_WECHAT_TOP_UP) {
-                weChatTopUpTypeId = proposalTypes[i]._id
+                weChatTopUpTypeId = String(proposalTypes[i]._id);
             }
             else if (proposalTypes[i].name == constProposalType.PLAYER_ALIPAY_TOP_UP) {
-                aliPayTopUpTypeId = proposalTypes[i]._id
+                aliPayTopUpTypeId = String(proposalTypes[i]._id);
             }
         }
 
@@ -186,23 +186,24 @@ var dbPlayerTopUpRecord = {
                                 platformId: "$data.platformId",
                                 typeId: "$type",
                                 merchantName: "$data.merchantName",
-                                merchantNo: "$data.merchantNo"
+                                merchantNo: "$data.merchantNo",
+                                "loginDevice": "$device"
                             },
                             times: {"$sum": 1},
                             amount: {"$sum": "$data.amount"}
                         }
                     }
                 ];
+            };
 
-                return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
-                    data => data,
-                    err => {
-                        // mongoose query promise does not support .catch() (?)
-                        // source: https://stackoverflow.com/a/30672821
-                        return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
-                    }
-                );
-            }
+            return dbconfig.collection_proposal.aggregate(getAggregateInput(playerIds)).read("secondaryPreferred").allowDiskUse(true).then(
+                data => data,
+                err => {
+                    // mongoose query promise does not support .catch() (?)
+                    // source: https://stackoverflow.com/a/30672821
+                    return catchQueryRetry(dbconfig.collection_proposal, playerIds, getAggregateInput, err);
+                }
+            );
         };
 
         let consumptionProm = () => {
@@ -408,9 +409,19 @@ var dbPlayerTopUpRecord = {
         ]);
 
         topUpDetails = topUpDetails || [];
+        console.log("LH check player report 4------", topUpDetails.length);
         topUpDetails.forEach(topUp => {
+            let topUpSummary = {
+                onlineTopUpAmount: 0,
+                manualTopUpAmount: 0,
+                aliPayTopUpAmount: 0,
+                weChatTopUpAmount: 0,
+                topUpAmount: 0,
+                topUpTimes: 0,
+            };
+
             if (topUp._id.typeId.toString() === onlineTopUpTypeId) {
-                playerReportDaySummary.onlineTopUpAmount += topUp.amount || 0;
+                topUpSummary.onlineTopUpAmount += topUp.amount || 0;
 
                 if (topUp._id.merchantNo && topUp._id.merchantName && merchantList && merchantList.length) {
                     let index = merchantList.findIndex(x =>
@@ -441,19 +452,48 @@ var dbPlayerTopUpRecord = {
                         detailObj.onlineTopUpServiceChargeRate = rate;
                     }
 
-                    playerReportDaySummary.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
-                    playerReportDaySummary.onlineTopUpFeeDetail.push(detailObj);
+                    topUpSummary.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
+                    topUpSummary.onlineTopUpFeeDetail.push(detailObj);
                 }
             } else if (topUp._id.typeId.toString() === manualTopUpTypeId) {
-                playerReportDaySummary.manualTopUpAmount = topUp.amount;
+                topUpSummary.manualTopUpAmount = topUp.amount;
             } else if (topUp._id.typeId.toString() === weChatTopUpTypeId) {
-                playerReportDaySummary.weChatTopUpAmount = topUp.amount;
+                topUpSummary.weChatTopUpAmount = topUp.amount;
             } else if (topUp._id.typeId.toString() === aliPayTopUpTypeId) {
-                playerReportDaySummary.aliPayTopUpAmount = topUp.amount;
+                topUpSummary.aliPayTopUpAmount = topUp.amount;
             }
 
-            playerReportDaySummary.topUpAmount += topUp.amount;
-            playerReportDaySummary.topUpTimes += topUp.count;
+            topUpSummary.topUpAmount += topUp.amount;
+            topUpSummary.topUpTimes += topUp.times;
+
+            let indexNo = playerReportDaySummary.findIndex(p => p.playerId && topUp._id && topUp._id.playerId && p.playerId.toString() == topUp._id.playerId.toString() && p.loginDevice == topUp._id.loginDevice);
+            if (indexNo === -1) {
+                playerReportDaySummary.push({
+                    playerId: topUp._id.playerId,
+                    platformId: topUp._id.platformId,
+                    loginDevice: topUp._id.loginDevice || null,
+                    onlineTopUpAmount: topUpSummary.onlineTopUpAmount,
+                    manualTopUpAmount: topUpSummary.manualTopUpAmount,
+                    aliPayTopUpAmount: topUpSummary.aliPayTopUpAmount,
+                    weChatTopUpAmount: topUpSummary.weChatTopUpAmount,
+                    topUpAmount: topUpSummary.topUpAmount,
+                    topUpTimes: topUpSummary.topUpTimes,
+                });
+            } else {
+                playerReportDaySummary[indexNo].onlineTopUpAmount =  playerReportDaySummary[indexNo].onlineTopUpAmount || 0;
+                playerReportDaySummary[indexNo].manualTopUpAmount =  playerReportDaySummary[indexNo].manualTopUpAmount || 0;
+                playerReportDaySummary[indexNo].aliPayTopUpAmount =  playerReportDaySummary[indexNo].aliPayTopUpAmount || 0;
+                playerReportDaySummary[indexNo].weChatTopUpAmount =  playerReportDaySummary[indexNo].weChatTopUpAmount || 0;
+                playerReportDaySummary[indexNo].topUpAmount =  playerReportDaySummary[indexNo].topUpAmount || 0;
+                playerReportDaySummary[indexNo].topUpTimes =  playerReportDaySummary[indexNo].topUpTimes || 0;
+
+                playerReportDaySummary[indexNo].onlineTopUpAmount += topUpSummary.onlineTopUpAmount;
+                playerReportDaySummary[indexNo].manualTopUpAmount += topUpSummary.manualTopUpAmount;
+                playerReportDaySummary[indexNo].aliPayTopUpAmount += topUpSummary.aliPayTopUpAmount;
+                playerReportDaySummary[indexNo].weChatTopUpAmount += topUpSummary.weChatTopUpAmount;
+                playerReportDaySummary[indexNo].topUpAmount += topUpSummary.topUpAmount;
+                playerReportDaySummary[indexNo].topUpTimes += topUpSummary.topUpTimes;
+            }
         });
 
         consumptionDetails = consumptionDetails || []
