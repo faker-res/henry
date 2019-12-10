@@ -742,7 +742,6 @@ let reward = {
             functionName: "getPlayerRewardList",
             desc:"获取玩家以申请的奖励",
             requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" },
                 { param: "startIndex", mandatory: "是", type: "int", content: "记录开始索引" },
                 { param: "requestCount", mandatory: "是", type: "int", content: "请求记录数量" },
                 { param: "rewardType", mandatory: "是", type: "int", content: "优惠类型" },
@@ -835,7 +834,6 @@ let reward = {
             functionName: "requestConsumeRebate",
             desc:"玩家向系统提前申请未结算的洗码。结算结果将以通知的方式告诉客户端。这里将返回是否启动了结算。",
             requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" },
                 { param: "eventCode", mandatory: "否", type: "int", content: "该洗码的优惠代码，用在有两种洗码的情况" }
             ],
             respondSuccess:{
@@ -1082,7 +1080,6 @@ let reward = {
             functionName: "setBonusShowInfo",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "showInfo", mandatory: "是", type: "int", content: `0:不显示
                                                                              1:显示` }
             ],

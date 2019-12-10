@@ -356,8 +356,91 @@ const sampleData = {
    "_id": "5bc59fb8aed7af825a9e0248",
    "page": 1,
    "platform": "5733e26ef8c8a9355caf49d8",
-   "__v": 0,
-   "data": "abc"
+   "data": "Test data string"
+}`,
+    getFrontEndConfig: `{
+    "navList": [
+        {
+            "_id": "5d71bc787be4f40305700052",
+            "device": 1,
+            "title": "pc1",
+            "displayTitle": "pc1",
+            "category": 1,
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+            "onClickAction": 4,
+            "requiredToLogIn": true,
+            "stopPopUp": true,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "popUpList": [
+                {
+                "_id": "5d78c4b1aa1b1a0a3a5a0cfa",
+                "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+                "onClickAction": 6,
+                "requiredToLogIn": true,
+                "platformObjId": "5733e26ef8c8a9355caf49d8",
+                "status": 1,
+                }
+            ],
+            "displayOrder": 1,
+            "rewardEventObjId": null,
+            "route": "123"
+        }
+    ],
+    "bodyList": [
+        {
+            "_id": "5ce6631d64a1750385f71e31",
+            "title": "b",
+            "device": 1,
+            "category": 2,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/b.png",
+            "displayOrder": 1
+        }
+    ],
+    "bottomList": [
+        {
+            "_id": "5ce662e664a1750385f71e2b",
+            "title": "a",
+            "device": 1,
+            "category": 3,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+            "displayOrder": 1
+        }
+    ]
 }`,
 
 }
@@ -509,7 +592,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "abc"
+                data: '"Test data string"  //字符串 String， 请参考上一个接口【前端保存数据接口】内的 data 栏位。'
             },
             respondFailure: {
                 status: "4xx",
@@ -546,7 +629,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "[{}]"
+                data: sampleData.getFrontEndConfig
             },
             respondFailure: {
                 status: "4xx",
@@ -588,7 +671,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "test:!"
+                data: '"TestData"  //客户端数据，字符串 String'
             },
             respondFailure: {
                 status: "4xx",
@@ -606,7 +689,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "test:!"
+                data: '"TestData"  //客户端数据，字符串 String'
             },
             respondFailure: {
                 status: "4xx",
