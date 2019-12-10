@@ -22985,7 +22985,7 @@ define(['js/app'], function (myApp) {
                 $('#playerDataTable').on('order.dt', function (event, a, b) {
                     // console.log(event, a, b);
                     if (!a.aaSorting[0]) return;
-                    let sortCol = 8; //registrationTime
+                    let sortCol = 9; //registrationTime
                     let sortDire = 'desc';
                     let sortKey = a.aoColumns[sortCol].data;
                     // vm.playerTableQuery.aaSorting = a.aaSorting;
