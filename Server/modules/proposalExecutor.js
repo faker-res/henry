@@ -651,6 +651,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -676,6 +677,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -701,6 +703,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -730,6 +733,7 @@ var proposalExecutor = {
                                 let platformObjId = proposalData.data.platformId._id || proposalData.data.platformId;
                                 checkIsPlayerBindToPartner(proposalData.data._id, platformObjId);
                             }
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data._id});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -755,6 +759,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data._id});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -777,6 +782,14 @@ var proposalExecutor = {
 
                     Promise.all(proms).then(
                         function (data) {
+                            if (proposalData && proposalData.data && proposalData.data.playerObjIds && proposalData.data.playerObjIds.length > 0) {
+                                proposalData.data.playerObjIds.forEach(playerObjId => {
+                                    if (playerObjId) {
+                                        messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: playerObjId});
+                                    }
+                                });
+                            }
+
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -802,6 +815,7 @@ var proposalExecutor = {
                         constShardKeys.collection_players
                     ).then(
                         function (data) {
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data._id});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -847,6 +861,7 @@ var proposalExecutor = {
                                 let playerObjId = proposalData.data.playerObjId._id || proposalData.data.playerObjId;
                                 checkSimilarPhoneForPlayers(playerObjId, platformObjId, proposalData.data.updateData.phoneNumber);
                             }
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                         },
                         function (err) {
@@ -1013,6 +1028,7 @@ var proposalExecutor = {
                         function (data) {
                             //reset client QnA security question wrong count
                             // dbconfig.collection_clientQnA.findOneAndUpdate({type: constClientQnA.FORGOT_PASSWORD, playerObjId: playerObj._id}, {totalWrongCount: 0}).catch(errorUtils.reportError);
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data._id});
                             deferred.resolve(data);
                         },
                         function (error) {
@@ -1234,6 +1250,7 @@ var proposalExecutor = {
                                 proposalData.data.playerObjId = proposalData.data._id;
                                 sendMessageToPlayer(proposalData, constMessageType.UPDATE_BANK_INFO_SUCCESS, {});
                             }
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                         },
                         function (error) {
@@ -2574,6 +2591,7 @@ var proposalExecutor = {
                                 messageType = constMessageType.PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS;
                             }
                             sendMessageToPlayer(proposalData,messageType,{});
+                            messageDispatcher.sendMessage('playerInfoUpdate', {recipientId: proposalData.data.playerObjId});
                             deferred.resolve(data);
                     }, deferred.reject
                     );

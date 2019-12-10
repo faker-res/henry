@@ -883,6 +883,13 @@
         this.playerService.updatePlayerAvatar.once(callback);
     };
 
+    proto.notifyPlayerInfo = function(callback, requestData) {
+        let responseFunc = function(data) {
+            callback(data);
+        };
+        this.playerService.notifyPlayerInfo.addListener(responseFunc);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

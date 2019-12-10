@@ -275,6 +275,14 @@ const messageDispatcher = {
                 let result = Object.assign({}, metaData, playerCreditInfo);
                 wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "notifyCreditChange", result);
             }
+        } else if (format === 'playerInfoUpdate') {
+            let wsMessageClient = serverInstance.getWebSocketMessageClient();
+            if (wsMessageClient) {
+                let query = {_id: metaData.recipientId};
+                let updatedPlayerInfo = await dbPlayerInfo.getPlayerInfoAPI(query);
+                let result = Object.assign({}, updatedPlayerInfo);
+                wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "player", "notifyPlayerInfo", result);
+            }
         }
     }
 

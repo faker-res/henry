@@ -2134,6 +2134,12 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
     };
+
+    this.notifyPlayerInfo.addListener(
+        data => {
+            WebSocketUtil.notifyMessageClient(self, "notifyPlayerInfo", data);
+        }
+    );
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
