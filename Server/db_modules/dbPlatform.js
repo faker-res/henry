@@ -6747,13 +6747,16 @@ var dbPlatform = {
                         allObjList.displayFormat = defaultCategory.displayFormat;
                     }
                     listedCategory = allCategory.filter( p => {return p && p.categoryName && (p.categoryName != "全部分类" && p.categoryName != "已结束")});
-                    endedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "已结束"});
-                    if (endedCategory && endedCategory.length){
-                        endedCategory = endedCategory[0];
-                    }
-                    endedObjList.defaultShow = endedCategory.defaultShow || false;
-                    if (endedCategory.displayFormat){
-                        endedObjList.displayFormat = endedCategory.displayFormat;
+
+                    if(code == "reward") {
+                        endedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "已结束"});
+                        if (endedCategory && endedCategory.length) {
+                            endedCategory = endedCategory[0];
+                        }
+                        endedObjList.defaultShow = endedCategory.defaultShow || false;
+                        if (endedCategory.displayFormat) {
+                            endedObjList.displayFormat = endedCategory.displayFormat;
+                        }
                     }
 
                 }
@@ -6771,16 +6774,15 @@ var dbPlatform = {
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
-                            // if (objList && !objList[p.categoryObjId.categoryName]){
-                            //     objList[p.categoryObjId.categoryName] = [];
-                            // }
-                            if(p.hasEnded){
+                            if(p.hasEnded && code == "reward"){
                                 if (endedObjList && endedObjList.list){
                                     endedObjList.list.push(p);
                                 }
                             }
                             else{
-                                objList[p.categoryObjId.categoryName].push(p);
+                                if (objList[p.categoryObjId.categoryName]) {
+                                    objList[p.categoryObjId.categoryName].push(p);
+                                }
                                 if (allObjList && allObjList.list){
                                     allObjList.list.push(p);
                                 }
@@ -6811,7 +6813,7 @@ var dbPlatform = {
                     arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
-                if (arrayList && endedObjList){
+                if (arrayList && endedObjList && code == "reward"){
                     // sort allObjList based on orderNumber
                     if (endedObjList && endedObjList.list && endedObjList.list.length){
                         endedObjList.list.sort(function (a, b) {
