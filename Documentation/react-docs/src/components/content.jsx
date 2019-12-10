@@ -267,7 +267,7 @@ class Content extends Component{
                 <div className="mt-3">
                     {
                         this.props.serviceName && this.props.functionName ? 
-                        <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}({"{param}"})</h5> : 
+                        <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}(请求内容)</h5> : 
                         null
                     }
                 </div>
