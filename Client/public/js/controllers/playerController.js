@@ -5270,7 +5270,7 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting,
+                "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
                 columns: [
                     {
                         title: $translate('PRODUCT_NAME'),
