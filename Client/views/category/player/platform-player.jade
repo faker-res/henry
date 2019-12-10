@@ -93,9 +93,65 @@
 .col-md-12
     label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
 .col-md-12
-    table.common-table#playerDataTable.display.paymentGroup-btn
+    label {{"Total" | translate}} {{vm.playerTableData.count}} {{"records" | translate}}
+    table#playerDataTable.table-striped.display.text-center.dataTable.table-condensed(style="min-width:100%;overflow:scroll;margin-top:10px;")
         thead
-    #playerTablePage
+            tr
+                th {{'PRODUCT_NAME' | translate}}
+                th {{'ID' | translate}}
+                th {{'PLAYERNAME' | translate}}
+                th {{'REAL_NAME' | translate}}
+                th {{'PLAYER_VALUE' | translate}}
+                th {{'CREDIBILITY_REMARK' | translate}}
+                th {{'LEVEL' | translate}}
+                th {{'CREDIT' | translate}}
+                th {{'POINT' | translate}}
+                th {{'REMARKS' | translate}}
+                th {{'REGISTRATION_TIME' | translate}}
+                th {{'LAST_ACCESS_TIME' | translate}}
+                th {{'LOGIN_TIMES' | translate}}
+                th {{'TOP_UP_TIMES' | translate}}
+                th {{'Function' | translate}}
+                th {{'MAIN_PERMISSION' | translate}}
+                th {{'SECONDARY_PERMISSION' | translate}}
+                th {{'partner' | translate}}
+                th {{'REFERRAL' | translate}}
+        tbody
+            tr(ng-repeat='(i,v) in vm.playerTableData.data' ng-click="vm.playerTableRowClicked(v);vm.setSelected(i)" ng-class="{selected: i === vm.selectedPlayerRow}")
+                td {{ v.platformName }}
+                td {{ v.playerId }}
+                td
+                    a(ng-click="vm.showPlayerInfoModal(v.name)") {{ v.name }}
+                td {{ v.realName }}
+                td {{ v.valueScore }}
+                td
+                    a(ng-click="vm.getSelectedRowPlayerCredibility(v);" ng-bind-html="v.credibilityRemarksText" data-toggle="modal" data-target='#modalPlayerCredibilityRemarks')
+                td
+                    a(ng-click="vm.onClickPlayerCheck(v._id, vm.openEditPlayerDialog, 'basicInfo', JSON.stringify(v))") {{ v.playerLevel.name }}
+                td
+                    a(ng-click="" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus') ${{ v.validCredit }} &nbsp;
+                    a(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0" ng-click="").fa.fa-lock {{ v.lockedCredit }} &nbsp;
+                    a(ng-click="").fa.fa-gamepad
+
+    div(style="display: flex;justify-content: space-between;")
+        div
+            div(style='display:inline-block;font-weight:normal')
+                text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
+                input.form-control(style='max-width:80px;display:inline-block;' type='number' ng-init=10 ng-model='vm.playerTableData.limit' ng-blur='vm.searchTeleMarketingSendSmsPageData()')
+                text.margin-left-5(style="display:inline-block") {{'COUNT1' | translate}}
+        div
+            div(style='display:inline-block;font-weight:normal')
+                text.margin-right-5(style='display:inline-block') {{'Jump to' | translate}}
+                input.form-control.margin-right-5(style='max-width:60px;display:inline-block', type='number',ng-model='vm.telePlayerSendingMsgTable.currentPage',ng-init=1 ,ng-blur="vm.gotoTelePlayerSendingMsgTablePage((vm.telePlayerSendingMsgTable.currentPage),null)")
+                text(style="display:inline-block") / {{ vm.telePlayerSendingMsgTable.totalPage }} {{'Page' | translate}}
+            div(style='display:inline-block')
+                button.btn.btnPage.first_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("first_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == 1') {{'FIRST_PAGE' | translate}}
+            div(style='display:inline-block')
+                button.btn.btnPage.prev_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("previous_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == 1') {{'PREVIOUS_PAGE' | translate}}
+            div(style='display:inline-block')
+                button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("next_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == vm.telePlayerSendingMsgTable.totalPage') {{'NEXT_PAGE' | translate}}
+            div(style='display:inline-block')
+                button.btn.btnPage.last_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.changeTelePlayerSendingMsgTablePage("last_page")', ng-disabled='vm.telePlayerSendingMsgTable.currentPage == vm.telePlayerSendingMsgTable.totalPage') {{'LAST_PAGE' | translate}}
 .col-md-12.playerBtn
 hr.margin-top-bottom-small
 .btn-group.margin-small
