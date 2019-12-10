@@ -4371,7 +4371,7 @@ define(['js/app'], function (myApp) {
                             // console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
                             if (String(data.data._id) === String(e._id)) {
                                 vm.showPlatform = e;
-                                console.log('showPlatform', e)
+                                // console.log('showPlatform', e)
                             }
                         })
                     }

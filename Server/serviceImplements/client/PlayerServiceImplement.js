@@ -355,7 +355,9 @@ let PlayerServiceImplement = function () {
                     var errorCode = err && err.code || constServerCode.COMMON_ERROR;
                     var resObj = {
                         status: errorCode,
-                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
+                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
+                        player: err.player,
+                        playerId: err.playerId
                     };
 
                     resObj.errorMessage = err.errMessage || resObj.errorMessage;

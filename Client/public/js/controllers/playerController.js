@@ -8057,7 +8057,7 @@ define(['js/app'], function (myApp) {
 
             if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
                 vm.allPlatformData.forEach(e => {
-                    console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
+                    // console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
                     if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
                         vm.showPlatform = e;
                     }
