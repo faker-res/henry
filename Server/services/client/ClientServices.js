@@ -106,6 +106,7 @@
                 "getReceiveTransferList",
                 "phoneNumberLoginWithPassword",
                 "setPhoneNumber",
+                "setTestLog",
                 "updateDeviceId",
                 "generateUpdatePasswordToken",
                 "updatePasswordWithToken",
