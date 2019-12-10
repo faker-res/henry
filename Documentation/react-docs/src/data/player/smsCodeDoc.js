@@ -32,7 +32,6 @@ let smsCode = {
             functionName: "sendSMSCodeToPlayer",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "useVoiceCode", mandatory: "否", type: 'Boolean', content: '是否使用语音验证码'},
                 {param: "purpose", mandatory: "否", type: 'String', content: `验证用途，可收入内容如下: 
                                                                               "registration" - 注册

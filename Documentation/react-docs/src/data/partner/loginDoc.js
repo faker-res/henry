@@ -91,7 +91,6 @@ let loginLogout = {
             functionName: "login",
             desc: "代理登录接口",
             requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "代理注册平台" },
                 { param: "name", mandatory: "是", type: "String", content: "登录用户名" },
                 { param: "password", mandatory: "是", type: "String", content: "登录密码" },
                 { param: "clientDomain", mandatory: "否", type: "String", content: "登录域名" },

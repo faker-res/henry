@@ -479,9 +479,7 @@ let information = {
             serviceName: "player",
             functionName: "getWithdrawalInfo",
             desc: "获取提款信息",
-            requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
                 data: sampleData.getWithdrawalInfo,
@@ -546,7 +544,6 @@ let information = {
             functionName: "updatePhoneNumberWithSMS",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "playerId", mandatory: "是", type: 'String', content: '玩家ID'},
                 {param: "smsCode", mandatory: "是", type: 'String', content: 'SMS验证码 '},
                 {param: "newPhoneNumber", mandatory: "否", type: 'String', content: '手机号 - 若只验证旧号码或无验证'},
@@ -658,7 +655,6 @@ let information = {
             functionName: "updatePasswordByPhoneNumber",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码'},
                 {param: "newPassword", mandatory: "是", type: 'String', content: '新密码'},
                 {param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码'},

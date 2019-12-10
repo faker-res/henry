@@ -104,7 +104,6 @@ let withdraw = {
             functionName: "partnerCreditToPlayer",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "targetList", mandatory: "否", type: "Array Object", content: `转账明细数组
                                                                                         [{

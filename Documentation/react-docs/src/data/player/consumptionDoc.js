@@ -200,7 +200,6 @@ let consumption = {
             functionName: "searchConsumptionRecord",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "startTime", mandatory: "否", type: 'Date', content: '查询消费开始时间' },
                 { param: "endTime", mandatory: "否", type: 'Date', content: '查询消费结束时间 (默认为本周)' },
                 { param: "minBonusAmount", mandatory: "否", type: 'String', content: '最小输赢值（必须大于等于0)' },
