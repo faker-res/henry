@@ -67,7 +67,7 @@ let qqControl = {
             title: " QQ群控客服与玩家对话",
             serviceName: "qqgroupcontrol",
             functionName: "sendQQConversationToFPMS",
-            desc: "连线后通过此接口发送客服对话",
+            desc: "连线后通过此函数发送客服对话",
             requestContent:[
                 { param: "deviceId", mandatory: "是", type: "String", content: "手机设备号" },
                 { param: "playerQQRemark", mandatory: "是", type: "String", content: "备注" },
@@ -88,7 +88,7 @@ let qqControl = {
             title: " QQ群控绑定玩家QQ号+昵称+备注",
             serviceName: "qqgroupcontrol",
             functionName: "bindPlayerQQInfo",
-            desc: "客服登陆群控时会使用此接口操做绑定玩家QQ号+昵称+备注",
+            desc: "客服登陆群控时会使用此函数操做绑定玩家QQ号+昵称+备注",
             requestContent:[
                 { param: "deviceId", mandatory: "是", type: "String", content: "手机设备号" },
                 { param: "playerQQRemark", mandatory: "是", type: "String", content: "备注" },

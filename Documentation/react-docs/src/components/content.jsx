@@ -87,7 +87,7 @@ class Content extends Component{
             return (
                 <div>
                     <h5><b>请求内容:</b></h5>
-                    <div className="bg-light p-1 pl-2">此接口不需要请求内容</div>
+                    <div className="bg-light p-1 pl-2">此函数不需要请求内容</div>
                 </div>
             )
         }

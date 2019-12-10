@@ -551,7 +551,7 @@ let information = {
         },
 
         saveFrontEndData:{
-            title: " 前端保存数据接口",
+            title: " 前端保存数据函数",
             serviceName: "platform",
             functionName: "saveFrontEndData",
             desc: "",
@@ -572,7 +572,7 @@ let information = {
         },
 
         getFrontEndData:{
-            title: " 前端获取数据接口",
+            title: " 前端获取数据函数",
             serviceName: "platform",
             functionName: "getFrontEndData",
             desc: "",
@@ -581,7 +581,7 @@ let information = {
             ],
             respondSuccess:{
                 status: 200,
-                data: '"Test data string"  //字符串 String， 请参考上一个接口【前端保存数据接口】内的 data 栏位。'
+                data: '"Test data string"  //字符串 String， 请参考上一个函数【前端保存数据函数】内的 data 栏位。'
             },
             respondFailure: {
                 status: "4xx",
@@ -591,7 +591,7 @@ let information = {
         },
 
         getFrontEndConfig:{
-            title: " 获取前端設置数据接口",
+            title: " 获取前端設置数据函数",
             serviceName: "platform",
             functionName: "getFrontEndConfig",
             desc: "",
