@@ -7,7 +7,7 @@ var testlogSchema = new Schema({
     },
     {
         safe: {
-            w: 2,
+            w: 3,
             j: true,
             wtimeout: 2000
         }
