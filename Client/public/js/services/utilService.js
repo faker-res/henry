@@ -123,9 +123,6 @@ define([], function () {
                   else if (data.registrationInterface == 5 || data.registrationInterface == 6){
                       data.registrationInterface$ = "H5"
                   }
-                  else if (data.registrationInterface == 7 || data.registrationInterface == 8){
-                    data.registrationInterface$ = "APP"
-                  }
               }
               else{
                   // to handle old data that without registrationInterface; categorized under WEB

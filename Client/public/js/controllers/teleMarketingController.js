@@ -6946,8 +6946,8 @@ define(['js/app'], function (myApp) {
                 })
             });
         };
-        vm.populateWorkloadResultDetail = (adminObjId) => {
-            vm.workloadResultDetail = vm.workloadResult[adminObjId];
+        vm.populateWorkloadResultDetail = (index, adminObjId) => {
+            vm.workloadResultDetail = vm.workloadResult[index]["report"][adminObjId];
             vm.workloadResultSummary.forEach(summary => {
                 if(summary.adminObjId == adminObjId) {
                     vm.workloadResultDetailSums = summary;
