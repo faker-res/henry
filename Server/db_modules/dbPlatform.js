@@ -6813,7 +6813,7 @@ var dbPlatform = {
                     arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
-                if (arrayList && endedObjList){
+                if (arrayList && endedObjList && code == "reward"){
                     // sort allObjList based on orderNumber
                     if (endedObjList && endedObjList.list && endedObjList.list.length){
                         endedObjList.list.sort(function (a, b) {
