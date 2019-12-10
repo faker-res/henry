@@ -147,7 +147,7 @@ class Content extends Component{
         let lines = content.split(/\r?\n/);
         lines.forEach((line, index) => {
             line = line.replace(/\s/g, "\u00a0");
-            if(line.length==0){
+            if(line.length===0){
                 line = "\u00a0";
             }
             rows.push(
