@@ -5281,9 +5281,9 @@ define(['js/app'], function (myApp) {
                         title: $translate('PRODUCT_NAME'),
                         data: 'platform$'
                     },
-                    {	
-                        title: $translate('ID'),	
-                        data: 'playerId'	
+                    {
+                        title: $translate('ID'),
+                        data: 'playerId'
                     },
                     {
                         title: $translate('PLAYERNAME'), data: "name", advSearch: true, "sClass": "",
