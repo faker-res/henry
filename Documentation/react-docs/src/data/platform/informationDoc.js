@@ -610,10 +610,6 @@ let information = {
                                                                          partnerCarousel - 代理轮播配置
                                                                          partnerPageSetting - 代理网站配置
                                                                          partnerSkin - 代理皮肤管理` },
-                { param: "clientType", mandatory: "是", type: "int", content: `设备:
-                                                                               1 - PC
-                                                                               2- H5
-                                                                               4- APP` },
             ],
             respondSuccess:{
                 status: 200,

@@ -705,9 +705,7 @@ let reward = {
             serviceName: "reward",
             functionName: "getRewardList",
             desc:"获取玩家所在平台正在举行的奖励活动列表",
-            requestContent:[
-                { param: "clientType", mandatory: "否", type: "String", content: "1：WEB，2：H5，4：APP，5: Android APP, 6: IOS APP" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getRewardList

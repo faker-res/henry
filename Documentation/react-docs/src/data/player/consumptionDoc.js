@@ -140,7 +140,6 @@ let consumption = {
             functionName: "getPlayerConsumptionSum",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "name", mandatory: "是", type: 'String', content: '会员帐号' },
             ],
             respondSuccess: {
