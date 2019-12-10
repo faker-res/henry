@@ -14095,7 +14095,7 @@ let dbPlayerInfo = {
                 ]
             }
         }
-        return dbconfig.collection_players.find(query);
+        return dbconfig.collection_players.find(query).lean();
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
