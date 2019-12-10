@@ -3,7 +3,7 @@
         .col-md-12.search-filters-container.well
             .search-filters-item
                 label {{'PRODUCT_NAME' | translate}}
-                select.form-control(ng-model='vm.workloadSearch.platformObjId', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllTSPhoneListByPlatform(vm.workloadSearch.platformObjId);vm.getAllDepartment(vm.workloadSearch.platformObjId)')
+                select#platformObjIds.form-control(ng-model='vm.workloadSearch.platformObjIds', ng-options='v._id as v.name$ for v in vm.allPlatformData', ng-change='vm.getAllTSPhoneListByPlatforms(vm.workloadSearch.platformObjIds);vm.getAllDepartment(vm.workloadSearch.platformObjIds)', multiple, bsp, data-actions-box='true')
             .search-filters-item
                 label {{'NAME_LIST_TITLE' | translate}}
                 select.spicker.form-control(ng-model='vm.workloadSearch.phoneLists' bsp multiple data-actions-box='true', ng-options='v._id as v.name for (i,v) in vm.allTsPhoneListByPlatform')
@@ -34,6 +34,7 @@
                     table.simple-table.common-table(style='width:auto;min-width:99.9%;white-space:normal;')
                         thead
                             tr
+                                th {{'PLATFORM' | translate }}
                                 th {{'Connected list' | translate}}
                                 th {{'csOfficer' | translate}}
                                 th {{'Amount of Phone list' | translate}}
@@ -45,9 +46,10 @@
                                 th {{'Amount of Success Account Opening' | translate}}
                                 th {{'DETAILS' | translate}}
 
-                        tbody
-                            tr(ng-repeat='(i, v) in vm.workloadResultSummary')
-                                td(ng-if='i==0' rowspan="{{vm.workloadResultSummary.length}}")
+                        tbody(ng-repeat='(bi, bv) in vm.workloadResultSummary')
+                            tr(ng-repeat="(i, v) in bv.report")
+                                td(ng-if='i==0' rowspan="{{bv.report.length}}") {{bv.platformName}}
+                                td(ng-if='i==0' rowspan="{{bv.report.length}}")
                                     div(ng-repeat='phoneListName in vm.workloadSearch.phoneListNames')
                                         span {{phoneListName}}
                                     span(ng-if="vm.workloadSearch.phoneListNames.length == 0") ({{'All Phone Lists' | translate}})
@@ -57,7 +59,7 @@
                                 td {{v.success}}
                                 td {{v.registered}}
                                 td
-                                    a(href="#modalWorkloadList", data-toggle="modal", data-target='#modalWorkloadList', ng-click="vm.populateWorkloadResultDetail(v.adminObjId)") {{'DETAILS' | translate}}
+                                    a(href="#modalWorkloadList", data-toggle="modal", data-target='#modalWorkloadList', ng-click="vm.populateWorkloadResultDetail(bi, v.adminObjId)") {{'DETAILS' | translate}}
 
 //ModalWorkloadList
 #modalWorkloadList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')

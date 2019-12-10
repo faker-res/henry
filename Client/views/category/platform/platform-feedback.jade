@@ -144,6 +144,9 @@
                 option(value='false') {{'DISABLE'|translate}}
                 option(value='true') {{'CALLABLE'|translate}}
                 option(value='all') {{'ALL'|translate}}
+    .search-filters-item
+        label {{"PERMISSION"|translate}}
+        select.spicker.form-control(ng-model='vm.playerFeedbackQuery.playerPermission', bsp, multiple, data-actions-box='true', ng-options='v as i | translate for (i,v) in vm.playerPermission', ng-change='vm.playerAdvanceSearchQuery.playerPermission = vm.getPermissionName(vm.playerAdvanceSearchQuery.playerPermission)' )
     .text-right
         button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="one";vm.searchPlayerFeedback(true, false);') {{"SEARCH_SINGLE" | translate}}
         button.btn.btn-primary.btn-space(ng-if="checkViewPermission('Platform','Feedback','Read')",ng-click='vm.playerFeedbackSearchType="many";vm.searchPlayerFeedback(true, false);') {{"SEARCH_LIST" | translate}}

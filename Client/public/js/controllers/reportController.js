@@ -54,7 +54,8 @@ define(['js/app'], function (myApp) {
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
             APPROVED: "approved",
-            MANUAL: "Manual"
+            MANUAL: "Manual",
+            SENDING: "Sending"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -6994,7 +6995,7 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.dxNewPlayerQuery.topUpAmountValueTwo
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.dxNewPlayerQuery.index || 0)),
-                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || null),
+                limit: isExport ? 10000 : (vm.dxNewPlayerQuery.limit || 20),
                 sortCol: vm.dxNewPlayerQuery.sortCol || {validConsumptionAmount: -1}
             };
 
@@ -7298,6 +7299,8 @@ define(['js/app'], function (myApp) {
                 $('#dxNewPlayerReportTable').on('order.dt', function (event, a, b) {
                     vm.commonSortChangeHandler(a, 'dxNewPlayerQuery', vm.searchDXNewPlayerReport);
                 });
+
+                vm.dxNewPlayerQuery.pageObj.init({maxCount: size}, newSearch);
             }
 
         };
@@ -11186,6 +11189,14 @@ define(['js/app'], function (myApp) {
 
 
 
+                } else if(reportName == "PLATFORM_OVERVIEW_REPORT") {
+                    tableId = "platformOverviewReportTable";
+                    tab = document.getElementById(tableId);
+
+                    htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" ;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[1].innerHTML + "</tr>";
+                    htmlContent += tab.getElementsByTagName('tbody')[0].innerHTML;
+                    htmlContent += "<tr>" + tab.getElementsByTagName('tfoot')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>";
                 } else{
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
@@ -12075,7 +12086,7 @@ define(['js/app'], function (myApp) {
 
                 case "DX_NEWACCOUNT_REPORT":
                     vm.reportSearchTime = 0;
-                    utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
+                    utilService.actionAfterLoaded('#dxNewPlayerReportTablePage', function () {
                         let yesterday = utilService.setNDaysAgo(new Date(), 1);
                         let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                         let todayEndTime = utilService.getTodayEndTime();
@@ -12146,6 +12157,10 @@ define(['js/app'], function (myApp) {
                         vm.dxNewPlayerQuery.queryStart.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.queryEnd = utilService.createDatePickerWithoutTime('#dxNewPlayerReportQuery .queryEndTime');
                         vm.dxNewPlayerQuery.queryEnd.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                        vm.dxNewPlayerQuery.pageObj = utilService.createPageForPagingTable("#dxNewPlayerReportTablePage", {pageSize: 20}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "dxNewPlayerQuery", vm.searchDXNewPlayerReport);
+                        });
                     });
                     break;
                 case "PLAYERDOMAIN_REPORT":
@@ -12313,6 +12328,22 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     break;
+                case 'PLATFORM_OVERVIEW_REPORT':
+                    vm.platformOverviewReport = {};
+                    vm.platformOverviewReportList = [];
+                    vm.platformOverviewReportSummary = {};
+                    vm.platformOverviewLoginDeviceList = {};
+                    let tempLoginList = Object.keys(vm.propsosalDeviceList).slice(0,18);
+                    Object.keys(vm.propsosalDeviceList).forEach(key => {
+                        let index = tempLoginList.indexOf(key);
+                        if (index > -1) {
+                            vm.platformOverviewLoginDeviceList[key] = vm.propsosalDeviceList[key];
+                        }
+                    });
+                    vm.platformOverviewLoginDeviceList['3'] = 'APP Player';
+                    utilService.actionAfterLoaded("#platformOverviewReport", function () {
+                        vm.commonInitTime(vm.platformOverviewReport, '#platformOverviewReport', null, true);
+                    });
             }
 
             function createMerGroupList(nameObj, listObj) {
@@ -13632,6 +13663,43 @@ define(['js/app'], function (myApp) {
                 $('#referralRewardReportTable').resize();
             }
         }
+        //#endregion
+
+        //#region Platform Overview Report
+        vm.searchPlatformOverviewReport = function () {
+            vm.platformOverviewReportList = [];
+            vm.platformOverviewReportSummary = {};
+            vm.reportSearchTimeStart = new Date().getTime();
+            $('#platformOverviewReportSpin').show();
+
+            let sendData = {
+                platformList: vm.platformOverviewReport.platformList,
+                startTime: vm.platformOverviewReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.platformOverviewReport.endTime.data('datetimepicker').getLocalDate()
+            };
+
+            let selectedLoginDevice = [];
+            if (vm.platformOverviewReport && vm.platformOverviewReport.loginDevice && vm.platformOverviewReport.loginDevice.length &&
+                vm.platformOverviewReport.loginDevice.length != Object.keys(vm.platformOverviewLoginDeviceList).length) {
+                selectedLoginDevice = vm.platformOverviewReport.loginDevice;
+                if (vm.platformOverviewReport.loginDevice.indexOf("3") > -1) {
+                    selectedLoginDevice.push("4");
+                }
+
+                sendData.loginDevice = selectedLoginDevice;
+            }
+
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getPlatformOverviewReport', sendData, function (data) {
+                findReportSearchTime();
+                console.log('searchPlatformOverviewReport', data);
+                $scope.$evalAsync(() => {
+                    vm.platformOverviewReportList = data && data.data && data.data.data ? data.data.data : [];
+                    vm.platformOverviewReportSummary = data && data.data && data.data.summary ? data.data.summary : {};
+                });
+                $('#platformOverviewReportSpin').hide();
+            });
+        };
         //#endregion
 
         // $scope.$on('$viewContentLoaded', function () {

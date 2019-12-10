@@ -163,14 +163,17 @@ function getClientClient (playerLoginData, options) {
     return connectToServer([env.clientAPIServerUrl], allServicesIn(ClientServices), playerLoginData, options);
 }
 
-function getContentProviderAPIClient (options) {
+function getContentProviderAPIClient(options) {
     if (env.disableCPAPI) {
         throw Error("You may not create this client: CPAPI is disabled.");
     }
     let selectedCpAPIUrl = [];
-    if (options && options.platformId && env && env.cpAPIUrlList){
-        if (env.cpAPIUrlList && env.cpAPIUrlList[options.platformId]) {
-            selectedCpAPIUrl.push(env.cpAPIUrlList[options.platformId]);
+    if (options && options.platformId && env && env.cpAPIUrlList) {
+        // Backend office request use backup line to process
+        if (!options.isFromBackend) {
+            if (env.cpAPIUrlList && env.cpAPIUrlList[options.platformId]) {
+                selectedCpAPIUrl.push(env.cpAPIUrlList[options.platformId]);
+            }
         }
 
         if (env.cpAPIUrlList2 && env.cpAPIUrlList2[options.platformId]) {
@@ -179,10 +182,10 @@ function getContentProviderAPIClient (options) {
     }
 
     // choose the default url if there is not matching url
-    if (env.cpAPIUrl){
+    if (env.cpAPIUrl) {
         selectedCpAPIUrl.push(env.cpAPIUrl);
     }
-    if (env.cpAPIUrl2){
+    if (env.cpAPIUrl2) {
         selectedCpAPIUrl.push(env.cpAPIUrl2);
     }
 

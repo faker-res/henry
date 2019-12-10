@@ -10,7 +10,6 @@ let register = {
             functionName: "playerLoginOrRegisterWithSMS",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码' },
                 { param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码' },
                 { param: "accountPrefix", mandatory: "否", type: 'String', content: '玩家帐号前缀' },
@@ -37,7 +36,6 @@ let register = {
             functionName: "registerByPhoneNumberAndPassword",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码' },
                 { param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码' },
                 { param: "password", mandatory: "是", type: 'String', content: '密码' },
@@ -63,7 +61,6 @@ let register = {
             functionName: "createGuestPlayer",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "guestDeviceId", mandatory: "是", type: 'String', content: '设备ID' },
                 { param: "phoneNumber", mandatory: "否", type: 'String', content: '填写则绑定电话号码+设备ID' },
                 { param: "accountPrefix", mandatory: "否", type: 'String', content: '账号名字前缀 默认 "g"' },
@@ -93,7 +90,6 @@ let register = {
                 { param: "name", mandatory: "是", type: 'String', content: '玩家注册的用户名.(需验证用户是否被占用)' },
                 { param: "realName", mandatory: "否", type: 'String', content: '真实姓名' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },
-                { param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台' },
                 { param: "referral", mandatory: "否", type: 'String', content: '推荐人的玩家用户名' },
                 { param: "domain", mandatory: "否", type: 'String', content: '当下注册域名' },
                 { param: "phoneNumber", mandatory: "否", type: 'String', content: '玩家手机号码' },

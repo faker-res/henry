@@ -130,17 +130,19 @@ function createAPIClientInMode (apiName, mode) {
 }
 
 /**
- *
- * @param apiName
- * @param mode {String} Can be 'real', 'logged', 'compare' or 'mock'
+ * @param {String} apiName
+ * @param {String} mode: Can be 'real', 'logged', 'compare' or 'mock'
+ * @param {String} platformId
+ * @param {Boolean} isFromBackend
+ * @return {Promise}
  */
-function createAPIConnectionInMode (apiName, mode, platformId) {
+function createAPIConnectionInMode(apiName, mode, platformId, isFromBackend) {
     mode = mode || defaultMode;
     if (mode === 'mocked') {
         mode = 'mock';
     }
 
-    var apiSpec = apis[apiName] || throwError("No such api: " + apiName);
+    let apiSpec = apis[apiName] || throwError("No such api: " + apiName);
 
     if (apiSpec.disabled) {
         mode = 'mock';
@@ -151,15 +153,26 @@ function createAPIConnectionInMode (apiName, mode, platformId) {
     }
 
     // Choose whether to create a real client or a mocked client, or both (for 'compare' mode).
-    const realClientProm = (mode === 'real' || mode === 'logged' || mode === 'compare') && apiSpec.real({platformId: platformId});
-    const mockedClient   = (mode === 'mock' || mode === 'compare') && mockedClientCreator.createMockedClient(apiSpec.mock, apiName);
+    let realClientOptions = {
+        platformId: platformId
+    };
+
+    if (isFromBackend) {
+        realClientOptions.isFromBackend = isFromBackend;
+    }
+
+    const realClientProm =
+        (mode === 'real' || mode === 'logged' || mode === 'compare') && apiSpec.real(realClientOptions);
+    const mockedClient =
+        (mode === 'mock' || mode === 'compare')
+        && mockedClientCreator.createMockedClient(apiSpec.mock, apiName);
     const gameClient = mode === 'game' && apiSpec.game();
 
     const finalClientProm =
         mode === 'real' ? realClientProm
             : mode === 'mock' ? Q.resolve(mockedClient)
                 : mode === 'logged' || mode === 'compare' ? realClientProm.then(client => logThisClient(apiName, client, mockedClient))
-                   : mode === 'game' ?  gameClient
+                   : mode === 'game' ? gameClient
                         : throwError("No such mode: " + mode);
 
     console.log("Using " + mode + " connection for " + apiName);

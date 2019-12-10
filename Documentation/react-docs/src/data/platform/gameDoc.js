@@ -327,7 +327,6 @@ let game = {
             functionName: "getProviderList",
             desc:"获取玩家所在平台的所有游戏提供商列表。",
             requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "平台ID  没有玩家ID的情况下是必填" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID 没有平台ID的情况下是必填" },
             ],
             respondSuccess:{
@@ -344,6 +343,7 @@ let game = {
             serviceName: "game",
             functionName: "transferToProvider",
             desc:"将本地额度入到CP账号的游戏额度。此接口支持游戏间互换。",
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.transferToProvider
@@ -359,6 +359,7 @@ let game = {
             serviceName: "game",
             functionName: "transferFromProvider",
             desc:"将游戏额度从CP账号转出到本地额度。",
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.transferFromProvider
@@ -377,8 +378,6 @@ let game = {
             requestContent:[
                 { param: "gameId", mandatory: "是", type: "String", content: "游戏Id " },
                 { param: "clientDomainName", mandatory: "是", type: "String", content: "客户端域名  " },
-                { param: "clientType", mandatory: "否", type: "Int", content: `1：pc
-                                                                               2: 手机` },
             ],
             respondSuccess:{
                 status: 200,
@@ -398,8 +397,6 @@ let game = {
             requestContent:[
                 { param: "gameId", mandatory: "是", type: "String", content: "游戏Id " },
                 { param: "clientDomainName", mandatory: "是", type: "String", content: "客户端域名 " },
-                { param: "clientType", mandatory: "否", type: "Int", content: `1：Browser
-                                                                               2: APP` },
             ],
             respondSuccess:{
                 status: 200,
@@ -417,11 +414,8 @@ let game = {
             functionName: "getTestLoginURLWithOutUser",
             desc:"不需要玩家登陆",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id " },
                 { param: "gameId", mandatory: "是", type: "String", content: "游戏Id " },
                 { param: "clientDomainName", mandatory: "是", type: "String", content: "客户端域名 " },
-                { param: "clientType", mandatory: "否", type: "Int", content: `1：pc
-                                                                               2: 手机` },
             ],
             respondSuccess:{
                 status: 200,
@@ -440,7 +434,6 @@ let game = {
             desc:"",
             requestContent:[
                 { param: "username", mandatory: "否", type: "String", content: "玩家在平台的用户名" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id " },
                 { param: "providerId", mandatory: "是", type: "String", content: "游戏提供商Id " },
             ],
             respondSuccess:{
@@ -458,7 +451,6 @@ let game = {
             functionName: "grabPlayerTransferRecords",
             desc:"请求立即收录玩家最新的消费记录。响应内容会有不同，会响应收录处理过程的内容。状态会返回201, 并返回progressContent来报告处理的过程。收录完成之后，CPMS会向FPMS调用添加消费记录API来添加玩家的消费记录。",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id " },
                 { param: "providerId", mandatory: "是", type: "String", content: "游戏提供商Id, 如果Id为null, 则查询玩家所有平台的消费记录 " },
             ],
             respondSuccess:{
@@ -533,7 +525,6 @@ let game = {
             functionName: "getGameGroupList",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "requestCount", mandatory: "否", type: "Int", content: "查询记录总数量，用于分页" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "查询结果记录开始index" },
             ],
@@ -552,7 +543,6 @@ let game = {
             functionName: "getGameGroupInfo",
             desc:"获取游戏分组游戏，子组信息",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "code", mandatory: "是", type: "String", content: "分游组代码" },
                 { param: "providerId", mandatory: "否", type: "String", content: "(默认全部） 供应商ID，过滤组内的游戏供应商" },
                 { param: "requestCount", mandatory: "否", type: "Int", content: "请求数据量， 默认查询100条游戏" },
@@ -573,7 +563,6 @@ let game = {
             functionName: "getGameGroupTreeInfo",
             desc:"获取游戏分组树信息",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "code", mandatory: "否", type: "String", content: "分游组代码" },
                 { param: "containGames", mandatory: "否", type: "Boolean", content: "是否包含游戏信息" },
                 { param: "startIndex", mandatory: "否", type: "Int", content: "回数据跳过个数，用于分页，可选参数， 默认值为0" },
@@ -594,7 +583,6 @@ let game = {
             functionName: "searchGame",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "providerId", mandatory: "否", type: "String", content: "(默认全部） 供应商ID，过滤组内的游戏供应商" },
                 { param: "name", mandatory: "否", type: "String", content: "模糊查询游戏名字" },
                 { param: "type", mandatory: "否", type: "String", content: "(/默认全部）游戏类型由CPMS提供，可在游戏提供商功能查询" },
@@ -652,7 +640,6 @@ let game = {
             functionName: "getGamePassword",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "providerId", mandatory: "是", type: "String", content: "提供商Id" },
             ],
             respondSuccess:{
@@ -688,7 +675,6 @@ let game = {
             functionName: "getLiveGameInfo",
             desc:"",
             requestContent:[
-                // { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "count", mandatory: "否", type: "String", content: "" },
                 { param: "switchNotify", mandatory: "否", type: "Boolean", content: `notifyLiveGameStatus的开关，false则不返回资料和关闭推送 注意，这里的platformId主要是给notifyLiveGameStatus。当调用getLiveGameInfo后，notifyLiveGameStatus 才会推送。` },
 ],
