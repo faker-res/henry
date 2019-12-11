@@ -30649,15 +30649,7 @@ let dbPlayerInfo = {
 
     setTestLog: (data) => {
         let saveObj = {data: data};
-        return dbconfig.collection_testlog(saveObj).save().then(
-            data => {
-                return data;
-            },
-            err => {
-                console.log("walaoerr", err)
-                return Promise.reject(err);
-            }
-        );
+        return dbconfig.collection_testlog(saveObj).save();
     },
 
     setPhoneNumber: (playerId, phoneNumber, smsCode) => {
