@@ -468,6 +468,7 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "Verification code send failure, please contact customer service": "验证码发送失败，请联系客服人员",
     "Incorrect parameter type": "参数类型错误",
     "Cannot transfer negative amount": "金额不能是负数",
     "Spending Times cannot be empty": "解锁流水不能为空",
