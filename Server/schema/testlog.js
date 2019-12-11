@@ -7,7 +7,7 @@ var testlogSchema = new Schema({
     },
     {
         writeConcern: {
-            w: 4,
+            w: 2,
             j: true,
             wtimeout: 2000
         }
