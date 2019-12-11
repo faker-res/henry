@@ -521,6 +521,7 @@ var simplifiedChinese = {
     "Please fill in correct amount": "请填写正确金额",
     "Unable to find player": "找不到玩家",
     "Please select correct top up type": "请选择正确充值类型",
+    "Voice code failed to send, please contact customer service": "验证码发送失败，请联系客服人员",
 
     //proposal type names
     AddPlayerRewardTask: "手工添加优惠",
