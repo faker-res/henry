@@ -30647,19 +30647,6 @@ let dbPlayerInfo = {
         }
     },
 
-    setTestLog: (data) => {
-        let saveObj = {data: data};
-        return dbconfig.collection_testlog(saveObj).save().then(
-            data => {
-                return data;
-            },
-            err => {
-                console.log("walaoerr", err)
-                return Promise.reject(err);
-            }
-        );
-    },
-
     setPhoneNumber: (playerId, phoneNumber, smsCode) => {
         let player, platform, encryptedPhoneNumber;
         return dbconfig.collection_players.findOne({playerId}).populate({path: 'platform', model: dbconfig.collection_platform}).lean().then(

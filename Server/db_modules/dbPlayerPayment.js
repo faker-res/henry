@@ -1113,7 +1113,7 @@ const dbPlayerPayment = {
         }
 
         // Check minimum top up amount
-        minTopUpAmount = await getMinTopUpAmount(platformData, playerData);
+        minTopUpAmount = await getMinTopUpAmount(platformData, playerData, clientType);
         if (!data.proposalId && (amount < minTopUpAmount)) {
             return Promise.reject({
                 status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -1504,7 +1504,7 @@ const dbPlayerPayment = {
         }
 
         // Check minimum top up amount
-        minTopUpAmount = await getMinTopUpAmount(platformData, playerData);
+        minTopUpAmount = await getMinTopUpAmount(platformData, playerData, reqData.clientType);
         if (reqData.amount < minTopUpAmount) {
             return Promise.reject({
                 status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -1818,7 +1818,7 @@ async function checkFailTopUp (player, returnData) {
     return returnData;
 }
 
-function getMinTopUpAmount(platformData, playerData){
+function getMinTopUpAmount(platformData, playerData, clientType){
     let playerTopUpCount;
     let platformTopUpAmountConfig;
     let defaultMinTopUpAmount = 10;
@@ -1849,13 +1849,47 @@ function getMinTopUpAmount(platformData, playerData){
             platformTopUpAmountConfig = data[1];
 
             let newMinTopUpAmount;
-            if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
+            let configClientType;
+            let topUpAmountRangeConfig = [];
+            let topUpCountAmountRangeConfig = [];
+
+            switch (Number(clientType)) {
+                case 1:
+                    configClientType = '1';
+                    break;
+                case 2:
+                    configClientType = '2';
+                    break;
+                case 4:
+                    configClientType = '3'
+                    break;
+            }
+
+            if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpAmountRange && platformTopUpAmountConfig.topUpAmountRange.length > 0 && configClientType) {
+                platformTopUpAmountConfig.topUpAmountRange.forEach(range => {
+                    if (range && range.device && range.device.includes(String(configClientType))) {
+                        topUpAmountRangeConfig.push(range);
+                    }
+                });
+            }
+
+            if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0 && configClientType) {
+                platformTopUpAmountConfig.topUpCountAmountRange.forEach(range => {
+                    if (range && range.device && range.device.includes(String(configClientType))) {
+                        topUpCountAmountRangeConfig.push(range);
+                    }
+                });
+            }
+
+            if (topUpAmountRangeConfig && topUpAmountRangeConfig.length > 0 && topUpAmountRangeConfig[0] && topUpAmountRangeConfig[0].minAmount) {
+                newMinTopUpAmount = topUpAmountRangeConfig[0].minAmount;
+            } else if (platformTopUpAmountConfig && platformTopUpAmountConfig.commonTopUpAmountRange
                 && platformTopUpAmountConfig.commonTopUpAmountRange.minAmount) {
                 newMinTopUpAmount = platformTopUpAmountConfig.commonTopUpAmountRange.minAmount;
             }
 
-            if (platformTopUpAmountConfig && platformTopUpAmountConfig.topUpCountAmountRange && platformTopUpAmountConfig.topUpCountAmountRange.length > 0) {
-                let topUpCountAmountRanges = platformTopUpAmountConfig.topUpCountAmountRange;
+            if (topUpCountAmountRangeConfig && topUpCountAmountRangeConfig.length > 0) {
+                let topUpCountAmountRanges = topUpCountAmountRangeConfig;
                 topUpCountAmountRanges.sort((a, b) => a.topUpCount - b.topUpCount);
 
                 for (let i = 0; i < topUpCountAmountRanges.length; i++) {
