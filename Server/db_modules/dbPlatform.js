@@ -2044,6 +2044,26 @@ var dbPlatform = {
         return Promise.resolve(proms);
     },
 
+    bulkSendSMSToTsList: (adminObjId, adminName, data, phones) => {
+        let proms = [];
+        if (phones && phones.length) {
+            phones.map(phone => {
+                let clonedData = Object.assign({}, data);
+                clonedData.hasPhone = phone;
+                clonedData.name = phone;
+                let prom = dbPlatform.sendNewPlayerSMS(adminObjId, adminName, clonedData).catch(error => {
+                    console.error("Sms failed for phone:", phone, "- error:", error);
+                    errorUtils.reportError(error);
+                    return {phone, error}
+                });
+
+                proms.push(prom);
+            });
+        }
+
+        return Promise.resolve(proms);
+    },
+
     sendNewPlayerSMS: function (adminObjId, adminName, data) {
 
         var sendObj = {
@@ -6747,13 +6767,16 @@ var dbPlatform = {
                         allObjList.displayFormat = defaultCategory.displayFormat;
                     }
                     listedCategory = allCategory.filter( p => {return p && p.categoryName && (p.categoryName != "全部分类" && p.categoryName != "已结束")});
-                    endedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "已结束"});
-                    if (endedCategory && endedCategory.length){
-                        endedCategory = endedCategory[0];
-                    }
-                    endedObjList.defaultShow = endedCategory.defaultShow || false;
-                    if (endedCategory.displayFormat){
-                        endedObjList.displayFormat = endedCategory.displayFormat;
+
+                    if(code == "reward") {
+                        endedCategory = allCategory.filter( p => {return p && p.categoryName && p.categoryName == "已结束"});
+                        if (endedCategory && endedCategory.length) {
+                            endedCategory = endedCategory[0];
+                        }
+                        endedObjList.defaultShow = endedCategory.defaultShow || false;
+                        if (endedCategory.displayFormat) {
+                            endedObjList.displayFormat = endedCategory.displayFormat;
+                        }
                     }
 
                 }
@@ -6771,16 +6794,15 @@ var dbPlatform = {
                 settingList.forEach(
                     p => {
                         if (p && p._id && p.categoryObjId && p.categoryObjId.categoryName) {
-                            // if (objList && !objList[p.categoryObjId.categoryName]){
-                            //     objList[p.categoryObjId.categoryName] = [];
-                            // }
-                            if(p.hasEnded){
+                            if(p.hasEnded && code == "reward"){
                                 if (endedObjList && endedObjList.list){
                                     endedObjList.list.push(p);
                                 }
                             }
                             else{
-                                objList[p.categoryObjId.categoryName].push(p);
+                                if (objList[p.categoryObjId.categoryName]) {
+                                    objList[p.categoryObjId.categoryName].push(p);
+                                }
                                 if (allObjList && allObjList.list){
                                     allObjList.list.push(p);
                                 }
@@ -6811,7 +6833,7 @@ var dbPlatform = {
                     arrayList.push({name: key, defaultShow: isShow, displayFormat: tempDisplayFormat, list: objList[key]})
                 })
 
-                if (arrayList && endedObjList){
+                if (arrayList && endedObjList && code == "reward"){
                     // sort allObjList based on orderNumber
                     if (endedObjList && endedObjList.list && endedObjList.list.length){
                         endedObjList.list.sort(function (a, b) {

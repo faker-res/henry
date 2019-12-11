@@ -13,7 +13,7 @@
                 .full-width-input-block
                     label {{"PRODUCT_NAME"|translate}}
                     div.inline-block
-                        select.form-control.inline-block(ng-model="vm.autoFeedbackMission.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-disabled="vm.autoFeedbackEditStatus" ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();')
+                        select.form-control.inline-block(ng-model="vm.autoFeedbackMission.platformObjId" ng-options='v._id as v.name$ for v in vm.allPlatformData' ng-disabled="vm.autoFeedbackEditStatus" ng-change='vm.getCredibilityRemarksLocal();vm.getAllPlayerLevelsLocal();vm.getAllGameProvidersLocal();vm.loadDepartmentLocal();vm.loadPromoCodeTemplate(vm.autoFeedbackMission.platformObjId)')
                 .full-width-input-block
                     label {{"Feedback Mission Name"|translate}}
                     div.inline-block

@@ -705,10 +705,7 @@ let reward = {
             serviceName: "reward",
             functionName: "getRewardList",
             desc:"获取玩家所在平台正在举行的奖励活动列表",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-                { param: "clientType", mandatory: "否", type: "String", content: "1：WEB，2：H5，4：APP，5: Android APP, 6: IOS APP" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getRewardList
@@ -742,7 +739,6 @@ let reward = {
             functionName: "getPlayerRewardList",
             desc:"获取玩家以申请的奖励",
             requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" },
                 { param: "startIndex", mandatory: "是", type: "int", content: "记录开始索引" },
                 { param: "requestCount", mandatory: "是", type: "int", content: "请求记录数量" },
                 { param: "rewardType", mandatory: "是", type: "int", content: "优惠类型" },
@@ -767,7 +763,6 @@ let reward = {
             functionName: "getRewardApplicationData",
             desc:"获取申请优惠需要的条件信息",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "code", mandatory: "是", type: "String", content: "优惠唯一代码" }
             ],
             respondSuccess:{
@@ -810,7 +805,6 @@ let reward = {
             functionName: "getRewardRanking",
             desc:"获取申请优惠需要的条件信息",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID" },
                 { param: "code", mandatory: "是", type: "String", content: "优惠code得" },
                 { param: "sortType", mandatory: "是", type: "int", content: "以什么类型排行 - 1.单笔最高优惠金额, 2.总累积最高金额, 3.累积成功领取次数, 4.领取时间" },
@@ -835,7 +829,6 @@ let reward = {
             functionName: "requestConsumeRebate",
             desc:"玩家向系统提前申请未结算的洗码。结算结果将以通知的方式告诉客户端。这里将返回是否启动了结算。",
             requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" },
                 { param: "eventCode", mandatory: "否", type: "int", content: "该洗码的优惠代码，用在有两种洗码的情况" }
             ],
             respondSuccess:{
@@ -889,7 +882,6 @@ let reward = {
             functionName: "getLimitedOffers",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "优惠活动代码" },
                 { param: "status", mandatory: "是", type: "String", content: `0:初始状态 
                                                                               1:可以秒杀
                                                                               2:秒杀成功
@@ -931,7 +923,6 @@ let reward = {
             functionName: "getLimitedOfferBonus",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "period", mandatory: "否", type: "int", content: "小时（几个小时内的产生的秒杀礼包优惠）" }
             ],
             respondSuccess:{
@@ -970,7 +961,6 @@ let reward = {
             desc:"当有签到奖励时，显示每一阶的领取状态",
             requestContent:[
                 { param: "code", mandatory: "否", type: "String", content: "优惠系统代码，不填则获取最新签到优惠" },
-                { param: "platformId", mandatory: "否", type: "int", content: "若要在非登入状态下获取信息则必填" }
             ],
             respondSuccess:{
                 status: 200,
@@ -1023,10 +1013,7 @@ let reward = {
             serviceName: "reward",
             functionName: "getTopUpPromoList",
             desc:"获取目前正在进行中的充值优惠",
-            requestContent:[
-                { param: "clientType", mandatory: "是", type: "String", content: `1–浏览器
-                                                                                  2–手机App` }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getTopUpPromoList
@@ -1044,7 +1031,6 @@ let reward = {
             desc:"获取玩家存送金优惠状态。即使没登入，只要发送平台ID仍可获取。可否获取奖励是以最新的存款来判断",
             requestContent:[
                 { param: "code", mandatory: "否", type: "String", content: "优惠系统代码，不填则获取最新存送金优惠" },
-                { param: "platformId", mandatory: "否", type: "int", content: "若要在非登入状态下获取信息则必填" }
             ],
             respondSuccess:{
                 status: 200,
@@ -1062,7 +1048,6 @@ let reward = {
             functionName: "getTopUpRewardDayLimit",
             desc:"需要先在后台设定优惠日限",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "rewardCode", mandatory: "是", type: "String", content: "优惠唯一代码" }
             ],
             respondSuccess:{
@@ -1082,7 +1067,6 @@ let reward = {
             functionName: "setBonusShowInfo",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "showInfo", mandatory: "是", type: "int", content: `0:不显示
                                                                              1:显示` }
             ],
@@ -1102,7 +1086,6 @@ let reward = {
             functionName: "getPromoCode",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "status", mandatory: "是", type: "String", content: `1 未领取 AVAILABLE
                                                                               2 已领取 ACCEPTED
                                                                               3 已过期 EXPIRED` }
@@ -1159,7 +1142,6 @@ let reward = {
             functionName: "getOpenPromoCode",
             desc:"",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台Id" },
                 { param: "status", mandatory: "否", type: "String", content: `1 未领取 AVAILABLE
                                                                               2 已领取 ACCEPTED
                                                                               3 已过期 EXPIRED` }

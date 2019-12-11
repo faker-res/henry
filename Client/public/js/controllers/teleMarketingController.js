@@ -677,6 +677,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchAdminPhoneList = function (newSearch) {
+            vm.selectedTsPhoneToSms = [];
+            vm.checkBoxStatus = {};
             console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
             $('#adminPhoneListTableSpin').show();
 
@@ -690,6 +692,8 @@ define(['js/app'], function (myApp) {
                 $('#adminPhoneListTableSpin').hide();
                 console.log('getAdminPhoneList', data);
                 vm.queryAdminPhoneList.totalCount = data.data.size;
+                vm.adminPhoneListData = data.data.data;
+                vm.adminPhoneListData.platform = data.data.data.length ? data.data.data[0].platform : null;
                 vm.drawAdminPhoneList(
                     data.data.data.map(item => {
                         if (item.tsPhone && item.tsPhone.phoneNumber) {
@@ -717,6 +721,14 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
+        vm.checkedBox = function(phone, checkBoxStatus, index) {
+            if (checkBoxStatus) {
+                vm.selectedTsPhoneToSms.push(phone);
+            } else {
+                let indexNum = vm.selectedTsPhoneToSms.indexOf(phone);
+                vm.selectedTsPhoneToSms.splice(indexNum, 1);
+            }
+        };
 
         vm.drawAdminPhoneList = function (data, size, summary, newSearch, isReminderTable) {
             let objKey = "queryAdminPhoneList";
@@ -742,8 +754,18 @@ define(['js/app'], function (myApp) {
                     {
                         title: '<div><input type="checkbox" id="selectAllPhone"></div>',
                         visible: !vm.isCallOutMissionMode,
-                        render: function (data, type, row) {
-                            return $('<div>', {}).append($('<input type="checkbox" class="chosenPhone" data-id="'+row._id+'">', {}).text(data)).prop('outerHTML');
+                        render: function (data, type, row, index) {
+                            vm.checkBoxStatus[index.row] = false;
+                            let link = $('<div>', {});
+                            link.append($('<input>', {
+                                type: "checkbox",
+                                class: "chosenPhone",
+                                id: "checked",
+                                "data-_id": row._id,
+                                "ng-model": "vm.checkBoxStatus['" + index.row + "']",
+                                "ng-change": "vm.checkedBox('" + row.tsPhone.phoneNumber + "', vm.checkBoxStatus['"+index.row+"'], '" + index.row +"')"
+                            })).prop('outerHTML');
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -1602,6 +1624,61 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync();
                 $scope.makePhoneCall(data.platformId, true);
             }
+        };
+
+        vm.bulkSmsToTsPhoneBtn = function (phones) {
+            if (vm.adminPhoneListData.platform) {
+                vm.allPlatformData.forEach(platform => {
+                    if (platform._id.toString() === vm.adminPhoneListData.platform.toString()) {
+                        vm.adminPhoneListData.platformId = platform.platformId;
+                    }
+                });
+                vm.getSMSTemplate(vm.adminPhoneListData.platform);
+            }
+
+            let encodedPhoneNumber = [];
+            let encodedPhoneNumber$ = "";
+            if (phones && phones.length) {
+                phones.forEach(phone => {
+                    encodedPhoneNumber.push(utilService.encodePhoneNum(phone));
+                });
+                encodedPhoneNumber$ = encodedPhoneNumber.join(', ');
+            }
+
+            if (authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                if (!(phones && phones.length)) {
+                    return;
+                }
+                vm.smsTsPhone = {
+                    name: encodedPhoneNumber$,
+                    platformId: vm.adminPhoneListData.platformId,
+                    hasPhone: phones,
+                    platform: vm.adminPhoneListData.platform,
+                    message: ''
+                };
+
+                vm.smsTsPhone.channel = null;
+                if ($scope.usableChannelList && $scope.usableChannelList.length > 0) {
+                    if ($scope.usableChannelList.includes(4)) {
+                        vm.smsTsPhone.channel = 4; //set default sms channel
+                    } else {
+                        vm.smsTsPhone.channel = $scope.usableChannelList[0];
+                    }
+                }
+
+                vm.sendSMSResult = {};
+                $scope.safeApply();
+                $('#bulkSmsToTsPhoneModal').modal('show');
+            }
+        };
+
+        vm.bulkSendSMSToTsList = function () {
+            vm.sendSMSResult = {sent: "sending"};
+
+            return $scope.bulkSendSMSToTsList(vm.smsTsPhone, function (data) {
+                vm.sendSMSResult = {sent: true, result: data.success};
+                $scope.safeApply();
+            });
         };
 
         vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId, platformObjId) {
@@ -2887,6 +2964,10 @@ define(['js/app'], function (myApp) {
 
         vm.changeSMSTemplate = function () {
             vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
+        };
+
+        vm.changeSMSTemplateTs = function () {
+            vm.smsTsPhone.message = vm.smstpl ? vm.smstpl.content : '';
         };
 
         vm.initSMSLog = function (type) {
@@ -6946,8 +7027,8 @@ define(['js/app'], function (myApp) {
                 })
             });
         };
-        vm.populateWorkloadResultDetail = (adminObjId) => {
-            vm.workloadResultDetail = vm.workloadResult[adminObjId];
+        vm.populateWorkloadResultDetail = (index, adminObjId) => {
+            vm.workloadResultDetail = vm.workloadResult[index]["report"][adminObjId];
             vm.workloadResultSummary.forEach(summary => {
                 if(summary.adminObjId == adminObjId) {
                     vm.workloadResultDetailSums = summary;

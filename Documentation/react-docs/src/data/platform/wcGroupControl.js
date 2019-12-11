@@ -25,6 +25,15 @@ const sampleData = {
     "_id": "5c00ea00a74e6513542c639a",
     "createTime": "2018-11-30T07:42:56.012Z"
 }`,
+    bindPlayerWechatInfo:`{
+    "deviceId": "abc456",  //手机设备号
+    "platformObjId": "5733e26ef8c8a9355caf49d8", 
+    "playerWechatRemark": "player45", //备注
+    "playerWechatId": "player456", //玩家微信号
+    "playerWechatNickname": "dfgdfg", //玩家昵称
+    "_id": "5de8a08306dae20345f88c21",
+    "createTime": "2019-12-05T06:15:31.657Z"
+}`
 }
 
 let wcControl = {
@@ -87,6 +96,7 @@ let wcControl = {
             ],
             respondSuccess:{
                 status: 200,
+                data: sampleData.bindPlayerWechatInfo
             },
             respondFailure: {
                 status: "4xx",

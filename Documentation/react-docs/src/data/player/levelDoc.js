@@ -107,9 +107,7 @@ let level = {
             serviceName: "playerLevel",
             functionName: "getLevel",
             desc:"获取玩家等级信息",
-            requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getLevel
@@ -124,9 +122,7 @@ let level = {
             serviceName: "playerLevel",
             functionName: "getLevelReward",
             desc:"获取玩家当前等级的",
-            requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getLevelReward
@@ -140,9 +136,7 @@ let level = {
             serviceName: "playerLevel",
             functionName: "getAllLevel",
             desc:"获取全部玩家等级",
-            requestContent:[
-                { param: "playerId", mandatory: "是", type: "String", content: "玩家ID" }
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getAllLevel

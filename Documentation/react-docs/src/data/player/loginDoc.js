@@ -15,7 +15,6 @@ let loginLogout = {
             functionName: "login",
             desc: "玩家登录接口",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台' },
                 { param: "name", mandatory: "是", type: 'String', content: '玩家用户名' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },
                 { param: "captcha", mandatory: "否", type: 'String', content: '验证码 (登录三次失败后需要填验证码)' },
@@ -81,7 +80,6 @@ let loginLogout = {
             functionName: "playerLoginOrRegisterWithSMS",
             desc: "通过电话号码注册或登入 playerObject包含token，用于重新建立链接, isHitReferralLimit-是否达到推荐人上限（true/false-给前端处理信息）",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码' },
                 { param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码' },
                 { param: "accountPrefix", mandatory: "否", type: 'String', content: '玩家帐号前缀' },
@@ -105,7 +103,6 @@ let loginLogout = {
             functionName: "phoneNumberLoginWithPassword",
             desc: "使用电话号码和密码登入 玩家登录接口",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '玩家注册平台' },
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家手机号' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },
                 { param: "captcha", mandatory: "否", type: 'String', content: '验证码 (登录三次失败后需要填验证码)' },
@@ -130,7 +127,6 @@ let loginLogout = {
             functionName: "createGuestPlayer",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "guestDeviceId", mandatory: "是", type: 'String', content: '设备ID' },
                 { param: "phoneNumber", mandatory: "否", type: 'String', content: '填写则绑定电话号码+设备ID' },
                 { param: "accountPrefix", mandatory: "否", type: 'String', content: '账号名字前缀 默认 "g"' },
@@ -155,9 +151,7 @@ let loginLogout = {
             serviceName: "player",
             functionName: "logout",
             desc: "",
-            requestContent: [
-                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
             },

@@ -4940,7 +4940,7 @@ define(['js/app'], function (myApp) {
                     item.roundResult$ = item.result || "";
                     item.roundId$ = item.roundNo || "";
                     item.matchId$ = item.playNo || "";
-                    item.gameType$ = item.cpGameType || item.gameId.name || "";
+                    item.gameType$ = item.cpGameType || (item.gameId && item.gameId.name) || "";
                     item.betType$ = item.betType || "";
                     item.remark$ = item.playDetail || "";
                     item.platform$ = item.platformId && item.platformId.name ? item.platformId.name : "";
@@ -5275,7 +5275,7 @@ define(['js/app'], function (myApp) {
                 columnDefs: [
                     {targets: '_all', defaultContent: ' '}
                 ],
-                "order": vm.playerTableQuery.aaSorting,
+                "order": vm.playerTableQuery.aaSorting || [[9, 'desc']],
                 columns: [
                     {
                         title: $translate('PRODUCT_NAME'),
@@ -5929,7 +5929,6 @@ define(['js/app'], function (myApp) {
                                 'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
-                                'ng-click': 'vm.playerTableRowClicked(' + JSON.stringify(row) + ');',
                                 // 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                                 'data-trigger': 'focus',
@@ -8063,15 +8062,6 @@ define(['js/app'], function (myApp) {
             vm.selectedPlayers[rowData._id] = rowData;
             vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
-
-            if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
-                vm.allPlatformData.forEach(e => {
-                    console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
-                    if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
-                        vm.showPlatform = e;
-                    }
-                })
-            }
 
             var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
@@ -22995,7 +22985,7 @@ define(['js/app'], function (myApp) {
                 $('#playerDataTable').on('order.dt', function (event, a, b) {
                     // console.log(event, a, b);
                     if (!a.aaSorting[0]) return;
-                    let sortCol = 8; //registrationTime
+                    let sortCol = 9; //registrationTime
                     let sortDire = 'desc';
                     let sortKey = a.aoColumns[sortCol].data;
                     // vm.playerTableQuery.aaSorting = a.aaSorting;

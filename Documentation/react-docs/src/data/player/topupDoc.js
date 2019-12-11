@@ -204,10 +204,6 @@ let topup = {
             desc: "玩家输入在线充值金额，系统返回跳转链接",
             requestContent: [
                 { param: "amount", mandatory: "否", type: "Int", content: "充值金额" },
-                { param: "clientType", mandatory: "否", type: "Int", content: `clientType (客户端类型): 
-                                                                               1–浏览器(Browser) 
-                                                                               2–手机H5
-                                                                               4手机App` },
                 { param: "bonusCode", mandatory: "否", type: "Int", content: "优惠代码" },
                 { param: "limitedOfferObjId", mandatory: "否", type: "String", content: "指定充值应用于哪个秒杀礼包" },
                 { param: "topUpReturnCode", mandatory: "否", type: "String", content: "指定充值应用于哪个秒存送金" },
@@ -227,12 +223,7 @@ let topup = {
             serviceName: "payment",
             functionName: "getMinMaxCommonTopupAmount",
             desc: "请求玩家可使用的充值额度",
-            requestContent: [
-                { param: "clientType", mandatory: "是", type: "Int", content: `clientType (客户端类型): 
-                                                                              1–浏览器(Browser) 
-                                                                              2–手机H5
-                                                                              4手机App` },
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
                 data: sampleData.getMinMaxCommonTopupAmount
@@ -312,14 +303,9 @@ let topup = {
             functionName: "createFixedTopupProposal",
             desc: `玩家选择固定金额后提交，通过此接口生成提案后发给PMS，PMS返回链接，系统返回跳转链接。\n需登入。`,
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "topUpType", mandatory: "是", type: "Int", content: "充值方式" },
                 { param: "depositMethod", mandatory: "是", type: "Int", content: "次级充值方式" },
                 { param: "amount", mandatory: "是", type: "Int", content: "充值金额" },
-                { param: "clientType", mandatory: "是", type: "Int", content: `客户端类型：
-                                                                                1-- Web 电脑端
-                                                                                2-- H5 手机端（包括：包壳APP）
-                                                                                4-- APP APP端 (原生APP)` },
                 { param: "bonusCode", mandatory: "否", type: "Int", content: "优惠代码" },
                 { param: "limitedOfferObjId", mandatory: "否", type: "String", content: "指定充值应用于哪个秒杀礼包" },
                 { param: "topUpReturnCode", mandatory: "否", type: "String", content: "指定充值应用于哪个秒存送金" },

@@ -328,9 +328,7 @@ let rewardPoint = {
             serviceName: "rewardPoints",
             functionName: "getLoginRewardPoints",
             desc:"获取登入积分信息",
-            requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "平台ID (若未登入则必填)" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getLoginRewardPoints
@@ -345,9 +343,7 @@ let rewardPoint = {
             serviceName: "rewardPoints",
             functionName: "getGameRewardPoints",
             desc:"获取游戏积分信息",
-            requestContent:[
-                { param: "platformId", mandatory: "否", type: "String", content: "平台ID (若未登入则必填)" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getGameRewardPoints
@@ -362,9 +358,7 @@ let rewardPoint = {
             serviceName: "rewardPoints",
             functionName: "getTopUpRewardPointsEvent",
             desc:"获取存款积分信息",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getTopUpRewardPointsEvent
@@ -379,9 +373,7 @@ let rewardPoint = {
             serviceName: "rewardPoints",
             functionName: "getMissonList",
             desc:"获取任务信息",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getMissonList
@@ -396,9 +388,7 @@ let rewardPoint = {
             serviceName: "rewardPoints",
             functionName: "getPointRule",
             desc:"积分规则",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getPointRule
@@ -414,7 +404,6 @@ let rewardPoint = {
             functionName: "getRewardPointsRanking",
             desc:"获取积分排名列表",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "totalRank", mandatory: "否", type: "int", content: "显示数量，选填，不填时初始值为10" },
             ],
             respondSuccess:{
@@ -508,7 +497,6 @@ let rewardPoint = {
                 { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间" },
                 { param: "pointType", mandatory: "否", type: "int", content: "积分类型：不填-所有（预设）、1-登入积分、2-存款积分、3-游戏积分、4-积分扣除、5-积分增加、6-提前积分兑换、7-到期积分兑换、8-积分扣除（取消退还）、9-提前积分兑换（取消退还）、10-到期积分兑换（取消退还）" },
                 { param: "status", mandatory: "否", type: "int", content: "积分变化状态：不填-所有（预设), 0-待审核, 1-已执行, 2-已取消" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台id" }
             ],
             respondSuccess:{
                 status: 200,

@@ -932,6 +932,17 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.bulkSendSMS, [adminObjId, adminName, data, data.playerIds], actionName, isValidData);
         },
 
+        bulkSendSMSToTsList: function bulkSendSMSToTsList(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.channel != null && data.platformId != null  && data.message && adminObjId && adminName && data.hasPhone);
+            if (data) {
+                data.delay = data.delay || 0;
+            }
+            socketUtil.emitter(self.socket, dbPlatform.bulkSendSMSToTsList, [adminObjId, adminName, data, data.hasPhone], actionName, isValidData);
+        },
+
         sentSMSToNewPlayer: function sentSMSToNewPlayer(data) {
             var actionName = arguments.callee.name;
             var adminObjId = getAdminId();
