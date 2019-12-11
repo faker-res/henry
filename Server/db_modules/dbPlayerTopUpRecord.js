@@ -429,7 +429,7 @@ var dbPlayerTopUpRecord = {
                         && x.merchantNo && x.name && (x.merchantNo == topUp._id.merchantNo)
                         && (x.name == topUp._id.merchantName));
 
-                    let onlineTopUpAmount = e && topUp.amount ? topUp.amount : 0;
+                    let onlineTopUpAmount = topUp && topUp.amount ? topUp.amount : 0;
                     let rate = 0;
                     let onlineTopUpFee = 0;
 
