@@ -164,7 +164,6 @@ let register = {
             desc:"代理会员注册接口",
             requestContent:[
                 { param: "name", mandatory: "是", type: "String", content: "代理账号" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台id" },
                 { param: "password", mandatory: "是", type: "String", content: "注册的密码" },
                 { param: "realName", mandatory: "否", type: "String", content: "代理真实姓名" },
                 { param: "phoneNumber", mandatory: "是", type: "Number", content: "代理手机号" },
@@ -209,7 +208,6 @@ let register = {
             desc:"用于在注册时，检测玩家的用户名是否有效",
             requestContent:[
                 { param: "name", mandatory: "是", type: "String", content: "要验证的用户名" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台id" },
             ],
             respondSuccess:{
                 status: 200,

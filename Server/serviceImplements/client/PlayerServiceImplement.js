@@ -1508,6 +1508,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setPhoneNumber, [conn.playerId, data.number, data.smsCode], isValidData)
     };
 
+    this.setTestLog.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.data);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setTestLog, [data.data], isValidData, false, false, true)
+    };
+
     this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
 
         // HARD BLOCK V68 for now

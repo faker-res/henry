@@ -242,127 +242,65 @@ const playerInformationDesc = `
 {
     "_id": "5de0e3df211ed9037381dbdd",  //玩家 Object ID
     "playerId": "7480",   //玩家ID
-    "platform": "5733e26ef8c8a9355caf49d8", //玩家所注册的平台 Object ID
     "name": "gi0iaon9g",  //玩家账号
+    "email": "gi0iaon9g@gmail.com",
+    "gender": true,   //性别 true：男， false：女
+    "DOB": "1978-05-12",    //生日日期
+    "platform": "5733e26ef8c8a9355caf49d8", //玩家所注册的平台 Object ID
     "password": "$2b$10$9EnCFUNApMAWMEhmTIpqo.Vh5iTs1m4CFlLnabcZs6XLyYoSoN./u",
     "deviceId": "aWh5WmhTZUlqTzYxY3pSRlRvL2xYZElzVlJzM2hZMGlnM2Y4......==",
-    "registrationDevice": "0",
-    "hasPassword": false,
-    "qnaWrongCount": {
+    "registrationDevice": "0",    //注册设备
+    "loginDevice": "0",    //登入设备
+    "hasPassword": false,   //是否有设密码，APP注册的账号有可能不用密码登入
+    "lastLoginIp": "::1",   //上次登入的IP地址
+    "isLogin": true,        //是否登入
+    "lastAccessTime": "2019-11-29T09:24:49.683Z",     //上次登入时间
+    "registrationTime": "2019-11-29T09:24:47.345Z",   //注册时间
+    "realName": "",         //真实名字  
+    "feedbackTimes": 0,     //回访次数
+    "lastFeedbackTime": null,   //上次回访时间
+    "isRealPlayer": true,   //是否为真钱玩家
+    "isTestPlayer": false,  //是否为测试玩家
+    "bankCardGroup": "57b572e45052101945a7cbc7",    //银行卡组 Object ID
+    "merchantGroup": "57ad808bab1d5cb646acd76c",    //商户组 Object ID
+    "loginTimes": 1,      //登入次数
+    "consumptionTimes": 0,    //投注次数
+    "consumptionSum": 0,      //总投注额
+    "pastMonthConsumptionSum": 0,   //月投注额
+    "weeklyConsumptionSum": 0,      //周投注额
+    "dailyConsumptionSum": 0,       //天投注额
+    "bonusAmountSum": 0,            //总输赢值
+    "pastMonthBonusAmountSum": 0,   //月输赢值
+    "weeklyBonusAmountSum": 0,      //周输赢值
+    "dailyBonusAmountSum": 0,       //天输赢值
+    "withdrawSum": 0,               //总提款额
+    "pastMonthWithdrawSum": 0,      //月提款额
+    "weeklyWithdrawSum": 0,         //周提款额
+    "dailyWithdrawSum": 0,          //天提款额
+    "withdrawTimes": 0,             //提款次数
+    "topUpTimes": 0,                //充值次数
+    "topUpSum": 0,                  //总充值额
+    "pastMonthTopUpSum": 0,         //月充值额
+    "weeklyTopUpSum": 0,            //周充值额
+    "dailyTopUpSum": 0,             //天充值额
+    "lockedCredit": 0,              //锁定额度
+    "validCredit": 0,               //有效额度
+    "receiveSMS": true,             //玩家是否可以收到SMS短信
+    "bFirstTopUpReward": false,     //是否以获取首充优惠
+    "forbidLevelMaintainReward": false, //禁止玩家获取保级优惠
+    "forbidLevelUpReward": false,   //禁止玩家获取升级优惠
+    "forbidRewardEvents": [],       //禁止玩家获取特定的优惠活动
+    "forbidTopUpType": [],          //禁止玩家充值方式
+    "forbidPromoCodeList": [],      //禁止玩家获取特定的优惠代码活动
+    "forbidRewardPointsEvent": [],  //禁止玩家获取特定的积分活动
+    "forbidProviders": [],          //禁用提供商
+    "qnaWrongCount": {    //密保问题答错次数，成功后将重置为0
       "editName": 0,
       "editBankCard": 0,
       "updatePhoneNumber": 0,
       "forgotPassword": 0
     },
-    "relTsPhoneList": [],
-    "ximaWithdraw": 0,
-    "viewInfo": {
-      "showInfoState": true,
-      "limitedOfferInfo": 1
-    },
-    "loginTimes": 1,
-    "registrationInterface": 1,
-    "valueScore": 0,
-    "gameProviderPlayed": [],
-    "credibilityRemarks": [
-      "5b7fa51c24265f24dad50cb0"
-    ],
-    "applyingEasterEgg": false,
-    "isReferralReward": false,
-    "similarPlayers": [],
-    "favoriteGames": [],
-    "bFirstTopUpReward": false,
-    "forbidLevelMaintainReward": false,
-    "forbidLevelUpReward": false,
-    "forbidPromoCode": false,
-    "forbidRewardEvents": [],
-    "forbidTopUpType": [],
-    "creditWallet": [],
-    "consumptionTimes": 0,
-    "consumptionSum": 0,
-    "pastMonthConsumptionSum": 0,
-    "weeklyConsumptionSum": 0,
-    "dailyConsumptionSum": 0,
-    "bonusAmountSum": 0,
-    "pastMonthBonusAmountSum": 0,
-    "weeklyBonusAmountSum": 0,
-    "dailyBonusAmountSum": 0,
-    "withdrawSum": 0,
-    "pastMonthWithdrawSum": 0,
-    "weeklyWithdrawSum": 0,
-    "dailyWithdrawSum": 0,
-    "withdrawTimes": 0,
-    "topUpTimes": 0,
-    "topUpSum": 0,
-    "pastMonthTopUpSum": 0,
-    "weeklyTopUpSum": 0,
-    "dailyTopUpIncentiveAmount": 0,
-    "dailyTopUpSum": 0,
-    "lockedCredit": 0,
-    "validCredit": 0,
-    "creditBalance": 0,
-    "permission": {
-      "levelChange": true,
-      "PlayerLimitedOfferReward": true,
-      "PlayerPacketRainReward": true,
-      "playerConsecutiveConsumptionReward": true,
-      "forbidPlayerFromEnteringGame": false,
-      "forbidPlayerFromLogin": false,
-      "PlayerDoubleTopUpReturn": true,
-      "PlayerTopUpReturn": true,
-      "forbidPlayerConsumptionIncentive": false,
-      "allowPromoCode": true,
-      "forbidPlayerConsumptionReturn": false,
-      "disableWechatPay": false,
-      "rewardPointsTask": true,
-      "banReward": false,
-      "quickpayTransaction": true,
-      "alipayTransaction": true,
-      "SMSFeedBack": true,
-      "phoneCallFeedback": true,
-      "topUpCard": true,
-      "topupManual": true,
-      "topupOnline": true,
-      "allTopUp": true,
-      "transactionReward": true,
-      "applyBonus": true
-    },
-    "userAgent": [
-      {
-        "os": "Mac OS",
-        "device": "",
-        "browser": "Chrome"
-      },
-      {
-        "os": "Mac OS",
-        "device": "PC",
-        "browser": "Chrome"
-      }
-    ],
-    "games": [],
-    "exp": 0,
-    "forbidPromoCodeList": [],
-    "forbidRewardPointsEvent": [],
-    "forbidProviders": [],
-    "status": 1,
-    "badRecords": [],
-    "trustLevel": "2",
-    "blacklistIp": [],
-    "loginIps": [
-      "::1"
-    ],
-    "lastLoginIp": "::1",
-    "isLogin": true,
-    "lastAccessTime": "2019-11-29T09:24:49.683Z",
-    "registrationTime": "2019-11-29T09:24:47.345Z",
-    "realName": "",
-    "receiveSMS": true,
-    "feedbackTimes": 0,
-    "lastFeedbackTime": null,
-    "isRealPlayer": true,
-    "isTestPlayer": false,
-    "icon": "",
-    "smsSetting": {
+    "smsSetting": {     //各类短信设置
       "PlayerRetentionRewardGroupSuccess": true,
       "AuctionOpenPromoCodeSuccess": true,
       "AuctionPromoCodeSuccess": true,
@@ -395,11 +333,33 @@ const playerInformationDesc = `
       "applyBonus": true,
       "manualTopup": true
     },
-    "DOB": null,
-    "gender": true,
-    "email": "",
-    "__v": 0,
-    "playerLevel": {
+    "permission": {     //玩家权限
+      "levelChange": true,
+      "PlayerLimitedOfferReward": true,
+      "PlayerPacketRainReward": true,
+      "playerConsecutiveConsumptionReward": true,
+      "forbidPlayerFromEnteringGame": false,
+      "forbidPlayerFromLogin": false,
+      "PlayerDoubleTopUpReturn": true,
+      "PlayerTopUpReturn": true,
+      "forbidPlayerConsumptionIncentive": false,
+      "allowPromoCode": true,
+      "forbidPlayerConsumptionReturn": false,
+      "disableWechatPay": false,
+      "rewardPointsTask": true,
+      "banReward": false,
+      "quickpayTransaction": true,
+      "alipayTransaction": true,
+      "SMSFeedBack": true,
+      "phoneCallFeedback": true,
+      "topUpCard": true,
+      "topupManual": true,
+      "topupOnline": true,
+      "allTopUp": true,
+      "transactionReward": true,
+      "applyBonus": true
+    },
+    "playerLevel": {        //玩家等级资料
       "_id": "5733e26ef8c8a9355caf49dc",
       "name": "普通会员",
       "value": 0,
@@ -413,7 +373,6 @@ const playerInformationDesc = `
       },
       "consumptionLimit": 20000,
       "topupLimit": 2000,
-      "__v": 0,
       "levelUpConfig": [
         {
           "_id": "573abaefed6da1cf5c398fed",
@@ -436,9 +395,7 @@ const playerInformationDesc = `
       "canApplyConsumptionReturn": true,
       "playerValueScore": 2
     },
-    "bankCardGroup": "57b572e45052101945a7cbc7",
-    "merchantGroup": "57ad808bab1d5cb646acd76c",
-    "rewardPointsObjId": {
+    "rewardPointsObjId": {      //玩家积分
       "_id": "5de0e3e1211ed9037381dbdf",
       "platformObjId": "5733e26ef8c8a9355caf49d8",
       "playerObjId": "5de0e3df211ed9037381dbdd",
@@ -448,9 +405,49 @@ const playerInformationDesc = `
       "lastUpdate": "2019-11-29T09:24:49.599Z",
       "createTime": "2019-11-29T09:24:49.599Z",
       "points": 0,
-      "__v": 0
     },
-    "isRegister": true
+    "ximaWithdraw": 0,
+    "viewInfo": {
+      "showInfoState": true,
+      "limitedOfferInfo": 1
+    },
+    "registrationInterface": 1,
+    "relTsPhoneList": [],
+    "valueScore": 0,
+    "gameProviderPlayed": [],
+    "credibilityRemarks": [
+      "5b7fa51c24265f24dad50cb0"
+    ],
+    "applyingEasterEgg": false,
+    "isReferralReward": false,
+    "similarPlayers": [],
+    "favoriteGames": [],
+    "creditWallet": [],
+    "userAgent": [
+      {
+        "os": "Mac OS",
+        "device": "",
+        "browser": "Chrome"
+      },
+      {
+        "os": "Mac OS",
+        "device": "PC",
+        "browser": "Chrome"
+      }
+    ],
+    "games": [],
+    "blacklistIp": [],
+    "loginIps": [
+      "::1"
+    ],
+    "exp": 0,
+    "forbidPromoCode": false,
+    "status": 1,
+    "badRecords": [],
+    "trustLevel": "2",
+    "icon": "",
+    "creditBalance": 0,
+    "dailyTopUpIncentiveAmount": 0
 }
 </template>
 `;
@@ -482,9 +479,7 @@ let information = {
             serviceName: "player",
             functionName: "getWithdrawalInfo",
             desc: "获取提款信息",
-            requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
                 data: sampleData.getWithdrawalInfo,
@@ -549,7 +544,6 @@ let information = {
             functionName: "updatePhoneNumberWithSMS",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "playerId", mandatory: "是", type: 'String', content: '玩家ID'},
                 {param: "smsCode", mandatory: "是", type: 'String', content: 'SMS验证码 '},
                 {param: "newPhoneNumber", mandatory: "否", type: 'String', content: '手机号 - 若只验证旧号码或无验证'},
@@ -661,7 +655,6 @@ let information = {
             functionName: "updatePasswordByPhoneNumber",
             desc: "",
             requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
                 {param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家电话号码'},
                 {param: "newPassword", mandatory: "是", type: 'String', content: '新密码'},
                 {param: "smsCode", mandatory: "是", type: 'String', content: '短信验证码'},

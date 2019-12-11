@@ -140,7 +140,6 @@ let consumption = {
             functionName: "getPlayerConsumptionSum",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "name", mandatory: "是", type: 'String', content: '会员帐号' },
             ],
             respondSuccess: {
@@ -160,7 +159,6 @@ let consumption = {
             functionName: "getLastConsumptions",
             desc: "获取玩家最近的15条消费记录",
             requestContent: [
-                { param: "playerId", mandatory: "是", type: 'String', content: '玩家ID' },
                 { param: "startIndex", mandatory: "否", type: 'Int', content: '查询记录总数量，用于分页' },
                 { param: "requestCount", mandatory: "否", type: 'Int', content: '请求最近的消费记录条数' },
             ],
@@ -201,7 +199,6 @@ let consumption = {
             functionName: "searchConsumptionRecord",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: 'String', content: '平台ID' },
                 { param: "startTime", mandatory: "否", type: 'Date', content: '查询消费开始时间' },
                 { param: "endTime", mandatory: "否", type: 'Date', content: '查询消费结束时间 (默认为本周)' },
                 { param: "minBonusAmount", mandatory: "否", type: 'String', content: '最小输赢值（必须大于等于0)' },

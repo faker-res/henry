@@ -356,8 +356,91 @@ const sampleData = {
    "_id": "5bc59fb8aed7af825a9e0248",
    "page": 1,
    "platform": "5733e26ef8c8a9355caf49d8",
-   "__v": 0,
-   "data": "abc"
+   "data": "Test data string"
+}`,
+    getFrontEndConfig: `{
+    "navList": [
+        {
+            "_id": "5d71bc787be4f40305700052",
+            "device": 1,
+            "title": "pc1",
+            "displayTitle": "pc1",
+            "category": 1,
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+            "onClickAction": 4,
+            "requiredToLogIn": true,
+            "stopPopUp": true,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "popUpList": [
+                {
+                "_id": "5d78c4b1aa1b1a0a3a5a0cfa",
+                "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+                "onClickAction": 6,
+                "requiredToLogIn": true,
+                "platformObjId": "5733e26ef8c8a9355caf49d8",
+                "status": 1,
+                }
+            ],
+            "displayOrder": 1,
+            "rewardEventObjId": null,
+            "route": "123"
+        }
+    ],
+    "bodyList": [
+        {
+            "_id": "5ce6631d64a1750385f71e31",
+            "title": "b",
+            "device": 1,
+            "category": 2,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/b.png",
+            "displayOrder": 1
+        }
+    ],
+    "bottomList": [
+        {
+            "_id": "5ce662e664a1750385f71e2b",
+            "title": "a",
+            "device": 1,
+            "category": 3,
+            "platformObjId": "5733e26ef8c8a9355caf49d8",
+            "status": 1,
+            "isVisible": true,
+            "visibleForInvolveInGameProvider": [],
+            "visibleForTopUpTimeMoreThan": 0,
+            "visibleForBalanceBelow": 0,
+            "visibleOnPlayerLevel": [],
+            "isFirstTimeLoginPlayerVisible": false,
+            "isNewPlayerVisible": false,
+            "isPlayerWithRegisteredHpNoVisible": true,
+            "isPlayerVisible": true,
+            "visibleOnDevice": [],
+            "imageUrl": "https://callfpms-ftp.neweb.me/4/a.jpg",
+            "displayOrder": 1
+        }
+    ]
 }`,
 
 }
@@ -370,7 +453,6 @@ let information = {
             functionName: "getPlatformAnnouncements",
             desc: "备注: 调用结果以json格式返回",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "reach", mandatory: "否", type: "String", content: "返回对应类型的公告，默认返回所有。\nplayers：玩家 partner：代理，conditional：定制" }
             ],
             respondSuccess:{
@@ -387,9 +469,7 @@ let information = {
             serviceName: "platform",
             functionName: "getPlatformDetails",
             desc: "",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getPlatformDetails
@@ -406,7 +486,6 @@ let information = {
             functionName: "getConfig",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "device", mandatory: "否", type: "int", content: `1: WEB
                                                                            3: H5
                                                                            没提供device, 参数的话会根据user agent来判定` },
@@ -427,9 +506,7 @@ let information = {
             serviceName: "platform",
             functionName: "getPlatformSetting",
             desc: "",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getPlatformSetting
@@ -445,7 +522,6 @@ let information = {
             functionName: "getTemplateSetting",
             desc: "请对应FPMS 功能（前端功能模版配置）",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "url", mandatory: "否", type: "String", content: "当下域名（非必填），无填入则返回预设模版配置。有域名则查询是否在特殊模版中，返回特殊模版的配置。" },
             ],
             respondSuccess:{
@@ -462,9 +538,7 @@ let information = {
             serviceName: "platform",
             functionName: "getLockedLobbyConfig",
             desc: "无配置时候，返回[] 即空数组",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID. 该接口获取的是平台的锁大厅配置，不需要登陆状态" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
                 data: sampleData.getLockedLobbyConfig
@@ -482,7 +556,6 @@ let information = {
             functionName: "saveFrontEndData",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "token", mandatory: "是", type: "String", content: "FPMS用户验证token" },
                 { param: "page", mandatory: "是", type: "int", content: "请求页面" },
                 { param: "data", mandatory: "是", type: "String", content: "保存的数据" },
@@ -504,12 +577,11 @@ let information = {
             functionName: "getFrontEndData",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "page", mandatory: "是", type: "int", content: "请求页面" },
             ],
             respondSuccess:{
                 status: 200,
-                data: "abc"
+                data: '"Test data string"  //字符串 String， 请参考上一个接口【前端保存数据接口】内的 data 栏位。'
             },
             respondFailure: {
                 status: "4xx",
@@ -524,7 +596,6 @@ let information = {
             functionName: "getFrontEndConfig",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "code", mandatory: "是", type: "int", content: `设置的code:
                                                                          recommendation - 热门推荐
                                                                          rewardPoint - 积分说明
@@ -539,14 +610,10 @@ let information = {
                                                                          partnerCarousel - 代理轮播配置
                                                                          partnerPageSetting - 代理网站配置
                                                                          partnerSkin - 代理皮肤管理` },
-                { param: "clientType", mandatory: "是", type: "int", content: `设备:
-                                                                               1 - PC
-                                                                               2- H5
-                                                                               4- APP` },
             ],
             respondSuccess:{
                 status: 200,
-                data: "[{}]"
+                data: sampleData.getFrontEndConfig
             },
             respondFailure: {
                 status: "4xx",
@@ -561,7 +628,6 @@ let information = {
             functionName: "clickCount",
             desc: "",
             requestContent:[
-                { param: "platform", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "device", mandatory: "是", type: "String", content: "设备" },
                 { param: "pageName", mandatory: "是", type: "String", content: "页面" },
                 { param: "buttonName", mandatory: "是", type: "String", content: "按键" },
@@ -583,12 +649,10 @@ let information = {
             serviceName: "platform",
             functionName: "getClientData",
             desc: "需要登录",
-            requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
-            ],
+            requestContent:[],
             respondSuccess:{
                 status: 200,
-                data: "test:!"
+                data: '"TestData"  //客户端数据，字符串 String'
             },
             respondFailure: {
                 status: "4xx",
@@ -601,12 +665,11 @@ let information = {
             functionName: "saveClientData",
             desc: "需要登录",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "clientData", mandatory: "是", type: "String", content: "客户端数据" },
             ],
             respondSuccess:{
                 status: 200,
-                data: "test:!"
+                data: '"TestData"  //客户端数据，字符串 String'
             },
             respondFailure: {
                 status: "4xx",
@@ -637,7 +700,6 @@ let information = {
             functionName: "addIpDomainLog",
             desc: "統計域名瀏覽次數、IP瀏覽次數、以及APP開戶可根據IP抓到來源",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "domain", mandatory: "是", type: "String", content: "域名，(不要http, www, 和开户网址配置的相同)" },
                 { param: "sourceUrl", mandatory: "否", type: "String", content: "跳转至官网网址, 用户来源" },
                 { param: "partnerId", mandatory: "否", type: "String", content: "代理ID" },
@@ -656,7 +718,6 @@ let information = {
             functionName: "playerPhoneChat",
             desc: "",
             requestContent:[
-                { param: "platform", mandatory: "是", type: "int", content: "平台ID" },
                 { param: "phone", mandatory: "是", type: "int", content: "电话号码" },
                 { param: "captcha", mandatory: "是", type: "String", content: "验证码" },
                 { param: "random", mandatory: "是", type: "String", content: "随机" },

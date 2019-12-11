@@ -412,6 +412,7 @@ const dbPlayerMail = {
     },
 
     sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId, useVoiceCode) {
+        let smsSendingFailure = false;
         let lastMin = moment().subtract(1, 'minutes');
         let channel = null;
         let platformObjId = null;
@@ -576,6 +577,7 @@ const dbPlayerMail = {
                     return dbPlayerUtil.setPlayerState(player._id, 'GetVerificationCode').then(
                         playerState => {
                             if (!playerState) {
+                                smsSendingFailure = true;
                                 return Promise.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
                             }
                         }
@@ -684,6 +686,7 @@ const dbPlayerMail = {
                     if (checkPhoneByMinute && checkPhoneByMinute._id) {
                         if (!checkPhoneByMinute.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             let msg = isUseVoiceCode? "The verification limit has been reached (1/minute), please try again later": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
@@ -694,6 +697,7 @@ const dbPlayerMail = {
                     if (checkPhoneByHour && checkPhoneByHour._id) {
                         if (!checkPhoneByHour.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             let msg = isUseVoiceCode? "The verification limit has been reached (5/hour), please try again later": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
@@ -704,6 +708,7 @@ const dbPlayerMail = {
                     if (checkPhoneByDay && checkPhoneByDay._id) {
                         if (!checkPhoneByDay.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             let msg = isUseVoiceCode? "The verification limit has been reached today, please try again tomorrow": "Send failed, sending SMS frequency is too high, please try again later";
                             return Promise.reject({
                                 name: "DataError",
@@ -714,6 +719,7 @@ const dbPlayerMail = {
                     if (checkIpByMinute && checkIpByMinute._id) {
                         if (!checkIpByMinute.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -723,6 +729,7 @@ const dbPlayerMail = {
                     if (checkIpByHour && checkIpByHour._id) {
                         if (!checkIpByHour.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -732,6 +739,7 @@ const dbPlayerMail = {
                     if (checkIpByDay && checkIpByDay._id) {
                         if (!checkIpByDay.countLtLimit) {
                             smsLimitDetected = true;
+                            smsSendingFailure = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -920,6 +928,7 @@ const dbPlayerMail = {
                     // Check whether verification sms sent in last minute
                     if (lastMinuteHistory && lastMinuteHistory.tel) {
                         isSpam = true;
+                        smsSendingFailure = true;
                         return Q.reject({
                             status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                             message: "Verification SMS already sent within last minute"
@@ -960,6 +969,7 @@ const dbPlayerMail = {
                             return new dbconfig.collection_smsVerificationLog(saveObj).save();
                         }
                     ).catch(err => {
+                        smsSendingFailure = true;
                         console.log("save sms verification code error", err);
                         return errorUtils.reportError(err);
                     });
@@ -982,6 +992,7 @@ const dbPlayerMail = {
             },
             error => {
                 isFailedSms = true;
+                smsSendingFailure = true;
                 return Promise.reject(error)
             }
         ).then(
@@ -1116,6 +1127,10 @@ const dbPlayerMail = {
 
                 }
 
+                if (smsSendingFailure) {
+                    console.log("smsSendingFailure", purpose, telNum, JSON.stringify(error, null, 2));
+                    return Promise.reject({message: "Verification code send failure, please contact customer service"});
+                }
                 return Promise.reject(error);
             }
         );

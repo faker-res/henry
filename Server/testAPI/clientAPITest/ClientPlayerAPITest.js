@@ -723,6 +723,17 @@
         });
     };
 
+    proto.setTestLog = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.setTestLog.request(data);
+        this.playerService.setTestLog.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.getClientData = function (callback, requestData) {
         let data = requestData || {};
 

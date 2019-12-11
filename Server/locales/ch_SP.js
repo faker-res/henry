@@ -69,6 +69,7 @@ var simplifiedChinese = {
     "endedRewardEventGroup*": "已结束优惠组*",
     "Invalid commission class": "无效佣金分类",
     "Partner down line does not exists": "代理下线不存在",
+    "Verification code send failure, please contact customer service": "验证码发送失败，请联系客服人员",
     "Voice code failed to send, please contact customer service": "验证码发送失败，请联系客服人员",
     "The verification limit has been reached (5/hour), please try again later": "已达到验证上限（5次/小时）,请稍后再试",
     "The verification limit has been reached (1/minute), please try again later": "已达到验证上限（1次/分钟）,请稍后再试",

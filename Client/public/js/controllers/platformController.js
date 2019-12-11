@@ -26311,7 +26311,7 @@ define(['js/app'], function (myApp) {
                           let frontEndRewardSettingOnClickAction = Object.assign({}, vm.frontEndSettingOnClickAction);
                           frontEndRewardSettingOnClickAction.customScript = 7;
                           if (data && data.data) {
-                              vm.rewardSettingData = data.data.filter( p => p && (p.hasEnded == false || !p.hasOwnProperty('hasEnded')));
+                              vm.rewardSettingData = data.data;
                               vm.allRewardSettingData = data.data.filter( p => p && (p.hasEnded == false || !p.hasOwnProperty('hasEnded')));
                               vm.expiredRewardSettingData = data.data.filter( p => p && p.hasEnded == true);
 
@@ -26479,6 +26479,14 @@ define(['js/app'], function (myApp) {
 
             vm.updateRewardCategory = function (updateObj) {
                 if (updateObj){
+                    if (updateObj.categoryName && (updateObj.categoryName == '已结束' || updateObj.categoryName == '全部分类')){
+                        return socketService.showErrorMessage($translate("Category name exits"));
+                    }
+
+                    if (updateObj.categoryName && vm.categorySelectionList && vm.categorySelectionList.length && vm.categorySelectionList.findIndex(p => p && p.categoryName && p.categoryName == updateObj.categoryName ) != -1){
+                        return socketService.showErrorMessage($translate("Category name exits"));
+                    }
+
                     if (updateObj._id && updateObj.categoryName) {
                         let categoryName = updateObj.categoryName;
                         let categoryObjId = updateObj._id;
