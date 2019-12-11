@@ -2349,6 +2349,7 @@
   "SEND_MESSAGE": "发站内信",
   "Send SMS to Player": "发短信给玩家",
   "Send SMS to Partner": "发短信给代理",
+  "Send Bulk SMS to Player": "群发短信至指定玩家",
   "smsPlayer": "发短信给玩家",
   "TO_PLAYER": "给玩家",
   "To Partner": "给代理",
