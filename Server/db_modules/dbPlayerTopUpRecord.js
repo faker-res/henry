@@ -453,6 +453,7 @@ var dbPlayerTopUpRecord = {
                     }
 
                     topUpSummary.totalOnlineTopUpFee += Number(onlineTopUpFee) || 0;
+                    topUpSummary.onlineTopUpFeeDetail = topUpSummary.onlineTopUpFeeDetail || [];
                     topUpSummary.onlineTopUpFeeDetail.push(detailObj);
                 }
             } else if (topUp._id.typeId.toString() === manualTopUpTypeId) {
