@@ -40,7 +40,6 @@ let teleSales = {
                 { param: "playerAccount", mandatory: "是", type: "String", content: "玩家账号" },
                 { param: "realName", mandatory: "否", type: "String", content: "玩家真实姓名" },
                 { param: "password", mandatory: "是", type: "String", content: "玩家账号密码" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "phoneNumber", mandatory: "是", type: "String", content: "电话号码" },
                 { param: "playerType", mandatory: "是", type: "String", content: "玩家类型" },
                 { param: "qq", mandatory: "否", type: "String", content: "玩家qq" },
@@ -56,7 +55,7 @@ let teleSales = {
             ],
             respondSuccess:{
                 status: 200,
-                data: "{} //  玩家信息"
+                data: "请参考【玩家】-->【玩家信息/资料】-->【玩家对象】"
             },
             respondFailure: {
                 status: "4xx",
@@ -70,7 +69,6 @@ let teleSales = {
             functionName: "insertPhoneToTask",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "玩家注册平台" },
                 { param: "phoneNumber", mandatory: "是", type: "String", content: "电话号码" },
                 { param: "taskName", mandatory: "是", type: "String", content: "任务名字 或者 任务的ObjectId" },
                 { param: "autoSMS", mandatory: "否", type: "int", content: `1-发送SMS

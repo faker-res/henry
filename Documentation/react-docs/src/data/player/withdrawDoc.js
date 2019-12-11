@@ -91,10 +91,7 @@ let withdraw = {
             serviceName: "player",
             functionName: "getWithdrawalInfo",
             desc: "获取提款信息",
-            requestContent: [
-                {param: "platformId", mandatory: "是", type: 'String', content: '平台ID'},
-
-            ],
+            requestContent: [],
             respondSuccess: {
                 status: 200,
                 data: sampleData.getWithdrawalInfo,

@@ -26,14 +26,19 @@ FPMS 前端 SDK 包含了 17 个函数，其中主要的 2 项是链接与事件
 <h4><b>开启后端连接：</b></h4>
 
 <b>格式：</b>
-    connect(host, platformId, onOpenHandler, onCloseHandler, defaultErrHandler, defaultLoadHandler, defaultLoadEndHandler)
+    connect(host, platformObj, onOpenHandler, onCloseHandler, defaultErrHandler, defaultLoadHandler, defaultLoadEndHandler, onReconnectHandler)
 
 <b>参数注解：</b>
     <b>host（后端链接地址）</b>
     用作与后端服务器建立连接，使用 WebSocket 协议。
 
-    <b>platformId（平台号/ID）</b>
-    将在此获取的平台号保存，并在每次的接口请求自动将其附上。
+    <b>platformObj（平台对象）</b>
+    将在此获取的 平台号 与 客户类型 保存，并在每次的接口请求自动将其附上。
+    格式如下：
+        {
+            platformId: "4"
+            clientType: "1"
+        }
 
     <b>onOpenHandler（连接成功回调）</b>
     连接成功的默认回调函数。
@@ -59,7 +64,9 @@ FPMS 前端 SDK 包含了 17 个函数，其中主要的 2 项是链接与事件
     所有接口都已返回/超时后的默认回调函数。
     在发送请求后，待所有已发请求的接口关闭（返回/超时）后，执行此函数。
     一般为一个接口，但若同时开启超过一个接口（发送请求），将会等待所有接口关闭才会执行此函数。
-
+    
+    <b>onReconnectHandler（重连回调）</b>
+    在 SDK 自动尝试重连时，执行此函数。
 
 
 <h4><b>事件相关：</b></h4>
@@ -90,7 +97,7 @@ SDK 在接到后端的数据后将会发起 onmessage 事件。
 详细功能请参考文档（玩家、代理、平台）。
 
 <b>格式：</b>
-    player.login(sendData, useDefaultErrHandler, useDefaultLoadHandler).then();
+    player.login(sendData, useDefaultErrHandler, useDefaultLoadHandler， useCacheConfig).then();
 
 <b>参数注解：</b>
     <b>sendData（发送数据）</b>
@@ -99,13 +106,27 @@ SDK 在接到后端的数据后将会发起 onmessage 事件。
     
     <b>useDefaultErrHandler（使用接口返回失败回调）</b>
     为布尔值 Boolean ，选填，默认为 true 。
-    是否适用接口返回失败/异常的默认回调函数。
+    是否使用接口返回失败/异常的默认回调函数。
     请参考【开启后端连接】内的 defaultErrHandler 参数。
     
     <b>useDefaultLoadHandler（使用发送请求回调）</b>
     为布尔值 Boolean ，选填，默认为 true 。
-    是否适用发送请求至后端接口的默认回调函数。
+    是否使用发送请求至后端接口的默认回调函数。
     请参考【开启后端连接】内的 defaultLoadHandler 参数。
+    
+    <b>useCacheConfig（使用缓存设置对象）</b>
+    为对象 Object 或 布尔值 Boolean ，选填，默认为 null 。
+    是否使用缓存数据，不向后端发送请求。
+    若值为 {} 或 true，则使用缓存，但不会刷新。
+    格式如下：
+        {
+            refreshRateSecs: 10,
+            cacheIndex: "1"
+        }
+        <b>refreshRateSecs</b>
+        刷新缓存间隔，以秒为单位。
+        <b>cacheIndex</b>
+        为字符串。唯一识别码，为了辨别在多次不同的参数下调用同一个接口而设计的。
 
 `;
 
@@ -152,12 +173,6 @@ function login() {
 }
 document.getElementById("login").addEventListener("click", login);
 `};
-
-/*
-    func.*.desc:
-    for description of each function, it takes a string and convert '\n' to line break.
-
-*/
 
 let guide = {
     name: "使用说明",

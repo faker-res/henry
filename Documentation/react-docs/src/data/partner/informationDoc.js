@@ -785,7 +785,6 @@ let information = {
             serviceName: "partner",
             functionName: "updatePhoneNumberWithSMS",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "phoneNumber", mandatory: "是", type: "String", content: "新手机号" },
                 { param: "smsCode", mandatory: "是", type: "String", content: "短信验证码" },
@@ -807,7 +806,6 @@ let information = {
             functionName: "getCrewActiveInfo",
             desc: "注：代理必须登入",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
@@ -832,7 +830,6 @@ let information = {
             functionName: "getCrewDepositInfo",
             desc: "注：代理必须登入",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
@@ -859,7 +856,6 @@ let information = {
             functionName: "getCrewWithdrawInfo",
             desc: "注：代理必须登入",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
@@ -886,7 +882,6 @@ let information = {
             functionName: "getCrewBetInfo",
             desc: "注：代理必须登入",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID，与玩家帐号二选一）可以单独查询此下线的x周期状况，请注意如果字段内数据是0，仍含会填入0返回。" },
@@ -914,7 +909,6 @@ let information = {
             functionName: "getNewCrewInfo",
             desc: "注：代理必须登入",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "period", mandatory: "是", type: "Int", content: "周期// 日 - 1，周 - 2，半月 - 3， 月 - 4" },
                 { param: "circleTimes", mandatory: "是", type: "Int", content: "需要7个周期的数据，含目前周期" },
                 { param: "startTime", mandatory: "否", type: "Date Time", content: "查询起始时间 （ISO格式：只要日期T）" },
@@ -940,7 +934,6 @@ let information = {
             desc: "",
             requestContent: [
                 { param: "partnerId", mandatory: "否", type: "String", content: "不填只显示平台设置的代理佣金比例" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
             ],
             respondSuccess: {
                 status: 200,
@@ -958,7 +951,6 @@ let information = {
             functionName: "getPartnerConfig",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "device", mandatory: "否", type: "Int", content: "" },
 
             ],
@@ -978,7 +970,6 @@ let information = {
             functionName: "getDownPartnerInfo",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "requestPage", mandatory: "否", type: "String", content: "请求第几页" },
                 { param: "count", mandatory: "否", type: "String", content: "每页数据条数（默认为10条）" },
@@ -1000,7 +991,6 @@ let information = {
             functionName: "getDownPartnerContribution",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "requestPage", mandatory: "否", type: "String", content: "请求第几页" },
                 { param: "count", mandatory: "否", type: "String", content: "每页数据条数（默认为10条）" },
@@ -1023,7 +1013,6 @@ let information = {
             functionName: "getPartnerTransferList",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "requestPage", mandatory: "否", type: "String", content: "请求第几页" },
                 { param: "count", mandatory: "否", type: "String", content: "每页数据条数（默认为10条）" },
@@ -1046,7 +1035,6 @@ let information = {
             functionName: "checkAllCrewDetail",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "playerId", mandatory: "否", type: "String", content: "玩家ID 只显示此下线" },
                 { param: "crewAccount", mandatory: "否", type: "String", content: "玩家账号" },
                 { param: "singleSearchMode", mandatory: "否", type: "String", content: "(单一玩家搜寻模式/给crewAccount用 ）| '0'：精准搜索（默认值/代表只搜索此准确帐号）| '1'：模糊搜索（如搜p1，会出现p12,p13开头帐号）" },
@@ -1091,7 +1079,6 @@ let information = {
             functionName: "getDownLinePlayerInfo",
             desc: "该接口需要登录",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID " },
                 { param: "period", mandatory: "是", type: "Int", content: "1:本日 | 2:本周 | 3:本月" },
                 { param: "whosePlayer", mandatory: "是", type: "Int", content: "1:全部 | 2: 直属下线会员 | 3:下线代理会员 " },
                 { param: "playerType", mandatory: "是", type: "Int", content: "1:全部 | 2: 新增会员 | 3:活跃会员 " },
@@ -1117,7 +1104,6 @@ let information = {
             functionName: "getDownLinePartnerInfo",
             desc: "该接口需要登录",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID " },
                 { param: "period", mandatory: "是", type: "Int", content: "1:本日 | 2:本周 | 3:本月" },
                 { param: "partnerType", mandatory: "是", type: "Int", content: "1:全部 | 2: 新增会员 | 3:活跃会员 " },
                 { param: "partnerAccount", mandatory: "否", type: "String", content: "代理账号 （用于单一搜索） " },
@@ -1142,7 +1128,6 @@ let information = {
             functionName: "getPartnerPoster",
             desc: "该接口需要登录",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID " },
                 { param: "url", mandatory: "是", type: "String", content: "需要生成二维码的地址" },
                 { param: "device", mandatory: "否", type: "Int", content: "0: WEB | 1: H5 | 不填: 都找 （优先获取排列顺序高且可用的海报）" },
                 { param: "production", mandatory: "否", type: "Boolean", content: "true: 只获取正式站可用（默认) |false: 可获取非正式站可用海报" },
@@ -1223,7 +1208,6 @@ let information = {
             functionName: "getPartnerBillBoard",
             desc: "",
             requestContent: [
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID " },
                 { param: "mode", mandatory: "是", type: "String", content: "1:累积存款排行 | 2:累积投注额排行 | 3:累积输赢排行 | 4: 累积下线人数排行 排行 | 5: 活跃下线人数排行 | 6: 累积佣金排行 " },
                 { param: "periodCheck", mandatory: "是", type: "String", content: "1: 本日 | 2: 本周 | 3: 半月 | 4: 本月 | 5: 无周期 " },
                 { param: "recordCount", mandatory: "否", type: "Int", content: "数字，预设10。排行榜数据数量 " },

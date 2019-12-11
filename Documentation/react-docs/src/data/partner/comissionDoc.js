@@ -256,7 +256,6 @@ let commission = {
             serviceName: "partner",
             functionName: "getPartnerCommissionRate",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "commissionClass", mandatory: "是", type: "String", content: "固定(2)" },
 
@@ -301,7 +300,6 @@ let commission = {
             functionName: "getCommissionRate",
             requestContent:[
                 { param: "partnerId", mandatory: "否", type: "String", content: "可选择不填，不填只显示平台设置的代理佣金比例" },
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "commissionType", mandatory: "是", type: "String", content: `1天-输赢值: 1
                                                                                       7天-输赢值: 2
                                                                                       半月-输赢值: 3
@@ -326,7 +324,6 @@ let commission = {
             functionName: "preditCommission",
             desc: "注：代理必须登入",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "searchPreviousPeriod", mandatory: "否", type: "int", content: "搜寻前 X 周期，预设0＝本周期" },
             ],
             respondSuccess:{
@@ -346,7 +343,6 @@ let commission = {
             functionName: "getCommissionProposalList",
             desc: "注：代理必须登入",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "startTime", mandatory: "是", type: "Date Time", content: "开始时间（与 searchProposalCounts 二选一）" },
                 { param: "endTime", mandatory: "是", type: "Date Time", content: "结束时间（与 searchProposalCounts 二选一）" },
                 { param: "status", mandatory: "否", type: "String", content: "请参考提案状态表, 不填代表全部" },
@@ -369,7 +365,6 @@ let commission = {
             functionName: "partnerCreditToPlayer",
             desc: "",
             requestContent:[
-                { param: "platformId", mandatory: "是", type: "String", content: "平台ID" },
                 { param: "partnerId", mandatory: "是", type: "String", content: "代理ID" },
                 { param: "targetList", mandatory: "否", type: "Array Object", content: `转账明细数组
                                                                                         {
