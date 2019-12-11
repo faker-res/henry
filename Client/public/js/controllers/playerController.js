@@ -4940,7 +4940,7 @@ define(['js/app'], function (myApp) {
                     item.roundResult$ = item.result || "";
                     item.roundId$ = item.roundNo || "";
                     item.matchId$ = item.playNo || "";
-                    item.gameType$ = item.cpGameType || item.gameId.name || "";
+                    item.gameType$ = item.cpGameType || (item.gameId && item.gameId.name) || "";
                     item.betType$ = item.betType || "";
                     item.remark$ = item.playDetail || "";
                     item.platform$ = item.platformId && item.platformId.name ? item.platformId.name : "";
