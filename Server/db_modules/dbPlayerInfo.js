@@ -14095,13 +14095,10 @@ let dbPlayerInfo = {
             if (hasPartner == true) {
                 query.partner = {$type: "objectId"};
             } else {
-                query['$or'] = [
-                    {partner: null},
-                    {partner: {$exists: false}}
-                ]
+                query.partner = null;
             }
         }
-        return dbconfig.collection_players.find(query);
+        return dbconfig.collection_players.find(query).lean();
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
