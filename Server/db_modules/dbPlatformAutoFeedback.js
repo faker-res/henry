@@ -20,9 +20,9 @@ const ObjectId = mongoose.Types.ObjectId;
 
 let dbPlatformAutoFeedback = {
 
-    createAutoFeedback: function (autoFeedbackData) {
-        console.log(autoFeedbackData);
+    createAutoFeedback: function(autoFeedbackData) {
         autoFeedbackData.enabled = autoFeedbackData.defaultStatus.toString().toLowerCase() === "active";
+
         return dbconfig.collection_autoFeedback(autoFeedbackData).save().then(
             data => {
                 console.log(data);
@@ -63,26 +63,26 @@ let dbPlatformAutoFeedback = {
         );
     },
 
-    getAutoFeedback: function (query, index, limit, ignoreLimit) {
-        console.log(query);
+    getAutoFeedback: function(query, index, limit, ignoreLimit) {
         index = index || 0;
         limit = limit || 10;
         let curTime = new Date();
         let result;
-        if(query.createTimeStart || query.createTimeEnd) {
+
+        if (query.createTimeStart || query.createTimeEnd) {
             query.createTime = {};
         }
-        if(query.createTimeStart) {
+        if (query.createTimeStart) {
             query.createTime['$gte'] = query.createTimeStart;
             delete query.createTimeStart;
         }
-        if(query.createTimeEnd) {
+        if (query.createTimeEnd) {
             query.createTime['$lte'] = query.createTimeEnd;
             delete query.createTimeEnd;
         }
-        if(query.status) {
+        if (query.status) {
             let status = query.status;
-            switch(status) {
+            switch (status) {
                 case 'Unbegun':
                     query.enabled = true;
                     query.missionStartTime = {$gt: curTime};
@@ -102,14 +102,13 @@ let dbPlatformAutoFeedback = {
             }
             delete query.status;
         }
-        console.log(query);
-        if(ignoreLimit) {
-            return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean().then(autoFeedbacks => {
+
+        if (ignoreLimit) {
+            return dbconfig.collection_autoFeedback.find(query).sort({createTime: -1}).lean().then(autoFeedbacks => {
                 return {data: autoFeedbacks};
             });
         } else {
             return dbconfig.collection_autoFeedback.find(query).sort({createTime: -1}).skip(index).limit(limit).lean().then(autoFeedbacks => {
-                console.log(autoFeedbacks);
                 result = autoFeedbacks;
                 let missionsProms = [];
                 autoFeedbacks.forEach(mission => {
@@ -192,7 +191,7 @@ let dbPlatformAutoFeedback = {
         return dbconfig.collection_autoFeedback.remove({_id: objId}).exec();
     },
 
-    executeAutoFeedback: function () {
+    executeAutoFeedback: function() {
         let UTC8Time = dbutility.getUTC8Time(new Date());
         let curHour = new Date().getHours();
         let curMinute = new Date().getMinutes();
@@ -211,18 +210,16 @@ let dbPlatformAutoFeedback = {
             }],
             enabled: true,
         };
-        console.log("new date",(new Date()));
-        console.log("UTC8Time",dbutility.getUTC8Time(new Date()));
-        console.log("new date getLocalTime",dbutility.getLocalTime(new Date()));
+        console.log("new date", (new Date()));
+        console.log("UTC8Time", dbutility.getUTC8Time(new Date()));
+        console.log("new date getLocalTime", dbutility.getLocalTime(new Date()));
 
         return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
             autoFeedbacks = autoFeedbacks.data;
-            if(!autoFeedbacks || autoFeedbacks.length < 1) {
+            if (!autoFeedbacks || autoFeedbacks.length < 1) {
                 return {message: 'No auto feedback for processing at this time.'};
             }
             let executeAutoFeedback = feedback => {
-                console.log("feedbackName", feedback.name);
-                console.log("feedback", feedback);
                 let platformObjId = feedback.platformObjId;
                 let roles = [];
                 let admins = [];
@@ -230,7 +227,7 @@ let dbPlatformAutoFeedback = {
                 let curScheduleIndex = 0;
                 let dayAfterLastMission = 0;
 
-                if(feedback.schedule && feedback.schedule.length > 0) {
+                if (feedback.schedule && feedback.schedule.length > 0) {
                     feedback.schedule.forEach((item, index) => {
                         if (item.triggerHour == curHour && item.triggerMinute == curMinute) {
                             curScheduleNumber = index + 1;
@@ -241,29 +238,32 @@ let dbPlatformAutoFeedback = {
                     dayAfterLastMission = feedback.schedule[curScheduleIndex].dayAfterLastMission || 0;
                 }
 
-                let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
-                    departments.forEach(department => {
-                        if(department._id == platformObjId) {
-                            roles = department.roles;
-                        }
-                    });
-                    if (feedback.departments) {
-                        if (feedback.roles) {
-                            roles.map(role => {
-                                if (role._id != "" && (feedback.roles.indexOf(role._id) >= 0)) {
-                                    role.users.map(user => admins.push(user._id))
-                                }
-                            })
-                        } else {
-                            roles.map(role =>
-                                role.users.map(user => {
-                                    if (user._id != "") {
-                                        admins.push(user._id)
+                // Get department and admin roles
+                let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(
+                    departments => {
+                        departments.forEach(department => {
+                            if (department._id == platformObjId) {
+                                roles = department.roles;
+                            }
+                        });
+
+                        if (feedback.departments) {
+                            if (feedback.roles) {
+                                roles.map(role => {
+                                    if (role._id != "" && (feedback.roles.indexOf(role._id) >= 0)) {
+                                        role.users.map(user => admins.push(user._id))
                                     }
-                                })
-                            )
+                                });
+                            } else {
+                                roles.map(role =>
+                                    role.users.map(user => {
+                                        if (user._id != "") {
+                                            admins.push(user._id);
+                                        }
+                                    })
+                                )
+                            }
                         }
-                    }
                 });
 
                 return Promise.all([departmentProm]).then(() => {
@@ -271,8 +271,8 @@ let dbPlatformAutoFeedback = {
                     let registerEndTime = feedback.registerEndTime;
                     let playerQuery = {platform: platformObjId};
 
-                    let addMultipleOr = function (orArr) {
-                        if(!orArr || !orArr.length) {
+                    let addMultipleOr = function(orArr) {
+                        if (!orArr || !orArr.length) {
                             return;
                         }
                         if (playerQuery.$and) {
@@ -282,10 +282,15 @@ let dbPlatformAutoFeedback = {
                         }
                     };
 
-                    let basicCondition = [{"permission.allowPromoCode": true}, {"permission.allowPromoCode": {$exists: false}}];
+                    // Add permission check to query
+                    let basicCondition = [
+                        {"permission.allowPromoCode": true},
+                        {"permission.allowPromoCode": {$exists: false}}
+                    ];
                     addMultipleOr(basicCondition);
 
-                    if (feedback.playerType && feedback.playerType != null) {
+                    // Add player type check to query
+                    if (feedback.playerType) {
                         switch (feedback.playerType) {
                             case 'Test Player':
                                 playerQuery.isRealPlayer = false;
@@ -303,43 +308,54 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player level check to query
                     if (feedback.playerLevel !== "all") {
                         playerQuery.playerLevel = feedback.playerLevel;
                     }
 
+                    // Add player credibility remarks check to query
                     if (feedback.credibilityRemarks && feedback.credibilityRemarks.length > 0) {
                         let tempArr = [];
                         let orQuery = [];
+
                         if (feedback.credibilityRemarks.includes("")) {
                             feedback.credibilityRemarks.forEach(remark => {
-                                if(remark != "") {
+                                if (remark !== "") {
                                     tempArr.push(remark);
                                 }
                             });
-                            orQuery = [{credibilityRemarks: []}, {credibilityRemarks: {$exists: false}}, {credibilityRemarks: {$in: tempArr}}];
+                            orQuery = [
+                                {credibilityRemarks: []},
+                                {credibilityRemarks: {$exists: false}},
+                                {credibilityRemarks: {$in: tempArr}}
+                            ];
                             addMultipleOr(orQuery);
                         } else {
                             playerQuery.credibilityRemarks = {$in: feedback.credibilityRemarks};
                         }
                     }
 
+                    // Add player credibility remarks filter to query
                     if (feedback.filterCredibilityRemarks && feedback.filterCredibilityRemarks.length > 0) {
                         let tempArr = [];
                         let orRemarkQuery = [];
+
                         if (feedback.filterCredibilityRemarks.includes("")) {
                             feedback.filterCredibilityRemarks.forEach(remark => {
-                                if (remark != "") {
+                                if (remark !== "") {
                                     tempArr.push(remark);
                                 }
                             });
-                            orRemarkQuery = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
+                            orRemarkQuery = [
+                                {credibilityRemarks: {$ne: []}},
+                                {credibilityRemarks: {$exists: true}},
+                                {credibilityRemarks: {$nin: tempArr}}
+                            ];
                             addMultipleOr(orRemarkQuery);
-                            // playerQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
                         } else {
                             if (playerQuery.credibilityRemarks && playerQuery.credibilityRemarks.$in) {
                                 orRemarkQuery = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
                                 addMultipleOr(orRemarkQuery);
-                                // playerQuery.$and = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
                             }
                             else {
                                 playerQuery.credibilityRemarks = {$nin: feedback.filterCredibilityRemarks};
@@ -347,30 +363,56 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player last access check to query
                     if (feedback.lastAccessOperator === "range") {
                         playerQuery.lastAccessTime = {
-                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessFormal + dayAfterLastMission)),
-                            $gte: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessLatter + dayAfterLastMission)),
+                            $lt: dbutility.getDayEndTime(
+                                dbutility.getNDaysAgoFromSpecificStartTime(
+                                    new Date(), feedback.lastAccessFormal + dayAfterLastMission
+                                )
+                            ),
+                            $gte: dbutility.getDayEndTime(
+                                dbutility.getNDaysAgoFromSpecificStartTime(
+                                    new Date(), feedback.lastAccessLatter + dayAfterLastMission
+                                )
+                            ),
                         };
                     } else {
                         let range = feedback.lastAccessOperator.split("-");
+
                         playerQuery.lastAccessTime = {
-                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[0]) + dayAfterLastMission))
+                            $lt: dbutility.getDayEndTime(
+                                dbutility.getNDaysAgoFromSpecificStartTime(
+                                    new Date(), parseInt(range[0]) + dayAfterLastMission
+                                )
+                            )
                         };
+
                         if (range[1]) {
-                            playerQuery.lastAccessTime["$gte"] = dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[1]) + dayAfterLastMission));
+                            playerQuery.lastAccessTime["$gte"] = dbutility.getDayEndTime(
+                                dbutility.getNDaysAgoFromSpecificStartTime(
+                                    new Date(), parseInt(range[1]) + dayAfterLastMission
+                                )
+                            );
                         }
                     }
 
-                    if (feedback.filterFeedback || feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                    // Add player feedback topic filter to query
+                    if (
+                        feedback.filterFeedback
+                        || feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0
+                    ) {
                         let arr = [];
-                        if(feedback.filterFeedback) {
+
+                        if (feedback.filterFeedback) {
                             let lastFeedbackTimeExist = {
                                 lastFeedbackTime: null
                             };
                             let lastFeedbackTime = {
                                 lastFeedbackTime: {
-                                    $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))
+                                    $lt: dbutility.getDayEndTime(
+                                        dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback)
+                                    )
                                 }
                             };
                             arr.push(lastFeedbackTimeExist);
@@ -380,16 +422,18 @@ let dbPlatformAutoFeedback = {
                         addMultipleOr(arr);
                     }
 
-                    if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                    if (feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
                         playerQuery.lastFeedbackTopic = {$nin: feedback.filterFeedbackTopic};
                     }
 
+                    // Add call permission check to query
                     if (feedback.callPermission == 'true') {
                         playerQuery['permission.phoneCallFeedback'] = {$ne: false};
                     } else if (feedback.callPermission == 'false') {
                         playerQuery['permission.phoneCallFeedback'] = false;
                     }
 
+                    // Add player deposit count check to query
                     if (feedback.depositCountOperator && feedback.depositCountFormal != null) {
                         switch (feedback.depositCountOperator) {
                             case ">=":
@@ -416,6 +460,7 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player value check to query
                     if (feedback.playerValueOperator && feedback.playerValueFormal != null) {
                         switch (feedback.playerValueOperator) {
                             case ">=":
@@ -442,6 +487,7 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player consumption times check to query
                     if (feedback.consumptionTimesOperator && feedback.consumptionTimesFormal != null) {
                         switch (feedback.consumptionTimesOperator) {
                             case ">=":
@@ -468,6 +514,7 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player bonus amount check to query
                     if (feedback.bonusAmountOperator && feedback.bonusAmountFormal != null) {
                         switch (feedback.bonusAmountOperator) {
                             case ">=":
@@ -494,6 +541,7 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player withdrawal times check to query
                     if (feedback.withdrawTimesOperator && feedback.withdrawTimesFormal != null) {
                         switch (feedback.withdrawTimesOperator) {
                             case ">=":
@@ -520,6 +568,7 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player top up sum check to query
                     if (feedback.topUpSumOperator && feedback.topUpSumFormal != null) {
                         switch (feedback.topUpSumOperator) {
                             case ">=":
@@ -546,44 +595,52 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
+                    // Add player played provider check to query
                     if (feedback.gameProviderId && feedback.gameProviderId.length > 0) {
                         playerQuery.gameProviderPlayed = {$in: feedback.gameProviderId};
                     }
 
+                    // Add system check to query (Deprecated)
                     if (feedback.isNewSystem === "old") {
                         playerQuery.isNewSystem = {$ne: true};
                     } else if (feedback.isNewSystem === "new") {
                         playerQuery.isNewSystem = true;
                     }
 
+                    // Add registration time check to query
                     if (registerStartTime && registerEndTime) {
                         playerQuery.registrationTime = {$gte: registerStartTime, $lte: registerEndTime};
                     }
 
+                    // Add admins check to query
                     if ( (feedback.admins && feedback.admins.length > 0) || admins.length) {
                         let csOfficer = feedback.admins && feedback.admins.length > 0 ? feedback.admins : admins;
+
                         if (csOfficer && csOfficer.length) {
-                            let noneCSOfficerQuery = {}, csOfficerArr = [];
+                            let noneCSOfficerQuery = {};
+                            let csOfficerArr = [];
 
                             csOfficer.forEach(item => {
-                                if (item == "") {
+                                if (item === "") {
                                     noneCSOfficerQuery = {csOfficer: {$exists: false}};
                                 } else {
                                     csOfficerArr.push(ObjectId(item));
                                 }
                             });
 
-                            console.log("noneCSOfficerQuery",noneCSOfficerQuery);
-                            console.log("csOfficerArr",csOfficerArr);
-                            if (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0 && csOfficerArr.length > 0) {
+                            if (
+                                Object.keys(noneCSOfficerQuery)
+                                && Object.keys(noneCSOfficerQuery).length > 0
+                                && csOfficerArr.length > 0
+                            ) {
                                 addMultipleOr([noneCSOfficerQuery, {csOfficer: {$in: csOfficerArr}}]);
-
-                            } else if ((Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0) && !csOfficerArr.length) {
+                            } else if (
+                                (Object.keys(noneCSOfficerQuery) && Object.keys(noneCSOfficerQuery).length > 0)
+                                && !csOfficerArr.length
+                            ) {
                                 playerQuery.csOfficer = {$exists: false};
-
-                            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length){
+                            } else if (csOfficerArr.length > 0 && !Object.keys(noneCSOfficerQuery).length) {
                                 playerQuery.csOfficer = {$in: csOfficerArr};
-
                             }
                         }
                     }
@@ -597,31 +654,33 @@ let dbPlatformAutoFeedback = {
                         let stream = filteredPlayerProm.cursor({batchSize: 3000});
                         let balancer = new SettlementBalancer();
 
-                        return balancer.initConns().then(function () {
+                        return balancer.initConns().then(function() {
                             return Q(
                                 balancer.processStream(
                                     {
                                         stream: stream,
                                         batchSize: constSystemParam.BATCH_SIZE,
-                                        makeRequest: function (filteredPlayers, request) {
-                                            console.log("filteredPlayers count",filteredPlayers.length);
+                                        makeRequest: function(filteredPlayers, request) {
+                                            console.log("filteredPlayers count", filteredPlayers.length);
                                             let promoCodeProms = [];
+
                                             feedback.schedule.forEach((item, index) => {
                                                 let curScheduleNumber = index + 1;
-                                                if(item.triggerHour == curHour && item.triggerMinute == curMinute) {
+                                                if (item.triggerHour == curHour && item.triggerMinute == curMinute) {
                                                     filteredPlayers.forEach(player => {
                                                         let newPromoCodeEntry;
                                                         let promoCodeProm = dbconfig.collection_promoCode.find({
                                                             playerObjId: player._id,
                                                             autoFeedbackMissionObjId: feedback._id
                                                         }).sort({createTime: -1}).limit(1).lean().then(promoCode => {
-                                                            console.log("autoFeedback promoCode",promoCode);
-                                                            if(promoCode && promoCode.length > 0) {
+                                                            console.log("autoFeedback promoCode", promoCode);
+                                                            if (promoCode && promoCode.length > 0) {
                                                                 promoCode = promoCode[0];
                                                                 let curTime = new Date().getTime();
                                                                 let timeAfterLastMission = dbutility.getNdaylaterFromSpecificStartTime(item.dayAfterLastMission, new Date(promoCode.createTime)).getTime();
                                                                 let promoCodeCreateTime = new Date(promoCode.createTime).getTime();
                                                                 let playerLastAccessTime = new Date(player.lastAccessTime).getTime();
+
                                                                 if(curScheduleNumber-1 == promoCode.autoFeedbackMissionScheduleNumber &&
                                                                     curTime >= timeAfterLastMission && playerLastAccessTime < promoCodeCreateTime) {
                                                                     return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
@@ -636,7 +695,7 @@ let dbPlatformAutoFeedback = {
                                                             }
                                                             return null;
                                                         }).then(template => {
-                                                            console.log("autoFeedback template",template);
+                                                            console.log("autoFeedback template", template);
                                                             if(template) {
                                                                 if (player && player.forbidPromoCodeList && player.forbidPromoCodeList.length && player.forbidPromoCodeList.map( p => {return p.toString()}).includes(template._id.toString())){
                                                                     return null;
