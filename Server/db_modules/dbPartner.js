@@ -1895,6 +1895,9 @@ let dbPartner = {
     partnerLogout: function (partnerData) {
         var time_now = new Date().getTime();
         var updateData = {isLogin: false, lastAccessTime: time_now};
+        if (!partnerData.partnerId) {
+            return Promise.resolve();
+        }
 
         return dbUtil.findOneAndUpdateForShard(dbconfig.collection_partner, {partnerId: partnerData.partnerId}, updateData, constShardKeys.collection_partner);
     },
