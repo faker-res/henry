@@ -503,7 +503,6 @@ var dbPlayerTopUpRecord = {
             if (!consumption || !consumption._id || !consumption._id.playerId) {
                 return;
             }
-            console.log("debug #C8AD00 grouped consumption", consumption)
             let providerDetail = {};
             let providerId = consumption.providerId.toString();
             providerDetail[providerId] = {
