@@ -87,7 +87,7 @@ class Content extends Component{
             return (
                 <div>
                     <h5><b>请求内容:</b></h5>
-                    <div className="bg-light p-1 pl-2">此接口不需要请求内容</div>
+                    <div className="bg-light p-1 pl-2">此函数不需要请求内容</div>
                 </div>
             )
         }
@@ -147,6 +147,9 @@ class Content extends Component{
         let lines = content.split(/\r?\n/);
         lines.forEach((line, index) => {
             line = line.replace(/\s/g, "\u00a0");
+            if(line.length===0){
+                line = "\u00a0";
+            }
             rows.push(
                 <div key={index}>{line}</div>
             )
@@ -266,9 +269,11 @@ class Content extends Component{
 
                 <div className="mt-3">
                     {
-                        this.props.serviceName && this.props.functionName ? 
-                        <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}({"{param}"})</h5> : 
-                        null
+                        this.props.serviceName && this.props.functionName ? (
+                            this.props.requestContent && this.props.requestContent.length === 0 ? 
+                            <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}()</h5> : 
+                            <h5><b>请求函数:</b> FPMS.{this.props.serviceName}.{this.props.functionName}(请求内容)</h5> 
+                        ) : null
                     }
                 </div>
 

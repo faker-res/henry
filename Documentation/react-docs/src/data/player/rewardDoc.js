@@ -784,7 +784,7 @@ let reward = {
             requestContent:[
                 { param: "code", mandatory: "是", type: "String", content: "优惠唯一代码" },
                 { param: "topUpRecordId", mandatory: "否", type: "String", content: "存款唯一ID (存送金组, 提升留存组)" },
-                { param: "festivalItemId", mandatory: "否", type: "String", content: "特别节日列表单一节日的objId, 可从接口getRewardApplicationData取得" },
+                { param: "festivalItemId", mandatory: "否", type: "String", content: "特别节日列表单一节日的objId, 可从函数getRewardApplicationData取得" },
                 { param: "appliedObjIdList", mandatory: "否", type: "String Array", content: "幸运单注的投注列表的objId(数组中有一个可领 返回200 会忽略数组中不满足条件的id" }
             ],
             respondSuccess:{
@@ -976,7 +976,7 @@ let reward = {
             title: "获取玩家累计签到信息",
             serviceName: "reward",
             functionName: "getConsecutiveLoginRewardDay",
-            desc:"获取玩家累计签到信息, 需要玩家登陆才可请求该接口. 注：这是对应旧的全勤签到。若要获取『全勤签到（组）』的相关资料，请使用getSignBonus",
+            desc:"获取玩家累计签到信息, 需要玩家登陆才可请求. 注：这是对应旧的全勤签到。若要获取『全勤签到（组）』的相关资料，请使用getSignBonus",
             requestContent:[
                 { param: "code", mandatory: "是", type: "String", content: "ljqd" }
             ],

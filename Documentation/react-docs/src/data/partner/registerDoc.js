@@ -161,7 +161,7 @@ let register = {
             title: "代理会员注册",
             serviceName: "partner",
             functionName: "register",
-            desc:"代理会员注册接口",
+            desc:"代理会员注册函数",
             requestContent:[
                 { param: "name", mandatory: "是", type: "String", content: "代理账号" },
                 { param: "password", mandatory: "是", type: "String", content: "注册的密码" },
@@ -223,14 +223,14 @@ let register = {
             title: "代理给下级代理开户",
             serviceName: "partner",
             functionName: "createDownLinePartner",
-            desc:"代理给下级代理开户，该接口需要登录",
+            desc:"代理给下级代理开户，该函数需要登录",
             requestContent:[
                 { param: "deviceType", mandatory: "否", type: "int", content: "设备类型列表" },
                 { param: "subPlatformId", mandatory: "否", type: "int", content: "子平台列表" },
                 { param: "account", mandatory: "是", type: "String", content: "账号" },
                 { param: "password", mandatory: "是", type: "String", content: "密码" },
                 { param: "phoneNumber", mandatory: "是", type: "String", content: "电话号码" },
-                { param: "commissionRate", mandatory: "是", type: "Array", content: "请参考【代理】-->【佣金】-->【查询代理佣金设置数据】（getPartnerCommissionRate）接口，需把回文加到此栏目"},
+                { param: "commissionRate", mandatory: "是", type: "Array", content: "请参考【代理】-->【佣金】-->【查询代理佣金设置数据】（getPartnerCommissionRate）函数，需把回文加到此栏目"},
             ],
             respondSuccess:{
                 status: 200,
@@ -247,7 +247,7 @@ let register = {
             title: "代理会员注册验证码",
             serviceName: "partner",
             functionName: "captcha",
-            desc:"代理会员注册验证码接口,从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来",
+            desc:"代理会员注册验证码函数,从服务端获取验证码， 验证码以base64格式分发给客户端, 客户端接到之后显示出来",
             requestContent:[],
             respondSuccess:{
                 status: 200,
