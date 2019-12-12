@@ -7559,6 +7559,9 @@ let dbPlayerInfo = {
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
+                                    } else {
+                                        // if account prefix was not set, use platform prefix
+                                        loginData.accountPrefix = platformPrefix;
                                     }
 
                                     let userNameProp = {
