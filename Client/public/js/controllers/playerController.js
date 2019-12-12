@@ -18771,6 +18771,15 @@ define(['js/app'], function (myApp) {
         vm.getProviderText = function (providerId) {
             if (!providerId || !vm.allGameProviders) return false;
             var result = '';
+
+            let sendData = {
+                platform: vm.selectedPlatform.id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {
+                vm.allGameProviders = data.data;
+            });
+            
             $.each(vm.allGameProviders, function (i, v) {
                 if (providerId == v._id || providerId == v.providerId) {
                     result = v.name;
