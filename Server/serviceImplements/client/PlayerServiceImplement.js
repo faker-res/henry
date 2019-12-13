@@ -1030,7 +1030,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.updatePasswordPlayerPartner.expectsData = 'playerId: String, partnerId: String, oldPassword: String, newPassword: String';
-    this.c.onRequest = function (wsFunc, conn, data) {
+    this.updatePasswordPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.oldPassword && data.newPassword && conn.playerId && conn.partnerId);
         data.smsCode = data.smsCode ? data.smsCode : "";
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.updatePasswordPlayerPartner, [conn.playerId, conn.partnerId, data.oldPassword, data.newPassword, data.smsCode], isValidData, true, false, false).then(
