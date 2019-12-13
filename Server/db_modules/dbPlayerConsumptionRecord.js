@@ -609,15 +609,11 @@ var dbPlayerConsumptionRecord = {
         let newRecord = new dbconfig.collection_playerConsumptionRecord(data);
         let playerData;
         let referralRecord;
-        if (data && data.playerId) {
-            console.log("zm check consumption save start", data.playerId)
-        }
+        
         return newRecord.save().then(
             res => {
                 record = res;
-                if (data && data.playerId) {
-                    console.log("zm check consumption save end", data.playerId)
-                }
+
                 if (record) {
                     // Update player consumption sum
                     dbPlayerConsumptionHourSummary.updateSummary(record.platformId, record.playerId, record.providerId, record.createTime, record.amount, record.validAmount, record.bonusAmount, 1, record.loginDevice).catch(err => {
