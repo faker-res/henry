@@ -747,6 +747,15 @@ var dbPlayerFeedback = {
 
         let searchQuery = await dbPlayerFeedback.getFeedbackSearchQuery(query, index, isMany,startTime, endTime);
         console.log('Search Query', searchQuery);
+
+        if(playerPermission && playerPermission.length > 0){
+            var str1 = 'permission.';
+            for(var i = 0; i < playerPermission.length; i++){
+                var res = str1.concat(playerPermission[i]);
+                searchQuery[res] = {$ne: false};
+            }
+        }
+
         let playerResult;
         let players;
         let count;
@@ -784,6 +793,7 @@ var dbPlayerFeedback = {
 
         let total;
         return Q.all([players, count]).then(async data => {
+            
             if(isMany.searchType === "one"){
                 total = data[1];
             }else{
@@ -792,27 +802,21 @@ var dbPlayerFeedback = {
                     console.log('=CallOutMission= callout query result', data[0].length);
                 }
             }
-            //In case the permission didn't pass through in player.js,
-            // for(var index in data[0]){
-            //     if(data[0][index] && !data[0][index].permission){
-            //         let permissionData = await dbconfig.collection_playerPermission.findOne({_id: data[0][index]._id}).lean();
-            //         if (permissionData && permissionData.permission) {
-            //             data[0][index].permission = permissionData.permission;
+            // Change to use query to fetch player, after test passed, delete this block before update to production.
+
+            // if(playerPermission && playerPermission.length > 0){
+            //     let minus = 0;
+            //     // for(var i = 0; i < data[0].length; i++){
+            //     for(var i = data[0].length - 1; i >=0; i--){
+            //         for(var k = 0; k < playerPermission.length; k++){
+            //             if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === false){
+            //                 console.log('search qu', data[0][i]);
+            //                 data[0].splice(i, 1);
+            //                 break;
+            //             }
             //         }
             //     }
             // }
-            if(playerPermission && playerPermission.length > 0){
-                let minus = 0;
-                // for(var i = 0; i < data[0].length; i++){
-                for(var i = data[0].length - 1; i >=0; i--){
-                    for(var k = 0; k < playerPermission.length; k++){
-                        if(data[0][i].permission.hasOwnProperty(playerPermission[k]) && data[0][i].permission[playerPermission[k]] === false){
-                            data[0].splice(i, 1);
-                            break;
-                        }
-                    }
-                }
-            }
 
             console.log('return data', data[0]);
 
