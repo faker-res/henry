@@ -79,8 +79,8 @@ var GameServiceImplement = function () {
 
     this.getProviderList.expectsData = '';
     this.getProviderList.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && (data.platformId || conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: conn.playerId}, false, data.platformId], isValidData, false, false, true);
+        let isValidData = Boolean(data && (data.platformId || (data.playerId && (data.playerId == conn.playerId))));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: data.playerId}, false, data.platformId], isValidData, false, false, true);
     };
 
     this.getProviderDetailList.expectsData = 'playerId: String';
