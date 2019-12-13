@@ -199,8 +199,8 @@ var PartnerServiceImplement = function () {
     //player logout api handler
     this.logout.expectsData = 'partnerId: String';
     this.logout.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLogout, [data], isValidData, true).then(
+        var isValidData = true;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.partnerLogout, [{partnerId: conn.partnerId}], isValidData, true).then(
             function (res) {
                 conn.isAuth = false;
                 conn.partnerId = null;
@@ -221,8 +221,8 @@ var PartnerServiceImplement = function () {
 
     this.updatePassword.expectsData = 'partnerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.partnerId && data.oldPassword && data.newPassword && (data.partnerId == conn.partnerId) && (data.newPassword.length >= constSystemParam.PASSWORD_LENGTH));
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePassword, [data.partnerId, data.oldPassword, data.newPassword], isValidData, true, false, false).then(
+        var isValidData = Boolean(data && data.oldPassword && data.newPassword && conn.partnerId && (data.newPassword.length >= constSystemParam.PASSWORD_LENGTH));
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePassword, [conn.partnerId, data.oldPassword, data.newPassword], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
@@ -242,11 +242,12 @@ var PartnerServiceImplement = function () {
     this.fillBankInformation.expectsData = 'partnerId: String';
     this.fillBankInformation.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
+        var isValidData = Boolean(data && conn.partnerId);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [userAgent, data.partnerId, data], isValidData, true, false, false).then(
+        data.partnerId = conn.partnerId;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.updatePartnerBankInfo, [userAgent, conn.partnerId, data], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
@@ -264,20 +265,20 @@ var PartnerServiceImplement = function () {
 
     this.getPlayerSimpleList.expectsData = 'partnerId: String';
     this.getPlayerSimpleList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
+        var isValidData = Boolean(data && conn.partnerId);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM * 100;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPlayerSimpleList, [data.partnerId, data.queryType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.sort], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPlayerSimpleList, [conn.partnerId, data.queryType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.sort], isValidData);
     };
 
     this.getPlayerDetailList.expectsData = 'partnerId: String';
     this.getPlayerDetailList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.partnerId && (data.partnerId == conn.partnerId));
+        var isValidData = Boolean(data && conn.partnerId);
         data = data || {};
         data.startIndex = data.startIndex || 0;
         data.requestCount = data.requestCount || constSystemParam.MAX_RECORD_NUM * 100;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPlayerSimpleList, [data.partnerId, data.queryType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.sort], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPlayerSimpleList, [conn.partnerId, data.queryType, data.startTime, data.endTime, data.startIndex, data.requestCount, data.sort], isValidData);
     };
 
     this.getDomainList.expectsData = '';
@@ -395,7 +396,7 @@ var PartnerServiceImplement = function () {
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent
-        let isValidData = Boolean(data && data.platformId && data.partnerId && (data.partnerId == conn.partnerId) && (data.phoneNumber || data.newPhoneNumber) && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && conn.partnerId && (data.phoneNumber || data.newPhoneNumber) && data.smsCode);
         let newPhoneNumber = data.newPhoneNumber ? data.newPhoneNumber : data.phoneNumber;
         let queryRes = queryPhoneLocation(newPhoneNumber);
         if (queryRes) {
@@ -403,7 +404,7 @@ var PartnerServiceImplement = function () {
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.sp;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, conn.partnerId, newPhoneNumber, data.smsCode, 1], isValidData);
     };
 
     //update partner QQ

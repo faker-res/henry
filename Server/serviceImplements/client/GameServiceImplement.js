@@ -85,8 +85,8 @@ var GameServiceImplement = function () {
 
     this.getProviderDetailList.expectsData = 'playerId: String';
     this.getProviderDetailList.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: data.playerId}, true], isValidData);
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGameProvider.getGameProvidersByPlayerAPI, [{playerId: conn.playerId}, true], isValidData);
     };
 
     this.getProviderStatus.expectsData = 'playerId: String';
@@ -97,20 +97,20 @@ var GameServiceImplement = function () {
 
     this.transferToProvider.expectsData = 'playerId: String, [providerId]: String';
     this.transferToProvider.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && data.hasOwnProperty("providerId") && (data.playerId == conn.playerId));
+        var isValidData = Boolean(data && data.hasOwnProperty("providerId") && conn.playerId);
         data.credit = -1;
         isValidData = data.credit == 0 ? false : isValidData;
         let isTransferOut = data.isTransferOut === false ? data.isTransferOut : true;
-        let args = [data.playerId, null, data.providerId, data.credit, null, null, isTransferOut];
+        let args = [conn.playerId, null, data.providerId, data.credit, null, null, isTransferOut];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditToProvider, args, isValidData);
     };
 
     this.transferFromProvider.expectsData = 'playerId: String, providerId: String, [credit]: Number';
     this.transferFromProvider.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && data.hasOwnProperty("providerId") && (data.playerId == conn.playerId));
+        var isValidData = Boolean(data && data.hasOwnProperty("providerId") && conn.playerId);
         data.credit = -1;
         isValidData = data.credit == 0 ? false : isValidData;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProvider, [data.playerId, null, data.providerId, data.credit], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProvider, [conn.playerId, null, data.providerId, data.credit], isValidData);
     };
 
     this.getGameProviderCredit.expectsData = 'providerId: String';

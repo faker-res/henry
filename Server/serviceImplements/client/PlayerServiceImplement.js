@@ -472,17 +472,17 @@ let PlayerServiceImplement = function () {
     //added case
     this.get.expectsData = 'playerId: String';
     this.get.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerInfoAPI, [{playerId: data.playerId}], isValidData);
+        let isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerInfoAPI, [{playerId: conn.playerId}], isValidData);
     };
 
     //player partner get api handler
     this.getPlayerPartner.expectsData = 'playerId: String, partnerId: String';
     this.getPlayerPartner.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && (data.name || data.playerId) && (data.playerId == conn.playerId) && (data.partnerId == conn.partnerId));
+        let isValidData = Boolean(data && conn.playerId && conn.partnerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.getPlayerPartnerAPI, [{
-            playerId: data.playerId,
-            partnerId: data.partnerId
+            playerId: conn.playerId,
+            partnerId: conn.partnerId
         }], isValidData);
     };
 
@@ -527,7 +527,7 @@ let PlayerServiceImplement = function () {
     this.updatePhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && conn.playerId && data.smsCode);
         // data.phoneNumber = data.phoneNumber || "";
         data.newPhoneNumber = data.newPhoneNumber || "";
         // let queryRes = queryPhoneLocation(data.phoneNumber);
@@ -536,21 +536,21 @@ let PlayerServiceImplement = function () {
         //     data.phoneCity = queryRes.city;
         //     data.phoneType = queryRes.type;
         // }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, String(data.newPhoneNumber), data.smsCode, 0], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, conn.playerId, String(data.newPhoneNumber), data.smsCode, 0], isValidData);
     };
 
     this.updatePlayerPartnerPhoneNumberWithSMS.expectsData = 'playerId: String, phoneNumber: Number';
     this.updatePlayerPartnerPhoneNumberWithSMS.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent
-        let isValidData = Boolean(data && data.platformId && data.playerId && (data.playerId == conn.playerId) && data.phoneNumber && data.smsCode);
+        let isValidData = Boolean(data && data.platformId && conn.playerId && data.phoneNumber && data.smsCode);
         let queryRes = queryPhoneLocation(data.phoneNumber);
         if (queryRes) {
             data.phoneProvince = queryRes.province;
             data.phoneCity = queryRes.city;
             data.phoneType = queryRes.sp;
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, data.playerId, data.newPhoneNumber, data.smsCode, 2], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPartner.updatePhoneNumberWithSMS, [data.userAgent, data.platformId, conn.playerId, data.newPhoneNumber, data.smsCode, 2], isValidData);
     };
 
     //player login api handler
@@ -912,7 +912,9 @@ let PlayerServiceImplement = function () {
     //player logout api handler
     this.logoutPlayerPartner.expectsData = 'playerId: String, partnerId: String';
     this.logoutPlayerPartner.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.partnerId && (data.partnerId == conn.partnerId));
+        let isValidData = Boolean(data && conn.playerId && conn.partnerId);
+        data.playerId = conn.playerId;
+        data.partnerId = conn.partnerId;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.logoutPlayerPartnerAPI, [data], isValidData, true, false, true).then(
             res => {
                 conn.isAuth = false;
@@ -991,9 +993,9 @@ let PlayerServiceImplement = function () {
     this.updatePassword.expectsData = 'playerId: String, oldPassword: String, newPassword: String';
     this.updatePassword.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        let isValidData = Boolean(data && data.playerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId));
+        let isValidData = Boolean(data && data.oldPassword && data.newPassword && conn.playerId);
         data.smsCode = data.smsCode ? data.smsCode : "";
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [data.playerId, data.oldPassword, data.newPassword, data.smsCode, userAgent], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePassword, [conn.playerId, data.oldPassword, data.newPassword, data.smsCode, userAgent], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
@@ -1032,11 +1034,13 @@ let PlayerServiceImplement = function () {
     };
 
     this.updatePasswordPlayerPartner.expectsData = 'playerId: String, partnerId: String, oldPassword: String, newPassword: String';
-    this.updatePasswordPlayerPartner.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.playerId && data.partnerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId) && data.partnerId == conn.partnerId);
+    this.c.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.oldPassword && data.newPassword && conn.playerId && conn.partnerId);
         data.smsCode = data.smsCode ? data.smsCode : "";
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.updatePasswordPlayerPartner, [data.playerId, data.partnerId, data.oldPassword, data.newPassword, data.smsCode], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerPartner.updatePasswordPlayerPartner, [conn.playerId, conn.partnerId, data.oldPassword, data.newPassword, data.smsCode], isValidData, true, false, false).then(
             function (res) {
+                data.playerId = conn.playerId;
+                data.partnerId = conn.partnerId;
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS, // operation successful
                 }, data);
@@ -1068,13 +1072,14 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName);
+        let isValidData = Boolean(data && conn.playerId && data.bankName);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
         if (data.bankAddress) {
             data.bankAddress = data.bankAddress.replace(/[`~【】 。、“”……·!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/\uFF00-\uFFEF]/gi, ""); // remove special characters
         }
+        data.playerId = conn.playerId;
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.updatePlayerPayment, [userAgent, {playerId: conn.playerId}, data, null, false], isValidData, true, false, false).then(
             function (res) {
                 if (res) {
@@ -1124,7 +1129,7 @@ let PlayerServiceImplement = function () {
 
     this.updatePlayerPartnerPaymentInfo.expectsData = 'playerId: String';
     this.updatePlayerPartnerPaymentInfo.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
+        let isValidData = Boolean(data && conn.playerId);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }
@@ -1132,7 +1137,7 @@ let PlayerServiceImplement = function () {
             function (res) {
                 if (res && res.length > 1) {
                     wsFunc.response(conn, {status: constServerCode.SUCCESS}, data);
-                    SMSSender.sendByPlayerId(data.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
+                    SMSSender.sendByPlayerId(conn.playerId, constPlayerSMSSetting.UPDATE_PAYMENT_INFO);
                     let loggerInfo = {
                         source: constProposalEntryType.CLIENT,
                         bankName: data.bankName,
@@ -1853,7 +1858,8 @@ let PlayerServiceImplement = function () {
     };
 
     this.getPromoShortUrl.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(data && data.url && data.playerId);
+        let isValidData = Boolean(data && data.url && conn.playerId);
+        data.playerId = conn.playerId;
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPromoShortUrl, [data], isValidData);
     };
 

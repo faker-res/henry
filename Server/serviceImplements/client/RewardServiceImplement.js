@@ -37,8 +37,8 @@ let RewardServiceImplement = function () {
 
     this.getRewardTask.expectsData = 'playerId: String';
     this.getRewardTask.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardTask.getPlayerCurRewardTaskByPlayerId, [{playerId: data.playerId}], isValidData);
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardTask.getPlayerCurRewardTaskByPlayerId, [{playerId: conn.playerId}], isValidData);
     };
 
     this.requestConsumeRebate.expectsData = '';
@@ -65,8 +65,8 @@ let RewardServiceImplement = function () {
 
     this.isValidForFirstTopUpReward.expectsData = 'playerId: String';
     this.isValidForFirstTopUpReward.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId));
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.isPlayerIdValidForFirstTopUpReward, [data.playerId], isValidData);
+        var isValidData = Boolean(data && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.isPlayerIdValidForFirstTopUpReward, [conn.playerId], isValidData);
     };
 
     this.createFirstTopUpRewardProposal.expectsData = 'topUpRecordId: [], code: String';
