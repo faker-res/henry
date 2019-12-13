@@ -5477,6 +5477,7 @@ let dbPlayerInfo = {
                         }
                     );
 
+                    console.log('JY before set autoFeedbackMissionTopUp', topupRecordData);
                     //check and set promo code autoFeedbackMissionTopUp to true;
                     dbconfig.collection_promoCode.aggregate([
                         {$match: {
@@ -5497,7 +5498,9 @@ let dbPlayerInfo = {
                     ]).read("secondaryPreferred").exec().then(promoCodes => {
                         console.log("autofeedback promoCodes record during successful topup",promoCodes);
                         promoCodes.forEach(promoCode => {
-                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                            console.log('JY check promoCode', promoCode);
+                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                console.log('before updating promo code')
                                 dbconfig.collection_promoCode.findOneAndUpdate({
                                     platformObjId: topupRecordData.platformId,
                                     playerObjId: topupRecordData.playerId,
@@ -7556,6 +7559,9 @@ let dbPlayerInfo = {
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
+                                    } else {
+                                        // if account prefix was not set, use platform prefix
+                                        loginData.accountPrefix = platformPrefix;
                                     }
 
                                     let userNameProp = {
@@ -9439,83 +9445,63 @@ let dbPlayerInfo = {
      * @param {Number} amount
      * @param adminName
      * @param forSync
+     * @param isTransferOut
      */
-    transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        let playerProm = forSync
-            ? dbconfig.collection_players.findOne({name: playerId})
+    transferPlayerCreditToProvider: async function (playerId, platform, providerId, amount, adminName, forSync, isTransferOut = true) {
+        let playerData = forSync
+            ? await dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean()
+            : await dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
-            : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
-                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
-        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-        let playerData, providerData, rewardTaskGroupData;
+                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
+        let providerData = await dbconfig.collection_gameProvider.findOne({providerId: providerId}).lean();
+        let rewardTaskGroupData;
         let transferAmount = 0;
         let isUpdateTransferId = false;
         let currentDate = new Date();
         let playerBonusDoubledRewardValidity = false;
 
-        return Promise.all([playerProm, providerProm]).then(
-            data => {
-                if (data && data[0] && data[1]) {
-                    [playerData, providerData] = data;
-                    let platformData = playerData.platform;
+        if (!playerData || !providerData) {
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Cannot find player or provider");
+        }
 
-                    console.log(`Start transfer ${playerData.name} credit ${amount} to ${providerId}`);
+        let platformData = playerData.platform;
 
-                    if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
-                        let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
-                        // if adminName doesn't exist (likely request from frontend), AND
-                        // requested provider is in player's forbid providers' list: then reject.
-                        if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
-                            return Promise.reject({
-                                name: "DataError",
-                                status: constServerCode.PLAYER_IS_FORBIDDEN,
-                                message: "Player is forbidden to the game"
-                            })
-                        }
-                    }
+        console.log(`Start transfer ${playerData.name} credit ${amount} to ${providerId}`);
 
-                    // Check is test player
-                    if (playerData.isTestPlayer) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Unable to transfer credit for demo player"
-                        })
-                    }
-
-                    if (providerData.status != constProviderStatus.NORMAL
-                        || platformData && platformData.gameProviderInfo
-                        && platformData.gameProviderInfo[String(providerData._id)]
-                        && platformData.gameProviderInfo[String(providerData._id)].isEnable === false) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Provider is not available"
-                        });
-                    }
-                    return dbPlayerInfo.checkPlayerBonusDoubledRewardValidity(playerData._id, playerData.platform._id, currentDate);
-                } else {
-                    return Promise.reject({name: "DataError", message: "Cannot find player or provider"});
-                }
-            },
-            err => {
-                return Promise.reject({
-                    name: "DataError",
-                    message: "Failed to retrieve player or provider" + err.message,
-                    error: err
-                })
+        // Check if player is forbid to enter the provider
+        if (playerData.forbidProviders && typeof playerData.forbidProviders === 'object') {
+            let forbidProviders = JSON.parse(JSON.stringify(playerData.forbidProviders));
+            // if adminName doesn't exist (likely request from frontend), AND
+            // requested provider is in player's forbid providers' list: then reject.
+            if ((!adminName) && forbidProviders.indexOf(providerData._id.toString()) > -1) {
+                return errorUtils.throwSystemError(constServerCode.PLAYER_IS_FORBIDDEN, "Player is forbidden to the game");
             }
-        ).then(
-            isApply => {
-                playerBonusDoubledRewardValidity = isApply;
-                return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
-            }
-        ).then(
+        }
+
+        // Check is test player
+        if (playerData.isTestPlayer) {
+            return errorUtils.throwSystemError(constServerCode.PLAYER_IS_FORBIDDEN, "Unable to transfer credit for demo player");
+        }
+
+        // Check if provider is available to enter
+        if (Number(providerData.status) !== Number(constProviderStatus.NORMAL)
+            || platformData && platformData.gameProviderInfo
+            && platformData.gameProviderInfo[String(providerData._id)]
+            && platformData.gameProviderInfo[String(providerData._id)].isEnable === false
+        ) {
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Provider is not available");
+        }
+
+        // Check player bonus double reward validity
+        playerBonusDoubledRewardValidity = await dbPlayerInfo.checkPlayerBonusDoubledRewardValidity(playerData._id, playerData.platform._id, currentDate);
+
+        return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date()).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) { rewardTaskGroupData = rewardTaskGroup; }
 
                 //if player applied BonusDoubledReward, check if player has enough credit.
-                if(playerBonusDoubledRewardValidity){
+                if (playerBonusDoubledRewardValidity){
                     let checkTransferAmount = 0;
                     checkTransferAmount += parseFloat(playerData.validCredit.toFixed(2));
 
@@ -9553,7 +9539,9 @@ let dbPlayerInfo = {
 
                     // Transfer out credit from other provider before transfer in
                     if (
-                        playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
+                        isTransferOut
+                        && playerData.lastPlayedProvider
+                        && playerData.lastPlayedProvider.providerId
                         && playerData.lastPlayedProvider.providerId != providerId
                     ) {
                         // Step log
@@ -10060,130 +10048,106 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
-        let playerObj;
-        let gameProvider;
+    transferPlayerCreditFromProvider: async function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
         let targetProviderId = [];
         let isMultiProvider = false;
         let transferPlayerCreditFromProviderProm = [];
-
-        if(typeof providerId != "object"){
-            targetProviderId.push(providerId);
-        }else{
-            targetProviderId = providerId;
-            isMultiProvider = true;
-        }
-
-        let platformData;
-        let playerProm = forSync
-            ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform}).lean()
-            : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
-                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
-        let providerProm = dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
         let currentDate = new Date();
         let firstPlayerState = true;
+        let gameProvider;
 
-        return Promise.all([playerProm, providerProm]).then(
-            data => {
+        let playerObj = forSync
+            ? await dbconfig.collection_players.findOne({name: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean()
+            : await dbconfig.collection_players.findOne({playerId: playerId})
+                .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
 
-                console.log('data[1].length', data[1].length);
+        if (!playerObj) {
+            return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Cannot find player or provider");
+        }
 
-                if (data && data[0] && data[1] && data[1].length > 0) {
-                    [playerObj, gameProvider] = data;
-                    platformData = playerObj.platform;
+        let platformData = playerObj.platform;
 
-                    if (playerObj.forbidProviders && typeof playerObj.forbidProviders === 'object') {
-                        let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
-                        // if adminName doesn't exist (likely request from frontend), AND
-                        // requested provider is in player's forbid providers' list: then reject.
-                        if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
-                            return Promise.reject({
-                                name: "DataError",
-                                status: constServerCode.PLAYER_IS_FORBIDDEN,
-                                message: "Player is forbidden to the game"
-                            })
-                        }
-                    }
+        if (playerObj.isTestPlayer) {
+            return errorUtils.throwSystemError(constServerCode.PLAYER_IS_FORBIDDEN, "Unable to transfer credit for demo player");
+        }
 
-                    if (playerObj.isTestPlayer) {
-                        return Promise.reject({
-                            name: "DataError",
-                            status: constServerCode.PLAYER_IS_FORBIDDEN,
-                            message: "Unable to transfer credit for demo player"
-                        })
-                    }
+        let indexOfProviderId = -1;
 
-                    let indexOfProviderId = -1;
+        console.log(`${playerObj.name} lastPlayedProvider: ${playerObj.lastPlayedProvider}`);
 
-                    console.log('playerObj.lastPlayedProvider', playerObj.lastPlayedProvider);
+        if (!providerId) {
+            // Transfer out from lastPlayedProvider
+            if (playerObj.lastPlayedProvider && playerObj.lastPlayedProvider.providerId) {
+                targetProviderId.push(playerObj.lastPlayedProvider.providerId);
+                gameProvider = await dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
 
-                    // Enforce player to transfer out from correct last played provider
-                    if(playerObj.lastPlayedProvider){
-                        indexOfProviderId = targetProviderId.findIndex(t => t == playerObj.lastPlayedProvider.providerId);
-
-                        if(indexOfProviderId == -1 ){
-                            gameProvider.forEach(
-                                provider => {
-                                    if(provider && provider.sameLineProviders && provider.sameLineProviders[platformData.platformId]
-                                        && provider.sameLineProviders[platformData.platformId].includes(playerObj.lastPlayedProvider.providerId)){
-                                        targetProviderId.push(playerObj.lastPlayedProvider.providerId);
-                                    }
-                                }
-                            );
-
-                            console.log('targetProviderId', targetProviderId);
-
-                            return dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
-                        }
-                    }
-
-                    return gameProvider;
-                } else {
-                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
+                // Error: Provider not found
+                if (!gameProvider || !gameProvider.length) {
+                    return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Cant find provider");
                 }
+            } else {
+                return errorUtils.throwSystemError(constServerCode.PLAYER_TRANSFER_OUT_ERROR, "Please transfer out from correct provider");
             }
-        ).then(
-            gameProviderList => {
-                if(gameProviderList && gameProviderList.length > 0){
-                    gameProvider = gameProviderList;
-
-                    if(!byPassBonusDoubledRewardChecking){
-                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, playerObj.name, currentDate);
-                    }else{
-                        return;
-                    }
-                }else{
-                    return Promise.reject({name: "DataError", message: "Cant find provider"});
-                }
-            },
-            err => {
-                if(err && err.status === constServerCode.PLAYER_IS_FORBIDDEN) {
-                    return Promise.reject(err);
-                } else {
-                    return Promise.reject({name: "DataError", message: "[Transfer out] Error finding game provider", error: err});
-                }
+        } else {
+            // Process targetProviderId
+            if (typeof providerId != "object") {
+                // providerId is String
+                targetProviderId.push(providerId);
+            } else {
+                // providerId is Array
+                targetProviderId = providerId;
+                isMultiProvider = true;
             }
-        ).then(
-            checkPlayerBonusDoubledRewardResult => {
-                if(isMultiProvider){
+
+            // Get provider detail in targetProviderId
+            gameProvider = await dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
+
+            // Error: Provider not found
+            if (!gameProvider || !gameProvider.length) {
+                return errorUtils.throwSystemError(constServerCode.COMMON_ERROR, "Cant find provider");
+            }
+
+            // Enforce transferOut from correct lastPlayedProvider
+            if (playerObj.lastPlayedProvider && playerObj.lastPlayedProvider.providerId) {
+                indexOfProviderId = targetProviderId.findIndex(t => String(t) === String(playerObj.lastPlayedProvider.providerId));
+
+                if (indexOfProviderId === -1) {
                     gameProvider.forEach(
                         provider => {
-                            if(provider){
-                                transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(provider, platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, firstPlayerState, true));
-                                firstPlayerState = false;
+                            if (
+                                provider
+                                && provider.sameLineProviders
+                                && provider.sameLineProviders[platformData.platformId]
+                                && provider.sameLineProviders[platformData.platformId].includes(playerObj.lastPlayedProvider.providerId)
+                            ){
+                                targetProviderId.push(playerObj.lastPlayedProvider.providerId);
                             }
                         }
                     );
-                }else{
-                    transferPlayerCreditFromProviderProm.push(checkAndStartTransferPlayerCreditFromProvider(gameProvider[0], platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, true));
-                }
 
-                return Promise.all(transferPlayerCreditFromProviderProm);
-            },
-            err => {
-                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                    console.log('targetProviderId', targetProviderId);
+
+                    gameProvider = await dbconfig.collection_gameProvider.find({providerId: {$in: targetProviderId}}).lean();
+                }
+            }
+        }
+
+        if (playerObj.forbidProviders && typeof playerObj.forbidProviders === 'object') {
+            let forbidProviders = JSON.parse(JSON.stringify(playerObj.forbidProviders));
+            // if adminName doesn't exist (likely request from frontend), AND
+            // requested provider is in player's forbid providers' list: then reject.
+            if ((!adminName) && forbidProviders.indexOf(gameProvider[0]._id.toString()) > -1) {
+                return errorUtils.throwSystemError(constServerCode.PLAYER_IS_FORBIDDEN, "Player is forbidden to the game");
+            }
+        }
+
+        if (!byPassBonusDoubledRewardChecking) {
+            await dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(
+                playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, playerObj.name, currentDate
+            ).catch(err => {
+                if(err && err.status && err.status === constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
                     return Promise.reject({
                         status: err.status,
                         name: err.name,
@@ -10198,8 +10162,30 @@ let dbPlayerInfo = {
                         message: err.message
                     });
                 }
-            }
-        ).then(
+            });
+        }
+
+        if (isMultiProvider) {
+            gameProvider.forEach(provider => {
+                if (provider) {
+                    transferPlayerCreditFromProviderProm.push(
+                        checkAndStartTransferPlayerCreditFromProvider(
+                            provider, platformData, playerObj, amount, adminName,
+                            bResolve, maxReward, forSync, firstPlayerState, true
+                        )
+                    );
+                    firstPlayerState = false;
+                }
+            });
+        } else {
+            transferPlayerCreditFromProviderProm.push(
+                checkAndStartTransferPlayerCreditFromProvider(
+                    gameProvider[0], platformData, playerObj, amount, adminName, bResolve, maxReward, forSync, true
+                )
+            );
+        }
+
+        return Promise.all(transferPlayerCreditFromProviderProm).then(
             function (data) {
                 // Notify client on credit change
                 messageDispatcher.sendMessage('creditUpdate', {recipientId: playerObj._id});
@@ -14089,13 +14075,20 @@ let dbPlayerInfo = {
             if (hasPartner == true) {
                 query.partner = {$type: "objectId"};
             } else {
-                query['$or'] = [
-                    {partner: null},
-                    {partner: {$exists: false}}
-                ]
+                query.partner = null;
             }
         }
-        return dbconfig.collection_players.find(query);
+        let projection = {
+            _id: 1,
+            name: 1,
+            registrationTime: 1,
+            topUpTimes: 1,
+            topUpSum: 1,
+            consumptionTimes: 1,
+            consumptionSum: 1,
+            valueScore: 1
+        };
+        return dbconfig.collection_players.find(query, projection).lean();
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
@@ -26221,6 +26214,19 @@ let dbPlayerInfo = {
              }
              return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData);
          },
+
+    updatePlayerNickname: function (playerId, nickName) {
+        return dbconfig.collection_players.findOneAndUpdate({playerId: playerId}, {nickName: nickName}, {
+            new: true, select: {nickName: 1}
+        }).lean().then(
+            playerData => {
+                if (!(playerData && playerData.nickName && playerData.nickName == nickName)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                return playerData;
+            }
+        );
+    },
 
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
         if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {

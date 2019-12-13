@@ -51,6 +51,7 @@ var dbPlayerTopUpDaySummary = {
                 playerId: data.playerId,
                 platformId: data.platformId,
                 date: data.date,
+                loginDevice: data.loginDevice,
             },
             upsertData,
             constShardKeys.collection_playerReportDataDaySummary

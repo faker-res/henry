@@ -27,6 +27,7 @@ const dbPlayerRegistrationIntentRecord = require('../../db_modules/dbPlayerRegis
 const dbPlatform = require('./../../db_modules/dbPlatform');
 const errorUtils = require("./../../modules/errorUtils");
 const mobileDetect = require('mobile-detect');
+const serverInstance = require("../../modules/serverInstance");
 
 let PlayerServiceImplement = function () {
     PlayerService.call(this);
@@ -277,7 +278,7 @@ let PlayerServiceImplement = function () {
 
         console.log("checking device", [data.registrationDevice, data.phoneNumber, data.deviceType, data.subPlatformId])
 
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, true, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
                 data.name = playerData.name ? playerData.name : null;
@@ -342,8 +343,8 @@ let PlayerServiceImplement = function () {
                     token: token,
                     isHitReferralLimit: isHitReferralLimitFlag
                 }, data);
-            }, (err) => {
-                console.log(err);
+            }, 
+            (err) => {
                 if (err && err.status) {
                     if (err.errorMessage || err.message) {
                         var msg = err.errorMessage || err.message;
@@ -355,7 +356,10 @@ let PlayerServiceImplement = function () {
                     var errorCode = err && err.code || constServerCode.COMMON_ERROR;
                     var resObj = {
                         status: errorCode,
-                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
+                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId),
+                        data: serverInstance.getServerType() === "dataMigration" ? data : null,
+                        player: err.player,
+                        playerId: err.playerId
                     };
 
                     resObj.errorMessage = err.errMessage || resObj.errorMessage;
@@ -1241,6 +1245,11 @@ let PlayerServiceImplement = function () {
     this.verifyPhoneNumberBySMSCode.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.smsCode);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
+    };
+
+    this.updatePlayerNickname.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.nickName && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerNickname, [conn.playerId, data.nickName], isValidData);
     };
 
     this.getPlayerBillBoard.expectsData = 'smsCode: String';
@@ -2135,6 +2144,12 @@ let PlayerServiceImplement = function () {
         let isValidData = Boolean(conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerAvatar, [{playerId: conn.playerId}, data], isValidData);
     };
+
+    this.notifyPlayerInfo.addListener(
+        data => {
+            WebSocketUtil.notifyMessageClient(self, "notifyPlayerInfo", data);
+        }
+    );
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;

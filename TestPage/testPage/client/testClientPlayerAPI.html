@@ -2383,6 +2383,21 @@
     </div>
 </div>
 
+<h3>Update Player Nickname (更新玩家昵称)</h3>
+<div class="test-container">
+    <div>
+        <label>Nickname
+            <input type=text name="nickName">
+        </label>
+    </div>
+    <div>
+        <button data-api-name="updatePlayerNickname">Get</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlayerAPITest, ClientConnectionAPITest) {

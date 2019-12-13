@@ -4366,6 +4366,16 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlatform.gameProviderInfo = data.data.gameProviderInfo;
 
+                    if(data.data && data.data._id){
+                        vm.allPlatformData.forEach(e => {
+                            // console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
+                            if (String(data.data._id) === String(e._id)) {
+                                vm.showPlatform = e;
+                                console.log('showPlatform', e)
+                            }
+                        })
+                    }
+
                     //provider delay status init
                     vm.getProviderLatestTimeRecord();
                     // $scope.safeApply();
@@ -24043,6 +24053,15 @@ define(['js/app'], function (myApp) {
             vm.getProviderText = function (providerId) {
                 if (!providerId || !vm.allGameProviders) return false;
                 var result = '';
+
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+    
+                socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {
+                    vm.allGameProviders = data.data;
+                });
+    
                 $.each(vm.allGameProviders, function (i, v) {
                     if (providerId == v._id || providerId == v.providerId) {
                         result = v.name;
@@ -41693,10 +41712,10 @@ define(['js/app'], function (myApp) {
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
                     utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
-                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
                     vm.refreshSPicker();
                     setTimeout(()=>{
@@ -41708,10 +41727,10 @@ define(['js/app'], function (myApp) {
                 });
             };
             vm.autoFeedbackCreateMission = function() {
-                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getLocalDate();
                 console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
 
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
@@ -41754,19 +41773,19 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
                         vm.autoFeedbackMission.registerEndTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
-                    vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
-                    vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
+                    // vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
 
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                 });
             };
             vm.autoFeedbackUpdateMission = function() {
-                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
-                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getLocalDate();
                 console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
                 let sendData = {
                     autoFeedbackObjId: vm.autoFeedbackMission._id,

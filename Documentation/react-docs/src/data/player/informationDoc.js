@@ -460,7 +460,7 @@ let information = {
             title: "获取玩家基本信息",
             serviceName: "player",
             functionName: "get",
-            desc: "客户端获取玩家的基本信息，包括邮箱，地址，以及玩家等级详细信息。通过这个接口，还会返回更多的玩家信息。",
+            desc: "客户端获取玩家的基本信息，包括邮箱，地址，以及玩家等级详细信息。通过这个函数，还会返回更多的玩家信息。",
             requestContent: [
                 {param: "playerId", mandatory: "是", type: 'String', content: '玩家ID'},
             ],
@@ -494,7 +494,7 @@ let information = {
             title: "修改玩家的支付信息",
             serviceName: "player",
             functionName: "updatePaymentInfo",
-            desc: "提供一个修改玩家的支付信息的接口",
+            desc: "提供一个修改玩家的支付信息的函数",
             requestContent: [
                 {param: "playerId", mandatory: "是", type: 'String', content: '玩家ID'},
                 {param: "bankName", mandatory: "是", type: 'String', content: '银行名称ID'},
@@ -521,7 +521,7 @@ let information = {
             title: "修改玩家登录密码",
             serviceName: "player",
             functionName: "updatePassword",
-            desc: "提供一个用于修改玩家密码的接口",
+            desc: "提供一个用于修改玩家密码的函数",
             requestContent: [
                 {param: "playerId", mandatory: "是", type: 'String', content: '玩家ID'},
                 {param: "oldPassword", mandatory: "是", type: 'String', content: '旧密码'},
