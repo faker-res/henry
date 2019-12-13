@@ -108,8 +108,8 @@ var GameServiceImplement = function () {
     this.transferFromProvider.expectsData = 'playerId: String, providerId: String, [credit]: Number';
     this.transferFromProvider.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(conn.playerId);
+        // -1 means transfer all out from provider
         data.credit = -1;
-        isValidData = Number(data.credit) === 0 ? false : isValidData;
         let args = [conn.playerId, null, data.providerId, data.credit];
         WebSocketUtil.performAction(
             conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditFromProvider, args, isValidData
