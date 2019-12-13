@@ -13,7 +13,7 @@ let loginLogout = {
             title: "登录",
             serviceName: "player",
             functionName: "login",
-            desc: "玩家登录接口",
+            desc: "玩家登录函数",
             requestContent: [
                 { param: "name", mandatory: "是", type: 'String', content: '玩家用户名' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },
@@ -39,7 +39,7 @@ let loginLogout = {
             title: "是否已成功登入",
             serviceName: "player",
             functionName: "isLogin",
-            desc: "查询玩家是否登录。\n如果玩家已经登入，接口将会返回 true，\n如果尚未登入，接口则会返回 false。",
+            desc: "查询玩家是否登录。\n如果玩家已经登入，将会返回 true，\n如果尚未登入，则会返回 false。",
             requestContent: [
                 { param: 'playerId', mandatory: "是", type: 'String', content: '玩家ID' }
             ],
@@ -101,7 +101,7 @@ let loginLogout = {
             title: "玩家电话号码与密码登入",
             serviceName: "player",
             functionName: "phoneNumberLoginWithPassword",
-            desc: "使用电话号码和密码登入 玩家登录接口",
+            desc: "使用电话号码和密码登入 玩家登录函数",
             requestContent: [
                 { param: "phoneNumber", mandatory: "是", type: 'String', content: '玩家手机号' },
                 { param: "password", mandatory: "是", type: 'String', content: '玩家密码' },

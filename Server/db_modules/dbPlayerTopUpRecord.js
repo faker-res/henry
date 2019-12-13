@@ -414,7 +414,7 @@ var dbPlayerTopUpRecord = {
             let topUpSummary = {
                 onlineTopUpAmount: 0,
                 manualTopUpAmount: 0,
-                aliPayTopUpAmount: 0,
+                alipayTopUpAmount: 0,
                 weChatTopUpAmount: 0,
                 topUpAmount: 0,
                 topUpTimes: 0,
@@ -461,7 +461,10 @@ var dbPlayerTopUpRecord = {
             } else if (topUp._id.typeId.toString() === weChatTopUpTypeId) {
                 topUpSummary.weChatTopUpAmount = topUp.amount;
             } else if (topUp._id.typeId.toString() === aliPayTopUpTypeId) {
-                topUpSummary.aliPayTopUpAmount = topUp.amount;
+                console.log('dd')
+                topUpSummary.alipayTopUpAmount = topUp.amount;
+            } else {
+                console.log("ee")
             }
 
             topUpSummary.topUpAmount += topUp.amount;
@@ -475,7 +478,7 @@ var dbPlayerTopUpRecord = {
                     loginDevice: topUp._id.loginDevice || null,
                     onlineTopUpAmount: topUpSummary.onlineTopUpAmount,
                     manualTopUpAmount: topUpSummary.manualTopUpAmount,
-                    aliPayTopUpAmount: topUpSummary.aliPayTopUpAmount,
+                    alipayTopUpAmount: topUpSummary.alipayTopUpAmount,
                     weChatTopUpAmount: topUpSummary.weChatTopUpAmount,
                     topUpAmount: topUpSummary.topUpAmount,
                     topUpTimes: topUpSummary.topUpTimes,
@@ -483,14 +486,14 @@ var dbPlayerTopUpRecord = {
             } else {
                 playerReportDaySummary[indexNo].onlineTopUpAmount =  playerReportDaySummary[indexNo].onlineTopUpAmount || 0;
                 playerReportDaySummary[indexNo].manualTopUpAmount =  playerReportDaySummary[indexNo].manualTopUpAmount || 0;
-                playerReportDaySummary[indexNo].aliPayTopUpAmount =  playerReportDaySummary[indexNo].aliPayTopUpAmount || 0;
+                playerReportDaySummary[indexNo].alipayTopUpAmount =  playerReportDaySummary[indexNo].alipayTopUpAmount || 0;
                 playerReportDaySummary[indexNo].weChatTopUpAmount =  playerReportDaySummary[indexNo].weChatTopUpAmount || 0;
                 playerReportDaySummary[indexNo].topUpAmount =  playerReportDaySummary[indexNo].topUpAmount || 0;
                 playerReportDaySummary[indexNo].topUpTimes =  playerReportDaySummary[indexNo].topUpTimes || 0;
 
                 playerReportDaySummary[indexNo].onlineTopUpAmount += topUpSummary.onlineTopUpAmount;
                 playerReportDaySummary[indexNo].manualTopUpAmount += topUpSummary.manualTopUpAmount;
-                playerReportDaySummary[indexNo].aliPayTopUpAmount += topUpSummary.aliPayTopUpAmount;
+                playerReportDaySummary[indexNo].alipayTopUpAmount += topUpSummary.alipayTopUpAmount;
                 playerReportDaySummary[indexNo].weChatTopUpAmount += topUpSummary.weChatTopUpAmount;
                 playerReportDaySummary[indexNo].topUpAmount += topUpSummary.topUpAmount;
                 playerReportDaySummary[indexNo].topUpTimes += topUpSummary.topUpTimes;
@@ -503,7 +506,6 @@ var dbPlayerTopUpRecord = {
             if (!consumption || !consumption._id || !consumption._id.playerId) {
                 return;
             }
-            console.log("debug #C8AD00 grouped consumption", consumption)
             let providerDetail = {};
             let providerId = consumption.providerId.toString();
             providerDetail[providerId] = {

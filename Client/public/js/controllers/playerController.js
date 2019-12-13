@@ -5929,6 +5929,7 @@ define(['js/app'], function (myApp) {
                                 'class': 'prohibitGamePopover fa fa-gamepad margin-right-5 ' + (row.forbidProviders && row.forbidProviders.length > 0 ? " text-danger" : ""),
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'popover',
+                                'ng-click': 'vm.playerTableRowClicked(' + JSON.stringify(row) + ');',
                                 // 'title': $translate("PHONE"),
                                 'data-placement': 'left',
                                 'data-trigger': 'focus',
@@ -8062,6 +8063,15 @@ define(['js/app'], function (myApp) {
             vm.selectedPlayers[rowData._id] = rowData;
             vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
+
+            if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
+                vm.allPlatformData.forEach(e => {
+                    console.log('comparing..', vm.selectedSinglePlayer.platform, e._id);
+                    if (String(vm.selectedSinglePlayer.platform) === String(e._id)) {
+                        vm.showPlatform = e;
+                    }
+                })
+            }
 
             var sendData = {_id: rowData._id};
             socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
@@ -18771,6 +18781,15 @@ define(['js/app'], function (myApp) {
         vm.getProviderText = function (providerId) {
             if (!providerId || !vm.allGameProviders) return false;
             var result = '';
+
+            let sendData = {
+                platform: vm.selectedPlatform.id
+            };
+
+            socketService.$socket($scope.AppSocket, 'getProviderListByPlatform', sendData, function (data) {
+                vm.allGameProviders = data.data;
+            });
+            
             $.each(vm.allGameProviders, function (i, v) {
                 if (providerId == v._id || providerId == v.providerId) {
                     result = v.name;

@@ -66,7 +66,7 @@ let wcControl = {
             title: " 客服与玩家对话",
             serviceName: "wcgroupcontrol",
             functionName: "sendWechatConversationToFPMS",
-            desc: "连线后通过此接口发送客服对话",
+            desc: "连线后通过此函数发送客服对话",
             requestContent:[
                 { param: "deviceId", mandatory: "是", type: "String", content: "手机设备号" },
                 { param: "playerWechatRemark", mandatory: "是", type: "String", content: "备注" },
@@ -87,7 +87,7 @@ let wcControl = {
             title: " 绑定玩家微信号+昵称+备注",
             serviceName: "wcgroupcontrol",
             functionName: "bindPlayerWechatInfo",
-            desc: "客服登陆群控时会使用此接口操做绑定玩家微信号+昵称+备注",
+            desc: "客服登陆群控时会使用此函数操做绑定玩家微信号+昵称+备注",
             requestContent:[
                 { param: "deviceId", mandatory: "是", type: "String", content: "手机设备号" },
                 { param: "playerWechatRemark", mandatory: "是", type: "String", content: "备注" },
