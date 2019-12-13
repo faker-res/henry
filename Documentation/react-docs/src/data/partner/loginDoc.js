@@ -89,7 +89,7 @@ let loginLogout = {
             title: "代理登录",
             serviceName: "partner",
             functionName: "login",
-            desc: "代理登录接口",
+            desc: "代理登录函数",
             requestContent:[
                 { param: "name", mandatory: "是", type: "String", content: "登录用户名" },
                 { param: "password", mandatory: "是", type: "String", content: "登录密码" },
@@ -113,7 +113,7 @@ let loginLogout = {
             title: "代理会员登出",
             serviceName: "partner",
             functionName: "logout",
-            desc: "代理会员登出接口",
+            desc: "代理会员登出函数",
             requestContent:[
                 { param: "partnerId", mandatory: "是", type: "String", content: "渠道ID" }
             ],

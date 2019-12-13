@@ -100,7 +100,9 @@ var GameServiceImplement = function () {
         var isValidData = Boolean(data && data.hasOwnProperty("providerId") && conn.playerId);
         data.credit = -1;
         isValidData = data.credit == 0 ? false : isValidData;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditToProvider, [conn.playerId, null, data.providerId, data.credit], isValidData);
+        let isTransferOut = data.isTransferOut === false ? data.isTransferOut : true;
+        let args = [conn.playerId, null, data.providerId, data.credit, null, null, isTransferOut];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.transferPlayerCreditToProvider, args, isValidData);
     };
 
     this.transferFromProvider.expectsData = 'playerId: String, providerId: String, [credit]: Number';

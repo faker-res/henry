@@ -5745,7 +5745,7 @@ define(['js/app'], function (myApp) {
                                 : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
-                limit: isExport ? 10000 : (vm.playerQuery.limit || 10000),
+                limit: isExport ? 20000 : (vm.playerQuery.limit || 20000),
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
                 isExport: isExport
             };
@@ -5990,7 +5990,7 @@ define(['js/app'], function (myApp) {
                 playerTbl.clear();
             }
 
-            if(isExport){
+            if(isExport || size > 2000){
                 var playerTbl = utilService.createDatatableWithFooter('#playerReportExcelTable', tableOptions, {
                     6: total.manualTopUpAmount,
                     7: total.weChatTopUpAmount,

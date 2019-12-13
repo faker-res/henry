@@ -342,7 +342,7 @@ let game = {
             title: "转入额度到游戏",
             serviceName: "game",
             functionName: "transferToProvider",
-            desc:"将本地额度入到CP账号的游戏额度。此接口支持游戏间互换。",
+            desc:"将本地额度入到CP账号的游戏额度。此函数支持游戏间互换。",
             requestContent:[],
             respondSuccess:{
                 status: 200,

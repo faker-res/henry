@@ -39,10 +39,6 @@ let dailyProviderSettlement = {
 
         let settleTime = dbutility.getYesterdaySGTime();
 
-        console.log('JY check==startDailyProviderSettlement==curTime==>', curTime);
-        console.log('JY check==startDailyProviderSettlement==dailySettlementTime==>', dailySettlementTime);
-        console.log('JY check==startDailyProviderSettlement==providerData==>', providerData);
-
         //if provider is not doing any settlement and settlement time has been reached and last settlement time is older
         if (providerData && providerData._id && providerData.settlementStatus == constSettlementStatus.READY
             && dailySettlementTime.getTime() <= curTime.getTime() &&

@@ -645,7 +645,7 @@ let information = {
             title: "获取代理会员用户信息",
             serviceName: "partner",
             functionName: "get",
-            desc: "客户端获取推广的基本信息，包括手机，地址，以及银行资料详细信息。通过这个接口，还会返回更多的玩家信息。\n 代理登入login后能直接调用",
+            desc: "客户端获取推广的基本信息，包括手机，地址，以及银行资料详细信息。通过这个函数，还会返回更多的玩家信息。\n 代理登入login后能直接调用",
             requestContent: [],
             respondSuccess: {
                 status: 200,
@@ -700,7 +700,7 @@ let information = {
             title: "获取代理下线玩家详情列表",
             serviceName: "partner",
             functionName: "getPlayerDetailList",
-            desc: "请参考上一个接口 【获取代理下线玩家列表】（getPlayerSimpleList），同理。"
+            desc: "请参考上一个函数 【获取代理下线玩家列表】（getPlayerSimpleList），同理。"
         },
         getPartnerChildrenReport: {
             title: "获取代理下线报表",
@@ -1077,7 +1077,7 @@ let information = {
             title: "查询代理的下级会员信息",
             serviceName: "partner",
             functionName: "getDownLinePlayerInfo",
-            desc: "该接口需要登录",
+            desc: "该函数需要登录",
             requestContent: [
                 { param: "period", mandatory: "是", type: "Int", content: "1:本日 | 2:本周 | 3:本月" },
                 { param: "whosePlayer", mandatory: "是", type: "Int", content: "1:全部 | 2: 直属下线会员 | 3:下线代理会员 " },
@@ -1102,7 +1102,7 @@ let information = {
             title: "查询代理的下级代理信息",
             serviceName: "partner",
             functionName: "getDownLinePartnerInfo",
-            desc: "该接口需要登录",
+            desc: "该函数需要登录",
             requestContent: [
                 { param: "period", mandatory: "是", type: "Int", content: "1:本日 | 2:本周 | 3:本月" },
                 { param: "partnerType", mandatory: "是", type: "Int", content: "1:全部 | 2: 新增会员 | 3:活跃会员 " },
@@ -1126,7 +1126,7 @@ let information = {
             title: "代理获取推广二维码和推广海报",
             serviceName: "partner",
             functionName: "getPartnerPoster",
-            desc: "该接口需要登录",
+            desc: "该函数需要登录",
             requestContent: [
                 { param: "url", mandatory: "是", type: "String", content: "需要生成二维码的地址" },
                 { param: "device", mandatory: "否", type: "Int", content: "0: WEB | 1: H5 | 不填: 都找 （优先获取排列顺序高且可用的海报）" },

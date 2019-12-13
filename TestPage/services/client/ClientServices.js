@@ -53,6 +53,7 @@
                 "getSMSCode",
                 "sendSMSCodeToPlayer",
                 "verifyPhoneNumberBySMSCode",
+                "updatePlayerNickname",
                 "getPlayerBillBoard",
                 "updatePaymentInfo",
                 "updatePlayerPartnerPaymentInfo",
@@ -119,6 +120,7 @@
                 "updatePasswordByPhoneNumber",
                 "getBankcardInfo",
                 "updatePlayerAvatar",
+                "notifyPlayerInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

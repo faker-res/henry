@@ -761,7 +761,7 @@ define(['js/app'], function (myApp) {
                                 type: "checkbox",
                                 class: "chosenPhone",
                                 id: "checked",
-                                "data-_id": row._id,
+                                "data-id": row._id,
                                 "ng-model": "vm.checkBoxStatus['" + index.row + "']",
                                 "ng-change": "vm.checkedBox('" + row.tsPhone.phoneNumber + "', vm.checkBoxStatus['"+index.row+"'], '" + index.row +"')"
                             })).prop('outerHTML');
