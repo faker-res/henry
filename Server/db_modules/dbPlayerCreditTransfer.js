@@ -1462,7 +1462,8 @@ let dbPlayerCreditTransfer = {
                                         }).catch(err => {
                                             return errorUtils.reportError(err);
                                         });
-                                    }).then(delayTransferIn);
+                                    })
+                                        // .then(delayTransferIn);
                                 }
                             })
                         );
