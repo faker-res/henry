@@ -26235,6 +26235,19 @@ let dbPlayerInfo = {
              return dbProposal.createProposalWithTypeNameWithProcessInfo(playerData.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData);
          },
 
+    updatePlayerNickname: function (playerId, nickName) {
+        return dbconfig.collection_players.findOneAndUpdate({playerId: playerId}, {nickName: nickName}, {
+            new: true, select: {nickName: 1}
+        }).lean().then(
+            playerData => {
+                if (!(playerData && playerData.nickName && playerData.nickName == nickName)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+                return playerData;
+            }
+        );
+    },
+
     prepareGetPlayerBillBoard: function (platformId, periodCheck, hourCheck, recordCount, playerId, mode, providerIds) {
         if ([constPlayerBillBoardMode.VALIDBET_ALL, constPlayerBillBoardMode.WIN_ALL, constPlayerBillBoardMode.WIN_SINGLE, constPlayerBillBoardMode.WIN_AMOUNT_SINGLE].includes(mode) && providerIds && providerIds.length) {
             return dbconfig.collection_gameProvider.find({providerId: {$in: providerIds}}, {_id: 1}).lean().then(

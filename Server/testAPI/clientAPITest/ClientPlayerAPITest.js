@@ -95,6 +95,12 @@
         this.playerService.verifyPhoneNumberBySMSCode.once(callback);
     };
 
+    proto.updatePlayerNickname = function (callback, requestData) {
+        var data = requestData;
+        this.playerService.updatePlayerNickname.request(data);
+        this.playerService.updatePlayerNickname.once(callback);
+    };
+
     proto.getPlayerBillBoard = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.getPlayerBillBoard.request(data);
