@@ -337,7 +337,7 @@ let PlayerServiceImplement = function () {
                     delete playerData.isHitReferralLimit;
                 }
 
-                if (data.platformId == "4") {
+                if (data.platformId == "38") {
                     playerData = {
                         playerId: playerData.playerId,
                         name: playerData.name,
