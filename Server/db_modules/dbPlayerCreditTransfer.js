@@ -1238,9 +1238,11 @@ let dbPlayerCreditTransfer = {
                                 if (useEbetWallet === true) {
                                     playerTransferOutRequestData.wallet = eBetWalletObj;
                                 }
+                                console.log("zm check transferout start", userName, id);
                                 return pCTFP.playerTransferOut(playerTransferOutRequestData).then(
                                     res => {
                                         // misleading console log message, it just mean transfer out success no matter ebetwallet or not
+                                        console.log("zm check transferout end", userName, id);
                                         console.log("ebetwallet pCTFP.playerTransferOut success", res);
                                         return res;
                                     },
@@ -1659,6 +1661,7 @@ let dbPlayerCreditTransfer = {
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
                                 id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND, isEbet);
                             console.log("dPCT.playerTransferIn transferWallet", transferWallet);
+                            console.log("zm check transferin start", userName, id);
                             return dPCT.playerTransferIn(
                                 {
                                     playerId: player.playerId,
@@ -1670,7 +1673,10 @@ let dbPlayerCreditTransfer = {
                                     wallet: transferWallet
                                 }
                             ).then(
-                                res => res,
+                                res => {
+                                    console.log("zm check transferin end", userName, id);
+                                    return res;
+                                },
                                 error => {
                                     // var lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                                     let status = (error && error.errorMessage && error.errorMessage.indexOf('Request timeout') > -1) ? constPlayerCreditTransferStatus.TIMEOUT : constPlayerCreditTransferStatus.FAIL;
