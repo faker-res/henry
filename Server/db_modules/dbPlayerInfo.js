@@ -14098,7 +14098,17 @@ let dbPlayerInfo = {
                 query.partner = null;
             }
         }
-        return dbconfig.collection_players.find(query).lean();
+        let projection = {
+            _id: 1,
+            name: 1,
+            registrationTime: 1,
+            topUpTimes: 1,
+            topUpSum: 1,
+            consumptionTimes: 1,
+            consumptionSum: 1,
+            valueScore: 1
+        };
+        return dbconfig.collection_players.find(query, projection).lean();
     },
 
     dashboardTopupORConsumptionGraphData: function (platformId, period, type) {
