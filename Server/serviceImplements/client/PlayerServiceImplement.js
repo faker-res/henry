@@ -337,6 +337,27 @@ let PlayerServiceImplement = function () {
                     delete playerData.isHitReferralLimit;
                 }
 
+                if (data.platformId == "4") {
+                    playerData = {
+                        playerId: playerData.playerId,
+                        name: playerData.name,
+                        realName: playerData.realName,
+                        password: playerData.password,
+                        gender: playerData.gender,
+                        email: playerData.email,
+                        DOB: playerData.DOB,
+                        playerLevel: playerData.playerLevel,
+                        userCurrentPoint: playerData.userCurrentPoint,
+                        hasPassword: playerData.hasPassword,
+                        bankAccount: playerData.bankAccount,
+                        bankAccountDistrict: playerData.bankAccountDistrict,
+                        bankAccountProvince: playerData.bankAccountProvince,
+                        bankAddress: playerData.bankAddress,
+                        bankName: playerData.bankName,
+                        bankAccountName: playerData.bankAccountName
+                    }
+                }
+
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
                     data: playerData,
