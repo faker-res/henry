@@ -172,6 +172,21 @@ function login() {
     });
 }
 document.getElementById("login").addEventListener("click", login);
+
+// 使用缓存范例
+function getPlatformDetails() {
+    let sendData = {
+        platformId: "4"
+    }
+    fpms.platform.getPlatformDetails(sendData, true, true, {
+        cacheIndex: "1"
+        refreshRateSecs: 15
+    }).then(retData => {
+        console.log('success', retData);
+    }, err => {
+        console.log('failed', err)
+    });
+}
 `};
 
 let guide = {

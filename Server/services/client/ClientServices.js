@@ -119,6 +119,7 @@
                 "updatePasswordByPhoneNumber",
                 "getBankcardInfo",
                 "updatePlayerAvatar",
+                "notifyPlayerInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

@@ -198,7 +198,7 @@ let topup = {
             }
         },
         createCommonTopupProposal: {
-            title: "(通用充值接口) 创建通用接口充值提案",
+            title: "(通用充值) 创建通用充值提案",
             serviceName: "payment",
             functionName: "createCommonTopupProposal",
             desc: "玩家输入在线充值金额，系统返回跳转链接",
@@ -219,7 +219,7 @@ let topup = {
             }
         },
         getMinMaxCommonTopupAmount: {
-            title: "(通用充值接口) 获取通用充值最高和最低可接收充值额度",
+            title: "(通用充值) 获取通用充值最高和最低可接收充值额度",
             serviceName: "payment",
             functionName: "getMinMaxCommonTopupAmount",
             desc: "请求玩家可使用的充值额度",
@@ -235,7 +235,7 @@ let topup = {
             }
         },
         createFKPTopupProposal: {
-            title: "(第三方上下分接口) 快付充值接口",
+            title: "(第三方上下分接口) 快付充值",
             serviceName: "payment",
             functionName: "createFKPTopupProposal",
             desc: "",
@@ -298,10 +298,10 @@ let topup = {
             }
         },
         createFixedTopupProposal: {
-            title: "（固定额度充值接口）创建充值提案",
+            title: "（固定额度充值）创建充值提案",
             serviceName: "player",
             functionName: "createFixedTopupProposal",
-            desc: `玩家选择固定金额后提交，通过此接口生成提案后发给PMS，PMS返回链接，系统返回跳转链接。\n需登入。`,
+            desc: `玩家选择固定金额后提交，通过此函数生成提案后发给PMS，PMS返回链接，系统返回跳转链接。\n需登入。`,
             requestContent: [
                 { param: "topUpType", mandatory: "是", type: "Int", content: "充值方式" },
                 { param: "depositMethod", mandatory: "是", type: "Int", content: "次级充值方式" },

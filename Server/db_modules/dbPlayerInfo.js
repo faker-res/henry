@@ -5477,6 +5477,7 @@ let dbPlayerInfo = {
                         }
                     );
 
+                    console.log('JY before set autoFeedbackMissionTopUp', topupRecordData);
                     //check and set promo code autoFeedbackMissionTopUp to true;
                     dbconfig.collection_promoCode.aggregate([
                         {$match: {
@@ -5497,7 +5498,9 @@ let dbPlayerInfo = {
                     ]).read("secondaryPreferred").exec().then(promoCodes => {
                         console.log("autofeedback promoCodes record during successful topup",promoCodes);
                         promoCodes.forEach(promoCode => {
-                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                            console.log('JY check promoCode', promoCode);
+                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                console.log('before updating promo code')
                                 dbconfig.collection_promoCode.findOneAndUpdate({
                                     platformObjId: topupRecordData.platformId,
                                     playerObjId: topupRecordData.playerId,
@@ -7556,6 +7559,9 @@ let dbPlayerInfo = {
 
                                     if (loginData.accountPrefix && typeof loginData.accountPrefix === "string") {
                                         platformPrefix = loginData.accountPrefix;
+                                    } else {
+                                        // if account prefix was not set, use platform prefix
+                                        loginData.accountPrefix = platformPrefix;
                                     }
 
                                     let userNameProp = {
