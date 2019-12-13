@@ -95,6 +95,12 @@
         this.playerService.verifyPhoneNumberBySMSCode.once(callback);
     };
 
+    proto.updatePlayerNickname = function (callback, requestData) {
+        var data = requestData;
+        this.playerService.updatePlayerNickname.request(data);
+        this.playerService.updatePlayerNickname.once(callback);
+    };
+
     proto.getPlayerBillBoard = function (callback, requestData) {
         var data = requestData || {};
         this.playerService.getPlayerBillBoard.request(data);
@@ -867,7 +873,7 @@
     };
 
     proto.updatePlayerAvatar = function (callback, requestData) {
-        let data = requestData || {};
+        var data = requestData || {};
         this.playerService.updatePlayerAvatar.request(data);
         this.playerService.updatePlayerAvatar.once(callback);
     };
@@ -876,7 +882,7 @@
         let responseFunc = function(data) {
             callback(data);
         };
-        this._service.notifyPlayerInfo.addListener(responseFunc);
+        this.playerService.notifyPlayerInfo.addListener(responseFunc);
     };
 
     if (isNode) {

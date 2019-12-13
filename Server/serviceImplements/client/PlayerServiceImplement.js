@@ -1242,6 +1242,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.verifyPhoneNumberBySMSCode, [conn.playerId, data.smsCode], isValidData);
     };
 
+    this.updatePlayerNickname.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.nickName && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerNickname, [conn.playerId, data.nickName], isValidData);
+    };
+
     this.getPlayerBillBoard.expectsData = 'smsCode: String';
     this.getPlayerBillBoard.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && (data.platformId || data.playerId) && ((data.hourCheck && data.hourCheck <= 24) || data.periodCheck) && !(data.hourCheck && data.periodCheck) && data.mode);
