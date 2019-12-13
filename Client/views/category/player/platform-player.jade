@@ -129,7 +129,7 @@
                 td
                     a(ng-click="vm.onClickPlayerCheck(v._id, vm.openEditPlayerDialog, 'basicInfo', JSON.stringify(v))") {{ v.playerLevel.name }}
                 td
-                    a(ng-click="" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus') ${{ v.validCredit }} &nbsp;
+                    a.rewardTaskPopover(ng-click="" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus') ${{ v.validCredit }} &nbsp;
                     a(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0" ng-click="").fa.fa-lock {{ v.lockedCredit }} &nbsp;
                     a(ng-click="").fa.fa-gamepad
 

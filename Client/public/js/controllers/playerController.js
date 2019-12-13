@@ -5150,58 +5150,64 @@ define(['js/app'], function (myApp) {
                 vm.playerTableData.data.forEach(player => {
                     player.platformName = vm.allPlatformData.find(x => String(x._id) === String(player.platform)).name;
                     player.credibilityRemarksText = "";
-                    player.credibilityRemarks$.forEach(remark => {
-                        player.credibilityRemarksText += remark + "<br/>";
-                    });
+                    if (player.credibilityRemarks$) {
+                        player.credibilityRemarks$.forEach(remark => {
+                            player.credibilityRemarksText += remark + "<br/>";
+                        });
+                    }
 
                     return player;
                 });
 
-                $scope.$evalAsync(() => {
+                $scope.$evalAsync(() => {});
+
+                setTimeout(() => {
+                    // https://stackoverflow.com/a/34532390
                     utilService.setupPopover({
                         context: $('#playerDataTable'),
                         elem: '.rewardTaskPopover',
                         onClickAsync: function (showPopover) {
                             console.log('xxxxxxxx');
                             var that = this;
-                            var row = JSON.parse(this.dataset.row);
-
-                            vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
-                            if (vm.selectedPlatform.data.useProviderGroup) {
-                                vm.getRewardTaskGroupDetail(row._id, function (data) {
-                                    vm.showAnyLobby = false;
-                                    vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
-                                        if (group.providerGroup.name === "ANY_LOBBY") {
-                                            vm.showAnyLobby = true;
-                                            group.validCredit = row.validCredit;
-                                            vm.anyLobbyCurConsumption = group.curConsumption;
-                                            vm.anyLobbyTargetConsumption = group.targetConsumption;
-                                            vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
-                                        }
-                                        // if (group.rewardAmt) {
-                                        //     group.rewardAmt = Math.floor(group.rewardAmt);
-                                        // }
-                                        return group;
-                                    });
-                                    vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
-                                    vm.showLocalCredit = true;
-                                    vm.curRewardTask.forEach(group => {
-                                        if (group.providerGroup.name === "ANY_LOBBY") {
-                                            vm.showLocalCredit = false;
-                                        }
-                                    });
-                                    $scope.safeApply();
-                                    showPopover(that, '#rewardTaskGroupPopover', data);
-
-                                });
-                            } else {
-                                vm.getRewardTaskDetail(row._id, function (data) {
-                                    showPopover(that, '#rewardTaskPopover', data);
-                                });
-                            }
+                            showPopover(that, '#rewardTaskPopover', {});
+                            // var row = JSON.parse(this.dataset.row);
+                            //
+                            // vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
+                            // if (vm.selectedPlatform.data.useProviderGroup) {
+                            //     vm.getRewardTaskGroupDetail(row._id, function (data) {
+                            //         vm.showAnyLobby = false;
+                            //         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
+                            //             if (group.providerGroup.name === "ANY_LOBBY") {
+                            //                 vm.showAnyLobby = true;
+                            //                 group.validCredit = row.validCredit;
+                            //                 vm.anyLobbyCurConsumption = group.curConsumption;
+                            //                 vm.anyLobbyTargetConsumption = group.targetConsumption;
+                            //                 vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
+                            //             }
+                            //             // if (group.rewardAmt) {
+                            //             //     group.rewardAmt = Math.floor(group.rewardAmt);
+                            //             // }
+                            //             return group;
+                            //         });
+                            //         vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
+                            //         vm.showLocalCredit = true;
+                            //         vm.curRewardTask.forEach(group => {
+                            //             if (group.providerGroup.name === "ANY_LOBBY") {
+                            //                 vm.showLocalCredit = false;
+                            //             }
+                            //         });
+                            //         $scope.safeApply();
+                            //         showPopover(that, '#rewardTaskGroupPopover', data);
+                            //
+                            //     });
+                            // } else {
+                            //     vm.getRewardTaskDetail(row._id, function (data) {
+                            //         showPopover(that, '#rewardTaskPopover', data);
+                            //     });
+                            // }
                         }
                     });
-                });
+                }, 0);
             });
         };
 
