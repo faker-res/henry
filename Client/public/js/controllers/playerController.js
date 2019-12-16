@@ -898,7 +898,7 @@ define(['js/app'], function (myApp) {
 
             // Initiate player table
             // vm.getPlatformPlayersData(true, true);
-            vm.drawPlayerTable([]);
+            // vm.drawPlayerTable([]);
 
             // check settlement buttons
             let nowDate = new Date().toLocaleDateString();
@@ -5138,35 +5138,76 @@ define(['js/app'], function (myApp) {
             $("select#selectCredibilityRemark").multipleSelect("enable");
             console.log(apiQuery);
             $('#loadingPlayerTableSpin').show();
+
             socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', apiQuery, function (reply) {
-                setPlayerTableData(reply.data.data);
-                console.log('Done setting player table data...');
-                vm.searchPlayerCount = reply.data.size;
-                console.log("getPlayersByAdvanceQueryDebounced response", reply);
-                utilService.hideAllPopoversExcept();
-                vm.playerTableQuery.pageObj.init({maxCount: vm.searchPlayerCount}, newSearch);
+                console.log('playerData - ALL', reply);
                 $('#loadingPlayerTableSpin').hide();
-                if (vm.selectedSinglePlayer) {
-                    var found = false;
-                    vm.playerTable.rows(function (idx, rowData, node) {
-                        if (rowData._id == vm.selectedSinglePlayer._id) {
-                            vm.playerTableRowClicked(rowData);
-                            vm.selectedPlayersCount = 1;
-                            $(node).addClass('selected');
-                            found = true;
-                        }
-                    })
-                    if (!found) {
-                        vm.selectedSinglePlayer = null;
-                        vm.selectedPlayersCount = 0;
-                    }
-                    if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.referral) {
-                        socketService.$socket($scope.AppSocket, 'getPlayerInfo', {_id: vm.selectedSinglePlayer.referral}, function (data) {
-                            vm.showReferralName = data.data.name;
-                            // $scope.safeApply();
+                vm.playerTableData.count = reply.data.size || 0;
+                vm.playerTableData.limit = vm.playerTableQuery.limit;
+                vm.playerTableData.data = reply.data.data;
+
+                // Process player data
+                vm.playerTableData.data.forEach(player => {
+                    player.platformName = vm.allPlatformData.find(x => String(x._id) === String(player.platform)).name;
+                    player.credibilityRemarksText = "";
+                    if (player.credibilityRemarks$) {
+                        player.credibilityRemarks$.forEach(remark => {
+                            player.credibilityRemarksText += remark + "<br/>";
                         });
                     }
-                }
+
+                    return player;
+                });
+
+                $scope.$evalAsync(() => {});
+
+                setTimeout(() => {
+                    // https://stackoverflow.com/a/34532390
+                    utilService.setupPopover({
+                        context: $('#playerDataTable'),
+                        elem: '.rewardTaskPopover',
+                        onClickAsync: function (showPopover) {
+                            console.log('xxxxxxxx');
+                            var that = this;
+                            showPopover(that, '#rewardTaskPopover', {});
+                            // var row = JSON.parse(this.dataset.row);
+                            //
+                            // vm.selectedPlayerValidCredit = parseFloat((row.validCredit).toFixed(2));
+                            // if (vm.selectedPlatform.data.useProviderGroup) {
+                            //     vm.getRewardTaskGroupDetail(row._id, function (data) {
+                            //         vm.showAnyLobby = false;
+                            //         vm.rewardTaskGroupPopoverData = vm.curRewardTask.map(group => {
+                            //             if (group.providerGroup.name === "ANY_LOBBY") {
+                            //                 vm.showAnyLobby = true;
+                            //                 group.validCredit = row.validCredit;
+                            //                 vm.anyLobbyCurConsumption = group.curConsumption;
+                            //                 vm.anyLobbyTargetConsumption = group.targetConsumption;
+                            //                 vm.anyLobbyForbidXIMAAmt = group.forbidXIMAAmt;
+                            //             }
+                            //             // if (group.rewardAmt) {
+                            //             //     group.rewardAmt = Math.floor(group.rewardAmt);
+                            //             // }
+                            //             return group;
+                            //         });
+                            //         vm.rewardTaskGroupPopoverData = vm.rewardTaskGroupPopoverData.filter(group => group.providerGroup.name !== "ANY_LOBBY");
+                            //         vm.showLocalCredit = true;
+                            //         vm.curRewardTask.forEach(group => {
+                            //             if (group.providerGroup.name === "ANY_LOBBY") {
+                            //                 vm.showLocalCredit = false;
+                            //             }
+                            //         });
+                            //         $scope.safeApply();
+                            //         showPopover(that, '#rewardTaskGroupPopover', data);
+                            //
+                            //     });
+                            // } else {
+                            //     vm.getRewardTaskDetail(row._id, function (data) {
+                            //         showPopover(that, '#rewardTaskPopover', data);
+                            //     });
+                            // }
+                        }
+                    });
+                }, 0);
             });
         };
 
@@ -7701,7 +7742,13 @@ define(['js/app'], function (myApp) {
         };
         /**** Similar Player END ****/
 
+        vm.selectedPlayerRow = null;
+        vm.setSelected = (idSelectedPlayer) => {
+            vm.selectedPlayerRow = idSelectedPlayer;
+        };
+
         vm.showPlayerInfoModal = function (playerName) {
+            console.log('showPlayerInfoModal', playerName);
             vm.showSimilarPlayersTable = false;
             vm.similarPlayersForPlayer = null;
             var watch = $scope.$watch(function () {
@@ -8061,7 +8108,6 @@ define(['js/app'], function (myApp) {
             console.log('player', rowData);
             vm.selectedPlayers = {};
             vm.selectedPlayers[rowData._id] = rowData;
-            vm.selectedSinglePlayer = rowData;
             vm.currentSelectedPlayerObjId = '';
 
             if (vm.selectedSinglePlayer && vm.selectedSinglePlayer.platform) {
@@ -8078,6 +8124,7 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     var player = retData.data;
                     console.log('updated info');
+                    vm.selectedSinglePlayer = rowData;
                     if (!vm.selectedSinglePlayer) return;
                     if (player._id != vm.selectedSinglePlayer._id) {
                         console.log('click rowId is not equal to resultId');
@@ -8319,14 +8366,19 @@ define(['js/app'], function (myApp) {
                 param.push(row);
             }
 
-            if (vm.currentSelectedPlayerObjId && recordId === vm.currentSelectedPlayerObjId) {
-                callback.apply(null, param);
-            }
-            else {
-                setTimeout(function () {
-                    vm.onClickPlayerCheck(recordId, callback, param);
-                }, 50);
-            }
+            let playerWatch = $scope.$watch(
+                () => vm.selectedSinglePlayer,
+                (newV, oldV) => {
+                    console.log('watching...');
+                    if (newV && newV._id === recordId) {
+                        playerWatch();
+                        console.log('done watch!');
+                        callback.apply(null, param);
+                    }
+                }
+            );
+
+
         };
 
 
@@ -8358,11 +8410,14 @@ define(['js/app'], function (myApp) {
                 let allPartner = vm.partnerIdObj;
                 let allPlayerLevel = vm.allPlayerLvl;
 
+                console.log('selectedPlayer', selectedPlayer);
+                console.log('vm.editPlayer', vm.editPlayer);
+
                 let option = {
                     $scope: $scope,
                     $compile: $compile,
                     childScope: {
-                        // vm: vm,
+                        // vm: vm,coll
                         playerTopUpGroupQuery: {
                             index: 0,
                             limit: 10
@@ -13046,7 +13101,6 @@ define(['js/app'], function (myApp) {
         ];
         vm.prepareEditPlayerPayment = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity) {
                     vm.currentCity = {};
                 }
@@ -13073,7 +13127,6 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince(false);
                         vm.changeCity(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList);
                     }
                 }, null, true);
@@ -13092,12 +13145,10 @@ define(['js/app'], function (myApp) {
                     vm.currentCity.city = vm.playerPayment.bankAccountCity;
                     vm.currentDistrict.district = vm.playerPayment.bankAccountDistrict;
                 })
-                $scope.safeApply();
             })
         }
         vm.prepareEditPlayerPayment2 = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity2) {
                     vm.currentCity2 = {};
                 }
@@ -13144,16 +13195,13 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince2(false);
                         vm.changeCity2(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList2);
                     }
                 }, null, true);
-                $scope.safeApply();
             })
         }
         vm.prepareEditPlayerPayment3 = function () {
             return new Promise(function (resolve) {
-                console.log('playerID', vm.isOneSelectedPlayer()._id);
                 if (!vm.currentCity3) {
                     vm.currentCity3 = {};
                 }
@@ -13200,11 +13248,9 @@ define(['js/app'], function (myApp) {
 
                         vm.changeProvince3(false);
                         vm.changeCity3(false);
-                        $scope.safeApply();
                         resolve(vm.provinceList3);
                     }
                 }, null, true);
-                $scope.safeApply();
             })
         }
 
@@ -22958,6 +23004,7 @@ define(['js/app'], function (myApp) {
 
         function initPageParam() {
             vm.queryPara = {};
+            vm.playerTableData = {};
             vm.forbidGameAddList = [];
             vm.forbidGameRemoveList = [];
             vm.phonePattern = /^[0-9]{8,11}$/;
@@ -23555,7 +23602,8 @@ define(['js/app'], function (myApp) {
                 };
                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('playerData', data);
+                        console.log('playerData - 1', data);
+                        vm.playerTableData.count = data.data.size || 0;
                         let size = data.data.size || 0;
                         let result = data.data.data || [];
                         let found = false;

@@ -178,7 +178,7 @@ define([], function () {
 
             // Since we are manually selecting which elements to create popovers for, we never really needed data-toggle="popup".
             let elems = $(opts.elem, opts.context); //.filter('[data-toggle=popover]');
-            //console.log("setupPopover doing setup for " + elems.length + " elements.");
+            console.log("setupPopover doing setup for " + elems.length + " elements.");
 
             allPopoverElems = allPopoverElems || [];
             elems.each(function () {

@@ -19,7 +19,8 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
         'datePicker',
         'ui.router',
         'angularResizable',
-        'colorpicker.module'
+        'colorpicker.module',
+        'ui.bootstrap'
     );
 
     myApp.config(['$controllerProvider',
