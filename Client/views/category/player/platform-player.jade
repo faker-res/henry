@@ -126,13 +126,109 @@
                 td {{ v.valueScore }}
                 td
                     a(ng-click="vm.getSelectedRowPlayerCredibility(v);" ng-bind-html="v.credibilityRemarksText" data-toggle="modal" data-target='#modalPlayerCredibilityRemarks')
-                td
+                td.alignLeft
                     a(ng-click="vm.onClickPlayerCheck(v._id, vm.openEditPlayerDialog, 'basicInfo', JSON.stringify(v))") {{ v.playerLevel.name }}
                 td
-                    a.rewardTaskPopover(ng-click="" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus') ${{ v.validCredit }} &nbsp;
-                    a(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0" ng-click="").fa.fa-lock {{ v.lockedCredit }} &nbsp;
-                    a(ng-click="").fa.fa-gamepad
+                    text(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0").fa.fa-usd
+                    a.rewardTaskPopover(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0" ng-click="vm.rewardTaskPlayerName" data-row="v" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus') {{ v.validCredit }}
+                    text(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length == 0") ${{ v.validCredit }}
+                    div(ng-if="v.rewardInfo && v.rewardInfo.length > 0")
+                        text.fa.fa-lock
+                        a.rewardTaskPopover(ng-click="vm.rewardTaskPlayerName = v.name" data-row="v" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus'){{v.lockedCredit}} &nbsp;
+                    div(ng-if="v.rewardGroupInfo && v.rewardGroupInfo.length > 0")
+                        text.fa.fa-lock
+                        a.rewardTaskPopover(ng-click="vm.rewardTaskPlayerName = v.name" data-row="v" data-container='body' data-placement='bottom' data-toggle="popover" data-trigger='focus'){{v.lockedCredit}} &nbsp;
+                    a(ng-click="vm.showPlayerCreditinProvider(v)").fa.fa-gamepad
+                td.alignRight
+                    a(ng-click="vm.initPlayerRewardPointLog()" data-html="true" href="#" style="z-index: auto" data-toggle="modal" data-trigger="focus" type="button" data-target="#modalPlayerRewardPointsLog") {{ v.point$ }}
+                td.alignLeft
+                    {{v.remark}}
+                td.
+                    {{vm.dateReformat(v.registrationTime)}}
+                td.
+                    {{vm.dateReformat(v.lastAccessTime)}}
+                td.alignRight
+                    a(ng-click="vm.initPlayerApiLog()" data-html="true" href="#" style="z-index: auto" data-toggle="modal" data-trigger="focus" type="button" data-target="#modalPlayerApiLog") {{ v.loginTimes }}
+                td.alignRight
+                    {{ v.topUpTimes }}
+                td.alignLeft
+                    span
+                        a.fa.fa-envelope.margin-right-5(ng-click="vm.initMessageModal(); vm.sendMessageToPlayerBtn('msg', v)" data-toggle="tooltip" data-placement="left" title="{{'SEND_MESSAGE_TO_PLAYER' | translate}}")
+                        a.fa.fa-comment.margin-right-5.text-danger(ng-if="v.permission.SMSFeedBack === false" ng-click="vm.initSMSModal(v); vm.onClickPlayerCheck((v._id || ''),vm.telorMessageToPlayerBtn,['msg',v])" data-toggle="tooltip" data-placement="left" title="{{'Send SMS to Player' | translate}}")
+                        a.fa.fa-comment.margin-right-5(ng-if="v.permission.SMSFeedBack === true || v.permission.SMSFeedBack == undefined" ng-click="vm.initSMSModal(v); vm.onClickPlayerCheck((v._id  || ''),vm.telorMessageToPlayerBtn,['msg',v])" data-toggle="tooltip" data-placement="left" title="{{'Send SMS to Player' | translate}}")
+                        a.fa.fa-volume-control-phone.margin-right-8.text-danger(ng-if="v.permission.phoneCallFeedback === false" ng-click="vm.telorMessageToPlayerBtn('tel',(v._id || ''), v)" data-toggle="tooltip" data-placement="left" title="{{'PHONE' | translate}}")
+                        a.fa.fa-volume-control-phone.margin-right-8(ng-if="v.permission.phoneCallFeedback === true || v.permission.phoneCallFeedback == undefined" ng-click="vm.telorMessageToPlayerBtn('tel',(v._id || ''), v) " data-toggle="tooltip" data-placement="left" title="{{'PHONE' | translate}}")
+                        a.fa.fa-commenting.margin-right-5(ng-click="vm.initFeedbackModal(v); vm.getSelectedFeedBackDetails(v)" data-toggle="modal" data-target="#modalAddPlayerFeedback" data-placement="right" title="{{'ADD_FEEDBACK' | translate}}")
+                    span(ng-if="v.isRealPlayer")
+                        a.fa.fa-plus-circle.margin-right-5(ng-click="vm.showTopupTab(null); vm.onClickPlayerCheck((v._id || ''),vm.initPlayerManualTopUp); vm.getSelectedRowTopUpGroupDetails(v)" style="color: #68C60C" data-toggle="modal" data-placement="left" data-target="#modalPlayerTopUp" title="{{'TOP_UP' | translate}}")&nbsp; &nbsp;   
+                        img.margin-right-5(ng-click="vm.initPlayerBonus(v); vm.getPlayerBankList()" ng-if="v.permission.applyBonus === false" data-toggle="modal" data-placement="left" data-target="#modalPlayerBonus" style="height:14px;width:14px" src="images/icon/withdrawRed.png" title="{{'Bonus' | translate}}")
+                        img.margin-right-5(ng-click="vm.initPlayerBonus(v); vm.getPlayerBankList()" ng-if="v.permission.applyBonus === true || v.permission.applyBonus == undefined" data-toggle="modal" data-target="#modalPlayerBonus" style="height:14px;width:14px" src="images/icon/withdrawBlue.png" title="{{'Bonus' | translate}}")
+                        img.margin-right-5(ng-click="vm.initRewardSettings(v); vm.initPlayerAddRewardTask()" style="height:14px;width:14px" data-toggle="modal" data-placement="left" data-target="#modalPlayerAddRewardTask" src="images/icon/rewardBlue.png" title="{{'REWARD_ACTION' | translate}}")
+                        img.margin-right-5(ng-click="vm.showReapplyLostOrderTab(null); vm.prepareShowPlayerCredit(); vm.prepareShowRepairPayment('#modalReapplyLostOrder')" style="height:14px;width:14px" data-placement="right" data-toggle="modal" src="images/icon/reapplyBlue.png" title="{{'ALL_REAPPLY_ORDER' | translate}}")
+                        img.margin-right-5(ng-click="vm.getSelectedRowPlatformDetails(v); vm.onClickPlayerCheck((v._id || ''),vm.prepareShowPlayerCreditAdjustment,'adjust')" style="height:14px;width:14px" data-toggle="modal" data-target="#modalPlayerCreditAdjustment" src="images/icon/creditAdjustBlue.png" data-placement="right" title="{{'CREDIT_ADJUSTMENT' | translate}}")
+                        img.margin-right-5(ng-click="vm.getSelectedRowPlatformDetails(v); vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck((v._id || ''),vm.prepareShowPlayerRewardPointsAdjustment)" ng-if="v.permission.rewardPointsTask === false" data-toggle="modal" data-target="#modalPlayerRewardPointsAdjustment" style="height:14px;width:14px" src="images/icon/rewardPointsRed.png" data-placement="right" title="{{'REWARD_POINTS_ADJUSTMENT' | translate}}")
+                        img.margin-right-5(ng-click="vm.getSelectedRowPlatformDetails(v); vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck((v._id || ''),vm.prepareShowPlayerRewardPointsAdjustment)" ng-if="v.permission.rewardPointsTask === true || v.permission.rewardPointsTask == undefined " data-toggle="modal" data-target="#modalPlayerRewardPointsAdjustment" style="height:14px;width:14px" src="images/icon/rewardPointsBlue.png" data-placement="right" title="{{'REWARD_POINTS_ADJUSTMENT' | translate}}")
+                td.alignLeft
+                    a.playerPermissionPopover(ng-click="vm.getSelectedRowPlatformDetails(v); vm.permissionPlayer = v; vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward; vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay; vm.permissionPlayer.permission.forbidPlayerConsumptionReturn = !vm.permissionPlayer.permission.forbidPlayerConsumptionReturn; vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive = !vm.permissionPlayer.permission.forbidPlayerConsumptionIncentive; vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin; vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;" data-toggle="popover" data-trigger="focus" data-placement="left" data-container="body")
+                        span(ng-if="v.isRealPlayer")
+                            img.margin-right-5(ng-if="v.permission.applyBonus === false || v.permission.applyBonus == undefined" style="height:14px;width:14px" src="images/icon/withdrawRed.png" )
+                            img.margin-right-5(ng-if="v.permission.applyBonus === true" style="height:14px;width:14px" src="images/icon/withdrawBlue.png")
+                            img.margin-right-5(ng-if="v.permission.allTopUp === false" style="height:14px;width:14px" src="images/icon/allTopUpRed.png")
+                            img.margin-right-5(ng-if="v.permission.allTopUp === true || v.permission.allTopUp == undefined" style="height:14px;width:14px" src="images/icon/allTopUpBlue.png")
+                            img.margin-right-5(ng-if="v.permission.topupOnline === false || v.permission.topupOnline == undefined" style="height:14px;width:14px" src="images/icon/onlineTopUpRed.png")
+                            img.margin-right-5(ng-if="v.permission.topupOnline === true" style="height:14px;width:14px" src="images/icon/onlineTopUpBlue.png")
+                            img.margin-right-5(ng-if="v.permission.topupManual === false || v.permission.topupManual == undefined" style="height:14px;width:14px" src="images/icon/manualTopUpRed.png")
+                            img.margin-right-5(ng-if="v.permission.topupManual === true" style="height:14px;width:14px" src="images/icon/manualTopUpBlue.png")
+                            img.margin-right-5(ng-if="v.permission.alipayTransaction === false || v.permission.alipayTransaction == undefined" style="height:14px;width:14px" src="images/icon/aliPayRed.png")
+                            img.margin-right-5(ng-if="v.permission.alipayTransaction === true" style="height:14px;width:14px" src="images/icon/aliPayBlue.png")
+                            a.text-danger.margin-right-5(ng-if="v.permission.disableWechatPay === true").fa.fa-comments
+                            a.text-primary.margin-right-5(ng-if="v.permission.disableWechatPay === false || v.permission.disableWechatPay == undefined").fa.fa-comments
+                            img.margin-right-5(ng-if="v.permission.topUpCard === false" style="height:14px;width:14px" src="images/icon/cardTopUpRed.png")
+                            img.margin-right-5(ng-if="v.permission.topUpCard === true || v.permission.topUpCard == undefined" style="height:14px;width:14px" src="images/icon/cardTopUpBlue.png")
+                        span
+                            a.text-danger.margin-right-5(ng-if="v.permission.forbidPlayerFromLogin === true").fa.fa-sign-out 
+                            a.text-primary.margin-right-5(ng-if="v.permission.forbidPlayerFromLogin === false || v.permission.forbidPlayerFromLogin == undefined").fa.fa-sign-in
 
+                            a.text-danger.margin-right-5(ng-if="v.permission.forbidPlayerFromEnteringGame === true").fa.fa-gamepad 
+                            a.text-primary.margin-right-5(ng-if="v.permission.forbidPlayerFromEnteringGame === false || v.permission.forbidPlayerFromEnteringGame == undefined").fa.fa-gamepad
+                        //- div(ng-if="v.isRealPlayer")
+                        //-     br
+                        span
+                            a.text-primary.margin-right-5(ng-if="v.permission.phoneCallFeedback === true || v.permission.phoneCallFeedback == undefined").fa.fa-volume-control-phone 
+                            a.text-danger.margin-right-5(ng-if="v.permission.phoneCallFeedback === false").fa.fa-volume-control-phone 
+                            a.text-primary.margin-right-5(ng-if="v.permission.SMSFeedBack === true || v.permission.SMSFeedBack == undefined").fa.fa-comment
+                            a.text-danger.margin-right-5(ng-if="v.permission.SMSFeedBack === false").fa.fa-comment
+                            span(ng-if="v.isRealPlayer")
+                                a.text-danger.margin-right-5(ng-if="v.permission.banReward === true || v.permission.banReward == undefined").fa.fa-gift 
+                                a.text-primary.margin-right-5(ng-if="v.permission.banReward === false").fa.fa-gift
+                                a.text-danger.margin-right-5(ng-if="v.permission.forbidPlayerConsumptionReturn === true").fa.fa-repeat 
+                                a.text-primary.margin-right-5(ng-if="v.permission.forbidPlayerConsumptionReturn === false || v.permission.banReward == undefined").fa.fa-repeat
+                                img.margin-right-5(ng-if="v.permission.allowPromoCode === false" style="height:14px;width:14px" src="images/icon/promoCodeRed.png")
+                                img.margin-right-5(ng-if="v.permission.allowPromoCode === true || v.permission.allowPromoCode == undefined" style="height:14px;width:14px" src="images/icon/promoCodeBlue.png")
+                                img.margin-right-5(ng-if="v.permission.rewardPointsTask === false" style="height:14px;width:14px" src="images/icon/rewardPointsRed.png")
+                                img.margin-right-5(ng-if="v.permission.rewardPointsTask === true || v.permission.rewardPointsTask == undefined" style="height:14px;width:14px" src="images/icon/rewardPointsBlue.png")
+                                img.margin-right-5(ng-if="v.permission.levelChange === false" style="height:14px;width:14px" src="images/icon/levelRed.png")
+                                img.margin-right-5(ng-if="v.permission.levelChange === true || v.permission.levelChange == undefined" style="height:14px;width:14px" src="images/icon/levelBlue.png")
+                td
+                    span(ng-if="v.isRealPlayer")
+                        a.forbidRewardEventPopover.margin-right-5.text-danger.fa.fa-gift(ng-if="v.forbidRewardEvents && ( v.forbidRewardEvents.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true)" data-toggle="popover" data-placement="left" data-trigger="focus" type="button" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px")
+                        a.forbidRewardEventPopover.margin-right-5.fa.fa-gift(ng-if="!(v.forbidRewardEvents && ( v.forbidRewardEvents.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true))" data-toggle="popover" ddata-placement="left" data-trigger="focus" type="button" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px")
+
+                    a.prohibitGamePopover.margin-right-5.text-danger.fa.fa-gamepad(ng-if="v.forbidProviders && ( v.forbidProviders.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true)" data-toggle="popover" data-placement="left" data-trigger="focus" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px")
+                    a.prohibitGamePopover.margin-right-5.fa.fa-gamepad(ng-if="!(v.forbidProviders && ( v.forbidProviders.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true))" data-toggle="popover" data-placement="left" data-trigger="focus" type="button" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px")
+                    span(ng-if="v.isRealPlayer")
+                        a.forbidTopUpPopover.margin-right-5.text-danger(ng-if="v.forbidTopUpType && ( v.forbidTopUpType.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true)" data-toggle="popover" data-row="v" data-placement="left" data-trigger="focus" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px; display:inline-block")
+                            img(src="images/icon/onlineTopUpRed.png" width="15px" height="12px")
+                        a.forbidTopUpPopover.margin-right-5( ng-if="!(v.forbidTopUpType && ( v.forbidTopUpType.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true))" data-toggle="popover" data-row="v" data-placement="left" data-trigger="focus" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px; display:inline-block")
+                            img(src="images/icon/onlineTopUpBlue.png" width="15px" height="12px")
+                        a.forbidRewardPointsEventPopover.margin-right-5.text-danger(ng-if="v.forbidRewardPointsEvent && ( v.forbidRewardPointsEvent.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true)" data-toggle="popover" data-row="v" data-placement="left" data-trigger="focus" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px; display:inline-block")
+                            img(src="images/icon/rewardPointsRed.png" width="15px" height="12px")
+                        a.forbidRewardPointsEventPopover.margin-right-5(ng-if="!(v.forbidRewardPointsEvent && ( v.forbidRewardPointsEvent.length > 0 || v.forbidPromoCode == true || v.forbidLevelUpReward == true || v.forbidLevelMaintainReward == true))" data-toggle="popover" data-row="v" data-placement="left" data-trigger="focus" data-html="true" href="#" data-container="body" style="z-index: auto; min-width:23px; display:inline-block")
+                            img(src="images/icon/rewardPointsBlue.png" width="15px" height="12px")
+                td
+                    {{v.partner.partnerName}}
+                td
+                    {{v.referralName$}}
     div(style="display: flex;justify-content: space-between;")
         div
             div(style='display:inline-block;font-weight:normal')

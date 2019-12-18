@@ -3,6 +3,8 @@
   "BACKSTAGE_SETTINGS": "Backstage Settings",
   "PLAYER_DISPLAY_DATA": "Player Display Data",
   "PARTNER_DISPLAY_DATA": "Partner Display Data",
+  "MAIN_PERMISSION":"Main Permission",
+  "SECONDARY_PERMISSION":"Secondary Permission",
   "SYSTEM_SETTLEMENT": "Settlement",
   "PUSH_NOTIFICATION_APP_KEY": "Push Notification App Key",
   "PUSH_NOTIFICATION_MASTER_KEY": "Push Notification Master Key",
